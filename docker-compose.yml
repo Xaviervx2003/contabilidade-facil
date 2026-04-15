@@ -1,0 +1,48 @@
+services:
+  db_contabil:
+    image: postgres:15
+    container_name: postgres_joao
+    restart: always
+    environment:
+      POSTGRES_USER: joao_xavier
+      POSTGRES_PASSWORD: sua_senha_segura12
+      POSTGRES_DB: plataforma_questoes
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data          # volume nomeado — dados persistem entre recreates
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # schema criado automaticamente na 1ª vez
+
+  api:
+    build: .
+    container_name: api_contabil
+    restart: always
+    depends_on:
+      - db_contabil
+    environment:
+      DB_HOST: db_contabil
+      DB_NAME: plataforma_questoes
+      DB_USER: joao_xavier
+      DB_PASSWORD: sua_senha_segura12
+      DB_PORT: 5432
+      PORT: 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8081:8080"
+
+volumes:
+  pg_data:  # volume gerenciado pelo Docker (mais robusto que bind mount no Windows)
