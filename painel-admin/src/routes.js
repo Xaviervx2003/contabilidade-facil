@@ -1,6 +1,9 @@
 /**
  * Application Routes Configuration — Contabilidade Fácil
  * @module routes
+ *
+ * allowedRoles: array de papéis que podem acessar a rota.
+ * Se ausente, qualquer papel logado pode acessar.
  */
 
 import React from 'react'
@@ -12,16 +15,18 @@ const Historico = React.lazy(() => import('./views/historico/Historico'))
 const Perfil = React.lazy(() => import('./views/perfil/Perfil'))
 const FeedbacksQuestoes = React.lazy(() => import('./views/feedbacks/FeedbacksQuestoes'))
 const GestaoUsuarios = React.lazy(() => import('./views/admin/GestaoUsuarios'))
+const GestaoMaterias = React.lazy(() => import('./views/admin/GestaoMaterias'))
 
 export const routes = [
   { path: '/', exact: true, name: 'Home' },
-  { path: '/dashboard', name: 'Dashboard', element: Dashboard },
+  { path: '/dashboard', name: 'Dashboard', element: Dashboard, allowedRoles: ['admin', 'professor'] },
   { path: '/quiz', name: 'Quiz', element: Quiz },
   { path: '/historico', name: 'Meu Histórico', element: Historico },
-  { path: '/questoes', name: 'Gestão de Questões', element: GestaoQuestoes },
+  { path: '/questoes', name: 'Gestão de Questões', element: GestaoQuestoes, allowedRoles: ['admin', 'professor'] },
   { path: '/perfil', name: 'Minha Conta', element: Perfil },
-  { path: '/feedbacks', name: 'Feedbacks dos Alunos', element: FeedbacksQuestoes },
-  { path: '/usuarios', name: 'Gestão de Usuários', element: GestaoUsuarios },
+  { path: '/feedbacks', name: 'Feedbacks dos Alunos', element: FeedbacksQuestoes, allowedRoles: ['admin', 'professor'] },
+  { path: '/usuarios', name: 'Gestão de Usuários', element: GestaoUsuarios, allowedRoles: ['admin'] },
+  { path: '/materias', name: 'Gestão de Matérias', element: GestaoMaterias, allowedRoles: ['admin', 'professor'] },
 ]
 
 export default routes

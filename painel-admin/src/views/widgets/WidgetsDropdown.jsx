@@ -16,7 +16,7 @@ import CIcon from '@coreui/icons-react'
 import { cilArrowBottom, cilArrowTop, cilOptions } from '@coreui/icons'
 
 const WidgetsDropdown = (props) => {
-  const { customStats = { usuarios_ativos: 0, total_questoes_resolvidas: 0, tempo_medio_minutos: 0 } } = props;
+  const { customStats = { usuarios_ativos: 0, total_questoes_resolvidas: 0, tempo_medio_minutos: 0, total_questoes_banco: 0 } } = props;
   const widgetChartRef1 = useRef(null)
   const widgetChartRef2 = useRef(null)
 
@@ -282,7 +282,57 @@ const WidgetsDropdown = (props) => {
           }
         />
       </CCol>
-      {/* Quarto card removido para manter equilibrio de 3 metricas vitais */}
+      <CCol sm={6} xl={4} xxl={3}>
+        <CWidgetStatsA
+          color="success"
+          value={
+            <>
+              {customStats.total_questoes_banco}{' '}
+              <span className="fs-6 fw-normal">
+                (Cadastradas)
+              </span>
+            </>
+          }
+          title="Questões no Banco"
+          action={
+            <CDropdown alignment="end">
+              <CDropdownToggle color="transparent" caret={false} className="text-white p-0">
+                <CIcon icon={cilOptions} />
+              </CDropdownToggle>
+              <CDropdownMenu>
+                <CDropdownItem>Ver questões</CDropdownItem>
+              </CDropdownMenu>
+            </CDropdown>
+          }
+          chart={
+            <CChartBar
+              className="mt-3 mx-3"
+              style={{ height: '70px' }}
+              data={{
+                labels: ['', '', '', '', '', '', ''],
+                datasets: [
+                  {
+                    label: 'Questões',
+                    backgroundColor: 'rgba(255,255,255,.2)',
+                    borderColor: 'rgba(255,255,255,.55)',
+                    data: [18, 25, 12, 30, 22, 28, customStats.total_questoes_banco || 15],
+                    borderWidth: 1,
+                    barPercentage: 0.6,
+                  },
+                ],
+              }}
+              options={{
+                plugins: { legend: { display: false } },
+                maintainAspectRatio: false,
+                scales: {
+                  x: { display: false },
+                  y: { display: false },
+                },
+              }}
+            />
+          }
+        />
+      </CCol>
     </CRow>
   )
 }

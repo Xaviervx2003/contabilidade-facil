@@ -36,12 +36,49 @@ def listar_materias():
     try:
         conn = get_conexao()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, nome FROM materias ORDER BY nome ASC;")
+        cursor.execute("""
+            SELECT m.id, m.nome, COUNT(qm.questao_id) AS total_questoes
+            FROM materias m
+            LEFT JOIN questoes_materias qm ON m.id = qm.materia_id
+            GROUP BY m.id, m.nome
+            ORDER BY m.nome ASC;
+        """)
         linhas = cursor.fetchall()
         conn.close()
-        return [{"id": l[0], "nome": l[1]} for l in linhas]
+        return [{"id": l[0], "nome": l[1], "total_questoes": l[2]} for l in linhas]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/materias/{materia_id}")
+def editar_materia(materia_id: int, materia: MateriaRequest):
+    try:
+        conn = get_conexao()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE materias SET nome = %s WHERE id = %s;",
+            (materia.nome, materia_id)
+        )
+        conn.commit()
+        conn.close()
+        return {"sucesso": True, "mensagem": "Matéria atualizada!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao editar: {str(e)}")
+
+
+@router.delete("/materias/{materia_id}")
+def deletar_materia(materia_id: int):
+    try:
+        conn = get_conexao()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM questoes_materias WHERE materia_id = %s;", (materia_id,))
+        cursor.execute("DELETE FROM professores_materias WHERE materia_id = %s;", (materia_id,))
+        cursor.execute("DELETE FROM materias WHERE id = %s;", (materia_id,))
+        conn.commit()
+        conn.close()
+        return {"sucesso": True, "mensagem": "Matéria removida!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao deletar: {str(e)}")
 
 
 # ══════════════════════════════════════════════════════════════

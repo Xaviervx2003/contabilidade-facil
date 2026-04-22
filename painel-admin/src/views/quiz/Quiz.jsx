@@ -38,6 +38,18 @@ const TIME_OPTIONS = [
   { value: 600, label: '10 minutos' },
   { value: 900, label: '15 minutos' },
   { value: 1200, label: '20 minutos' },
+  { value: 1800, label: '30 minutos' },
+  { value: 3600, label: '1 hora' },
+]
+
+const QTD_OPTIONS = [
+  { value: 0, label: 'Todas as questões' },
+  { value: 5, label: '5 questões' },
+  { value: 10, label: '10 questões' },
+  { value: 15, label: '15 questões' },
+  { value: 20, label: '20 questões' },
+  { value: 30, label: '30 questões' },
+  { value: 50, label: '50 questões' },
 ]
 
 // ✅ ALTERAÇÃO 1: Adicionado 'E' ao array de letras
@@ -176,7 +188,18 @@ const Quiz = () => {
   const [commentText, setCommentText] = useState('')
   const [commentStatus, setCommentStatus] = useState('idle')
 
-  const nomeAluno = sessionStorage.getItem('userName') || 'Aluno'
+  const [materias, setMaterias] = useState([])
+  const [materiaSelecionada, setMateriaSelecionada] = useState('')
+  const [quantidade, setQuantidade] = useState(0)
+
+  const nomeAluno = sessionStorage.getItem('nome') || 'Aluno'
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/admin/materias`)
+      .then(res => res.json())
+      .then(data => setMaterias(Array.isArray(data) ? data : []))
+      .catch(() => {})
+  }, [])
 
   const startQuiz = async (questionsData) => {
     setError('')
@@ -203,14 +226,21 @@ const Quiz = () => {
     setFeedback('')
     setStatus('loading')
     try {
-      const res = await fetch(`${API_URL}/api/questoes`)
+      const params = new URLSearchParams()
+      if (materiaSelecionada) params.set('materia_id', materiaSelecionada)
+      const qs = params.toString() ? `?${params.toString()}` : ''
+      const res = await fetch(`${API_URL}/api/questoes${qs}`)
       const data = await res.json()
       if (!res.ok || !Array.isArray(data) || data.length === 0) {
-        throw new Error('Não foi possível carregar as questões.')
+        throw new Error('Nenhuma questão encontrada para esta matéria.')
       }
-      await startQuiz(data)
-    } catch {
-      setError('Erro ao buscar questões. Verifique se o backend está ativo.')
+      let pool = shuffle(data)
+      if (quantidade > 0 && quantidade < pool.length) {
+        pool = pool.slice(0, quantidade)
+      }
+      await startQuiz(pool)
+    } catch (err) {
+      setError(err.message || 'Erro ao buscar questões. Verifique se o backend está ativo.')
       setStatus('ready')
     }
   }
@@ -284,6 +314,13 @@ const Quiz = () => {
     }
   }
 
+  const handleFinishEarly = () => {
+    if (!window.confirm('Deseja realmente encerrar o simulado? A nota será calculada com base nas questões já respondidas.')) return
+    setElapsedSeconds(Math.round((Date.now() - startTime) / 1000))
+    setFeedback(`Simulado encerrado pelo aluno. ${questionsAndAnswers.length} de ${questions.length} questões respondidas.`)
+    setStatus('finished')
+  }
+
   const handleReplay = () => startQuiz(shuffle(questions))
 
   const handleReset = () => {
@@ -294,6 +331,8 @@ const Quiz = () => {
     setFeedback('')
     setError('')
     setSaved(false)
+    setMateriaSelecionada('')
+    setQuantidade(0)
   }
 
   const handleSaveSession = async () => {
@@ -301,13 +340,16 @@ const Quiz = () => {
     setSaving(true)
     setError('')
     try {
-      const total = questions.length
-      const porcentagem = calculateScore(total, score)
-      const userMatricula = sessionStorage.getItem('userMatricula') || nomeAluno
+      const respondidas = questionsAndAnswers.length
+      const porcentagem = calculateScore(respondidas, score)
+      const userMatricula = sessionStorage.getItem('matricula') || nomeAluno
+      const materiaLabel = materiaSelecionada
+        ? materias.find(m => String(m.id) === String(materiaSelecionada))?.nome || 'Quiz de Contabilidade'
+        : 'Quiz de Contabilidade'
       const payload = {
         nome_aluno: userMatricula,
-        assunto_estudado: 'Quiz de Contabilidade',
-        questoes_respondidas: total,
+        assunto_estudado: materiaLabel,
+        questoes_respondidas: respondidas,
         taxa_acerto: porcentagem,
         tempo_gasto_segundos: elapsedSeconds,
       }
@@ -352,8 +394,9 @@ const Quiz = () => {
   }, [status, saved])
 
   const currentQuestion = questions[currentIndex]
+  const totalAnswered = questionsAndAnswers.length
   const totalQuestions = questions.length
-  const finalScore = calculateScore(totalQuestions, score)
+  const finalScore = calculateScore(totalAnswered || totalQuestions, score)
 
   return (
     <CContainer className="py-4">
@@ -370,19 +413,44 @@ const Quiz = () => {
 
               {status === 'ready' && (
                 <CForm>
-                  <p>Selecione o tempo disponível para o seu quiz e pressione <strong>Iniciar</strong>.</p>
-                  <CFormSelect
-                    aria-label="Tempo para o quiz"
-                    value={tempoLimite}
-                    onChange={(e) => setTempoLimite(Number(e.target.value))}
-                    className="mb-3"
-                    style={{ maxWidth: 240 }}
-                  >
-                    {TIME_OPTIONS.map((item) => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
-                    ))}
-                  </CFormSelect>
-                  <CButton color="primary" onClick={fetchAndStart}>
+                  <p>Configure seu simulado e pressione <strong>Iniciar</strong>.</p>
+                  <CRow className="g-3 mb-4">
+                    <CCol xs={12} md={4}>
+                      <label className="form-label fw-bold small text-muted">📚 Matéria</label>
+                      <CFormSelect
+                        value={materiaSelecionada}
+                        onChange={(e) => setMateriaSelecionada(e.target.value)}
+                      >
+                        <option value="">Todas as matérias</option>
+                        {materias.map((m) => (
+                          <option key={m.id} value={m.id}>{m.nome}</option>
+                        ))}
+                      </CFormSelect>
+                    </CCol>
+                    <CCol xs={6} md={4}>
+                      <label className="form-label fw-bold small text-muted">🔢 Questões</label>
+                      <CFormSelect
+                        value={quantidade}
+                        onChange={(e) => setQuantidade(Number(e.target.value))}
+                      >
+                        {QTD_OPTIONS.map((item) => (
+                          <option key={item.value} value={item.value}>{item.label}</option>
+                        ))}
+                      </CFormSelect>
+                    </CCol>
+                    <CCol xs={6} md={4}>
+                      <label className="form-label fw-bold small text-muted">⏱ Tempo</label>
+                      <CFormSelect
+                        value={tempoLimite}
+                        onChange={(e) => setTempoLimite(Number(e.target.value))}
+                      >
+                        {TIME_OPTIONS.map((item) => (
+                          <option key={item.value} value={item.value}>{item.label}</option>
+                        ))}
+                      </CFormSelect>
+                    </CCol>
+                  </CRow>
+                  <CButton color="primary" size="lg" onClick={fetchAndStart}>
                     ▶ Iniciar Quiz
                   </CButton>
                 </CForm>
@@ -545,7 +613,18 @@ const Quiz = () => {
 
                   {/* ────────────────── BOTÕES DE NAVEGAÇÃO ────────────────── */}
                   <div className="mt-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <span className="text-muted small">Aluno: {nomeAluno}</span>
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="text-muted small">Aluno: {nomeAluno}</span>
+                      <CButton
+                        color="danger"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleFinishEarly}
+                        disabled={questionsAndAnswers.length === 0}
+                      >
+                        ⛔ Encerrar Simulado
+                      </CButton>
+                    </div>
                     {!isAnswerConfirmed ? (
                       <CButton
                         color="success"
@@ -596,7 +675,7 @@ const Quiz = () => {
                     <StatsPanel
                       score={finalScore}
                       correctAnswers={score}
-                      totalQuestions={totalQuestions}
+                      totalQuestions={totalAnswered || totalQuestions}
                       elapsedSeconds={elapsedSeconds}
                       onReplay={handleReplay}
                       onReset={handleReset}

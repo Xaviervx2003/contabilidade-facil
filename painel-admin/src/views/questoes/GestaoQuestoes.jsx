@@ -23,11 +23,18 @@ import {
   CTableHeaderCell,
   CTableRow,
   CFormCheck,
-  CSpinner
+  CSpinner,
+  CInputGroup,
+  CInputGroupText,
+  CBadge,
+  CPagination,
+  CPaginationItem,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPencil, cilTrash } from '@coreui/icons'
+import { cilPencil, cilTrash, cilSearch, cilCloudUpload } from '@coreui/icons'
 import { API_URL } from '../../config'
+
+const PER_PAGE = 20
 
 const GestaoQuestoes = () => {
   const [questoes, setQuestoes] = useState([])
@@ -35,6 +42,8 @@ const GestaoQuestoes = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
 
   const [modalVisible, setModalVisible] = useState(false)
   const [modoEdicao, setModoEdicao] = useState(false)
@@ -67,7 +76,9 @@ const GestaoQuestoes = () => {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`${API_URL}/api/questoes`)
+      const userId = sessionStorage.getItem('userId')
+      const params = userId ? `?usuario_id=${userId}` : ''
+      const res = await fetch(`${API_URL}/api/questoes${params}`)
       const data = await res.json()
       setQuestoes(data)
     } catch (err) {
@@ -191,6 +202,31 @@ const GestaoQuestoes = () => {
     }
   }
 
+  const handleCsvImport = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    setError('')
+    setSuccess('')
+    try {
+      const formData = new FormData()
+      formData.append('arquivo', file)
+      const res = await fetch(`${API_URL}/api/questoes/importar-csv`, {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.detail || 'Erro no upload')
+      setSuccess(data.mensagem)
+      if (data.erros?.length) {
+        setError(`Avisos: ${data.erros.join(' | ')}`)
+      }
+      carregarQuestoes()
+    } catch (err) {
+      setError(err.message || 'Erro ao importar CSV.')
+    }
+  }
+
   return (
     <CRow>
       <CCol xs={12}>
@@ -198,55 +234,142 @@ const GestaoQuestoes = () => {
         {success && <CAlert color="success" dismissible onClose={() => setSuccess('')}>{success}</CAlert>}
 
         <CCard className="mb-4">
-          <CCardHeader className="d-flex justify-content-between align-items-center">
-            <strong>Gestão de Questões do Quiz</strong>
-            <CButton color="primary" onClick={abrirParaNovo}>
-              + Nova Questão
-            </CButton>
+          <CCardHeader className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div className="d-flex align-items-center gap-2">
+              <strong>Gestão de Questões do Quiz</strong>
+              <CBadge color="secondary">{questoes.length} questões</CBadge>
+            </div>
+            <div className="d-flex align-items-center gap-2">
+              <CInputGroup style={{ maxWidth: 280 }}>
+                <CInputGroupText><CIcon icon={cilSearch} size="sm" /></CInputGroupText>
+                <CFormInput
+                  placeholder="Buscar enunciado ou matéria..."
+                  value={searchTerm}
+                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1) }}
+                />
+              </CInputGroup>
+              <input
+                type="file"
+                accept=".csv"
+                id="csv-import-input"
+                style={{ display: 'none' }}
+                onChange={handleCsvImport}
+              />
+              <CButton
+                color="success"
+                variant="outline"
+                onClick={() => document.getElementById('csv-import-input').click()}
+                title="Importar questões via arquivo CSV"
+              >
+                <CIcon icon={cilCloudUpload} className="me-1" /> CSV
+              </CButton>
+              <CButton color="primary" onClick={abrirParaNovo}>
+                + Nova Questão
+              </CButton>
+            </div>
           </CCardHeader>
 
           <CCardBody>
-            <CTable align="middle" className="mb-0 border" hover responsive>
-              <CTableHead color="light">
-                <CTableRow>
-                  <CTableHeaderCell>ID</CTableHeaderCell>
-                  <CTableHeaderCell>Matérias</CTableHeaderCell>
-                  <CTableHeaderCell>Enunciado</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Ações</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody>
-                {loading ? (
-                  <CTableRow><CTableDataCell colSpan="4" className="text-center py-4"><CSpinner color="primary" /></CTableDataCell></CTableRow>
-                ) : questoes.map((q) => (
-                  <CTableRow key={q.id}>
-                    <CTableDataCell>
-                      <strong>#{q.id}</strong>
-                    </CTableDataCell>
-                    <CTableDataCell>
-                      {q.materias_nomes ? (
-                        <span className="small text-primary fw-medium">{q.materias_nomes}</span>
-                      ) : (
-                        <span className="small text-muted fst-italic">{q.assunto || 'Multi-Matéria'}</span>
-                      )}
-                    </CTableDataCell>
-                    <CTableDataCell>
-                      <div style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {q.question}
-                      </div>
-                    </CTableDataCell>
-                    <CTableDataCell className="text-center">
-                      <CButton color="info" variant="ghost" onClick={() => abrirParaEdicao(q)}>
-                        <CIcon icon={cilPencil} /> Editar
-                      </CButton>
-                      <CButton color="danger" variant="ghost" className="ms-2" onClick={() => deletarQuestao(q.id)}>
-                        <CIcon icon={cilTrash} /> Excluir
-                      </CButton>
-                    </CTableDataCell>
-                  </CTableRow>
-                ))}
-              </CTableBody>
-            </CTable>
+            {(() => {
+              const filtered = questoes.filter((q) => {
+                if (!searchTerm.trim()) return true
+                const term = searchTerm.toLowerCase()
+                return (
+                  (q.question && q.question.toLowerCase().includes(term)) ||
+                  (q.assunto && q.assunto.toLowerCase().includes(term)) ||
+                  (q.materias_nomes && q.materias_nomes.toLowerCase().includes(term)) ||
+                  String(q.id).includes(term)
+                )
+              })
+              const totalPages = Math.ceil(filtered.length / PER_PAGE)
+              const start = (currentPage - 1) * PER_PAGE
+              const paginated = filtered.slice(start, start + PER_PAGE)
+
+              return (
+                <>
+                  <CTable align="middle" className="mb-0 border" hover responsive>
+                    <CTableHead color="light">
+                      <CTableRow>
+                        <CTableHeaderCell>ID</CTableHeaderCell>
+                        <CTableHeaderCell>Matérias</CTableHeaderCell>
+                        <CTableHeaderCell>Enunciado</CTableHeaderCell>
+                        <CTableHeaderCell className="text-center">Ações</CTableHeaderCell>
+                      </CTableRow>
+                    </CTableHead>
+                    <CTableBody>
+                      {loading ? (
+                        <CTableRow><CTableDataCell colSpan="4" className="text-center py-4"><CSpinner color="primary" /></CTableDataCell></CTableRow>
+                      ) : paginated.length === 0 ? (
+                        <CTableRow><CTableDataCell colSpan="4" className="text-center py-4 text-muted">Nenhuma questão encontrada.</CTableDataCell></CTableRow>
+                      ) : paginated.map((q) => (
+                        <CTableRow key={q.id}>
+                          <CTableDataCell>
+                            <strong>#{q.id}</strong>
+                          </CTableDataCell>
+                          <CTableDataCell>
+                            {q.materias_nomes ? (
+                              <span className="small text-primary fw-medium">{q.materias_nomes}</span>
+                            ) : (
+                              <span className="small text-muted fst-italic">{q.assunto || 'Multi-Matéria'}</span>
+                            )}
+                          </CTableDataCell>
+                          <CTableDataCell>
+                            <div style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {q.question}
+                            </div>
+                          </CTableDataCell>
+                          <CTableDataCell className="text-center">
+                            <CButton color="info" variant="ghost" onClick={() => abrirParaEdicao(q)}>
+                              <CIcon icon={cilPencil} /> Editar
+                            </CButton>
+                            <CButton color="danger" variant="ghost" className="ms-2" onClick={() => deletarQuestao(q.id)}>
+                              <CIcon icon={cilTrash} /> Excluir
+                            </CButton>
+                          </CTableDataCell>
+                        </CTableRow>
+                      ))}
+                    </CTableBody>
+                  </CTable>
+
+                  {totalPages > 1 && (
+                    <div className="d-flex justify-content-between align-items-center mt-3">
+                      <small className="text-muted">
+                        Mostrando {start + 1}–{Math.min(start + PER_PAGE, filtered.length)} de {filtered.length}
+                      </small>
+                      <CPagination size="sm" aria-label="Navegação de questões">
+                        <CPaginationItem
+                          disabled={currentPage === 1}
+                          onClick={() => setCurrentPage(currentPage - 1)}
+                        >
+                          ‹
+                        </CPaginationItem>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                          .filter(p => Math.abs(p - currentPage) <= 2 || p === 1 || p === totalPages)
+                          .map((p, idx, arr) => (
+                            <React.Fragment key={p}>
+                              {idx > 0 && arr[idx - 1] !== p - 1 && (
+                                <CPaginationItem disabled>…</CPaginationItem>
+                              )}
+                              <CPaginationItem
+                                active={p === currentPage}
+                                onClick={() => setCurrentPage(p)}
+                              >
+                                {p}
+                              </CPaginationItem>
+                            </React.Fragment>
+                          ))}
+                        <CPaginationItem
+                          disabled={currentPage === totalPages}
+                          onClick={() => setCurrentPage(currentPage + 1)}
+                        >
+                          ›
+                        </CPaginationItem>
+                      </CPagination>
+                    </div>
+                  )}
+                </>
+              )
+            })()}
           </CCardBody>
         </CCard>
       </CCol>

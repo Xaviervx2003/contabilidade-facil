@@ -59,12 +59,17 @@ def resumo_dashboard(usuario_id: Optional[int] = Query(None)):
             """)
 
         dados = cursor.fetchone()
+
+        cursor.execute("SELECT COUNT(*) FROM questoes;")
+        total_questoes_banco = cursor.fetchone()[0] or 0
+
         conn.close()
 
         return {
             "usuarios_ativos": int(dados[0] or 0),
             "total_questoes_resolvidas": int(dados[1] or 0),
             "tempo_medio_minutos": float(round(dados[2] or 0, 1)),
+            "total_questoes_banco": int(total_questoes_banco),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro no dashboard: {str(e)}")

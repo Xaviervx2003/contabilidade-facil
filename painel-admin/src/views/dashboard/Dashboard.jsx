@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import {
+  CButton,
   CCard,
   CCardBody,
   CCardHeader,
@@ -14,7 +15,7 @@ import {
   CTableRow,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPeople } from '@coreui/icons'
+import { cilPeople, cilCloudDownload } from '@coreui/icons'
 
 import { API_URL } from '../../config'
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
@@ -55,6 +56,21 @@ const Dashboard = () => {
 
   const stats = useDashboardStats(userId)
   const topAlunos = useTopAlunos(userId)
+
+  const exportarCSV = () => {
+    if (topAlunos.length === 0) return
+    const header = 'Nome,Matrícula,Média (%),Questões,Sessões\n'
+    const rows = topAlunos.map(a =>
+      `"${a.nome.replace(/"/g, '""')}",${a.matricula},${a.media_numero.toFixed(1)},${a.questoes},${a.sessoes}`
+    ).join('\n')
+    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `relatorio_desempenho_${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <>
@@ -105,7 +121,18 @@ const Dashboard = () => {
 
               <br />
 
-              <h5 className="mt-4 mb-3">Top Alunos (Métricas de Tabela)</h5>
+              <div className="d-flex justify-content-between align-items-center mt-4 mb-3">
+                <h5 className="mb-0">Top Alunos (Métricas de Tabela)</h5>
+                <CButton
+                  color="info"
+                  variant="outline"
+                  size="sm"
+                  onClick={exportarCSV}
+                  disabled={topAlunos.length === 0}
+                >
+                  <CIcon icon={cilCloudDownload} className="me-1" /> Exportar CSV
+                </CButton>
+              </div>
               <CTable align="middle" className="mb-0 border" hover responsive>
                 <CTableHead className="text-nowrap">
                   <CTableRow>
@@ -141,7 +168,7 @@ const Dashboard = () => {
                         </CTableDataCell>
                         <CTableDataCell>
                           <div className="d-flex justify-content-between text-nowrap">
-                            <div className={`fw-semibold text-${gradeColor}`}>{item.media}</div>
+                            <div className={`fw-semibold text-${gradeColor}`}>{item.media_numero.toFixed(1)}%</div>
                           </div>
                           <CProgress thin color={gradeColor} value={item.media_numero} />
                         </CTableDataCell>

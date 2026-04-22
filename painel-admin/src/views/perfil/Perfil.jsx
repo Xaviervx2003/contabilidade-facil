@@ -17,7 +17,7 @@ import { cilUser, cilLockLocked, cilBadge, cilCalendar } from '@coreui/icons'
 import { API_URL } from '../../config'
 
 const Perfil = () => {
-  const matricula = sessionStorage.getItem('userMatricula')
+  const matricula = sessionStorage.getItem('matricula')
   const [perfil, setPerfil] = useState(null)
   const [loading, setLoading] = useState(true)
 

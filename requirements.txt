@@ -4,3 +4,4 @@ psycopg[binary]
 python-dotenv
 pytest
 httpx
+python-multipart

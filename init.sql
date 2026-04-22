@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS questoes (
     opcao_d          TEXT         NOT NULL,
     opcao_e          TEXT         DEFAULT NULL,
     resposta_correta CHAR(1)      NOT NULL CHECK (resposta_correta IN ('A','B','C','D','E')),
+    explicacao       TEXT         DEFAULT NULL,
     criado_por       INT          REFERENCES usuarios(id) ON DELETE SET NULL,  -- novo: qual professor criou
     criado_em        TIMESTAMP    DEFAULT NOW()
 );
@@ -82,11 +83,13 @@ ALTER TABLE usuarios
     ADD COLUMN IF NOT EXISTS email VARCHAR(255) UNIQUE;
 
 ALTER TABLE questoes
-    ADD COLUMN IF NOT EXISTS criado_por INT REFERENCES usuarios(id) ON DELETE SET NULL,
-    ADD COLUMN IF NOT EXISTS criado_em  TIMESTAMP DEFAULT NOW();
+    ADD COLUMN IF NOT EXISTS criado_por  INT REFERENCES usuarios(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS criado_em   TIMESTAMP DEFAULT NOW(),
+    ADD COLUMN IF NOT EXISTS explicacao  TEXT DEFAULT NULL;
 
 ALTER TABLE sessoes_estudo
-    ADD COLUMN IF NOT EXISTS eh_teste_professor BOOLEAN DEFAULT FALSE;
+    ADD COLUMN IF NOT EXISTS eh_teste_professor BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS criado_em TIMESTAMP DEFAULT NOW();
 
 -- Garante que o CHECK de papel existe (só cria a constraint se não houver)
 DO $$

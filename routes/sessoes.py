@@ -44,10 +44,10 @@ def obter_historico_aluno(matricula: str):
         cursor.execute(
             """
             SELECT id, assunto_estudado, questoes_respondidas, taxa_acerto, 
-                   tempo_gasto_segundos
+                   tempo_gasto_segundos, criado_em
             FROM sessoes_estudo 
             WHERE nome_aluno = %s
-            ORDER BY id DESC;
+            ORDER BY criado_em DESC;
         """,
             (matricula,),
         )
@@ -61,7 +61,7 @@ def obter_historico_aluno(matricula: str):
                 "questoes": int(linha[2]),
                 "taxa_acerto": float(linha[3]),
                 "tempo_segundos": int(linha[4]),
-                "data": None,
+                "data": linha[5].isoformat() if linha[5] else None,
             }
             for linha in linhas
         ]

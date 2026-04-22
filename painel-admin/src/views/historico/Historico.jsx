@@ -15,12 +15,19 @@ import {
   CTableRow,
   CSpinner,
 } from '@coreui/react'
+import { CChartLine } from '@coreui/react-chartjs'
 import { API_URL } from '../../config'
 
 const formatarData = (iso) => {
   if (!iso) return '—'
   const d = new Date(iso)
   return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+}
+
+const formatarDataCurta = (iso) => {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
 }
 
 const formatarTempo = (seg) => {
@@ -33,8 +40,8 @@ const formatarTempo = (seg) => {
 const Historico = () => {
   const [sessoes, setSessoes] = useState([])
   const [loading, setLoading] = useState(true)
-  const matricula = sessionStorage.getItem('userMatricula')
-  const nome = sessionStorage.getItem('userName') || 'Aluno'
+  const matricula = sessionStorage.getItem('matricula')
+  const nome = sessionStorage.getItem('nome') || 'Aluno'
 
   useEffect(() => {
     if (!matricula) {
@@ -65,6 +72,8 @@ const Historico = () => {
   if (!matricula) {
     return <CAlert color="warning">Faça login para ver seu histórico.</CAlert>
   }
+
+  const sessoesOrdemCronologica = [...sessoes].reverse()
 
   return (
     <>
@@ -113,6 +122,65 @@ const Historico = () => {
                 </div>
               </CCol>
             </CRow>
+
+            {/* Gráfico de evolução */}
+            {sessoes.length >= 2 && (
+              <CCard className="mb-4">
+                <CCardHeader>
+                  <strong>📈 Evolução do Desempenho</strong>
+                </CCardHeader>
+                <CCardBody>
+                  <CChartLine
+                    data={{
+                      labels: sessoesOrdemCronologica.map((s) => formatarDataCurta(s.data)),
+                      datasets: [
+                        {
+                          label: 'Nota (%)',
+                          backgroundColor: 'rgba(75, 192, 192, 0.15)',
+                          borderColor: 'rgba(75, 192, 192, 1)',
+                          pointBackgroundColor: sessoesOrdemCronologica.map((s) =>
+                            s.taxa_acerto >= 80 ? '#2eb85c' : s.taxa_acerto >= 60 ? '#f9b115' : '#e55353'
+                          ),
+                          pointRadius: 5,
+                          pointHoverRadius: 7,
+                          fill: true,
+                          tension: 0.3,
+                          data: sessoesOrdemCronologica.map((s) => s.taxa_acerto.toFixed(1)),
+                        },
+                      ],
+                    }}
+                    options={{
+                      responsive: true,
+                      plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                          callbacks: {
+                            title: (ctx) => {
+                              const idx = ctx[0].dataIndex
+                              const s = sessoesOrdemCronologica[idx]
+                              return `${formatarData(s.data)} — ${s.assunto}`
+                            },
+                            label: (ctx) => `Nota: ${ctx.raw}%`,
+                          },
+                        },
+                      },
+                      scales: {
+                        y: {
+                          min: 0,
+                          max: 100,
+                          ticks: { callback: (v) => `${v}%` },
+                        },
+                      },
+                    }}
+                  />
+                  <div className="d-flex justify-content-center gap-4 mt-3 small text-muted">
+                    <span><span className="badge bg-success">&nbsp;</span> ≥ 80%</span>
+                    <span><span className="badge bg-warning">&nbsp;</span> 60-79%</span>
+                    <span><span className="badge bg-danger">&nbsp;</span> &lt; 60%</span>
+                  </div>
+                </CCardBody>
+              </CCard>
+            )}
 
             <CCard>
               <CCardHeader>

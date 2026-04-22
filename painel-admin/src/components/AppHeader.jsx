@@ -36,10 +36,8 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
-  cilBell,
+  cilAccountLogout,
   cilContrast,
-  cilEnvelopeOpen,
-  cilList,
   cilMenu,
   cilMoon,
   cilSun,
@@ -91,27 +89,21 @@ const AppHeader = () => {
               Dashboard
             </CNavLink>
           </CNavItem>
-          <CNavItem>
-            <CNavLink href="#">Users</CNavLink>
-          </CNavItem>
-          <CNavItem>
-            <CNavLink href="#">Settings</CNavLink>
-          </CNavItem>
         </CHeaderNav>
         <CHeaderNav className="ms-auto">
           <CNavItem>
-            <CNavLink href="#">
-              <CIcon icon={cilBell} size="lg" />
-            </CNavLink>
-          </CNavItem>
-          <CNavItem>
-            <CNavLink href="#">
-              <CIcon icon={cilList} size="lg" />
-            </CNavLink>
-          </CNavItem>
-          <CNavItem>
-            <CNavLink href="#">
-              <CIcon icon={cilEnvelopeOpen} size="lg" />
+            <CNavLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault()
+                sessionStorage.clear()
+                window.location.href = '#/login'
+              }}
+              className="d-flex align-items-center text-danger"
+              title="Sair do sistema"
+            >
+              <CIcon icon={cilAccountLogout} size="lg" className="me-1" />
+              <span className="d-none d-md-inline">Sair</span>
             </CNavLink>
           </CNavItem>
         </CHeaderNav>

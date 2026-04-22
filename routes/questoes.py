@@ -2,21 +2,57 @@
 routes/questoes.py – CRUD completo de questões com suporte a matérias (N:N) e 5 alternativas.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File
+from typing import Optional
 from database import get_conexao
 from models import QuestaoRequest, FeedbackRequest
+import csv
+import io
 
 router = APIRouter(prefix="/api", tags=["Questões"])
 
 
 @router.get("/questoes")
-def obter_questoes():
+def obter_questoes(
+    usuario_id: Optional[int] = Query(None),
+    materia_id: Optional[int] = Query(None),
+):
     try:
         conn = get_conexao()
         cursor = conn.cursor()
 
-        # ✅ opcao_e explicitamente no SELECT e no GROUP BY
-        cursor.execute("""
+        conditions = []
+        params = []
+
+        if usuario_id:
+            cursor.execute(
+                "SELECT papel FROM usuarios WHERE id = %s;", (usuario_id,)
+            )
+            row = cursor.fetchone()
+            if row and row[0] == "professor":
+                conditions.append("""
+                    q.id IN (
+                        SELECT qm2.questao_id
+                        FROM questoes_materias qm2
+                        JOIN professores_materias pm ON qm2.materia_id = pm.materia_id
+                        WHERE pm.usuario_id = %s
+                    )
+                """)
+                params.append(usuario_id)
+
+        if materia_id:
+            conditions.append("""
+                q.id IN (
+                    SELECT qm3.questao_id FROM questoes_materias qm3 WHERE qm3.materia_id = %s
+                )
+            """)
+            params.append(materia_id)
+
+        filtro_where = ""
+        if conditions:
+            filtro_where = "WHERE " + " AND ".join(conditions)
+
+        cursor.execute(f"""
             SELECT
                 q.id,
                 q.enunciado,
@@ -32,21 +68,20 @@ def obter_questoes():
             FROM questoes q
             LEFT JOIN questoes_materias qm ON q.id = qm.questao_id
             LEFT JOIN materias m           ON qm.materia_id = m.id
+            {filtro_where}
             GROUP BY
                 q.id, q.enunciado,
                 q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d, q.opcao_e,
                 q.resposta_correta, q.explicacao
             ORDER BY q.id ASC;
-        """)
+        """, tuple(params))
         linhas = cursor.fetchall()
         conn.close()
 
         resultado = []
         for linha in linhas:
-            # 0=id  1=enunciado  2=opcao_a  3=opcao_b  4=opcao_c  5=opcao_d
-            # 6=opcao_e  7=resposta_correta  8=explicacao  9=materias  10=materia_ids
             opcoes = [linha[2], linha[3], linha[4], linha[5]]
-            if linha[6]:  # opcao_e — só adiciona se não for NULL
+            if linha[6]:
                 opcoes.append(linha[6])
 
             resultado.append({
@@ -238,3 +273,102 @@ def listar_feedbacks():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar feedbacks: {str(e)}")
+
+
+@router.post("/questoes/importar-csv")
+async def importar_csv(arquivo: UploadFile = File(...)):
+    """
+    Importa questões em massa via CSV.
+    Colunas esperadas: enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao
+    opcao_e e explicacao são opcionais.
+    """
+    if not arquivo.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Envie um arquivo .csv")
+
+    try:
+        conteudo = await arquivo.read()
+        texto = conteudo.decode("utf-8-sig")
+        leitor = csv.DictReader(io.StringIO(texto), delimiter=";")
+
+        # Tenta também com vírgula se não encontrar colunas esperadas
+        campos = leitor.fieldnames or []
+        campos_lower = [c.strip().lower() for c in campos]
+        if "enunciado" not in campos_lower:
+            leitor = csv.DictReader(io.StringIO(texto), delimiter=",")
+            campos = leitor.fieldnames or []
+            campos_lower = [c.strip().lower() for c in campos]
+
+        obrigatorios = {"enunciado", "opcao_a", "opcao_b", "opcao_c", "opcao_d", "resposta_correta"}
+        if not obrigatorios.issubset(set(campos_lower)):
+            faltando = obrigatorios - set(campos_lower)
+            raise HTTPException(
+                status_code=400,
+                detail=f"Colunas faltando no CSV: {', '.join(faltando)}. Colunas encontradas: {', '.join(campos)}"
+            )
+
+        conn = get_conexao()
+        cursor = conn.cursor()
+        importadas = 0
+        erros = []
+
+        for i, row in enumerate(leitor, start=2):
+            row_clean = {k.strip().lower(): (v.strip() if v else "") for k, v in row.items()}
+            enunciado = row_clean.get("enunciado", "")
+            if not enunciado:
+                erros.append(f"Linha {i}: enunciado vazio, pulada.")
+                continue
+
+            opcao_e = row_clean.get("opcao_e") or None
+            explicacao = row_clean.get("explicacao") or None
+            resposta = row_clean.get("resposta_correta", "A").upper()
+
+            try:
+                cursor.execute("""
+                    INSERT INTO questoes
+                        (enunciado, opcao_a, opcao_b, opcao_c, opcao_d, opcao_e,
+                         resposta_correta, explicacao)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id;
+                """, (
+                    enunciado,
+                    row_clean.get("opcao_a", ""),
+                    row_clean.get("opcao_b", ""),
+                    row_clean.get("opcao_c", ""),
+                    row_clean.get("opcao_d", ""),
+                    opcao_e,
+                    resposta,
+                    explicacao,
+                ))
+                nova_id = cursor.fetchone()[0]
+
+                materia_nome = row_clean.get("materia", "").strip()
+                if materia_nome:
+                    cursor.execute(
+                        "SELECT id FROM materias WHERE LOWER(nome) = LOWER(%s);",
+                        (materia_nome,)
+                    )
+                    mat_row = cursor.fetchone()
+                    if mat_row:
+                        cursor.execute(
+                            "INSERT INTO questoes_materias (questao_id, materia_id) VALUES (%s, %s);",
+                            (nova_id, mat_row[0])
+                        )
+
+                importadas += 1
+            except Exception as row_err:
+                erros.append(f"Linha {i}: {str(row_err)}")
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "sucesso": True,
+            "importadas": importadas,
+            "erros": erros,
+            "mensagem": f"{importadas} questões importadas com sucesso." + (f" {len(erros)} erros." if erros else ""),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao processar CSV: {str(e)}")
