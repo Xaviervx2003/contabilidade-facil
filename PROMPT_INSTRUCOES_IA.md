@@ -40,6 +40,8 @@ O arquivo `routes/dashboard.py` esconde uma ramificação crítica baseada no qu
 ### D. Tratamento de Feedbacks e Painel Admin
 *   O Quiz possui um sistema onde alunos abrem tickets ("Dúvida" ou "Confuso"). O Painel (`FeedbacksQuestoes.jsx`) agora usa o conceito de **Status de Resolução** (Pendente vs Resolvido) no banco (`resolvido`, `resolvido_em`) em vez de deletar o ticket direto.
 *   **Badge Dinâmico na Sidebar:** O menu lateral (`AppSidebar.jsx`) consulta autonomamente a rota `/api/feedbacks_questoes/contagem` a cada 60s. Não manipule `AppSidebarNav.jsx` sem considerar que a prop `items` agora vem em *real-time state* via React.
+*   **Contador de Impacto:** O painel de feedbacks exibe o número de reclamações ativas por questão (Coluna `impacto`). Se houver >= 5 reclamações não resolvidas, a linha ganha destaque visual (vermelho).
+*   **Resposta do Professor:** O campo `resposta_professor` permite que o gestor responda ao aluno. Enviar uma resposta marca automaticamente o feedback como `resolvido`.
 *   **Aviso no Frontend:** Não altere o fluxo do Quiz (`Quiz.jsx`) sem garantir que os states `isConfusing` e `commentStatus` sejam resetados ao trocar de questão.
 
 ### E. Behavioral Design & Comunidade

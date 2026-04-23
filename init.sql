@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS questoes (
     criado_por       INT          REFERENCES usuarios(id) ON DELETE SET NULL,  -- novo: qual professor criou
     tentativas       INT          DEFAULT 0,
     acertos          INT          DEFAULT 0,
+    link_video       TEXT         DEFAULT NULL,
     criado_em        TIMESTAMP    DEFAULT NOW()
 );
 
@@ -88,6 +89,7 @@ CREATE TABLE IF NOT EXISTS feedbacks_questoes (
     resolvido        BOOLEAN      NOT NULL DEFAULT FALSE,
     resolvido_em     TIMESTAMP    DEFAULT NULL,
     publico          BOOLEAN      NOT NULL DEFAULT FALSE,
+    resposta_professor TEXT       DEFAULT NULL,
     data_criacao     TIMESTAMP    DEFAULT NOW()
 );
 
@@ -102,7 +104,8 @@ ALTER TABLE questoes
     ADD COLUMN IF NOT EXISTS criado_em   TIMESTAMP DEFAULT NOW(),
     ADD COLUMN IF NOT EXISTS explicacao  TEXT DEFAULT NULL,
     ADD COLUMN IF NOT EXISTS tentativas  INT DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS acertos     INT DEFAULT 0;
+    ADD COLUMN IF NOT EXISTS acertos     INT DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS link_video  TEXT DEFAULT NULL;
 
 ALTER TABLE sessoes_estudo
     ADD COLUMN IF NOT EXISTS eh_teste_professor BOOLEAN DEFAULT FALSE,
@@ -111,7 +114,8 @@ ALTER TABLE sessoes_estudo
 ALTER TABLE feedbacks_questoes
     ADD COLUMN IF NOT EXISTS resolvido BOOLEAN NOT NULL DEFAULT FALSE,
     ADD COLUMN IF NOT EXISTS resolvido_em TIMESTAMP DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS publico BOOLEAN NOT NULL DEFAULT FALSE;
+    ADD COLUMN IF NOT EXISTS publico BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS resposta_professor TEXT DEFAULT NULL;
 
 -- ─── 6b. ÍNDICES ESTRATÉGICOS (desempenho) ────────────────────
 CREATE INDEX IF NOT EXISTS idx_sessoes_nome_aluno   ON sessoes_estudo (nome_aluno);

@@ -658,6 +658,18 @@ const Quiz = () => {
                                       <small className="text-muted text-opacity-75">{new Date(comentario.data_criacao).toLocaleDateString('pt-BR')}</small>
                                     </div>
                                     <p className="mb-0 text-dark fst-italic">"{comentario.texto}"</p>
+                                    
+                                    {/* RESPOSTA DO PROFESSOR (Se existir) */}
+                                    {comentario.resposta_professor && (
+                                      <div className="mt-2 ms-3 p-2 border-start border-4 border-primary bg-body-tertiary rounded-end shadow-sm">
+                                        <div className="d-flex align-items-center gap-1 mb-1">
+                                          <small className="fw-bold text-primary">👨‍🏫 Resposta do Professor</small>
+                                        </div>
+                                        <p className="mb-0 small text-dark-emphasis">
+                                          {comentario.resposta_professor}
+                                        </p>
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </CCardBody>

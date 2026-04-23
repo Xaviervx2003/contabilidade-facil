@@ -70,7 +70,12 @@ def obter_questoes(
                 STRING_AGG(m.nome, ', ' ORDER BY m.nome) AS materias,
                 ARRAY_AGG(m.id) FILTER (WHERE m.id IS NOT NULL) AS materia_ids,
                 COALESCE((
-                    SELECT json_agg(json_build_object('nome_aluno', f.nome_aluno, 'texto', f.texto, 'data_criacao', f.data_criacao))
+                    SELECT json_agg(json_build_object(
+                        'nome_aluno', f.nome_aluno, 
+                        'texto', f.texto, 
+                        'data_criacao', f.data_criacao,
+                        'resposta_professor', f.resposta_professor  -- ← ADICIONADO
+                    ))
                     FROM feedbacks_questoes f
                     WHERE f.questao_id = q.id AND f.publico = TRUE
                 ), '[]'::json) AS comentarios_publicos,
