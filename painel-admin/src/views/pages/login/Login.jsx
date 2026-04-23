@@ -132,16 +132,16 @@ const Login = () => {
                 </CCardBody>
               </CCard>
 
-              <CCard className="text-white bg-primary py-5" style={{ width: '44%' }}>
-                <CCardBody className="text-center">
+              <CCard className="text-white bg-primary py-5">
+                <CCardBody className="text-center d-flex flex-column justify-content-center">
                   <div>
                     <h2>Plataforma de Questões</h2>
-                    <p>
+                    <p className="mt-3">
                       Ambiente exclusivo para alunos de Ciências Contábeis da Universidade do Estado do Amazonas (UEA).
                     </p>
                     <Link to="/register">
-                      <CButton color="primary" className="mt-3" active tabIndex={-1}>
-                        Primeiro Acesso?
+                      <CButton color="primary" className="mt-3 fw-bold border-white" active tabIndex={-1}>
+                        Primeiro Acesso? Crie sua conta
                       </CButton>
                     </Link>
                   </div>
