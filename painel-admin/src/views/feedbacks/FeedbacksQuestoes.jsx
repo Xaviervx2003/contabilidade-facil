@@ -21,8 +21,9 @@ import {
     CTooltip,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilTrash, cilCheckCircle, cilSearch } from '@coreui/icons'
+import { cilTrash, cilCheckCircle, cilSearch, cilPencil, cilBullhorn } from '@coreui/icons'
 import { API_URL } from '../../config'
+import { useNavigate } from 'react-router-dom'
 
 const FeedbacksQuestoes = () => {
     const [feedbacks, setFeedbacks] = useState([])
@@ -30,6 +31,7 @@ const FeedbacksQuestoes = () => {
     const [error, setError] = useState('')
     const [filtroStatus, setFiltroStatus] = useState('pendente')
     const [busca, setBusca] = useState('')
+    const navigate = useNavigate()
 
     // Contagem de pendentes para o badge
     const pendentes = useMemo(() => feedbacks.filter(f => !f.resolvido).length, [feedbacks])
@@ -86,6 +88,24 @@ const FeedbacksQuestoes = () => {
             setFeedbacks(prev => prev.filter(item => item.id !== id))
         } catch (err) {
             alert('Não foi possível apagar o feedback. Tente novamente.')
+        }
+    }
+
+    // Tornar Público ou Privado
+    const handlePublicar = async (id) => {
+        try {
+            const res = await fetch(`${API_URL}/api/feedbacks_questoes/${id}/publicar`, {
+                method: 'PATCH',
+            })
+            if (!res.ok) throw new Error('Erro ao alternar publicação')
+            const data = await res.json()
+            setFeedbacks(prev =>
+                prev.map(item =>
+                    item.id === id ? { ...item, publico: data.publico } : item
+                )
+            )
+        } catch (err) {
+            alert('Não foi possível alterar a publicação do feedback. Tente novamente.')
         }
     }
 
@@ -308,6 +328,26 @@ const FeedbacksQuestoes = () => {
                                                                 </CButton>
                                                             </CTooltip>
                                                         )}
+                                                        <CTooltip content="Editar Questão">
+                                                            <CButton
+                                                                color="info"
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => navigate(`/questoes?busca=${item.questao_id}`)}
+                                                            >
+                                                                <CIcon icon={cilPencil} />
+                                                            </CButton>
+                                                        </CTooltip>
+                                                        <CTooltip content={item.publico ? "Ocultar da Comunidade" : "Tornar Público (Comunidade)"}>
+                                                            <CButton
+                                                                color={item.publico ? "success" : "warning"}
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => handlePublicar(item.id)}
+                                                            >
+                                                                <CIcon icon={cilBullhorn} />
+                                                            </CButton>
+                                                        </CTooltip>
                                                         <CTooltip content="Excluir permanentemente">
                                                             <CButton
                                                                 color="danger"

@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS feedbacks_questoes (
     marcada_confusa  BOOLEAN      DEFAULT FALSE,
     resolvido        BOOLEAN      NOT NULL DEFAULT FALSE,
     resolvido_em     TIMESTAMP    DEFAULT NULL,
+    publico          BOOLEAN      NOT NULL DEFAULT FALSE,
     data_criacao     TIMESTAMP    DEFAULT NOW()
 );
 
@@ -109,7 +110,8 @@ ALTER TABLE sessoes_estudo
 
 ALTER TABLE feedbacks_questoes
     ADD COLUMN IF NOT EXISTS resolvido BOOLEAN NOT NULL DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS resolvido_em TIMESTAMP DEFAULT NULL;
+    ADD COLUMN IF NOT EXISTS resolvido_em TIMESTAMP DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS publico BOOLEAN NOT NULL DEFAULT FALSE;
 
 -- ─── 6b. ÍNDICES ESTRATÉGICOS (desempenho) ────────────────────
 CREATE INDEX IF NOT EXISTS idx_sessoes_nome_aluno   ON sessoes_estudo (nome_aluno);

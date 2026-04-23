@@ -19,14 +19,53 @@ import { sygnet } from 'src/assets/brand/sygnet'
 // ✅ getNavItens é uma função — chamamos com () para obter o array já filtrado por papel
 import getNavItens from '../_nav'
 
+import { API_URL } from '../config'
+
 const AppSidebar = () => {
   const dispatch = useDispatch()
   const unfoldable = useSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.sidebarShow)
 
-  // ✅ Chama a função aqui, dentro do componente, para ler o sessionStorage
-  //    com o papel correto (já após o login)
-  const navItens = getNavItens()
+  const [pendentes, setPendentes] = React.useState(0)
+  const [navItensState, setNavItensState] = React.useState([])
+
+  React.useEffect(() => {
+    const fetchContagem = async () => {
+      try {
+        const papel = sessionStorage.getItem('papel') || 'aluno'
+        if (papel !== 'admin' && papel !== 'professor') return
+        
+        const res = await fetch(`${API_URL}/api/feedbacks_questoes/contagem`)
+        if (res.ok) {
+          const data = await res.json()
+          setPendentes(data.pendentes || 0)
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    fetchContagem()
+    // Atualiza a cada 60 segundos
+    const interval = setInterval(fetchContagem, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
+  React.useEffect(() => {
+    const baseItens = getNavItens()
+    
+    // Injeta o badge no item "Feedbacks" dinamicamente
+    const newItens = baseItens.map(item => {
+      if (item.name === 'Feedbacks') {
+        return {
+          ...item,
+          badge: pendentes > 0 ? { color: 'danger', text: pendentes.toString() } : null
+        }
+      }
+      return item
+    })
+    
+    setNavItensState(newItens)
+  }, [pendentes])
 
   return (
     <CSidebar
@@ -52,7 +91,7 @@ const AppSidebar = () => {
       </CSidebarHeader>
 
       {/* ✅ Passa o array direto — o filtro por papel já foi feito dentro de getNavItens() */}
-      <AppSidebarNav items={navItens} />
+      <AppSidebarNav items={navItensState} />
 
       <CSidebarFooter className="border-top d-none d-lg-flex">
         <CSidebarToggler

@@ -34,15 +34,20 @@ import CIcon from '@coreui/icons-react'
 import { cilPencil, cilTrash, cilSearch, cilCloudUpload } from '@coreui/icons'
 import { API_URL } from '../../config'
 
+import { useSearchParams } from 'react-router-dom'
+
 const PER_PAGE = 20
 
 const GestaoQuestoes = () => {
+  const [searchParams] = useSearchParams()
+  const buscaInicial = searchParams.get('busca') || ''
+
   const [questoes, setQuestoes] = useState([])
   const [materiasDisponiveis, setMateriasDisponiveis] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(buscaInicial)
   const [currentPage, setCurrentPage] = useState(1)
 
   const [modalVisible, setModalVisible] = useState(false)

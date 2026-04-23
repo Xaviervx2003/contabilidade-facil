@@ -66,7 +66,12 @@ def obter_questoes(
                 q.tentativas,
                 q.acertos,
                 STRING_AGG(m.nome, ', ' ORDER BY m.nome) AS materias,
-                ARRAY_AGG(m.id) FILTER (WHERE m.id IS NOT NULL) AS materia_ids
+                ARRAY_AGG(m.id) FILTER (WHERE m.id IS NOT NULL) AS materia_ids,
+                COALESCE((
+                    SELECT json_agg(json_build_object('nome_aluno', f.nome_aluno, 'texto', f.texto, 'data_criacao', f.data_criacao))
+                    FROM feedbacks_questoes f
+                    WHERE f.questao_id = q.id AND f.publico = TRUE
+                ), '[]'::json) AS comentarios_publicos
             FROM questoes q
             LEFT JOIN questoes_materias qm ON q.id = qm.questao_id
             LEFT JOIN materias m           ON qm.materia_id = m.id
@@ -92,10 +97,11 @@ def obter_questoes(
                 "options":     opcoes,
                 "answer":      linha[7],
                 "explicacao":  linha[8] or "",
-                "tentativas":  linha[9] or 0,
-                "acertos":     linha[10] or 0,
-                "assunto":     linha[11] or "Sem matéria",
-                "materia_ids": linha[12] or [],
+                "tentativas":          linha[9] or 0,
+                "acertos":             linha[10] or 0,
+                "assunto":             linha[11] or "Sem matéria",
+                "materia_ids":         linha[12] or [],
+                "comentarios_publicos": linha[13] if len(linha) > 13 else [],
             })
 
         return resultado
@@ -274,7 +280,7 @@ def listar_feedbacks(status: Optional[str] = Query(None), busca: Optional[str] =
             SELECT
                 f.id, f.questao_id, q.enunciado,
                 f.nome_aluno, f.texto, f.marcada_confusa,
-                f.data_criacao, f.resolvido, f.resolvido_em
+                f.data_criacao, f.resolvido, f.resolvido_em, f.publico
             FROM feedbacks_questoes f
             JOIN questoes q ON f.questao_id = q.id
             {filtro}
@@ -294,6 +300,7 @@ def listar_feedbacks(status: Optional[str] = Query(None), busca: Optional[str] =
                 "data_criacao":      linha[6].strftime("%d/%m/%Y %H:%M") if linha[6] else "",
                 "resolvido":         linha[7],
                 "resolvido_em":      linha[8].strftime("%d/%m/%Y %H:%M") if linha[8] else None,
+                "publico":           linha[9],
             }
             for linha in linhas
         ]
@@ -335,6 +342,38 @@ def resolver_feedback(feedback_id: int):
         return {"sucesso": False, "mensagem": "Feedback nao encontrado."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/feedbacks_questoes/{feedback_id}/publicar")
+def alternar_publicacao_feedback(feedback_id: int):
+    """Alterna o status de publicação (publico = NOT publico) de um comentário."""
+    try:
+        conn = get_conexao()
+        cursor = conn.cursor()
+        
+        # Primeiro, verifica o status atual
+        cursor.execute("SELECT publico FROM feedbacks_questoes WHERE id = %s;", (feedback_id,))
+        row = cursor.fetchone()
+        if not row:
+            return {"sucesso": False, "mensagem": "Feedback nao encontrado."}
+            
+        novo_status = not row[0]
+        
+        cursor.execute("""
+            UPDATE feedbacks_questoes
+            SET publico = %s
+            WHERE id = %s;
+        """, (novo_status, feedback_id))
+        conn.commit()
+        conn.close()
+        return {
+            "sucesso": True, 
+            "mensagem": f"Comentário {'publicado' if novo_status else 'ocultado'} com sucesso!",
+            "publico": novo_status
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @router.post("/questoes/importar-csv")

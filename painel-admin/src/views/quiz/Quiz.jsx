@@ -605,7 +605,27 @@ const Quiz = () => {
                         </CCardBody>
                       </CCard>
 
-                      {/* 3. Área para o Aluno enviar comentário */}
+                      {/* 3. COMENTÁRIOS DA COMUNIDADE */}
+                      {currentQuestion.comentarios_publicos && currentQuestion.comentarios_publicos.length > 0 && (
+                        <CCard className="mb-3 border-success shadow-sm">
+                          <CCardHeader className="bg-success text-white fw-bold">
+                            💬 Comentários da Comunidade
+                          </CCardHeader>
+                          <CCardBody className="bg-light">
+                            {currentQuestion.comentarios_publicos.map((comentario, idx) => (
+                              <div key={idx} className={`mb-2 ${idx !== currentQuestion.comentarios_publicos.length - 1 ? 'border-bottom pb-2' : ''}`}>
+                                <div className="d-flex justify-content-between align-items-center mb-1">
+                                  <strong className="text-success">{comentario.nome_aluno || 'Aluno'}</strong>
+                                  <small className="text-muted text-opacity-75">{new Date(comentario.data_criacao).toLocaleDateString('pt-BR')}</small>
+                                </div>
+                                <p className="mb-0 text-dark fst-italic">"{comentario.texto}"</p>
+                              </div>
+                            ))}
+                          </CCardBody>
+                        </CCard>
+                      )}
+
+                      {/* 4. Área para o Aluno enviar comentário */}
                       <CCard className="bg-body-tertiary border-0 mt-3">
                         <CCardBody>
                           <div className="d-flex justify-content-between align-items-center mb-2">

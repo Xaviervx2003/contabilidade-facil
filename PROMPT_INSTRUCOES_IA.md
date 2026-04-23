@@ -39,9 +39,11 @@ O arquivo `routes/dashboard.py` esconde uma ramificação crítica baseada no qu
 
 ### D. Tratamento de Feedbacks e Painel Admin
 *   O Quiz possui um sistema onde alunos abrem tickets ("Dúvida" ou "Confuso"). O Painel (`FeedbacksQuestoes.jsx`) agora usa o conceito de **Status de Resolução** (Pendente vs Resolvido) no banco (`resolvido`, `resolvido_em`) em vez de deletar o ticket direto.
+*   **Badge Dinâmico na Sidebar:** O menu lateral (`AppSidebar.jsx`) consulta autonomamente a rota `/api/feedbacks_questoes/contagem` a cada 60s. Não manipule `AppSidebarNav.jsx` sem considerar que a prop `items` agora vem em *real-time state* via React.
 *   **Aviso no Frontend:** Não altere o fluxo do Quiz (`Quiz.jsx`) sem garantir que os states `isConfusing` e `commentStatus` sejam resetados ao trocar de questão.
 
-### E. Behavioral Design (Engajamento do Aluno)
+### E. Behavioral Design & Comunidade
+*   **Comentários da Comunidade:** Feedbacks podem ser aprovados pelo Professor (coluna `publico = TRUE`). A rota `GET /api/questoes` anexa esses feedbacks via agregação relacional (`COALESCE(json_agg(...))`). Se alterar o SQL central de `/api/questoes`, tenha cuidado absoluto com as agregações de JSON.
 *   **Validação Social:** A tabela `questoes` possui contadores globais (`tentativas` e `acertos`). A rota de submissão de sessão faz um *loop* (via `lista_detalhes`) atualizando o banco a cada quiz finalizado. Não quebre a passagem do `lista_detalhes` na API, caso contrário a porcentagem de alunos que acertou a questão (Mostrada no Alert Verde) vai parar de funcionar.
 *   **Simulado Rápido:** O botão na home não passa pelas configs de matéria/tempo tradicionais. Ele intercepta as validações injetando valores literais (10 min / 10 questões globais).
 
