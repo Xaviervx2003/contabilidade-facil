@@ -54,6 +54,8 @@ CREATE TABLE IF NOT EXISTS questoes (
     resposta_correta CHAR(1)      NOT NULL CHECK (resposta_correta IN ('A','B','C','D','E')),
     explicacao       TEXT         DEFAULT NULL,
     criado_por       INT          REFERENCES usuarios(id) ON DELETE SET NULL,  -- novo: qual professor criou
+    tentativas       INT          DEFAULT 0,
+    acertos          INT          DEFAULT 0,
     criado_em        TIMESTAMP    DEFAULT NOW()
 );
 
@@ -72,8 +74,20 @@ CREATE TABLE IF NOT EXISTS sessoes_estudo (
     questoes_respondidas    INT          NOT NULL,
     taxa_acerto             FLOAT        NOT NULL,
     tempo_gasto_segundos    INT          NOT NULL,
-    eh_teste_professor      BOOLEAN      DEFAULT FALSE,     -- novo: TRUE = sessão de teste do professor
+    eh_teste_professor      BOOLEAN      DEFAULT FALSE,
     criado_em               TIMESTAMP    DEFAULT NOW()
+);
+
+-- ─── 5b. FEEDBACKS DE QUESTÕES ────────────────────────────────
+CREATE TABLE IF NOT EXISTS feedbacks_questoes (
+    id               SERIAL PRIMARY KEY,
+    questao_id       INT          NOT NULL REFERENCES questoes(id) ON DELETE CASCADE,
+    nome_aluno       VARCHAR(255) NOT NULL,
+    texto            TEXT,
+    marcada_confusa  BOOLEAN      DEFAULT FALSE,
+    resolvido        BOOLEAN      NOT NULL DEFAULT FALSE,
+    resolvido_em     TIMESTAMP    DEFAULT NULL,
+    data_criacao     TIMESTAMP    DEFAULT NOW()
 );
 
 -- ─── 6. MIGRAÇÃO SEGURA (banco já existente) ──────────────────
@@ -85,11 +99,26 @@ ALTER TABLE usuarios
 ALTER TABLE questoes
     ADD COLUMN IF NOT EXISTS criado_por  INT REFERENCES usuarios(id) ON DELETE SET NULL,
     ADD COLUMN IF NOT EXISTS criado_em   TIMESTAMP DEFAULT NOW(),
-    ADD COLUMN IF NOT EXISTS explicacao  TEXT DEFAULT NULL;
+    ADD COLUMN IF NOT EXISTS explicacao  TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS tentativas  INT DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS acertos     INT DEFAULT 0;
 
 ALTER TABLE sessoes_estudo
     ADD COLUMN IF NOT EXISTS eh_teste_professor BOOLEAN DEFAULT FALSE,
     ADD COLUMN IF NOT EXISTS criado_em TIMESTAMP DEFAULT NOW();
+
+ALTER TABLE feedbacks_questoes
+    ADD COLUMN IF NOT EXISTS resolvido BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS resolvido_em TIMESTAMP DEFAULT NULL;
+
+-- ─── 6b. ÍNDICES ESTRATÉGICOS (desempenho) ────────────────────
+CREATE INDEX IF NOT EXISTS idx_sessoes_nome_aluno   ON sessoes_estudo (nome_aluno);
+CREATE INDEX IF NOT EXISTS idx_sessoes_criado_em    ON sessoes_estudo (criado_em DESC);
+CREATE INDEX IF NOT EXISTS idx_feedbacks_resolvido  ON feedbacks_questoes (resolvido);
+CREATE INDEX IF NOT EXISTS idx_feedbacks_questao_id ON feedbacks_questoes (questao_id);
+CREATE INDEX IF NOT EXISTS idx_qm_materia_id        ON questoes_materias (materia_id);
+CREATE INDEX IF NOT EXISTS idx_qm_questao_id        ON questoes_materias (questao_id);
+CREATE INDEX IF NOT EXISTS idx_pm_usuario_id        ON professores_materias (usuario_id);
 
 -- Garante que o CHECK de papel existe (só cria a constraint se não houver)
 DO $$

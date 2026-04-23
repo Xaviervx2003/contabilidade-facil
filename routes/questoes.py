@@ -63,6 +63,8 @@ def obter_questoes(
                 q.opcao_e,
                 q.resposta_correta,
                 q.explicacao,
+                q.tentativas,
+                q.acertos,
                 STRING_AGG(m.nome, ', ' ORDER BY m.nome) AS materias,
                 ARRAY_AGG(m.id) FILTER (WHERE m.id IS NOT NULL) AS materia_ids
             FROM questoes q
@@ -72,7 +74,7 @@ def obter_questoes(
             GROUP BY
                 q.id, q.enunciado,
                 q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d, q.opcao_e,
-                q.resposta_correta, q.explicacao
+                q.resposta_correta, q.explicacao, q.tentativas, q.acertos
             ORDER BY q.id ASC;
         """, tuple(params))
         linhas = cursor.fetchall()
@@ -90,8 +92,10 @@ def obter_questoes(
                 "options":     opcoes,
                 "answer":      linha[7],
                 "explicacao":  linha[8] or "",
-                "assunto":     linha[9] or "Sem matéria",
-                "materia_ids": linha[10] or [],
+                "tentativas":  linha[9] or 0,
+                "acertos":     linha[10] or 0,
+                "assunto":     linha[11] or "Sem matéria",
+                "materia_ids": linha[12] or [],
             })
 
         return resultado
@@ -243,18 +247,39 @@ def criar_feedback(feedback: FeedbackRequest):
 
 
 @router.get("/feedbacks_questoes")
-def listar_feedbacks():
+def listar_feedbacks(status: Optional[str] = Query(None), busca: Optional[str] = Query(None)):
+    """Lista feedbacks com filtro por status (pendente/resolvido) e busca textual."""
     try:
         conn = get_conexao()
         cursor = conn.cursor()
-        cursor.execute("""
+
+        conditions = []
+        params = []
+
+        if status == "pendente":
+            conditions.append("f.resolvido = FALSE")
+        elif status == "resolvido":
+            conditions.append("f.resolvido = TRUE")
+
+        if busca:
+            conditions.append("(LOWER(f.nome_aluno) LIKE %s OR LOWER(f.texto) LIKE %s OR LOWER(q.enunciado) LIKE %s)")
+            termo = f"%{busca.lower()}%"
+            params.extend([termo, termo, termo])
+
+        filtro = ""
+        if conditions:
+            filtro = "WHERE " + " AND ".join(conditions)
+
+        cursor.execute(f"""
             SELECT
                 f.id, f.questao_id, q.enunciado,
-                f.nome_aluno, f.texto, f.marcada_confusa, f.data_criacao
+                f.nome_aluno, f.texto, f.marcada_confusa,
+                f.data_criacao, f.resolvido, f.resolvido_em
             FROM feedbacks_questoes f
             JOIN questoes q ON f.questao_id = q.id
-            ORDER BY f.data_criacao DESC;
-        """)
+            {filtro}
+            ORDER BY f.resolvido ASC, f.marcada_confusa DESC, f.data_criacao DESC;
+        """, tuple(params))
         linhas = cursor.fetchall()
         conn.close()
 
@@ -267,12 +292,49 @@ def listar_feedbacks():
                 "texto":             linha[4],
                 "marcada_confusa":   linha[5],
                 "data_criacao":      linha[6].strftime("%d/%m/%Y %H:%M") if linha[6] else "",
+                "resolvido":         linha[7],
+                "resolvido_em":      linha[8].strftime("%d/%m/%Y %H:%M") if linha[8] else None,
             }
             for linha in linhas
         ]
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar feedbacks: {str(e)}")
+
+
+@router.get("/feedbacks_questoes/contagem")
+def contar_feedbacks_pendentes():
+    """Retorna contagem de feedbacks pendentes para badges no menu."""
+    try:
+        conn = get_conexao()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM feedbacks_questoes WHERE resolvido = FALSE;")
+        total = cursor.fetchone()[0]
+        conn.close()
+        return {"pendentes": total}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/feedbacks_questoes/{feedback_id}/resolver")
+def resolver_feedback(feedback_id: int):
+    """Marca um feedback como resolvido sem deletar o registro."""
+    try:
+        conn = get_conexao()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE feedbacks_questoes
+            SET resolvido = TRUE, resolvido_em = NOW()
+            WHERE id = %s;
+        """, (feedback_id,))
+        conn.commit()
+        afetadas = cursor.rowcount
+        conn.close()
+        if afetadas > 0:
+            return {"sucesso": True, "mensagem": "Feedback marcado como resolvido!"}
+        return {"sucesso": False, "mensagem": "Feedback nao encontrado."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/questoes/importar-csv")

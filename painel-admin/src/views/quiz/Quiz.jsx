@@ -245,6 +245,25 @@ const Quiz = () => {
     }
   }
 
+  const fetchAndStartSimuladoRapido = async () => {
+    setError('')
+    setFeedback('')
+    setStatus('loading')
+    try {
+      const res = await fetch(`${API_URL}/api/questoes`)
+      const data = await res.json()
+      if (!res.ok || !Array.isArray(data) || data.length === 0) {
+        throw new Error('Nenhuma questão encontrada.')
+      }
+      let pool = shuffle(data).slice(0, 10)
+      setTempoLimite(600) // 10 minutos
+      await startQuiz(pool)
+    } catch (err) {
+      setError(err.message || 'Erro ao buscar questões. Verifique se o backend está ativo.')
+      setStatus('ready')
+    }
+  }
+
   const handleConfirmAnswer = () => {
     if (!selectedOption) {
       setError('Selecione uma alternativa antes de continuar.')
@@ -255,6 +274,7 @@ const Quiz = () => {
     const isCorrect = selectedOption === question.answer
 
     const entry = {
+      id: question.id,
       question: question.question,
       userAnswer: selectedOption,
       correctAnswer: question.answer,
@@ -352,6 +372,10 @@ const Quiz = () => {
         questoes_respondidas: respondidas,
         taxa_acerto: porcentagem,
         tempo_gasto_segundos: elapsedSeconds,
+        lista_detalhes: questionsAndAnswers.map(qa => ({
+          id: qa.id,
+          acertou: qa.isCorrect
+        }))
       }
       const res = await fetch(`${API_URL}/api/sessoes`, {
         method: 'POST',
@@ -451,8 +475,21 @@ const Quiz = () => {
                     </CCol>
                   </CRow>
                   <CButton color="primary" size="lg" onClick={fetchAndStart}>
-                    ▶ Iniciar Quiz
+                    ▶ Iniciar Quiz Personalizado
                   </CButton>
+                  
+                  <hr className="my-4" />
+                  <div className="text-center">
+                    <h5 className="text-muted mb-3">Ou vá direto ao ponto:</h5>
+                    <CButton 
+                      color="success" 
+                      size="lg" 
+                      className="w-100 py-3 text-white fw-bold fs-5 shadow-sm" 
+                      onClick={fetchAndStartSimuladoRapido}
+                    >
+                      ▶️ Começar Simulado Rápido (10 Aleatórias em 10min)
+                    </CButton>
+                  </div>
                 </CForm>
               )}
 
@@ -537,7 +574,7 @@ const Quiz = () => {
                   {isAnswerConfirmed && (
                     <div className="mt-4" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
 
-                      {/* 1. Alerta de Acerto ou Erro */}
+                      {/* 1. Alerta de Acerto ou Erro + Validação Social */}
                       <CAlert color={selectedOption === currentQuestion.answer ? 'success' : 'danger'}>
                         <h5 className="alert-heading">
                           {selectedOption === currentQuestion.answer ? '✅ Resposta Correta!' : '❌ Resposta Incorreta'}
@@ -545,6 +582,15 @@ const Quiz = () => {
                         <p className="mb-0">
                           A alternativa correta é a letra <strong>{currentQuestion.answer}</strong>.
                         </p>
+                        
+                        {/* Validação Social */}
+                        {currentQuestion.tentativas > 0 && (
+                          <div className="mt-2 pt-2 border-top border-opacity-25 border-dark">
+                            <span className="fw-bold" style={{ fontSize: '0.9rem' }}>
+                              👥 Validação Social: {Math.round((currentQuestion.acertos / currentQuestion.tentativas) * 100)}% dos alunos também acertaram essa questão.
+                            </span>
+                          </div>
+                        )}
                       </CAlert>
 
                       {/* 2. EXPLICAÇÃO DO PROFESSOR */}

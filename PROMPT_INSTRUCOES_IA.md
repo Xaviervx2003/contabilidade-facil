@@ -37,8 +37,13 @@ O arquivo `routes/dashboard.py` esconde uma ramificação crítica baseada no qu
 *   **Se for omitido ou Admin:** Puxa o `COUNT()` geral do banco.
 *   **Se for Professor:** Ele injeta o `EXISTS` em queries complexas. As consultas exigem a garantia do WHERE validando `eh_teste_professor IS NOT TRUE` (Para que sessões feitas pelo próprio logado não contaminem o gráfico da turma).
 
-### D. Tratamento de Feedbacks 
-*   O Quiz ganhou uma novidade onde os alunos podem gerar tickets de "Erro/Confuso" (`FeedbacksQuestoes.jsx`). Isso injeta diretamente um relatório em tela Admin. Não altere o fluxo de retorno da rota API do quiz ser recarregado sem garantir que o *state* (`isConfusing` e `commentStatus`) foram limpos, ou o painel continuará mandando spam ao professor sem que o aluno saiba.
+### D. Tratamento de Feedbacks e Painel Admin
+*   O Quiz possui um sistema onde alunos abrem tickets ("Dúvida" ou "Confuso"). O Painel (`FeedbacksQuestoes.jsx`) agora usa o conceito de **Status de Resolução** (Pendente vs Resolvido) no banco (`resolvido`, `resolvido_em`) em vez de deletar o ticket direto.
+*   **Aviso no Frontend:** Não altere o fluxo do Quiz (`Quiz.jsx`) sem garantir que os states `isConfusing` e `commentStatus` sejam resetados ao trocar de questão.
+
+### E. Behavioral Design (Engajamento do Aluno)
+*   **Validação Social:** A tabela `questoes` possui contadores globais (`tentativas` e `acertos`). A rota de submissão de sessão faz um *loop* (via `lista_detalhes`) atualizando o banco a cada quiz finalizado. Não quebre a passagem do `lista_detalhes` na API, caso contrário a porcentagem de alunos que acertou a questão (Mostrada no Alert Verde) vai parar de funcionar.
+*   **Simulado Rápido:** O botão na home não passa pelas configs de matéria/tempo tradicionais. Ele intercepta as validações injetando valores literais (10 min / 10 questões globais).
 
 ---
 

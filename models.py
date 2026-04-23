@@ -6,12 +6,17 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 
+class DetalheQuestaoSessao(BaseModel):
+    id: int
+    acertou: bool
+
 class SessaoEstudo(BaseModel):
     nome_aluno: str
     assunto_estudado: str
     questoes_respondidas: int
     taxa_acerto: float
     tempo_gasto_segundos: int
+    lista_detalhes: Optional[List[DetalheQuestaoSessao]] = []
 
 
 class LoginRequest(BaseModel):

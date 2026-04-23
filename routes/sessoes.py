@@ -28,6 +28,18 @@ def salvar_sessao(sessao: SessaoEstudo):
                 sessao.tempo_gasto_segundos,
             ),
         )
+        if sessao.lista_detalhes:
+            for detalhe in sessao.lista_detalhes:
+                incremento_acerto = 1 if detalhe.acertou else 0
+                cursor.execute(
+                    """
+                    UPDATE questoes 
+                    SET tentativas = tentativas + 1, acertos = acertos + %s 
+                    WHERE id = %s
+                    """,
+                    (incremento_acerto, detalhe.id)
+                )
+
         conn.commit()
         conn.close()
         return {"status": "Dados salvos com sucesso!"}
