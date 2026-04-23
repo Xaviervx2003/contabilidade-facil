@@ -133,7 +133,7 @@ const Register = () => {
                     />
                   </CInputGroup>
 
-                  <div className="d-grid">
+                  <div className="d-grid gap-2">
                     <CButton type="submit" color="success" disabled={carregando}>
                       {carregando ? (
                         <>
@@ -143,6 +143,9 @@ const Register = () => {
                       ) : (
                         'Criar Conta'
                       )}
+                    </CButton>
+                    <CButton color="secondary" variant="ghost" onClick={() => navigate('/login')}>
+                      ⬅ Voltar para o Login
                     </CButton>
                   </div>
                 </CForm>
