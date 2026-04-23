@@ -53,7 +53,6 @@ const GestaoQuestoes = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const [modoEdicao, setModoEdicao] = useState(false)
 
-  // ✅ ALTERAÇÃO 1: Estado do formulário agora inclui opcao_e
   const [formData, setFormData] = useState({
     id: null,
     materia_ids: [],
@@ -62,9 +61,10 @@ const GestaoQuestoes = () => {
     opcao_b: '',
     opcao_c: '',
     opcao_d: '',
-    opcao_e: '',           // ← NOVO
+    opcao_e: '',
     resposta_correta: 'A',
-    explicacao: ''
+    explicacao: '',
+    link_video: '',        // ← FASE 1: Link de vídeo opcional
   })
 
   const carregarMaterias = async () => {
@@ -107,15 +107,15 @@ const GestaoQuestoes = () => {
       opcao_b: '',
       opcao_c: '',
       opcao_d: '',
-      opcao_e: '',           // ← NOVO
+      opcao_e: '',
       resposta_correta: 'A',
-      explicacao: ''
+      explicacao: '',
+      link_video: '',      // ← FASE 1
     })
     setModoEdicao(false)
     setModalVisible(true)
   }
 
-  // ✅ ALTERAÇÃO 2: Ao abrir para edição, lê options[4] como opcao_e (pode ser undefined)
   const abrirParaEdicao = (q) => {
     setFormData({
       id: q.id,
@@ -125,9 +125,10 @@ const GestaoQuestoes = () => {
       opcao_b: q.options[1] || '',
       opcao_c: q.options[2] || '',
       opcao_d: q.options[3] || '',
-      opcao_e: q.options[4] || '',  // ← NOVO (vazio se a questão só tiver 4 opções)
+      opcao_e: q.options[4] || '',
       resposta_correta: q.answer,
-      explicacao: q.explicacao || ''
+      explicacao: q.explicacao || '',
+      link_video: q.link_video || '',   // ← FASE 1: Carrega o link existente
     })
     setModoEdicao(true)
     setModalVisible(true)
@@ -145,7 +146,6 @@ const GestaoQuestoes = () => {
     })
   }
 
-  // ✅ ALTERAÇÃO 3: Envia opcao_e para o backend (vazio = sem 5ª alternativa)
   const salvarQuestao = async () => {
     setError('')
     setSuccess('')
@@ -169,9 +169,10 @@ const GestaoQuestoes = () => {
           opcao_b: formData.opcao_b,
           opcao_c: formData.opcao_c,
           opcao_d: formData.opcao_d,
-          opcao_e: formData.opcao_e || null,  // ← NOVO (null se vazio)
+          opcao_e: formData.opcao_e || null,
           resposta_correta: formData.resposta_correta,
-          explicacao: formData.explicacao
+          explicacao: formData.explicacao,
+          link_video: formData.link_video || null,  // ← FASE 1: Envia null se vazio
         }),
       })
 
@@ -214,11 +215,11 @@ const GestaoQuestoes = () => {
     setError('')
     setSuccess('')
     try {
-      const formData = new FormData()
-      formData.append('arquivo', file)
+      const formDataUpload = new FormData()
+      formDataUpload.append('arquivo', file)
       const res = await fetch(`${API_URL}/api/questoes/importar-csv`, {
         method: 'POST',
-        body: formData,
+        body: formDataUpload,
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Erro no upload')
@@ -298,14 +299,16 @@ const GestaoQuestoes = () => {
                         <CTableHeaderCell>ID</CTableHeaderCell>
                         <CTableHeaderCell>Matérias</CTableHeaderCell>
                         <CTableHeaderCell>Enunciado</CTableHeaderCell>
+                        {/* ← FASE 1: Coluna de vídeo na tabela */}
+                        <CTableHeaderCell className="text-center">Vídeo</CTableHeaderCell>
                         <CTableHeaderCell className="text-center">Ações</CTableHeaderCell>
                       </CTableRow>
                     </CTableHead>
                     <CTableBody>
                       {loading ? (
-                        <CTableRow><CTableDataCell colSpan="4" className="text-center py-4"><CSpinner color="primary" /></CTableDataCell></CTableRow>
+                        <CTableRow><CTableDataCell colSpan="5" className="text-center py-4"><CSpinner color="primary" /></CTableDataCell></CTableRow>
                       ) : paginated.length === 0 ? (
-                        <CTableRow><CTableDataCell colSpan="4" className="text-center py-4 text-muted">Nenhuma questão encontrada.</CTableDataCell></CTableRow>
+                        <CTableRow><CTableDataCell colSpan="5" className="text-center py-4 text-muted">Nenhuma questão encontrada.</CTableDataCell></CTableRow>
                       ) : paginated.map((q) => (
                         <CTableRow key={q.id}>
                           <CTableDataCell>
@@ -322,6 +325,13 @@ const GestaoQuestoes = () => {
                             <div style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {q.question}
                             </div>
+                          </CTableDataCell>
+                          {/* ← FASE 1: Indicador visual se a questão tem vídeo */}
+                          <CTableDataCell className="text-center">
+                            {q.link_video
+                              ? <CBadge color="danger" title={q.link_video}>▶ Vídeo</CBadge>
+                              : <span className="text-muted small">—</span>
+                            }
                           </CTableDataCell>
                           <CTableDataCell className="text-center">
                             <CButton color="info" variant="ghost" onClick={() => abrirParaEdicao(q)}>
@@ -438,7 +448,6 @@ const GestaoQuestoes = () => {
               </CCol>
             </CRow>
 
-            {/* ✅ ALTERAÇÃO 4: Campo Opção E — ocupa linha inteira, com indicação de opcional */}
             <div className="mb-3">
               <label className="fw-bold form-label">
                 Opção E <span className="text-muted fw-normal">(opcional — deixe em branco para questões com 4 alternativas)</span>
@@ -453,7 +462,6 @@ const GestaoQuestoes = () => {
             <CRow className="align-items-end">
               <CCol md={4} className="mb-3">
                 <label className="form-label font-bold text-primary">Qual é a resposta correta?</label>
-                {/* ✅ ALTERAÇÃO 5: Seletor agora inclui Alternativa E */}
                 <CFormSelect
                   value={formData.resposta_correta}
                   onChange={e => setFormData({ ...formData, resposta_correta: e.target.value })}>
@@ -465,7 +473,6 @@ const GestaoQuestoes = () => {
                 </CFormSelect>
               </CCol>
 
-              {/* CAMPO DE EXPLICAÇÃO */}
               <CCol md={8} className="mb-3">
                 <label className="fw-bold form-label">💡 Explicação (Aparece após responder)</label>
                 <CFormTextarea
@@ -476,6 +483,24 @@ const GestaoQuestoes = () => {
                 />
               </CCol>
             </CRow>
+
+            {/* ✅ FASE 1: Campo de Link do Vídeo */}
+            <div className="mb-3 p-3 border rounded" style={{ borderColor: '#e55353', backgroundColor: '#fff5f5' }}>
+              <label className="fw-bold form-label" style={{ color: '#c41a1a' }}>
+                🎬 Link do Vídeo{' '}
+                <span className="text-muted fw-normal" style={{ color: '#666' }}>
+                  (opcional — YouTube ou Vimeo)
+                </span>
+              </label>
+              <CFormInput
+                value={formData.link_video}
+                onChange={e => setFormData({ ...formData, link_video: e.target.value })}
+                placeholder="Ex: https://www.youtube.com/watch?v=XXXXXXXXXXX"
+              />
+              <small className="text-muted mt-1 d-block">
+                Cole o link normal do YouTube ou Vimeo. O sistema converte automaticamente para o player embutido.
+              </small>
+            </div>
 
           </CForm>
         </CModalBody>

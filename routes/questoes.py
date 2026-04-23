@@ -1,5 +1,6 @@
 """
 routes/questoes.py – CRUD completo de questões com suporte a matérias (N:N) e 5 alternativas.
+FASE 1: Suporte a link_video em todas as rotas.
 """
 
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File
@@ -52,6 +53,7 @@ def obter_questoes(
         if conditions:
             filtro_where = "WHERE " + " AND ".join(conditions)
 
+        # ✅ FASE 1: Inclui q.link_video no SELECT
         cursor.execute(f"""
             SELECT
                 q.id,
@@ -71,7 +73,8 @@ def obter_questoes(
                     SELECT json_agg(json_build_object('nome_aluno', f.nome_aluno, 'texto', f.texto, 'data_criacao', f.data_criacao))
                     FROM feedbacks_questoes f
                     WHERE f.questao_id = q.id AND f.publico = TRUE
-                ), '[]'::json) AS comentarios_publicos
+                ), '[]'::json) AS comentarios_publicos,
+                q.link_video
             FROM questoes q
             LEFT JOIN questoes_materias qm ON q.id = qm.questao_id
             LEFT JOIN materias m           ON qm.materia_id = m.id
@@ -79,7 +82,8 @@ def obter_questoes(
             GROUP BY
                 q.id, q.enunciado,
                 q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d, q.opcao_e,
-                q.resposta_correta, q.explicacao, q.tentativas, q.acertos
+                q.resposta_correta, q.explicacao, q.tentativas, q.acertos,
+                q.link_video
             ORDER BY q.id ASC;
         """, tuple(params))
         linhas = cursor.fetchall()
@@ -91,17 +95,19 @@ def obter_questoes(
             if linha[6]:
                 opcoes.append(linha[6])
 
+            # ✅ FASE 1: Inclui link_video no mapeamento do retorno (índice 14)
             resultado.append({
-                "id":          linha[0],
-                "question":    linha[1],
-                "options":     opcoes,
-                "answer":      linha[7],
-                "explicacao":  linha[8] or "",
-                "tentativas":          linha[9] or 0,
-                "acertos":             linha[10] or 0,
-                "assunto":             linha[11] or "Sem matéria",
-                "materia_ids":         linha[12] or [],
-                "comentarios_publicos": linha[13] if len(linha) > 13 else [],
+                "id":                    linha[0],
+                "question":              linha[1],
+                "options":               opcoes,
+                "answer":                linha[7],
+                "explicacao":            linha[8] or "",
+                "tentativas":            linha[9] or 0,
+                "acertos":               linha[10] or 0,
+                "assunto":               linha[11] or "Sem matéria",
+                "materia_ids":           linha[12] or [],
+                "comentarios_publicos":  linha[13] if linha[13] else [],
+                "link_video":            linha[14] or None,
             })
 
         return resultado
@@ -116,11 +122,12 @@ def criar_questao(questao: QuestaoRequest):
         conn = get_conexao()
         cursor = conn.cursor()
 
+        # ✅ FASE 1: Inclui link_video no INSERT
         cursor.execute("""
             INSERT INTO questoes
                 (enunciado, opcao_a, opcao_b, opcao_c, opcao_d, opcao_e,
-                 resposta_correta, explicacao)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                 resposta_correta, explicacao, link_video)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id;
         """, (
             questao.enunciado,
@@ -131,6 +138,7 @@ def criar_questao(questao: QuestaoRequest):
             questao.opcao_e or None,
             questao.resposta_correta,
             questao.explicacao,
+            questao.link_video or None,
         ))
         nova_id = cursor.fetchone()[0]
 
@@ -158,6 +166,7 @@ def atualizar_questao(questao_id: int, questao: QuestaoRequest):
         conn = get_conexao()
         cursor = conn.cursor()
 
+        # ✅ FASE 1: Inclui link_video no UPDATE
         cursor.execute("""
             UPDATE questoes SET
                 enunciado        = %s,
@@ -167,7 +176,8 @@ def atualizar_questao(questao_id: int, questao: QuestaoRequest):
                 opcao_d          = %s,
                 opcao_e          = %s,
                 resposta_correta = %s,
-                explicacao       = %s
+                explicacao       = %s,
+                link_video       = %s
             WHERE id = %s;
         """, (
             questao.enunciado,
@@ -178,6 +188,7 @@ def atualizar_questao(questao_id: int, questao: QuestaoRequest):
             questao.opcao_e or None,
             questao.resposta_correta,
             questao.explicacao,
+            questao.link_video or None,
             questao_id,
         ))
 
@@ -280,11 +291,13 @@ def listar_feedbacks(status: Optional[str] = Query(None), busca: Optional[str] =
             SELECT
                 f.id, f.questao_id, q.enunciado,
                 f.nome_aluno, f.texto, f.marcada_confusa,
-                f.data_criacao, f.resolvido, f.resolvido_em, f.publico
+                f.data_criacao, f.resolvido, f.resolvido_em, f.publico,
+                f.resposta_professor,
+                (SELECT COUNT(*) FROM feedbacks_questoes f2 WHERE f2.questao_id = f.questao_id AND f2.resolvido = FALSE) as impacto
             FROM feedbacks_questoes f
             JOIN questoes q ON f.questao_id = q.id
             {filtro}
-            ORDER BY f.resolvido ASC, f.marcada_confusa DESC, f.data_criacao DESC;
+            ORDER BY f.resolvido ASC, impacto DESC, f.data_criacao DESC;
         """, tuple(params))
         linhas = cursor.fetchall()
         conn.close()
@@ -301,6 +314,8 @@ def listar_feedbacks(status: Optional[str] = Query(None), busca: Optional[str] =
                 "resolvido":         linha[7],
                 "resolvido_em":      linha[8].strftime("%d/%m/%Y %H:%M") if linha[8] else None,
                 "publico":           linha[9],
+                "resposta_professor": linha[10] or "",
+                "impacto":           linha[11] or 0,
             }
             for linha in linhas
         ]
@@ -344,21 +359,39 @@ def resolver_feedback(feedback_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.patch("/feedbacks_questoes/{feedback_id}/responder")
+def responder_feedback(feedback_id: int, dados: dict):
+    """Permite ao professor enviar uma resposta ao feedback do aluno."""
+    try:
+        resposta = dados.get("resposta_professor", "")
+        conn = get_conexao()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE feedbacks_questoes
+            SET resposta_professor = %s, resolvido = TRUE, resolvido_em = NOW()
+            WHERE id = %s;
+        """, (resposta, feedback_id))
+        conn.commit()
+        conn.close()
+        return {"sucesso": True, "mensagem": "Resposta enviada e feedback marcado como resolvido!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.patch("/feedbacks_questoes/{feedback_id}/publicar")
 def alternar_publicacao_feedback(feedback_id: int):
     """Alterna o status de publicação (publico = NOT publico) de um comentário."""
     try:
         conn = get_conexao()
         cursor = conn.cursor()
-        
-        # Primeiro, verifica o status atual
+
         cursor.execute("SELECT publico FROM feedbacks_questoes WHERE id = %s;", (feedback_id,))
         row = cursor.fetchone()
         if not row:
             return {"sucesso": False, "mensagem": "Feedback nao encontrado."}
-            
+
         novo_status = not row[0]
-        
+
         cursor.execute("""
             UPDATE feedbacks_questoes
             SET publico = %s
@@ -367,7 +400,7 @@ def alternar_publicacao_feedback(feedback_id: int):
         conn.commit()
         conn.close()
         return {
-            "sucesso": True, 
+            "sucesso": True,
             "mensagem": f"Comentário {'publicado' if novo_status else 'ocultado'} com sucesso!",
             "publico": novo_status
         }
@@ -375,13 +408,12 @@ def alternar_publicacao_feedback(feedback_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
 @router.post("/questoes/importar-csv")
 async def importar_csv(arquivo: UploadFile = File(...)):
     """
     Importa questões em massa via CSV.
-    Colunas esperadas: enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao
-    opcao_e e explicacao são opcionais.
+    Colunas esperadas: enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao,link_video
+    opcao_e, explicacao e link_video são opcionais.
     """
     if not arquivo.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Envie um arquivo .csv")
@@ -391,7 +423,6 @@ async def importar_csv(arquivo: UploadFile = File(...)):
         texto = conteudo.decode("utf-8-sig")
         leitor = csv.DictReader(io.StringIO(texto), delimiter=";")
 
-        # Tenta também com vírgula se não encontrar colunas esperadas
         campos = leitor.fieldnames or []
         campos_lower = [c.strip().lower() for c in campos]
         if "enunciado" not in campos_lower:
@@ -419,16 +450,19 @@ async def importar_csv(arquivo: UploadFile = File(...)):
                 erros.append(f"Linha {i}: enunciado vazio, pulada.")
                 continue
 
-            opcao_e = row_clean.get("opcao_e") or None
+            opcao_e   = row_clean.get("opcao_e") or None
             explicacao = row_clean.get("explicacao") or None
-            resposta = row_clean.get("resposta_correta", "A").upper()
+            resposta   = row_clean.get("resposta_correta", "A").upper()
+            # ✅ FASE 1: Lê a coluna link_video do CSV (opcional)
+            link_video = row_clean.get("link_video") or None
 
             try:
+                # ✅ FASE 1: Inclui link_video no INSERT do importador
                 cursor.execute("""
                     INSERT INTO questoes
                         (enunciado, opcao_a, opcao_b, opcao_c, opcao_d, opcao_e,
-                         resposta_correta, explicacao)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                         resposta_correta, explicacao, link_video)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id;
                 """, (
                     enunciado,
@@ -439,6 +473,7 @@ async def importar_csv(arquivo: UploadFile = File(...)):
                     opcao_e,
                     resposta,
                     explicacao,
+                    link_video,
                 ))
                 nova_id = cursor.fetchone()[0]
 

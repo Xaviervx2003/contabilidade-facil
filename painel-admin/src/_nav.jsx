@@ -8,6 +8,7 @@ import {
   cilHistory,
   cilCommentSquare,
   cilLibrary,
+  cilVideo,
 } from '@coreui/icons'
 import { CNavItem, CNavTitle } from '@coreui/react'
 
@@ -27,6 +28,12 @@ const getNavItens = () => {
       name: 'Quiz',
       to: '/quiz',
       icon: <CIcon icon={cilPuzzle} customClassName="nav-icon" />,
+    },
+    {
+      component: CNavItem,
+      name: 'Vídeo-Aulas',
+      to: '/videos',
+      icon: <CIcon icon={cilVideo} customClassName="nav-icon" />,
     },
     {
       component: CNavItem,

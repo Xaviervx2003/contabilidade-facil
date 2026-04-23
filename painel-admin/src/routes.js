@@ -16,11 +16,13 @@ const Perfil = React.lazy(() => import('./views/perfil/Perfil'))
 const FeedbacksQuestoes = React.lazy(() => import('./views/feedbacks/FeedbacksQuestoes'))
 const GestaoUsuarios = React.lazy(() => import('./views/admin/GestaoUsuarios'))
 const GestaoMaterias = React.lazy(() => import('./views/admin/GestaoMaterias'))
+const VideoGallery = React.lazy(() => import('./views/videos/VideoGallery'))
 
 export const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard, allowedRoles: ['admin', 'professor'] },
   { path: '/quiz', name: 'Quiz', element: Quiz },
+  { path: '/videos', name: 'Vídeo-Aulas', element: VideoGallery },
   { path: '/historico', name: 'Meu Histórico', element: Historico },
   { path: '/questoes', name: 'Gestão de Questões', element: GestaoQuestoes, allowedRoles: ['admin', 'professor'] },
   { path: '/perfil', name: 'Minha Conta', element: Perfil },

@@ -52,8 +52,24 @@ const QTD_OPTIONS = [
   { value: 50, label: '50 questões' },
 ]
 
-// ✅ ALTERAÇÃO 1: Adicionado 'E' ao array de letras
+// ALTERAÇÃO 1: Adicionado 'E' ao array de letras
 const LETTERS = ['A', 'B', 'C', 'D', 'E']
+
+// --- Função auxiliar para converter links de vídeo (FASE 1) ---
+const obterLinkEmbed = (url) => {
+  if (!url) return null;
+  let embedUrl = url;
+  if (url.includes('youtube.com/watch?v=')) {
+    embedUrl = url.replace('watch?v=', 'embed/');
+    embedUrl = embedUrl.split('&')[0];
+  } else if (url.includes('youtu.be/')) {
+    embedUrl = url.replace('youtu.be/', 'www.youtube.com/embed/');
+  } else if (url.includes('vimeo.com/')) {
+    embedUrl = url.replace('vimeo.com/', 'player.vimeo.com/video/');
+  }
+  return embedUrl;
+};
+// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // Componente interno – Tabela de revisão de respostas
@@ -198,7 +214,7 @@ const Quiz = () => {
     fetch(`${API_URL}/api/admin/materias`)
       .then(res => res.json())
       .then(data => setMaterias(Array.isArray(data) ? data : []))
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   const startQuiz = async (questionsData) => {
@@ -477,14 +493,14 @@ const Quiz = () => {
                   <CButton color="primary" size="lg" onClick={fetchAndStart}>
                     ▶ Iniciar Quiz Personalizado
                   </CButton>
-                  
+
                   <hr className="my-4" />
                   <div className="text-center">
                     <h5 className="text-muted mb-3">Ou vá direto ao ponto:</h5>
-                    <CButton 
-                      color="success" 
-                      size="lg" 
-                      className="w-100 py-3 text-white fw-bold fs-5 shadow-sm" 
+                    <CButton
+                      color="success"
+                      size="lg"
+                      className="w-100 py-3 text-white fw-bold fs-5 shadow-sm"
                       onClick={fetchAndStartSimuladoRapido}
                     >
                       ▶️ Começar Simulado Rápido (10 Aleatórias em 10min)
@@ -522,174 +538,185 @@ const Quiz = () => {
                         {isConfusing && <CBadge color="warning" className="ms-2">Confusa</CBadge>}
                       </p>
 
-                  {/* ✅ ALTERAÇÃO 2: O layout de grid se adapta automaticamente.
-                      Questões com 4 opções ficam em 2 colunas (md=6).
-                      Questões com 5 opções ficam em coluna única (xs=12) para não quebrar. */}
-                  <CRow className="g-2">
-                    {currentQuestion.options.map((optionText, index) => {
-                      // ✅ ALTERAÇÃO 3: Pega a letra do array LETTERS pelo índice.
-                      // Se o backend mandar 4 opções, renderiza A-D. Se mandar 5, renderiza A-E.
-                      const optionValue = LETTERS[index]
-                      if (!optionValue) return null // segurança: ignora índices além de E
+                      <CRow className="g-2">
+                        {currentQuestion.options.map((optionText, index) => {
+                          const optionValue = LETTERS[index]
+                          if (!optionValue) return null
 
-                      const isSelected = selectedOption === optionValue
-                      const isCorrectAnswer = optionValue === currentQuestion.answer
+                          const isSelected = selectedOption === optionValue
+                          const isCorrectAnswer = optionValue === currentQuestion.answer
 
-                      let btnColor = 'secondary'
-                      let isSolid = false
+                          let btnColor = 'secondary'
+                          let isSolid = false
 
-                      if (isAnswerConfirmed) {
-                        if (isCorrectAnswer) {
-                          btnColor = 'success'
-                          isSolid = true
-                        } else if (isSelected) {
-                          btnColor = 'danger'
-                          isSolid = true
-                        }
-                      } else if (isSelected) {
-                        btnColor = 'primary'
-                        isSolid = true
-                      }
+                          if (isAnswerConfirmed) {
+                            if (isCorrectAnswer) {
+                              btnColor = 'success'
+                              isSolid = true
+                            } else if (isSelected) {
+                              btnColor = 'danger'
+                              isSolid = true
+                            }
+                          } else if (isSelected) {
+                            btnColor = 'primary'
+                            isSolid = true
+                          }
 
-                      // ✅ ALTERAÇÃO 4: Se a questão tem 5 opções, cada botão ocupa linha inteira.
-                      // Se tem 4 ou menos, mantém o layout original de 2 colunas.
-                      const colSize = currentQuestion.options.length >= 5 ? 12 : 6
+                          const colSize = currentQuestion.options.length >= 5 ? 12 : 6
 
-                      return (
-                        <CCol xs={12} md={colSize} key={optionValue}>
-                          <CButton
-                            color={btnColor}
-                            variant={isSolid ? undefined : 'outline'}
-                            className={`w-100 p-2 text-start ${isAnswerConfirmed && !isCorrectAnswer && !isSelected ? 'opacity-50' : ''}`}
-                            onClick={() => !isAnswerConfirmed && setSelectedOption(optionValue)}
-                            style={{
-                              cursor: isAnswerConfirmed ? 'default' : 'pointer',
-                              color: isSolid ? '#fff' : ''
-                            }}
-                          >
-                            <strong className="me-2">{optionValue}.</strong> {optionText}
-                          </CButton>
-                        </CCol>
-                      )
-                    })}
-                  </CRow>
-
-                  {/* ────────────────── FEEDBACK, EXPLICAÇÃO E COMENTÁRIOS ────────────────── */}
-                  {isAnswerConfirmed && (
-                    <div className="mt-3" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-
-                      {/* 1. Alerta de Acerto ou Erro + Validação Social */}
-                      <CAlert color={selectedOption === currentQuestion.answer ? 'success' : 'danger'}>
-                        <h5 className="alert-heading">
-                          {selectedOption === currentQuestion.answer ? '✅ Resposta Correta!' : '❌ Resposta Incorreta'}
-                        </h5>
-                        <p className="mb-0">
-                          A alternativa correta é a letra <strong>{currentQuestion.answer}</strong>.
-                        </p>
-                        
-                        {/* Validação Social */}
-                        {currentQuestion.tentativas > 0 && (
-                          <div className="mt-2 pt-2 border-top border-opacity-25 border-dark">
-                            <span className="fw-bold" style={{ fontSize: '0.9rem' }}>
-                              👥 Validação Social: {Math.round((currentQuestion.acertos / currentQuestion.tentativas) * 100)}% dos alunos também acertaram essa questão.
-                            </span>
-                          </div>
-                        )}
-                      </CAlert>
-                    </div>
-                  )}
-                </CCol>
-
-                {/* COLUNA DIREITA: Comentários da Comunidade e Enviar Feedback */}
-                {isAnswerConfirmed && (
-                  <CCol lg={5}>
-                    <div className="mt-3 mt-lg-0" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-                      
-                      {/* 2. EXPLICAÇÃO DO PROFESSOR (Movido para lateral) */}
-                      <CCard className="mb-3 border-info shadow-sm">
-                        <CCardHeader className="bg-info text-white fw-bold py-2">
-                          💡 Explicação do Professor
-                        </CCardHeader>
-                        <CCardBody className="bg-light">
-                          <p className="mb-0 text-dark" style={{ whiteSpace: 'pre-wrap' }}>
-                            {currentQuestion.explicacao || 'Nenhum comentário adicional do professor para esta questão.'}
-                          </p>
-                        </CCardBody>
-                      </CCard>
-
-                      {/* 3. COMENTÁRIOS DA COMUNIDADE */}
-                      {currentQuestion.comentarios_publicos && currentQuestion.comentarios_publicos.length > 0 && (
-                        <CCard className="mb-3 border-success shadow-sm">
-                          <CCardHeader className="bg-success text-white fw-bold py-2">
-                            💬 Comentários da Comunidade
-                          </CCardHeader>
-                          <CCardBody className="bg-light">
-                            {currentQuestion.comentarios_publicos.map((comentario, idx) => (
-                              <div key={idx} className={`mb-2 ${idx !== currentQuestion.comentarios_publicos.length - 1 ? 'border-bottom pb-2' : ''}`}>
-                                <div className="d-flex justify-content-between align-items-center mb-1">
-                                  <strong className="text-success">{comentario.nome_aluno || 'Aluno'}</strong>
-                                  <small className="text-muted text-opacity-75">{new Date(comentario.data_criacao).toLocaleDateString('pt-BR')}</small>
-                                </div>
-                                <p className="mb-0 text-dark fst-italic">"{comentario.texto}"</p>
-                              </div>
-                            ))}
-                          </CCardBody>
-                        </CCard>
-                      )}
-
-                      {/* 4. Área para o Aluno enviar comentário */}
-                      <CCard className="bg-body-tertiary border-0">
-                        <CCardBody className="py-3">
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <span className="fw-medium text-muted">
-                              💬 Feedback sobre esta questão
-                            </span>
-                            <CButton
-                              color="warning"
-                              variant={isConfusing ? undefined : 'outline'}
-                              size="sm"
-                              className="rounded-pill"
-                              onClick={() => setIsConfusing(!isConfusing)}
-                              disabled={commentStatus === 'sending' || commentStatus === 'sent'}
-                              style={{ color: isConfusing ? '#000' : '' }}
-                            >
-                              {isConfusing ? '⚠️ Marcada como confusa' : '⚠️ Marcar como confusa'}
-                            </CButton>
-                          </div>
-
-                          <CFormTextarea
-                            placeholder="Teve dúvida no enunciado? Achou a questão ambígua? Descreva aqui — o professor irá revisar."
-                            rows={2}
-                            value={commentText}
-                            onChange={(e) => setCommentText(e.target.value)}
-                            maxLength={300}
-                            disabled={commentStatus === 'sending' || commentStatus === 'sent'}
-                          />
-
-                          <div className="d-flex justify-content-between align-items-center mt-2">
-                            <small className="text-muted">{commentText.length} / 300</small>
-
-                            {commentStatus === 'sent' ? (
-                              <span className="text-success fw-bold">✅ Feedback enviado ao professor!</span>
-                            ) : (
+                          return (
+                            <CCol xs={12} md={colSize} key={optionValue}>
                               <CButton
-                                color="info"
-                                variant={commentText.length > 0 || isConfusing ? undefined : 'outline'}
-                                size="sm"
-                                onClick={handleSendComment}
-                                disabled={(!commentText.trim() && !isConfusing) || commentStatus === 'sending'}
-                                style={{ color: (commentText.length > 0 || isConfusing) ? '#fff' : '' }}
+                                color={btnColor}
+                                variant={isSolid ? undefined : 'outline'}
+                                className={`w-100 p-2 text-start ${isAnswerConfirmed && !isCorrectAnswer && !isSelected ? 'opacity-50' : ''}`}
+                                onClick={() => !isAnswerConfirmed && setSelectedOption(optionValue)}
+                                style={{
+                                  cursor: isAnswerConfirmed ? 'default' : 'pointer',
+                                  color: isSolid ? '#fff' : ''
+                                }}
                               >
-                                {commentStatus === 'sending' ? <CSpinner size="sm" /> : 'Enviar comentário'}
+                                <strong className="me-2">{optionValue}.</strong> {optionText}
                               </CButton>
+                            </CCol>
+                          )
+                        })}
+                      </CRow>
+
+                      {/* ────────────────── FEEDBACK, EXPLICAÇÃO E COMENTÁRIOS ────────────────── */}
+                      {isAnswerConfirmed && (
+                        <div className="mt-3" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+
+                          {/* 1. Alerta de Acerto ou Erro + Validação Social */}
+                          <CAlert color={selectedOption === currentQuestion.answer ? 'success' : 'danger'}>
+                            <h5 className="alert-heading">
+                              {selectedOption === currentQuestion.answer ? '✅ Resposta Correta!' : '❌ Resposta Incorreta'}
+                            </h5>
+                            <p className="mb-0">
+                              A alternativa correta é a letra <strong>{currentQuestion.answer}</strong>.
+                            </p>
+
+                            {/* Validação Social */}
+                            {currentQuestion.tentativas > 0 && (
+                              <div className="mt-2 pt-2 border-top border-opacity-25 border-dark">
+                                <span className="fw-bold" style={{ fontSize: '0.9rem' }}>
+                                  👥 Validação Social: {Math.round((currentQuestion.acertos / currentQuestion.tentativas) * 100)}% dos alunos também acertaram essa questão.
+                                </span>
+                              </div>
                             )}
-                          </div>
-                        </CCardBody>
-                      </CCard>
-                    </div>
-                  </CCol>
-                )}
-              </CRow>
+                          </CAlert>
+                        </div>
+                      )}
+                    </CCol>
+
+                    {/* COLUNA DIREITA: Comentários da Comunidade e Enviar Feedback */}
+                    {isAnswerConfirmed && (
+                      <CCol lg={5}>
+                        <div className="mt-3 mt-lg-0" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+
+                          {/* 2. EXPLICAÇÃO DO PROFESSOR (Movido para lateral) */}
+                          <CCard className="mb-3 border-info shadow-sm">
+                            <CCardHeader className="bg-info text-white fw-bold py-2">
+                              💡 Explicação do Professor
+                            </CCardHeader>
+                            <CCardBody className="bg-light">
+                              <p className="mb-0 text-dark" style={{ whiteSpace: 'pre-wrap' }}>
+                                {currentQuestion.explicacao || 'Nenhum comentário adicional do professor para esta questão.'}
+                              </p>
+
+                              {/* ✅ FASE 1: VÍDEO NAS QUESTÕES */}
+                              {currentQuestion.link_video && (
+                                <div className="mt-3">
+                                  <hr className="text-info border-info opacity-25" />
+                                  <h6 className="fw-bold mb-2 text-danger">🎬 Vídeo de Apoio</h6>
+                                  <div className="ratio ratio-16x9">
+                                    <iframe
+                                      src={obterLinkEmbed(currentQuestion.link_video)}
+                                      title="Vídeo de Explicação"
+                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                      allowFullScreen
+                                      className="rounded border shadow-sm"
+                                    ></iframe>
+                                  </div>
+                                </div>
+                              )}
+
+                            </CCardBody>
+                          </CCard>
+
+                          {/* 3. COMENTÁRIOS DA COMUNIDADE */}
+                          {currentQuestion.comentarios_publicos && currentQuestion.comentarios_publicos.length > 0 && (
+                            <CCard className="mb-3 border-success shadow-sm">
+                              <CCardHeader className="bg-success text-white fw-bold py-2">
+                                💬 Comentários da Comunidade
+                              </CCardHeader>
+                              <CCardBody className="bg-light">
+                                {currentQuestion.comentarios_publicos.map((comentario, idx) => (
+                                  <div key={idx} className={`mb-2 ${idx !== currentQuestion.comentarios_publicos.length - 1 ? 'border-bottom pb-2' : ''}`}>
+                                    <div className="d-flex justify-content-between align-items-center mb-1">
+                                      <strong className="text-success">{comentario.nome_aluno || 'Aluno'}</strong>
+                                      <small className="text-muted text-opacity-75">{new Date(comentario.data_criacao).toLocaleDateString('pt-BR')}</small>
+                                    </div>
+                                    <p className="mb-0 text-dark fst-italic">"{comentario.texto}"</p>
+                                  </div>
+                                ))}
+                              </CCardBody>
+                            </CCard>
+                          )}
+
+                          {/* 4. Área para o Aluno enviar comentário */}
+                          <CCard className="bg-body-tertiary border-0">
+                            <CCardBody className="py-3">
+                              <div className="d-flex justify-content-between align-items-center mb-2">
+                                <span className="fw-medium text-muted">
+                                  💬 Feedback sobre esta questão
+                                </span>
+                                <CButton
+                                  color="warning"
+                                  variant={isConfusing ? undefined : 'outline'}
+                                  size="sm"
+                                  className="rounded-pill"
+                                  onClick={() => setIsConfusing(!isConfusing)}
+                                  disabled={commentStatus === 'sending' || commentStatus === 'sent'}
+                                  style={{ color: isConfusing ? '#000' : '' }}
+                                >
+                                  {isConfusing ? '⚠️ Marcada como confusa' : '⚠️ Marcar como confusa'}
+                                </CButton>
+                              </div>
+
+                              <CFormTextarea
+                                placeholder="Teve dúvida no enunciado? Achou a questão ambígua? Descreva aqui — o professor irá revisar."
+                                rows={2}
+                                value={commentText}
+                                onChange={(e) => setCommentText(e.target.value)}
+                                maxLength={300}
+                                disabled={commentStatus === 'sending' || commentStatus === 'sent'}
+                              />
+
+                              <div className="d-flex justify-content-between align-items-center mt-2">
+                                <small className="text-muted">{commentText.length} / 300</small>
+
+                                {commentStatus === 'sent' ? (
+                                  <span className="text-success fw-bold">✅ Feedback enviado ao professor!</span>
+                                ) : (
+                                  <CButton
+                                    color="info"
+                                    variant={commentText.length > 0 || isConfusing ? undefined : 'outline'}
+                                    size="sm"
+                                    onClick={handleSendComment}
+                                    disabled={(!commentText.trim() && !isConfusing) || commentStatus === 'sending'}
+                                    style={{ color: (commentText.length > 0 || isConfusing) ? '#fff' : '' }}
+                                  >
+                                    {commentStatus === 'sending' ? <CSpinner size="sm" /> : 'Enviar comentário'}
+                                  </CButton>
+                                )}
+                              </div>
+                            </CCardBody>
+                          </CCard>
+                        </div>
+                      </CCol>
+                    )}
+                  </CRow>
 
                   {/* ────────────────── BOTÕES DE NAVEGAÇÃO ────────────────── */}
                   <div className="mt-4 d-flex justify-content-between align-items-center flex-wrap gap-2">

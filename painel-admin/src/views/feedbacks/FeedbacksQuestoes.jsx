@@ -77,6 +77,33 @@ const FeedbacksQuestoes = () => {
         }
     }
 
+    const handleResponder = async (id, texto) => {
+        try {
+            const res = await fetch(`${API_URL}/api/feedbacks_questoes/${id}/responder`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resposta_professor: texto })
+            })
+            if (!res.ok) throw new Error('Erro ao enviar resposta')
+            
+            // Atualiza localmente para mostrar a resposta e marcar como resolvido
+            setFeedbacks(prev =>
+                prev.map(item =>
+                    item.id === id
+                        ? { 
+                            ...item, 
+                            resposta_professor: texto, 
+                            resolvido: true, 
+                            resolvido_em: new Date().toLocaleString('pt-BR') 
+                          }
+                        : item
+                )
+            )
+        } catch (err) {
+            alert('Não foi possível enviar a resposta. Tente novamente.')
+        }
+    }
+
     // Deletar permanentemente
     const handleDelete = async (id) => {
         if (!window.confirm('Tem certeza que deseja APAGAR permanentemente este feedback?')) return
@@ -254,7 +281,10 @@ const FeedbacksQuestoes = () => {
                                         {feedbacks.map((item) => (
                                             <CTableRow
                                                 key={item.id}
-                                                style={item.resolvido ? { opacity: 0.6 } : {}}
+                                                style={{
+                                                    ...(item.resolvido ? { opacity: 0.6 } : {}),
+                                                    ...(item.impacto >= 5 && !item.resolvido ? { backgroundColor: '#fff5f5' } : {})
+                                                }}
                                             >
                                                 {/* Data */}
                                                 <CTableDataCell className="small text-muted" style={{ whiteSpace: 'nowrap' }}>
@@ -268,12 +298,19 @@ const FeedbacksQuestoes = () => {
                                                     </div>
                                                 </CTableDataCell>
 
-                                                {/* Questão */}
+                                                {/* Questão + IMPACTO */}
                                                 <CTableDataCell style={{ minWidth: '280px' }}>
                                                     <div className="d-flex flex-column gap-1">
-                                                        <CBadge color="dark" shape="rounded-pill" className="align-self-start">
-                                                            ID #{item.questao_id}
-                                                        </CBadge>
+                                                        <div className="d-flex align-items-center gap-2">
+                                                            <CBadge color="dark" shape="rounded-pill">
+                                                                ID #{item.questao_id}
+                                                            </CBadge>
+                                                            {item.impacto >= 2 && !item.resolvido && (
+                                                                <CBadge color={item.impacto >= 5 ? 'danger' : 'warning'} shape="rounded-pill">
+                                                                    🔥 {item.impacto} reclamações
+                                                                </CBadge>
+                                                            )}
+                                                        </div>
                                                         <div className="small text-muted" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
                                                             {item.enunciado_questao
                                                                 ? (item.enunciado_questao.length > 120
@@ -284,13 +321,36 @@ const FeedbacksQuestoes = () => {
                                                     </div>
                                                 </CTableDataCell>
 
-                                                {/* Comentário */}
+                                                {/* Comentário + RESPOSTA */}
                                                 <CTableDataCell>
-                                                    {item.texto ? (
-                                                        <span className="fst-italic">"{item.texto}"</span>
-                                                    ) : (
-                                                        <span className="text-muted fst-italic small">Sem comentário em texto</span>
-                                                    )}
+                                                    <div className="d-flex flex-column gap-2">
+                                                        {item.texto ? (
+                                                            <span className="fst-italic">"{item.texto}"</span>
+                                                        ) : (
+                                                            <span className="text-muted fst-italic small">Sem comentário em texto</span>
+                                                        )}
+                                                        
+                                                        {/* Exibição da Resposta do Professor */}
+                                                        {item.resposta_professor ? (
+                                                            <div className="p-2 bg-light border-start border-4 border-info small">
+                                                                <strong>Sua resposta:</strong> {item.resposta_professor}
+                                                            </div>
+                                                        ) : !item.resolvido && (
+                                                            <div className="mt-1">
+                                                                <CFormInput 
+                                                                    size="sm" 
+                                                                    placeholder="Escrever resposta..." 
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Enter' && e.target.value.trim()) {
+                                                                            handleResponder(item.id, e.target.value);
+                                                                            e.target.value = '';
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                <small className="text-muted" style={{ fontSize: '0.75rem' }}>Pressione Enter para enviar e resolver</small>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </CTableDataCell>
 
                                                 {/* Tipo */}

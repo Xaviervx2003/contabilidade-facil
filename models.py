@@ -61,7 +61,6 @@ class PromoverProfessorRequest(BaseModel):
     materia_ids: List[int]
 
 
-# ✅ ALTERAÇÃO: opcao_e adicionada como Optional (None = questão com 4 alternativas)
 class QuestaoRequest(BaseModel):
     materia_ids: List[int]
     enunciado: str
@@ -69,6 +68,7 @@ class QuestaoRequest(BaseModel):
     opcao_b: str
     opcao_c: str
     opcao_d: str
-    opcao_e: Optional[str] = None   # ← NOVO
+    opcao_e: Optional[str] = None
     resposta_correta: str
     explicacao: Optional[str] = None
+    link_video: Optional[str] = None   # ← FASE 1: Link YouTube/Vimeo opcional
