@@ -502,21 +502,25 @@ const Quiz = () => {
 
               {status === 'quiz' && currentQuestion && (
                 <>
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <strong>Pergunta {currentIndex + 1} de {totalQuestions}</strong>
-                    <span className={`text-${remainingSeconds <= 60 ? 'danger' : 'muted'} fw-bold`}>
-                      ⏱ {formatSeconds(remainingSeconds)}
-                    </span>
-                  </div>
-                  <CProgress
-                    className="mb-4"
-                    value={((currentIndex + 1) / totalQuestions) * 100}
-                    color="primary"
-                  />
-                  <p className="fs-5 mb-4">
-                    {currentQuestion.question}
-                    {isConfusing && <CBadge color="warning" className="ms-2">Confusa</CBadge>}
-                  </p>
+                  <CRow>
+                    {/* COLUNA ESQUERDA: Questão, Opções e Gabarito */}
+                    <CCol lg={isAnswerConfirmed ? 7 : 12} style={{ transition: 'all 0.3s ease-in-out' }}>
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <strong>Pergunta {currentIndex + 1} de {totalQuestions}</strong>
+                        <span className={`text-${remainingSeconds <= 60 ? 'danger' : 'muted'} fw-bold`}>
+                          ⏱ {formatSeconds(remainingSeconds)}
+                        </span>
+                      </div>
+                      <CProgress
+                        className="mb-3"
+                        value={((currentIndex + 1) / totalQuestions) * 100}
+                        color="primary"
+                        height={10}
+                      />
+                      <p className="fs-5 mb-3">
+                        {currentQuestion.question}
+                        {isConfusing && <CBadge color="warning" className="ms-2">Confusa</CBadge>}
+                      </p>
 
                   {/* ✅ ALTERAÇÃO 2: O layout de grid se adapta automaticamente.
                       Questões com 4 opções ficam em 2 colunas (md=6).
@@ -556,7 +560,7 @@ const Quiz = () => {
                           <CButton
                             color={btnColor}
                             variant={isSolid ? undefined : 'outline'}
-                            className={`w-100 p-3 text-start ${isAnswerConfirmed && !isCorrectAnswer && !isSelected ? 'opacity-50' : ''}`}
+                            className={`w-100 p-2 text-start ${isAnswerConfirmed && !isCorrectAnswer && !isSelected ? 'opacity-50' : ''}`}
                             onClick={() => !isAnswerConfirmed && setSelectedOption(optionValue)}
                             style={{
                               cursor: isAnswerConfirmed ? 'default' : 'pointer',
@@ -572,7 +576,7 @@ const Quiz = () => {
 
                   {/* ────────────────── FEEDBACK, EXPLICAÇÃO E COMENTÁRIOS ────────────────── */}
                   {isAnswerConfirmed && (
-                    <div className="mt-4" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+                    <div className="mt-3" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
 
                       {/* 1. Alerta de Acerto ou Erro + Validação Social */}
                       <CAlert color={selectedOption === currentQuestion.answer ? 'success' : 'danger'}>
@@ -592,13 +596,21 @@ const Quiz = () => {
                           </div>
                         )}
                       </CAlert>
+                    </div>
+                  )}
+                </CCol>
 
-                      {/* 2. EXPLICAÇÃO DO PROFESSOR */}
-                      <CCard className="mb-3 border-info">
+                {/* COLUNA DIREITA: Comentários da Comunidade e Enviar Feedback */}
+                {isAnswerConfirmed && (
+                  <CCol lg={5}>
+                    <div className="mt-3 mt-lg-0" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+                      
+                      {/* 2. EXPLICAÇÃO DO PROFESSOR (Movido para lateral) */}
+                      <CCard className="mb-3 border-info shadow-sm">
+                        <CCardHeader className="bg-info text-white fw-bold py-2">
+                          💡 Explicação do Professor
+                        </CCardHeader>
                         <CCardBody className="bg-light">
-                          <h6 className="text-info fw-bold mb-2">
-                            💡 Explicação do Professor
-                          </h6>
                           <p className="mb-0 text-dark" style={{ whiteSpace: 'pre-wrap' }}>
                             {currentQuestion.explicacao || 'Nenhum comentário adicional do professor para esta questão.'}
                           </p>
@@ -608,7 +620,7 @@ const Quiz = () => {
                       {/* 3. COMENTÁRIOS DA COMUNIDADE */}
                       {currentQuestion.comentarios_publicos && currentQuestion.comentarios_publicos.length > 0 && (
                         <CCard className="mb-3 border-success shadow-sm">
-                          <CCardHeader className="bg-success text-white fw-bold">
+                          <CCardHeader className="bg-success text-white fw-bold py-2">
                             💬 Comentários da Comunidade
                           </CCardHeader>
                           <CCardBody className="bg-light">
@@ -626,8 +638,8 @@ const Quiz = () => {
                       )}
 
                       {/* 4. Área para o Aluno enviar comentário */}
-                      <CCard className="bg-body-tertiary border-0 mt-3">
-                        <CCardBody>
+                      <CCard className="bg-body-tertiary border-0">
+                        <CCardBody className="py-3">
                           <div className="d-flex justify-content-between align-items-center mb-2">
                             <span className="fw-medium text-muted">
                               💬 Feedback sobre esta questão
@@ -675,7 +687,9 @@ const Quiz = () => {
                         </CCardBody>
                       </CCard>
                     </div>
-                  )}
+                  </CCol>
+                )}
+              </CRow>
 
                   {/* ────────────────── BOTÕES DE NAVEGAÇÃO ────────────────── */}
                   <div className="mt-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
