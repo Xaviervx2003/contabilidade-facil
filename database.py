@@ -54,21 +54,31 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                     # Migração defensiva para ambientes já existentes:
                     # algumas rotas do dashboard dependem desta tabela.
                     cursor.execute("""
-                        CREATE TABLE IF NOT EXISTS sessoes_questoes (
-                            sessao_id   INT NOT NULL REFERENCES sessoes_estudo(id) ON DELETE CASCADE,
-                            questao_id  INT NOT NULL REFERENCES questoes(id) ON DELETE CASCADE,
-                            acertou     BOOLEAN NOT NULL,
-                            PRIMARY KEY (sessao_id, questao_id)
-                        );
+                        SELECT
+                            to_regclass('public.sessoes_estudo') IS NOT NULL,
+                            to_regclass('public.questoes') IS NOT NULL;
                     """)
-                    cursor.execute("""
-                        CREATE INDEX IF NOT EXISTS idx_sq_sessao_id
-                        ON sessoes_questoes (sessao_id);
-                    """)
-                    cursor.execute("""
-                        CREATE INDEX IF NOT EXISTS idx_sq_questao_id
-                        ON sessoes_questoes (questao_id);
-                    """)
+                    tem_sessoes_estudo, tem_questoes = cursor.fetchone()
+
+                    # Só cria se as tabelas-base já existirem (evita derrubar startup
+                    # em banco novo antes do init.sql terminar).
+                    if tem_sessoes_estudo and tem_questoes:
+                        cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS sessoes_questoes (
+                                sessao_id   INT NOT NULL REFERENCES sessoes_estudo(id) ON DELETE CASCADE,
+                                questao_id  INT NOT NULL REFERENCES questoes(id) ON DELETE CASCADE,
+                                acertou     BOOLEAN NOT NULL,
+                                PRIMARY KEY (sessao_id, questao_id)
+                            );
+                        """)
+                        cursor.execute("""
+                            CREATE INDEX IF NOT EXISTS idx_sq_sessao_id
+                            ON sessoes_questoes (sessao_id);
+                        """)
+                        cursor.execute("""
+                            CREATE INDEX IF NOT EXISTS idx_sq_questao_id
+                            ON sessoes_questoes (questao_id);
+                        """)
             return
         except Exception as erro:
             ultimo_erro = erro
