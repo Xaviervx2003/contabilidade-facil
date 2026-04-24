@@ -1,6 +1,6 @@
 """
 routes/auth.py — Autenticação: login, registro, verificação de identidade, 
-                  redefinição e alteração de senha.
+                 redefinição e alteração de senha.
 """
 
 from fastapi import APIRouter, HTTPException
@@ -19,14 +19,14 @@ router = APIRouter(prefix="/api", tags=["Autenticação"])
 @router.post("/login")
 def fazer_login(credenciais: LoginRequest):
     try:
-        conn = get_conexao()
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id, nome, matricula, papel FROM usuarios WHERE matricula = %s AND senha = %s;",
-            (credenciais.matricula, credenciais.senha),
-        )
-        usuario = cursor.fetchone()
-        conn.close()
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            # CORREÇÃO: matricula::VARCHAR adicionado
+            cursor.execute(
+                "SELECT id, nome, matricula, papel FROM usuarios WHERE matricula::VARCHAR = %s AND senha = %s;",
+                (credenciais.matricula, credenciais.senha),
+            )
+            usuario = cursor.fetchone()
 
         if usuario:
             return {
@@ -47,20 +47,19 @@ def fazer_login(credenciais: LoginRequest):
 @router.post("/register")
 def registrar_usuario(dados: RegistroRequest):
     try:
-        conn = get_conexao()
-        cursor = conn.cursor()
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            
+            # CORREÇÃO: matricula::VARCHAR adicionado
+            cursor.execute("SELECT id FROM usuarios WHERE matricula::VARCHAR = %s;", (dados.matricula,))
+            if cursor.fetchone():
+                return {"sucesso": False, "mensagem": "Esta matrícula já está cadastrada."}
 
-        cursor.execute("SELECT id FROM usuarios WHERE matricula = %s;", (dados.matricula,))
-        if cursor.fetchone():
-            conn.close()
-            return {"sucesso": False, "mensagem": "Esta matrícula já está cadastrada."}
-
-        cursor.execute(
-            "INSERT INTO usuarios (nome, matricula, senha, papel) VALUES (%s, %s, %s, 'aluno');",
-            (dados.nome, dados.matricula, dados.senha),
-        )
-        conn.commit()
-        conn.close()
+            cursor.execute(
+                "INSERT INTO usuarios (nome, matricula, senha, papel) VALUES (%s, %s, %s, 'aluno');",
+                (dados.nome, dados.matricula, dados.senha),
+            )
+            conn.commit()
         return {"sucesso": True, "mensagem": "Conta criada com sucesso!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro no registro: {str(e)}")
@@ -70,14 +69,14 @@ def registrar_usuario(dados: RegistroRequest):
 def verificar_identidade(dados: VerificaIdentidadeRequest):
     """Passo 1 da redefinição: confirma que a matrícula + nome batem no banco."""
     try:
-        conn = get_conexao()
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id FROM usuarios WHERE matricula = %s AND LOWER(nome) = LOWER(%s);",
-            (dados.matricula, dados.nome),
-        )
-        usuario = cursor.fetchone()
-        conn.close()
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            # CORREÇÃO: matricula::VARCHAR adicionado
+            cursor.execute(
+                "SELECT id FROM usuarios WHERE matricula::VARCHAR = %s AND LOWER(nome) = LOWER(%s);",
+                (dados.matricula, dados.nome),
+            )
+            usuario = cursor.fetchone()
 
         if usuario:
             return {"sucesso": True}
@@ -97,15 +96,15 @@ def redefinir_senha(dados: RedefineSenhaRequest):
         if len(dados.nova_senha) < 6:
             return {"sucesso": False, "mensagem": "A senha deve ter pelo menos 6 caracteres."}
 
-        conn = get_conexao()
-        cursor = conn.cursor()
-        cursor.execute(
-            "UPDATE usuarios SET senha = %s WHERE matricula = %s;",
-            (dados.nova_senha, dados.matricula),
-        )
-        conn.commit()
-        linhas_afetadas = cursor.rowcount
-        conn.close()
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            # CORREÇÃO: matricula::VARCHAR adicionado
+            cursor.execute(
+                "UPDATE usuarios SET senha = %s WHERE matricula::VARCHAR = %s;",
+                (dados.nova_senha, dados.matricula),
+            )
+            conn.commit()
+            linhas_afetadas = cursor.rowcount
 
         if linhas_afetadas > 0:
             return {"sucesso": True, "mensagem": "Senha redefinida com sucesso!"}
@@ -122,25 +121,23 @@ def alterar_senha(dados: AlteraSenhaRequest):
         if len(dados.nova_senha) < 6:
             return {"sucesso": False, "mensagem": "A nova senha deve ter pelo menos 6 caracteres."}
 
-        conn = get_conexao()
-        cursor = conn.cursor()
+        with get_conexao() as conn:
+            cursor = conn.cursor()
 
-        # Verifica se a senha atual bate
-        cursor.execute(
-            "SELECT id FROM usuarios WHERE matricula = %s AND senha = %s;",
-            (dados.matricula, dados.senha_atual),
-        )
-        if not cursor.fetchone():
-            conn.close()
-            return {"sucesso": False, "mensagem": "Senha atual incorreta."}
+            # Verifica se a senha atual bate (CORREÇÃO: matricula::VARCHAR adicionado)
+            cursor.execute(
+                "SELECT id FROM usuarios WHERE matricula::VARCHAR = %s AND senha = %s;",
+                (dados.matricula, dados.senha_atual),
+            )
+            if not cursor.fetchone():
+                return {"sucesso": False, "mensagem": "Senha atual incorreta."}
 
-        # Atualiza
-        cursor.execute(
-            "UPDATE usuarios SET senha = %s WHERE matricula = %s;",
-            (dados.nova_senha, dados.matricula),
-        )
-        conn.commit()
-        conn.close()
+            # Atualiza (CORREÇÃO: matricula::VARCHAR adicionado)
+            cursor.execute(
+                "UPDATE usuarios SET senha = %s WHERE matricula::VARCHAR = %s;",
+                (dados.nova_senha, dados.matricula),
+            )
+            conn.commit()
         return {"sucesso": True, "mensagem": "Senha alterada com sucesso!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao alterar senha: {str(e)}")
@@ -150,14 +147,14 @@ def alterar_senha(dados: AlteraSenhaRequest):
 def obter_perfil(matricula: str):
     """Retorna dados do perfil do usuário."""
     try:
-        conn = get_conexao()
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id, nome, matricula, papel FROM usuarios WHERE matricula = %s;",
-            (matricula,),
-        )
-        usuario = cursor.fetchone()
-        conn.close()
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            # CORREÇÃO: matricula::VARCHAR adicionado
+            cursor.execute(
+                "SELECT id, nome, matricula, papel FROM usuarios WHERE matricula::VARCHAR = %s;",
+                (matricula,),
+            )
+            usuario = cursor.fetchone()
 
         if usuario:
             return {

@@ -16,6 +16,7 @@ class SessaoEstudo(BaseModel):
     questoes_respondidas: int
     taxa_acerto: float
     tempo_gasto_segundos: int
+    eh_teste_professor: Optional[bool] = False
     lista_detalhes: Optional[List[DetalheQuestaoSessao]] = []
 
 
