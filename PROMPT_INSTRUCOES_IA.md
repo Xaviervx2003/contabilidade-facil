@@ -58,4 +58,31 @@ Para rodar ou modificar sem quebrar a pipeline de rotas:
 2.  **Backend:** Qualquer reestruturação no FastAPI deve reiniciar o servidor Uvicorn manual caso modifique `models.py` (A hot-reload padrão às vezes engasga no Windows por file lock).
 3.  **Variáveis:** Não mexer no `database.py` para injetar credenciais limpas (clear-text); o sistema é estritamente dependente do local `.env` da raiz.
 
+---
+
+## 🔁 Regra Operacional Git (obrigatória)
+Sempre que a IA fizer mudanças:
+
+1. Finalizar com commit local (`git add` + `git commit`).
+2. Informar comandos exatos para o usuário puxar no Antgravit.
+3. Orientar merge seguro na `main` com `fetch`, `pull`, `merge` e `push`.
+
+### Comandos padrão para puxar no Antgravit e consolidar na `main`
+```bash
+git fetch --all --prune
+git checkout main
+git pull origin main
+git merge origin/<nome-da-branch>
+git push origin main
+```
+
+### Se tiver apenas o número do PR (ex.: 17)
+```bash
+git fetch origin pull/17/head:pr-17
+git checkout main
+git pull origin main
+git merge pr-17
+git push origin main
+```
+
 *Criado em resposta à auditoria de sistema para garantir uma trilha documentada para as IAs mantenedoras do projeto Contabilidade Fácil.*

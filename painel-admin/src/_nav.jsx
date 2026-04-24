@@ -77,6 +77,12 @@ const getNavItens = () => {
       },
       {
         component: CNavItem,
+        name: 'Relatórios',
+        to: '/relatorios',
+        icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
         name: 'Feedbacks',
         to: '/feedbacks',
         icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" />,

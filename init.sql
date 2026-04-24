@@ -79,7 +79,15 @@ CREATE TABLE IF NOT EXISTS sessoes_estudo (
     criado_em               TIMESTAMP    DEFAULT NOW()
 );
 
--- ─── 5b. FEEDBACKS DE QUESTÕES ────────────────────────────────
+-- ─── 5b. DETALHES POR QUESTÃO EM CADA SESSÃO ──────────────────
+CREATE TABLE IF NOT EXISTS sessoes_questoes (
+    sessao_id   INT NOT NULL REFERENCES sessoes_estudo(id) ON DELETE CASCADE,
+    questao_id  INT NOT NULL REFERENCES questoes(id) ON DELETE CASCADE,
+    acertou     BOOLEAN NOT NULL,
+    PRIMARY KEY (sessao_id, questao_id)
+);
+
+-- ─── 5c. FEEDBACKS DE QUESTÕES ────────────────────────────────
 CREATE TABLE IF NOT EXISTS feedbacks_questoes (
     id               SERIAL PRIMARY KEY,
     questao_id       INT          NOT NULL REFERENCES questoes(id) ON DELETE CASCADE,
@@ -125,6 +133,8 @@ CREATE INDEX IF NOT EXISTS idx_feedbacks_questao_id ON feedbacks_questoes (quest
 CREATE INDEX IF NOT EXISTS idx_qm_materia_id        ON questoes_materias (materia_id);
 CREATE INDEX IF NOT EXISTS idx_qm_questao_id        ON questoes_materias (questao_id);
 CREATE INDEX IF NOT EXISTS idx_pm_usuario_id        ON professores_materias (usuario_id);
+CREATE INDEX IF NOT EXISTS idx_sq_sessao_id         ON sessoes_questoes (sessao_id);
+CREATE INDEX IF NOT EXISTS idx_sq_questao_id        ON sessoes_questoes (questao_id);
 
 -- Garante que o CHECK de papel existe (só cria a constraint se não houver)
 DO $$
