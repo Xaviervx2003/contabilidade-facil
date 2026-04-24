@@ -15,6 +15,8 @@ import {
   CTableRow,
   CWidgetStatsF,
 } from '@coreui/react'
+import CIcon from '@coreui/icons-react'
+import { cilChart, cilTask, cilStar, cilClock } from '@coreui/icons'
 import { API_URL } from '../../config'
 
 const formatTempo = (segundos = 0) => {
@@ -79,16 +81,36 @@ const Relatorios = () => {
 
       <CRow className="mb-4">
         <CCol md={3}>
-          <CWidgetStatsF title="Sessões no mês" value={dados.resumo_mes.total_sessoes} />
+          <CWidgetStatsF
+            title="Sessões no mês"
+            value={dados.resumo_mes.total_sessoes}
+            icon={<CIcon icon={cilTask} height={24} />}
+            color="primary"
+          />
         </CCol>
         <CCol md={3}>
-          <CWidgetStatsF title="Questões no mês" value={dados.resumo_mes.total_questoes} />
+          <CWidgetStatsF
+            title="Questões no mês"
+            value={dados.resumo_mes.total_questoes}
+            icon={<CIcon icon={cilChart} height={24} />}
+            color="info"
+          />
         </CCol>
         <CCol md={3}>
-          <CWidgetStatsF title="Média de acerto" value={`${dados.resumo_mes.media_acerto}%`} />
+          <CWidgetStatsF
+            title="Média de acerto"
+            value={`${Number(dados.resumo_mes.media_acerto || 0).toFixed(1)}%`}
+            icon={<CIcon icon={cilStar} height={24} />}
+            color="success"
+          />
         </CCol>
         <CCol md={3}>
-          <CWidgetStatsF title="Tempo total" value={formatTempo(dados.resumo_mes.tempo_total_segundos)} />
+          <CWidgetStatsF
+            title="Tempo total"
+            value={formatTempo(dados.resumo_mes.tempo_total_segundos)}
+            icon={<CIcon icon={cilClock} height={24} />}
+            color="warning"
+          />
         </CCol>
       </CRow>
 
@@ -106,28 +128,35 @@ const Relatorios = () => {
             <p className="text-body-secondary mb-4">Ainda não há sessões registradas no mês.</p>
           )}
 
-          <CTable striped responsive hover>
-            <CTableHead>
-              <CTableRow>
-                <CTableHeaderCell>Dia</CTableHeaderCell>
-                <CTableHeaderCell>Sessões</CTableHeaderCell>
-                <CTableHeaderCell>Questões</CTableHeaderCell>
-                <CTableHeaderCell>Média de Acerto</CTableHeaderCell>
-                <CTableHeaderCell>Tempo</CTableHeaderCell>
-              </CTableRow>
-            </CTableHead>
-            <CTableBody>
-              {dados.serie_diaria.map((d) => (
-                <CTableRow key={d.dia}>
-                  <CTableDataCell>{d.dia}</CTableDataCell>
-                  <CTableDataCell>{d.sessoes}</CTableDataCell>
-                  <CTableDataCell>{d.questoes}</CTableDataCell>
-                  <CTableDataCell>{d.media_acerto}%</CTableDataCell>
-                  <CTableDataCell>{formatTempo(d.tempo_total_segundos)}</CTableDataCell>
+          {dados.serie_diaria.length === 0 ? (
+            <p className="text-body-secondary">Nenhum dado encontrado para este mês.</p>
+          ) : (
+            <CTable striped responsive hover>
+              <CTableHead>
+                <CTableRow>
+                  <CTableHeaderCell>Dia</CTableHeaderCell>
+                  <CTableHeaderCell>Sessões</CTableHeaderCell>
+                  <CTableHeaderCell>Questões</CTableHeaderCell>
+                  <CTableHeaderCell>Média de Acerto</CTableHeaderCell>
+                  <CTableHeaderCell>Tempo</CTableHeaderCell>
                 </CTableRow>
-              ))}
-            </CTableBody>
-          </CTable>
+              </CTableHead>
+              <CTableBody>
+                {dados.serie_diaria.map((d) => (
+                  <CTableRow
+                    key={d.dia}
+                    color={dados.melhor_dia?.dia === d.dia ? 'warning' : undefined}
+                  >
+                    <CTableDataCell>{d.dia}</CTableDataCell>
+                    <CTableDataCell>{d.sessoes}</CTableDataCell>
+                    <CTableDataCell>{d.questoes}</CTableDataCell>
+                    <CTableDataCell>{Number(d.media_acerto || 0).toFixed(1)}%</CTableDataCell>
+                    <CTableDataCell>{formatTempo(d.tempo_total_segundos)}</CTableDataCell>
+                  </CTableRow>
+                ))}
+              </CTableBody>
+            </CTable>
+          )}
         </CCardBody>
       </CCard>
     </>

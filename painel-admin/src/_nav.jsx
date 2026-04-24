@@ -9,15 +9,13 @@ import {
   cilCommentSquare,
   cilLibrary,
   cilVideo,
+  cilChartLine,
 } from '@coreui/icons'
 import { CNavItem, CNavTitle } from '@coreui/react'
 
-// ✅ Exportado como FUNÇÃO — lê o sessionStorage no momento que é chamada,
-// ou seja, já depois do login, com o papel correto disponível.
 const getNavItens = () => {
   const papelUsuario = sessionStorage.getItem('papel') || 'aluno'
 
-  // Menu base — todo mundo vê
   const itens = [
     {
       component: CNavTitle,
@@ -43,7 +41,6 @@ const getNavItens = () => {
     },
   ]
 
-  // Professor e Admin veem Dashboard e Administração
   if (papelUsuario === 'professor' || papelUsuario === 'admin') {
     itens.unshift(
       {
@@ -55,7 +52,7 @@ const getNavItens = () => {
         name: 'Dashboard',
         to: '/dashboard',
         icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
-      }
+      },
     )
 
     itens.push(
@@ -79,22 +76,17 @@ const getNavItens = () => {
         component: CNavItem,
         name: 'Relatórios',
         to: '/relatorios',
-        icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
+        icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
         name: 'Feedbacks',
         to: '/feedbacks',
         icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" />,
-        badge: {
-          color: 'info',
-          text: 'NOVO',
-        },
-      }
+      },
     )
   }
 
-  // Só Admin vê Gestão de Usuários
   if (papelUsuario === 'admin') {
     itens.splice(itens.length - 2, 0, {
       component: CNavItem,
