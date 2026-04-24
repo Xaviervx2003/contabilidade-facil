@@ -46,3 +46,9 @@ app.include_router(auth_router)
 app.include_router(dashboard_router)
 app.include_router(admin_router)
 
+
+
+@app.get("/")
+def healthcheck():
+    """Rota de status para healthchecks e diagnóstico rápido."""
+    return {"status": "API rodando"}
