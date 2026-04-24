@@ -165,24 +165,30 @@ def obter_desempenho_alunos(
             papel = _get_papel_usuario(cursor, usuario_id) if usuario_id else None
  
             if papel == "professor":
-                # FIX #5: JOIN via sessoes_questoes → questoes
-                where_sessao = """
-                    AND (
-                        s.id IS NULL
-                        OR (
-                            s.eh_teste_professor IS NOT TRUE
-                            AND EXISTS (
-                                SELECT 1
-                                FROM sessoes_questoes sq
-                                JOIN questoes q ON q.id = sq.questao_id
-                                WHERE sq.sessao_id = s.id
-                                  AND q.criado_por = %(uid)s
-                            )
-                        )
+                # FIX #5: filtra sessões pela autoria real da questão do professor
+                filtro_sessoes = """
+                    AND s.eh_teste_professor IS NOT TRUE
+                    AND EXISTS (
+                        SELECT 1
+                        FROM sessoes_questoes sq
+                        JOIN questoes q ON q.id = sq.questao_id
+                        WHERE sq.sessao_id = s.id
+                          AND q.criado_por = %(uid)s
+                    )
+                """
+                filtro_sessoes_s2 = """
+                    AND s2.eh_teste_professor IS NOT TRUE
+                    AND EXISTS (
+                        SELECT 1
+                        FROM sessoes_questoes sq2
+                        JOIN questoes q2 ON q2.id = sq2.questao_id
+                        WHERE sq2.sessao_id = s2.id
+                          AND q2.criado_por = %(uid)s
                     )
                 """
             else:
-                where_sessao = ""
+                filtro_sessoes = ""
+                filtro_sessoes_s2 = ""
  
             # FIX #6: agrega diretamente no banco com média ponderada
             # media_ponderada = SUM(acertos totais) / SUM(questoes respondidas)
@@ -200,21 +206,12 @@ def obter_desempenho_alunos(
                         , 1)
                         ELSE 0
                     END                                                  AS media_ponderada,
-                    COALESCE(AVG(s.tempo_gasto_segundos), 0)             AS tempo_medio_segundos,
-                    -- erros por matéria como JSON agregado
-                    JSON_OBJECT_AGG(
-                        s.assunto_estudado,
-                        JSON_BUILD_OBJECT(
-                            'total',  COALESCE(SUM(s.questoes_respondidas), 0),
-                            'erros',  COALESCE(SUM(
-                                ROUND(s.questoes_respondidas * (1 - s.taxa_acerto / 100.0))
-                            ), 0)
-                        )
-                    ) FILTER (WHERE s.id IS NOT NULL)                    AS erros_por_materia
+                    COALESCE(AVG(s.tempo_gasto_segundos), 0)             AS tempo_medio_segundos
                 FROM usuarios u
-                LEFT JOIN sessoes_estudo s ON u.matricula = s.nome_aluno
+                LEFT JOIN sessoes_estudo s
+                       ON u.matricula = s.nome_aluno
+                      {filtro_sessoes}
                 WHERE u.papel = 'aluno'
-                  {where_sessao}
                 GROUP BY u.nome, u.matricula
                 ORDER BY media_ponderada DESC, u.nome
                 LIMIT %(limit)s OFFSET %(offset)s;
@@ -230,10 +227,37 @@ def obter_desempenho_alunos(
                 "SELECT COUNT(*) FROM usuarios WHERE papel = 'aluno';"
             )
             total_alunos = cursor.fetchone()[0]
- 
+
         resultado = []
         for row in linhas:
-            nome, matricula, sessoes, total_q, media, tempo_medio, erros_mat = row
+            nome, matricula, sessoes, total_q, media, tempo_medio = row
+
+            # Query separada e simples para evitar 500 por agregação JSON complexa
+            with get_conexao() as conn:
+                cursor = conn.cursor()
+                erros_query = f"""
+                    SELECT
+                        COALESCE(NULLIF(TRIM(s2.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado,
+                        COALESCE(SUM(s2.questoes_respondidas), 0) AS total_questoes,
+                        COALESCE(SUM(
+                            ROUND(s2.questoes_respondidas * (1 - s2.taxa_acerto / 100.0))
+                        ), 0) AS total_erros
+                    FROM sessoes_estudo s2
+                    WHERE s2.nome_aluno = %(matricula)s
+                      {filtro_sessoes_s2}
+                    GROUP BY COALESCE(NULLIF(TRIM(s2.assunto_estudado), ''), 'Sem assunto');
+                """
+                cursor.execute(erros_query, {"uid": usuario_id, "matricula": matricula})
+                erros_rows = cursor.fetchall()
+
+            erros_mat = {
+                assunto: {
+                    "total": int(total or 0),
+                    "erros": int(erros or 0),
+                }
+                for assunto, total, erros in erros_rows
+            }
+
             resultado.append({
                 "nome":                nome,
                 "matricula":           matricula,

@@ -4,6 +4,7 @@ Substitui o get_conexao() antigo por um sistema de pool mais eficiente.
 """
 
 import os
+import time
 from dotenv import load_dotenv
 import psycopg
 from psycopg_pool import ConnectionPool
@@ -27,16 +28,42 @@ CONN_STR = f"host={DB_CONFIG['host']} port={DB_CONFIG['port']} dbname={DB_CONFIG
 # Pool de conexões
 _pool = None
 
-def iniciar_pool():
-    """Inicia o pool de conexões. Deve ser chamado no startup do FastAPI."""
+def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
+    """Inicia o pool de conexões com retentativa para subir junto do Docker."""
     global _pool
-    if _pool is None:
-        _pool = ConnectionPool(
-            conninfo=CONN_STR,
-            min_size=2,
-            max_size=10,
-            open=True
-        )
+
+    if _pool is not None:
+        return
+
+    ultimo_erro = None
+
+    for tentativa in range(1, tentativas + 1):
+        try:
+            _pool = ConnectionPool(
+                conninfo=CONN_STR,
+                min_size=2,
+                max_size=10,
+                open=True,
+            )
+
+            # valida conexão inicial para evitar API subir sem banco
+            with _pool.connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT 1")
+                    cursor.fetchone()
+            return
+        except Exception as erro:
+            ultimo_erro = erro
+            if _pool is not None:
+                _pool.close()
+                _pool = None
+
+            if tentativa < tentativas:
+                time.sleep(espera_segundos)
+
+    raise RuntimeError(
+        f"Não foi possível conectar ao banco após {tentativas} tentativas: {ultimo_erro}"
+    )
 
 def encerrar_pool():
     """Fecha todas as conexões do pool. Deve ser chamado no shutdown do FastAPI."""
