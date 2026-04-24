@@ -17,6 +17,7 @@ const FeedbacksQuestoes = React.lazy(() => import('./views/feedbacks/FeedbacksQu
 const GestaoUsuarios = React.lazy(() => import('./views/admin/GestaoUsuarios'))
 const GestaoMaterias = React.lazy(() => import('./views/admin/GestaoMaterias'))
 const VideoGallery = React.lazy(() => import('./views/videos/VideoGallery'))
+const Relatorios = React.lazy(() => import('./views/relatorios/Relatorios'))
 
 export const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -29,6 +30,7 @@ export const routes = [
   { path: '/feedbacks', name: 'Feedbacks dos Alunos', element: FeedbacksQuestoes, allowedRoles: ['admin', 'professor'] },
   { path: '/usuarios', name: 'Gestão de Usuários', element: GestaoUsuarios, allowedRoles: ['admin'] },
   { path: '/materias', name: 'Gestão de Matérias', element: GestaoMaterias, allowedRoles: ['admin', 'professor'] },
+  { path: '/relatorios', name: 'Relatórios', element: Relatorios, allowedRoles: ['admin', 'professor'] },
 ]
 
 export default routes

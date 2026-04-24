@@ -176,44 +176,80 @@ def obter_desempenho_alunos(
                           AND q.criado_por = %(uid)s
                     )
                 """
-                filtro_sessoes_s2 = """
-                    AND s2.eh_teste_professor IS NOT TRUE
-                    AND EXISTS (
-                        SELECT 1
-                        FROM sessoes_questoes sq2
-                        JOIN questoes q2 ON q2.id = sq2.questao_id
-                        WHERE sq2.sessao_id = s2.id
-                          AND q2.criado_por = %(uid)s
-                    )
-                """
             else:
                 filtro_sessoes = ""
-                filtro_sessoes_s2 = ""
  
-            # FIX #6: agrega diretamente no banco com média ponderada
+            # FIX #6 + PERF: remove N+1 com agregação em CTE (uma ida ao banco)
             # media_ponderada = SUM(acertos totais) / SUM(questoes respondidas)
             query = f"""
+                WITH sessoes_filtradas AS (
+                    SELECT
+                        u.nome,
+                        u.matricula,
+                        s.id AS sessao_id,
+                        s.questoes_respondidas,
+                        s.taxa_acerto,
+                        s.tempo_gasto_segundos,
+                        COALESCE(NULLIF(TRIM(s.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado
+                    FROM usuarios u
+                    LEFT JOIN sessoes_estudo s
+                           ON u.matricula = s.nome_aluno
+                          {filtro_sessoes}
+                    WHERE u.papel = 'aluno'
+                ),
+                resumo AS (
+                    SELECT
+                        nome,
+                        matricula,
+                        COUNT(sessao_id)                                  AS sessoes,
+                        COALESCE(SUM(questoes_respondidas), 0)            AS total_questoes,
+                        CASE
+                            WHEN SUM(questoes_respondidas) > 0
+                            THEN ROUND(
+                                (SUM(questoes_respondidas * taxa_acerto / 100.0)
+                                 / SUM(questoes_respondidas) * 100)::numeric
+                            , 1)
+                            ELSE 0
+                        END                                              AS media_ponderada,
+                        COALESCE(AVG(tempo_gasto_segundos), 0)            AS tempo_medio_segundos
+                    FROM sessoes_filtradas
+                    GROUP BY nome, matricula
+                ),
+                erros_por_materia AS (
+                    SELECT
+                        matricula,
+                        jsonb_object_agg(
+                            assunto_estudado,
+                            jsonb_build_object(
+                                'total', total_questoes,
+                                'erros', total_erros
+                            )
+                        ) AS erros_mat
+                    FROM (
+                        SELECT
+                            matricula,
+                            assunto_estudado,
+                            COALESCE(SUM(questoes_respondidas), 0) AS total_questoes,
+                            COALESCE(SUM(
+                                ROUND(questoes_respondidas * (1 - taxa_acerto / 100.0))
+                            ), 0) AS total_erros
+                        FROM sessoes_filtradas
+                        WHERE sessao_id IS NOT NULL
+                        GROUP BY matricula, assunto_estudado
+                    ) t
+                    GROUP BY matricula
+                )
                 SELECT
-                    u.nome,
-                    u.matricula,
-                    COUNT(s.id)                                          AS sessoes,
-                    COALESCE(SUM(s.questoes_respondidas), 0)             AS total_questoes,
-                    CASE
-                        WHEN SUM(s.questoes_respondidas) > 0
-                        THEN ROUND(
-                            (SUM(s.questoes_respondidas * s.taxa_acerto / 100.0)
-                             / SUM(s.questoes_respondidas) * 100)::numeric
-                        , 1)
-                        ELSE 0
-                    END                                                  AS media_ponderada,
-                    COALESCE(AVG(s.tempo_gasto_segundos), 0)             AS tempo_medio_segundos
-                FROM usuarios u
-                LEFT JOIN sessoes_estudo s
-                       ON u.matricula = s.nome_aluno
-                      {filtro_sessoes}
-                WHERE u.papel = 'aluno'
-                GROUP BY u.nome, u.matricula
-                ORDER BY media_ponderada DESC, u.nome
+                    r.nome,
+                    r.matricula,
+                    r.sessoes,
+                    r.total_questoes,
+                    r.media_ponderada,
+                    r.tempo_medio_segundos,
+                    COALESCE(e.erros_mat, '{{}}'::jsonb) AS erros_por_materia
+                FROM resumo r
+                LEFT JOIN erros_por_materia e ON e.matricula = r.matricula
+                ORDER BY r.media_ponderada DESC, r.nome
                 LIMIT %(limit)s OFFSET %(offset)s;
             """
  
@@ -227,37 +263,9 @@ def obter_desempenho_alunos(
                 "SELECT COUNT(*) FROM usuarios WHERE papel = 'aluno';"
             )
             total_alunos = cursor.fetchone()[0]
-
         resultado = []
         for row in linhas:
-            nome, matricula, sessoes, total_q, media, tempo_medio = row
-
-            # Query separada e simples para evitar 500 por agregação JSON complexa
-            with get_conexao() as conn:
-                cursor = conn.cursor()
-                erros_query = f"""
-                    SELECT
-                        COALESCE(NULLIF(TRIM(s2.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado,
-                        COALESCE(SUM(s2.questoes_respondidas), 0) AS total_questoes,
-                        COALESCE(SUM(
-                            ROUND(s2.questoes_respondidas * (1 - s2.taxa_acerto / 100.0))
-                        ), 0) AS total_erros
-                    FROM sessoes_estudo s2
-                    WHERE s2.nome_aluno = %(matricula)s
-                      {filtro_sessoes_s2}
-                    GROUP BY COALESCE(NULLIF(TRIM(s2.assunto_estudado), ''), 'Sem assunto');
-                """
-                cursor.execute(erros_query, {"uid": usuario_id, "matricula": matricula})
-                erros_rows = cursor.fetchall()
-
-            erros_mat = {
-                assunto: {
-                    "total": int(total or 0),
-                    "erros": int(erros or 0),
-                }
-                for assunto, total, erros in erros_rows
-            }
-
+            nome, matricula, sessoes, total_q, media, tempo_medio, erros_mat = row
             resultado.append({
                 "nome":                nome,
                 "matricula":           matricula,
@@ -277,4 +285,89 @@ def obter_desempenho_alunos(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar desempenho: {str(e)}")
+
+
+@router.get("/relatorios/estudo")
+def relatorio_estudo(usuario_id: Optional[int] = Query(None)):
+    """
+    Relatório resumido do mês atual:
+    - série diária de estudo;
+    - melhor dia (mais questões);
+    - métricas gerais do mês.
+    """
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            papel = _get_papel_usuario(cursor, usuario_id) if usuario_id else None
+
+            filtro_professor = ""
+            params: dict = {}
+
+            if papel == "professor":
+                filtro_professor = """
+                    AND s.eh_teste_professor IS NOT TRUE
+                    AND EXISTS (
+                        SELECT 1
+                        FROM sessoes_questoes sq
+                        JOIN questoes q ON q.id = sq.questao_id
+                        WHERE sq.sessao_id = s.id
+                          AND q.criado_por = %(uid)s
+                    )
+                """
+                params["uid"] = usuario_id
+
+            # série diária do mês atual
+            cursor.execute(f"""
+                SELECT
+                    DATE(s.criado_em)                           AS dia,
+                    COUNT(*)                                    AS sessoes,
+                    COALESCE(SUM(s.questoes_respondidas), 0)    AS questoes,
+                    COALESCE(ROUND(AVG(s.taxa_acerto)::numeric, 1), 0) AS media_acerto,
+                    COALESCE(SUM(s.tempo_gasto_segundos), 0)    AS tempo_total_segundos
+                FROM sessoes_estudo s
+                WHERE DATE_TRUNC('month', s.criado_em) = DATE_TRUNC('month', NOW())
+                  {filtro_professor}
+                GROUP BY DATE(s.criado_em)
+                ORDER BY DATE(s.criado_em);
+            """, params)
+            dias = cursor.fetchall()
+
+            serie_diaria = [
+                {
+                    "dia": d[0].isoformat(),
+                    "sessoes": int(d[1]),
+                    "questoes": int(d[2]),
+                    "media_acerto": float(d[3] or 0),
+                    "tempo_total_segundos": int(d[4] or 0),
+                }
+                for d in dias
+            ]
+
+            melhor_dia = max(serie_diaria, key=lambda x: x["questoes"], default=None)
+
+            # resumo geral do mês
+            cursor.execute(f"""
+                SELECT
+                    COALESCE(COUNT(*), 0)                            AS total_sessoes,
+                    COALESCE(SUM(s.questoes_respondidas), 0)         AS total_questoes,
+                    COALESCE(ROUND(AVG(s.taxa_acerto)::numeric, 1), 0) AS media_acerto,
+                    COALESCE(SUM(s.tempo_gasto_segundos), 0)         AS tempo_total_segundos
+                FROM sessoes_estudo s
+                WHERE DATE_TRUNC('month', s.criado_em) = DATE_TRUNC('month', NOW())
+                  {filtro_professor};
+            """, params)
+            resumo = cursor.fetchone()
+
+        return {
+            "resumo_mes": {
+                "total_sessoes": int(resumo[0] or 0),
+                "total_questoes": int(resumo[1] or 0),
+                "media_acerto": float(resumo[2] or 0),
+                "tempo_total_segundos": int(resumo[3] or 0),
+            },
+            "melhor_dia": melhor_dia,
+            "serie_diaria": serie_diaria,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar relatório: {str(e)}")
  
