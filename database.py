@@ -51,6 +51,24 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                 with conn.cursor() as cursor:
                     cursor.execute("SELECT 1")
                     cursor.fetchone()
+                    # Migração defensiva para ambientes já existentes:
+                    # algumas rotas do dashboard dependem desta tabela.
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS sessoes_questoes (
+                            sessao_id   INT NOT NULL REFERENCES sessoes_estudo(id) ON DELETE CASCADE,
+                            questao_id  INT NOT NULL REFERENCES questoes(id) ON DELETE CASCADE,
+                            acertou     BOOLEAN NOT NULL,
+                            PRIMARY KEY (sessao_id, questao_id)
+                        );
+                    """)
+                    cursor.execute("""
+                        CREATE INDEX IF NOT EXISTS idx_sq_sessao_id
+                        ON sessoes_questoes (sessao_id);
+                    """)
+                    cursor.execute("""
+                        CREATE INDEX IF NOT EXISTS idx_sq_questao_id
+                        ON sessoes_questoes (questao_id);
+                    """)
             return
         except Exception as erro:
             ultimo_erro = erro
@@ -83,4 +101,3 @@ def get_conexao():
 
     with _pool.connection() as conn:
         yield conn
-
