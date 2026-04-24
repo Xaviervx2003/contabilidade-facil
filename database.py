@@ -51,8 +51,6 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                 with conn.cursor() as cursor:
                     cursor.execute("SELECT 1")
                     cursor.fetchone()
-<<<<<<< HEAD
-=======
                     # Migração defensiva para ambientes já existentes:
                     # algumas rotas do dashboard dependem desta tabela.
                     cursor.execute("""
@@ -81,7 +79,6 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                             CREATE INDEX IF NOT EXISTS idx_sq_questao_id
                             ON sessoes_questoes (questao_id);
                         """)
->>>>>>> origin/codex/analyze-project-for-api-login-failure-1dl44n
             return
         except Exception as erro:
             ultimo_erro = erro
