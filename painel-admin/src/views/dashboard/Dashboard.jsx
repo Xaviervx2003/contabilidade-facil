@@ -19,15 +19,19 @@ import {
   CTableRow,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPeople, cilCloudDownload, cilWarning } from '@coreui/icons'
+import {
+  cilPeople,
+  cilCloudDownload,
+  cilWarning,
+  cilChart,
+  cilClock,
+  cilCheckCircle,
+} from '@coreui/icons'
 
 import { API_URL } from '../../config'
-import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import MainChart from './MainChart'
 
-// ─────────────────────────────────────────────────────────────
-// FIX #8: helper para pegar userId com aviso se ausente
-// ─────────────────────────────────────────────────────────────
+// ── Helpers ─────────────────────────────────────────────
 const getUserId = () => {
   const id = sessionStorage.getItem('userId')
   return id ? parseInt(id, 10) : null
@@ -40,13 +44,11 @@ const buildUrl = (base, userId, extra = {}) => {
   return `${API_URL}${base}?${params.toString()}`
 }
 
-// ─────────────────────────────────────────────────────────────
-// Hook: stats do dashboard
-// ─────────────────────────────────────────────────────────────
+// ── Hooks ───────────────────────────────────────────────
 const useDashboardStats = (userId) => {
-  const [stats,   setStats]   = useState(null)
+  const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState(null)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     setLoading(true)
@@ -56,20 +58,23 @@ const useDashboardStats = (userId) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json()
       })
-      .then(data => { setStats(data); setLoading(false) })
-      .catch(err  => { setError(err.message); setLoading(false) })
+      .then(data => {
+        setStats(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        setError(err.message)
+        setLoading(false)
+      })
   }, [userId])
 
   return { stats, loading, error }
 }
 
-// ─────────────────────────────────────────────────────────────
-// FIX #4: hook para dados reais do gráfico (sessões por mês)
-// ─────────────────────────────────────────────────────────────
 export const useChartData = (userId) => {
   const [chartData, setChartData] = useState(null)
-  const [loading,   setLoading]   = useState(true)
-  const [error,     setError]     = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     setLoading(true)
@@ -78,20 +83,23 @@ export const useChartData = (userId) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json()
       })
-      .then(data => { setChartData(data); setLoading(false) })
-      .catch(err  => { setError(err.message); setLoading(false) })
+      .then(data => {
+        setChartData(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        setError(err.message)
+        setLoading(false)
+      })
   }, [userId])
 
   return { chartData, loading, error }
 }
 
-// ─────────────────────────────────────────────────────────────
-// FIX #7: hook paginado de alunos (server-side)
-// ─────────────────────────────────────────────────────────────
 const useAlunos = (userId, pagina, porPagina = 10) => {
-  const [data,    setData]    = useState({ alunos: [], total: 0, total_paginas: 1 })
+  const [data, setData] = useState({ alunos: [], total: 0, total_paginas: 1 })
   const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState(null)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     setLoading(true)
@@ -101,16 +109,35 @@ const useAlunos = (userId, pagina, porPagina = 10) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json()
       })
-      .then(data => { setData(data); setLoading(false) })
-      .catch(err  => { setError(err.message); setLoading(false) })
+      .then(data => {
+        setData(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        setError(err.message)
+        setLoading(false)
+      })
   }, [userId, pagina, porPagina])
 
   return { data, loading, error }
 }
 
-// ─────────────────────────────────────────────────────────────
-// FIX #9: Skeleton de linha para tabela
-// ─────────────────────────────────────────────────────────────
+// ── Componentes auxiliares ──────────────────────────────
+const StatCard = ({ titulo, valor, cor, icone, loading }) => (
+  <div
+    className={`p-3 rounded-3 shadow-sm border-start border-4 border-${cor}`}
+    style={{ backgroundColor: `var(--cui-${cor}-bg-subtle)` }}
+  >
+    <div className="d-flex align-items-center gap-2 mb-2">
+      <CIcon icon={icone} size="lg" style={{ color: `var(--cui-${cor})` }} />
+      <div className="small text-body-secondary">{titulo}</div>
+    </div>
+    <div className="fs-3 fw-bold" style={{ color: `var(--cui-${cor})` }}>
+      {loading ? <CSpinner size="sm" /> : valor}
+    </div>
+  </div>
+)
+
 const SkeletonRow = () => (
   <CTableRow>
     {[...Array(5)].map((_, i) => (
@@ -130,131 +157,114 @@ const SkeletonRow = () => (
   </CTableRow>
 )
 
-// ─────────────────────────────────────────────────────────────
-// Componente principal
-// ─────────────────────────────────────────────────────────────
+// ── Componente principal ─────────────────────────────────
 const Dashboard = () => {
-  // FIX #8: pega userId com aviso se null
   const userId = getUserId()
 
-  const [pagina,   setPagina]   = useState(1)
+  const [pagina, setPagina] = useState(1)
   const porPagina = 10
 
-  const { stats,    loading: loadingStats,  error: errorStats  } = useDashboardStats(userId)
-  const { data,     loading: loadingAlunos, error: errorAlunos } = useAlunos(userId, pagina, porPagina)
-  const { chartData, loading: loadingChart, error: errorChart  } = useChartData(userId)
+  const { stats, loading: loadingStats, error: errorStats } = useDashboardStats(userId)
+  const { data, loading: loadingAlunos, error: errorAlunos } = useAlunos(userId, pagina, porPagina)
+  const { chartData, loading: loadingChart, error: errorChart } = useChartData(userId)
 
   const { alunos, total_paginas } = data
 
-  // ── Export CSV (apenas a página atual; para exportar tudo mude por_pagina)
   const exportarCSV = useCallback(() => {
     if (alunos.length === 0) return
     const header = 'Nome,Matrícula,Média (%),Questões,Sessões\n'
-    const rows = alunos.map(a =>
-      `"${a.nome.replace(/"/g, '""')}",${a.matricula},${(a.media_numero || 0).toFixed(1)},${a.questoes},${a.sessoes}`
-    ).join('\n')
+    const rows = alunos
+      .map(a => `"${a.nome.replace(/"/g, '""')}",${a.matricula},${(a.media_numero || 0).toFixed(1)},${a.questoes},${a.sessoes}`)
+      .join('\n')
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' })
-    const url  = URL.createObjectURL(blob)
+    const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.href     = url
+    link.href = url
     link.download = `relatorio_desempenho_${new Date().toISOString().slice(0, 10)}.csv`
     link.click()
     URL.revokeObjectURL(url)
   }, [alunos])
 
   return (
-    <>
-      {/* FIX #8: aviso quando userId não está na sessão */}
+    <div className="p-3 p-md-4">
+      {/* Aviso de sessão não identificada */}
       {!userId && (
         <CAlert color="warning" className="mb-3 d-flex align-items-center gap-2">
           <CIcon icon={cilWarning} />
-          <span>
-            Sessão não identificada – exibindo dados globais (modo admin).
-            Faça login para filtrar por perfil.
-          </span>
+          <span>Sessão não identificada – exibindo dados globais (modo admin). Faça login para filtrar por perfil.</span>
         </CAlert>
       )}
 
-      {/* FIX #10: erro nos stats */}
+      {/* Erro nos stats */}
       {errorStats && (
-        <CAlert color="danger" className="mb-3">
-          Erro ao carregar métricas: {errorStats}
-        </CAlert>
+        <CAlert color="danger" className="mb-3">Erro ao carregar métricas: {errorStats}</CAlert>
       )}
 
-      <WidgetsDropdown
-        className="mb-4"
-        customStats={stats ?? { usuarios_ativos: 0, total_questoes_resolvidas: 0, tempo_medio_minutos: 0 }}
-        loading={loadingStats}
-      />
+      {/* Cards de métricas principais (substitui WidgetsDropdown) */}
+      <CRow className="g-3 mb-4">
+        <CCol xs={12} sm={6} xl={3}>
+          <StatCard
+            titulo="Usuários Ativos"
+            valor={stats?.usuarios_ativos ?? '—'}
+            cor="info"
+            icone={cilPeople}
+            loading={loadingStats}
+          />
+        </CCol>
+        <CCol xs={12} sm={6} xl={3}>
+          <StatCard
+            titulo="Questões Respondidas"
+            valor={stats?.total_questoes_resolvidas ?? '—'}
+            cor="success"
+            icone={cilCheckCircle}
+            loading={loadingStats}
+          />
+        </CCol>
+        <CCol xs={12} sm={6} xl={3}>
+          <StatCard
+            titulo="Tempo Médio"
+            valor={stats?.tempo_medio_minutos ? `${stats.tempo_medio_minutos} min` : '—'}
+            cor="warning"
+            icone={cilClock}
+            loading={loadingStats}
+          />
+        </CCol>
+        <CCol xs={12} sm={6} xl={3}>
+          <StatCard
+            titulo="Engajamento"
+            valor="Ativo"
+            cor="danger"
+            icone={cilChart}
+            loading={false}
+          />
+        </CCol>
+      </CRow>
 
       <CRow>
         <CCol xs>
-          <CCard className="mb-4">
-            <CCardHeader>Resumo Real do Projeto {' & '} Desempenho Global</CCardHeader>
+          <CCard className="mb-4 shadow-sm border-0">
+            <CCardHeader className="bg-transparent border-0 d-flex align-items-center gap-2">
+              <CIcon icon={cilChart} className="text-primary" />
+              <strong>Resumo Real do Projeto e Desempenho Global</strong>
+            </CCardHeader>
             <CCardBody>
-
-              {/* ── Mini stats ── */}
-              <CRow>
-                <CCol xs={12} md={6} xl={6}>
-                  <CRow>
-                    <CCol xs={6}>
-                      <div className="border-start border-start-4 border-start-info py-1 px-3">
-                        <div className="text-body-secondary text-truncate small">Perguntas Respondidas</div>
-                        <div className="fs-5 fw-semibold">
-                          {loadingStats ? <CSpinner size="sm" /> : (stats?.total_questoes_resolvidas ?? '—')}
-                        </div>
-                      </div>
-                    </CCol>
-                    <CCol xs={6}>
-                      <div className="border-start border-start-4 border-start-danger py-1 px-3 mb-3">
-                        <div className="text-body-secondary text-truncate small">Sessões Únicas</div>
-                        <div className="fs-5 fw-semibold">
-                          {loadingStats ? <CSpinner size="sm" /> : (stats?.usuarios_ativos ?? '—')}
-                        </div>
-                      </div>
-                    </CCol>
-                  </CRow>
-                </CCol>
-                <CCol xs={12} md={6} xl={6}>
-                  <CRow>
-                    <CCol xs={6}>
-                      <div className="border-start border-start-4 border-start-warning py-1 px-3 mb-3">
-                        <div className="text-body-secondary text-truncate small">Tempo Médio Gasto</div>
-                        <div className="fs-5 fw-semibold">
-                          {loadingStats ? <CSpinner size="sm" /> : `${stats?.tempo_medio_minutos ?? '—'} Min`}
-                        </div>
-                      </div>
-                    </CCol>
-                    <CCol xs={6}>
-                      <div className="border-start border-start-4 border-start-success py-1 px-3 mb-3">
-                        <div className="text-body-secondary text-truncate small">Engajamento Atual</div>
-                        <div className="fs-5 fw-semibold text-success">Ativo</div>
-                      </div>
-                    </CCol>
-                  </CRow>
-                </CCol>
-              </CRow>
-
-              <br />
-
-              {/* FIX #4: gráfico com dados reais */}
+              {/* Mini stats antigos foram substituídos pelos cards acima, mas mantive o bloco opcional caso queira algo adicional */}
+              {/* O gráfico permanece */}
               {errorChart ? (
                 <CAlert color="warning">Gráfico indisponível: {errorChart}</CAlert>
               ) : (
                 <MainChart data={chartData} loading={loadingChart} />
               )}
 
-              <br />
+              <hr />
 
-              {/* ── Tabela de alunos ── */}
+              {/* Tabela de alunos */}
               <div className="d-flex justify-content-between align-items-center mt-4 mb-3">
-                <h5 className="mb-0">
+                <h5 className="mb-0 d-flex align-items-center gap-2">
+                  <CIcon icon={cilPeople} className="text-primary" />
                   Top Alunos
                   {!loadingAlunos && (
-                    <span className="text-body-secondary fs-6 ms-2">
-                      ({data.total} no total)
-                    </span>
+                    <span className="text-body-secondary fs-6 ms-2">({data.total} no total)</span>
                   )}
                 </h5>
                 <CButton
@@ -268,76 +278,64 @@ const Dashboard = () => {
                 </CButton>
               </div>
 
-              {/* FIX #10: erro nos alunos */}
               {errorAlunos && (
                 <CAlert color="danger">Erro ao carregar alunos: {errorAlunos}</CAlert>
               )}
 
-              <CTable align="middle" className="mb-0 border" hover responsive>
-                <CTableHead className="text-nowrap">
-                  <CTableRow>
-                    <CTableHeaderCell className="bg-body-tertiary text-center">
-                      <CIcon icon={cilPeople} />
-                    </CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary">Matrícula / Nome</CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary text-center">
-                      Média Ponderada
-                    </CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary">Questões Treinadas</CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary text-center">Sessões</CTableHeaderCell>
-                  </CTableRow>
-                </CTableHead>
-
-                <CTableBody>
-                  {/* FIX #9: skeleton durante carregamento */}
-                  {loadingAlunos ? (
-                    [...Array(porPagina)].map((_, i) => <SkeletonRow key={i} />)
-                  ) : alunos.length === 0 ? (
+              <div className="table-responsive">
+                <CTable align="middle" className="mb-0 border" hover>
+                  <CTableHead className="text-nowrap">
                     <CTableRow>
-                      <CTableDataCell colSpan={5} className="text-center py-4 text-body-secondary">
-                        Nenhum dado encontrado para este perfil.
-                      </CTableDataCell>
+                      <CTableHeaderCell className="bg-body-tertiary text-center" style={{ width: '60px' }}>#</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary">Matrícula / Nome</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary text-center">Média</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary">Questões</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary text-center">Sessões</CTableHeaderCell>
                     </CTableRow>
-                  ) : alunos.map((item, index) => {
-                    const rank       = (pagina - 1) * porPagina + index + 1
-                    const gradeColor = (item.media_numero || 0) >= 80 ? 'success' : (item.media_numero || 0) >= 60 ? 'warning' : 'danger'
+                  </CTableHead>
+                  <CTableBody>
+                    {loadingAlunos
+                      ? [...Array(porPagina)].map((_, i) => <SkeletonRow key={i} />)
+                      : alunos.length === 0
+                        ? (
+                          <CTableRow>
+                            <CTableDataCell colSpan={5} className="text-center py-4 text-body-secondary">
+                              Nenhum dado encontrado para este perfil.
+                            </CTableDataCell>
+                          </CTableRow>
+                        )
+                        : alunos.map((item, index) => {
+                          const rank = (pagina - 1) * porPagina + index + 1
+                          const media = item.media_numero || 0
+                          const gradeColor = media >= 80 ? 'success' : media >= 60 ? 'warning' : 'danger'
+                          return (
+                            <CTableRow key={item.matricula} className="align-middle">
+                              <CTableDataCell className="text-center fw-bold small">{rank}</CTableDataCell>
+                              <CTableDataCell>
+                                <div className="fw-medium">{item.nome}</div>
+                                <div className="small text-body-secondary">{item.matricula}</div>
+                              </CTableDataCell>
+                              <CTableDataCell>
+                                <div className={`fw-semibold text-${gradeColor} small`}>{media.toFixed(1)}%</div>
+                                <CProgress thin color={gradeColor} value={media} className="mt-1" />
+                              </CTableDataCell>
+                              <CTableDataCell>
+                                <span className="small">{item.questoes} perguntas</span>
+                              </CTableDataCell>
+                              <CTableDataCell className="text-center">
+                                <span className="badge bg-primary px-2 py-1">{item.sessoes}</span>
+                              </CTableDataCell>
+                            </CTableRow>
+                          )
+                        })}
+                  </CTableBody>
+                </CTable>
+              </div>
 
-                    return (
-                      <CTableRow key={item.matricula}>
-                        <CTableDataCell className="text-center">
-                          <strong>#{rank}</strong>
-                        </CTableDataCell>
-                        <CTableDataCell>
-                          <div className="fw-bold">{item.nome}</div>
-                          <div className="small text-body-secondary text-nowrap">{item.matricula}</div>
-                        </CTableDataCell>
-                        <CTableDataCell>
-                          <div className={`fw-semibold text-${gradeColor}`}>
-                            {(item.media_numero || 0).toFixed(1)}%
-                          </div>
-                          <CProgress thin color={gradeColor} value={item.media_numero || 0} />
-                        </CTableDataCell>
-                        <CTableDataCell>
-                          <div className="small text-body-secondary">Volume Praticado</div>
-                          <div className="fw-semibold text-nowrap">{item.questoes} perguntas</div>
-                        </CTableDataCell>
-                        <CTableDataCell className="text-center">
-                          <span className="badge bg-primary px-3 py-2">{item.sessoes}</span>
-                        </CTableDataCell>
-                      </CTableRow>
-                    )
-                  })}
-                </CTableBody>
-              </CTable>
-
-              {/* FIX #7: paginação */}
               {!loadingAlunos && total_paginas > 1 && (
                 <div className="d-flex justify-content-center mt-3">
                   <CPagination>
-                    <CPaginationItem
-                      disabled={pagina === 1}
-                      onClick={() => setPagina(p => p - 1)}
-                    >
+                    <CPaginationItem disabled={pagina === 1} onClick={() => setPagina(p => p - 1)}>
                       Anterior
                     </CPaginationItem>
                     {[...Array(total_paginas)].map((_, i) => (
@@ -358,20 +356,18 @@ const Dashboard = () => {
                   </CPagination>
                 </div>
               )}
-
             </CCardBody>
           </CCard>
         </CCol>
       </CRow>
 
-      {/* Animação shimmer para skeletons */}
       <style>{`
         @keyframes shimmer {
-          0%   { background-position: 200% 0; }
+          0% { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
       `}</style>
-    </>
+    </div>
   )
 }
 
