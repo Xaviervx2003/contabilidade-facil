@@ -25,7 +25,25 @@ import {
 import CIcon from '@coreui/icons-react'
 import { useNavigate } from 'react-router-dom'
 
-import avatar8 from './../../assets/images/avatars/8.jpg'
+// Gera as iniciais a partir do nome (ex: "João Silva" → "JS")
+const getIniciais = (nome) => {
+  const partes = nome.trim().split(/\s+/)
+  if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase()
+  return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase()
+}
+
+// Gera uma cor de fundo baseada no nome (consistente por usuário)
+const getCorAvatar = (nome) => {
+  const cores = [
+    '#e74c3c', '#3498db', '#2ecc71', '#9b59b6',
+    '#f39c12', '#1abc9c', '#e67e22', '#2980b9',
+  ]
+  let hash = 0
+  for (let i = 0; i < nome.length; i++) {
+    hash = nome.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return cores[Math.abs(hash) % cores.length]
+}
 
 const AppHeaderDropdown = () => {
   const navigate = useNavigate()
@@ -47,7 +65,21 @@ const AppHeaderDropdown = () => {
   return (
     <CDropdown variant="nav-item">
       <CDropdownToggle placement="bottom-end" className="py-0 pe-0" caret={false}>
-        <CAvatar src={avatar8} size="md" />
+        <CAvatar
+          size="md"
+          color="secondary"
+          textColor="white"
+          style={{
+            backgroundColor: getCorAvatar(userName),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 700,
+            fontSize: '0.85rem',
+          }}
+        >
+          {getIniciais(userName)}
+        </CAvatar>
       </CDropdownToggle>
 
       <CDropdownMenu className="pt-0" placement="bottom-end">

@@ -29,13 +29,13 @@ const getNavItens = () => {
     },
     {
       component: CNavItem,
-      name: 'VÃ­deo-Aulas',
+      name: 'Vídeo-Aulas',
       to: '/videos',
       icon: <CIcon icon={cilVideo} customClassName="nav-icon" />,
     },
     {
       component: CNavItem,
-      name: 'Meu HistÃ³rico',
+      name: 'Meu Histórico',
       to: '/aluno/historico',
       icon: <CIcon icon={cilHistory} customClassName="nav-icon" />,
     },
@@ -58,23 +58,23 @@ const getNavItens = () => {
     itens.push(
       {
         component: CNavTitle,
-        name: 'AdministraÃ§Ã£o',
+        name: 'Administração',
       },
       {
         component: CNavItem,
-        name: 'GestÃ£o de QuestÃµes',
+        name: 'Gestão de Questões',
         to: '/questoes',
         icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
-        name: 'GestÃ£o de MatÃ©rias',
+        name: 'Gestão de Matérias',
         to: '/materias',
         icon: <CIcon icon={cilLibrary} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
-        name: 'RelatÃ³rios',
+        name: 'Relatórios',
         to: '/relatorios',
         icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
       },
@@ -90,7 +90,7 @@ const getNavItens = () => {
   if (papelUsuario === 'admin') {
     itens.splice(itens.length - 2, 0, {
       component: CNavItem,
-      name: 'GestÃ£o de UsuÃ¡rios',
+      name: 'Gestão de Usuários',
       to: '/usuarios',
       icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
     })

@@ -77,7 +77,7 @@ const Historico = () => {
 
   return (
     <>
-      <h3 className="mb-4">📜 Meu Histórico de Estudos</h3>
+      <h3 className="mb-4">📚 Meu Histórico de Estudos</h3>
       <p className="text-muted mb-4">
         Olá, <strong>{nome}</strong>! Aqui estão todas as suas sessões de quiz.
       </p>
