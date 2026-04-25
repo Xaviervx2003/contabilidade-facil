@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import CIcon from '@coreui/icons-react'
 import {
   cilSpeedometer,
@@ -29,14 +29,14 @@ const getNavItens = () => {
     },
     {
       component: CNavItem,
-      name: 'Vídeo-Aulas',
+      name: 'VÃ­deo-Aulas',
       to: '/videos',
       icon: <CIcon icon={cilVideo} customClassName="nav-icon" />,
     },
     {
       component: CNavItem,
-      name: 'Meu Histórico',
-      to: '/historico',
+      name: 'Meu HistÃ³rico',
+      to: '/aluno/historico',
       icon: <CIcon icon={cilHistory} customClassName="nav-icon" />,
     },
   ]
@@ -58,23 +58,23 @@ const getNavItens = () => {
     itens.push(
       {
         component: CNavTitle,
-        name: 'Administração',
+        name: 'AdministraÃ§Ã£o',
       },
       {
         component: CNavItem,
-        name: 'Gestão de Questões',
+        name: 'GestÃ£o de QuestÃµes',
         to: '/questoes',
         icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
-        name: 'Gestão de Matérias',
+        name: 'GestÃ£o de MatÃ©rias',
         to: '/materias',
         icon: <CIcon icon={cilLibrary} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
-        name: 'Relatórios',
+        name: 'RelatÃ³rios',
         to: '/relatorios',
         icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
       },
@@ -90,7 +90,7 @@ const getNavItens = () => {
   if (papelUsuario === 'admin') {
     itens.splice(itens.length - 2, 0, {
       component: CNavItem,
-      name: 'Gestão de Usuários',
+      name: 'GestÃ£o de UsuÃ¡rios',
       to: '/usuarios',
       icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
     })

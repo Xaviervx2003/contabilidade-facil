@@ -1,73 +1,146 @@
 # PROMPT MESTRE DO PROJETO - CONTABILIDADE FÁCIL
-**Instrução para a IA:** *Ao iniciar qualquer assistência técnica ou desenvolvimento nesta base de código, leia este documento primeiro para entender a estrutura, regras de negócios e "armadilhas" ocultas que podem quebrar a aplicação.*
+**Instrução para a IA:** *Ao iniciar qualquer assistência técnica ou desenvolvimento nesta base de código, leia este documento COMPLETO antes de escrever qualquer linha de código. Ele contém armadilhas reais que já quebraram a aplicação em sessões anteriores.*
 
 ---
 
 ## 🏗️ 1. Arquitetura e Visão Global
+
 O projeto é um **Ambiente Virtual de Aprendizagem (AVA)** completo, dividido em:
-*   **Backend (Python + FastAPI):** Arquitetura 100% modular, enxuta, orquestrada pelo arquivo `main.py` e fatiada na pasta `routes/` (admin, auth, dashboard, questoes, sessoes). 
-*   **Banco de Dados (PostgreSQL):** Utiliza regras rígidas estruturadas no arquivo mestre `init.sql`. Interação via pacote `psycopg2` puro.
-*   **Frontend (React + Vite + CoreUI 5):** Interface segmentada entre a visão do "Aluno" e o "Administrador / Gestor". Usa `sessionStorage` para guardar o contexto de segurança.
+
+- **Backend (Python + FastAPI):** Arquitetura 100% modular, orquestrada pelo `main.py` e fatiada na pasta `routes/`:
+  - `auth.py` — login e autenticação
+  - `dashboard.py` — métricas e desempenho dos alunos
+  - `relatorios.py` — relatório mensal de estudo (separado do dashboard)
+  - `questoes.py` — CRUD de questões
+  - `sessoes.py` — submissão e histórico de quizzes
+  - `admin.py` — gestão de usuários e matérias
+
+- **Banco de Dados (PostgreSQL):** Regras estruturadas no `init.sql`. Interação via **psycopg v3** com **pool de conexões** (`psycopg_pool`). O arquivo `database.py` gerencia o pool — não use `psycopg2` puro nem abra conexões avulsas.
+
+- **Frontend (React + Vite + CoreUI 5):** Interface segmentada entre "Aluno" e "Administrador/Gestor". Usa `sessionStorage` para guardar o contexto de segurança.
+
+---
 
 ## 👥 2. Hierarquia de Papéis (Roles)
-Um grande "detalhe oculto" arquitetural é o campo `papel` na tabela `usuarios`.
-1.  **admin (id=1):** Tem acesso universal. Vê todos os módulos, avalia todos alunos e não pode ser deletado de maneira nenhuma (hardcoded alert!).
-2.  **professor:** Tem visão restrita. A grande armadilha é a tabela pivot `professores_materias` (relação N:N). Um professor **só** acessa o dashboard e dados dos alunos que responderam questões vinculadas às **matérias** atreladas ao professor.
-3.  **aluno:** Faz quizzes e checa o próprio histórico.
 
-## 🪤 3. Armadilhas e Como Funciona Por Trás dos Panos
-Se for mexer no código, **cuidado extremo com os seguintes detalhes**:
+Campo `papel` na tabela `usuarios`:
+
+1. **admin (id=1):** Acesso universal. Vê todos os módulos e todos os alunos. **Não pode ser deletado — bloqueio hardcoded.**
+2. **professor:** Visão restrita. A armadilha crítica é a tabela pivot `professores_materias` (N:N). Um professor **só** acessa dados de alunos que responderam questões vinculadas às **suas matérias**. O filtro é feito via `EXISTS` + `sessoes_questoes` + `questoes.criado_por` — nunca por string de assunto.
+3. **aluno:** Faz quizzes e consulta o próprio histórico.
+
+---
+
+## 🪤 3. Armadilhas Conhecidas — Leia antes de mexer
 
 ### A. Login e Proteção Contínua (Session Storage)
-*   **O Código de Honra do Storage:** Nunca introduza ou altere os nomes das chaves de sessão. O sistema DEPENDE EXATAMENTE destas quatro chaves cravadas no momento do login: 
-    1. **`userId`** 
-    2. **`papel`** 
-    3. **`nome`** 
-    4. **`matricula`**
-   Qualquer devio aqui desmorona o roteamento inteiro por causa dos Hooks de checagem.
-*   **A Rota Dinâmica (`_nav.js` / `_nav.jsx`):** Diferente da maioria dos templates de painel que exportam um `array` simples, aqui o `_nav` exporta uma **função estrita** (`getNavItens()`). Essa proteção garante que o React recarregue os botões perfeitamente baseado no `papel` da memória. Nunca transforme ele de volta em um array.
-*   **O Logout com Reload:** A função de Sair limpa a sessão absoluta atraves de `sessionStorage.clear()` e PRECISA usar `window.location.href = '#/login'` para matar a re-renderização memoizada do painel lateral (não tente usar apenas o roteador `navigate` do React-Router!).
 
-### B. Gestão de Matérias Vs Assuntos Livres nas Questões
-*   **Antes:** O assunto da questão (`questoes.assunto`) era um texto aberto digitado na unha (ex: "Balanço DRE"). 
-*   **Agora:** As questões são multivinculadas. Não mexa no backend submetendo `assunto` vazio. A aba `GestaoQuestoes.jsx` exibe Checkboxes (`materia_ids`). O banco requer que a relação "questão-matéria" passe pelo router Python na submissão (`routes/questoes.py`) inserindo na tabela N:N `questoes_materias`.
+- **Chaves imutáveis do sessionStorage.** O sistema depende EXATAMENTE destas quatro chaves, definidas no login:
+  1. `userId`
+  2. `papel`
+  3. `nome`
+  4. `matricula`
+  Qualquer alteração nos nomes quebra o roteamento inteiro.
 
-### C. O Dashboard com Dupla Visão
-O arquivo `routes/dashboard.py` esconde uma ramificação crítica baseada no query param `?usuario_id=XX`. 
-*   **Se for omitido ou Admin:** Puxa o `COUNT()` geral do banco.
-*   **Se for Professor:** Ele injeta o `EXISTS` em queries complexas. As consultas exigem a garantia do WHERE validando `eh_teste_professor IS NOT TRUE` (Para que sessões feitas pelo próprio logado não contaminem o gráfico da turma).
+- **`_nav.jsx` exporta uma FUNÇÃO, não um array.** A função `getNavItens()` lê o `sessionStorage` no momento em que é chamada (após o login). **Nunca transforme de volta em array estático.**
 
-### D. Tratamento de Feedbacks e Painel Admin
-*   O Quiz possui um sistema onde alunos abrem tickets ("Dúvida" ou "Confuso"). O Painel (`FeedbacksQuestoes.jsx`) agora usa o conceito de **Status de Resolução** (Pendente vs Resolvido) no banco (`resolvido`, `resolvido_em`) em vez de deletar o ticket direto.
-*   **Badge Dinâmico na Sidebar:** O menu lateral (`AppSidebar.jsx`) consulta autonomamente a rota `/api/feedbacks_questoes/contagem` a cada 60s. Não manipule `AppSidebarNav.jsx` sem considerar que a prop `items` agora vem em *real-time state* via React.
-*   **Contador de Impacto:** O painel de feedbacks exibe o número de reclamações ativas por questão (Coluna `impacto`). Se houver >= 5 reclamações não resolvidas, a linha ganha destaque visual (vermelho).
-*   **Resposta do Professor:** O campo `resposta_professor` permite que o gestor responda ao aluno. Enviar uma resposta marca automaticamente o feedback como `resolvido`.
-*   **Aviso no Frontend:** Não altere o fluxo do Quiz (`Quiz.jsx`) sem garantir que os states `isConfusing` e `commentStatus` sejam resetados ao trocar de questão.
+- **Logout precisa de reload forçado.** Use `sessionStorage.clear()` seguido de `window.location.href = '#/login'`. Usar apenas o `navigate` do React-Router não mata a re-renderização memoizada do painel lateral.
+
+### B. Gestão de Matérias vs Assuntos Livres
+
+- O campo `questoes.assunto` era texto livre no passado. **Hoje as questões são multivinculadas** via tabela N:N `questoes_materias`.
+- Nunca submeta `assunto` vazio. A tela `GestaoQuestoes.jsx` usa checkboxes com `materia_ids`. A inserção passa por `routes/questoes.py` que grava em `questoes_materias`.
+
+### C. Dashboard com Dupla Visão
+
+- `routes/dashboard.py` tem ramificação crítica por `?usuario_id=XX`:
+  - **Admin ou sem ID:** `COUNT()` geral de todas as sessões.
+  - **Professor:** injeta `EXISTS` filtrando por `sessoes_questoes → questoes.criado_por`.
+- O filtro `eh_teste_professor IS NOT TRUE` é **obrigatório** em todas as queries do dashboard para que sessões de teste não contaminem as estatísticas da turma.
+- A rota `/api/relatorios/estudo` foi **separada para `routes/relatorios.py`**. Não a recoloque no `dashboard.py` — causaria rota duplicada e conflito de router.
+
+### D. Feedbacks e Painel Admin
+
+- Tickets de alunos ("Dúvida" / "Confuso") usam **Status de Resolução** (`resolvido`, `resolvido_em`) — nunca deletar o registro direto.
+- **Badge Dinâmico na Sidebar:** `AppSidebar.jsx` consulta `/api/feedbacks_questoes/contagem` a cada 60s. Não adicione badges estáticos no `_nav.jsx` para itens que já têm contagem dinâmica — eles vão conflitar.
+- Se houver >= 5 reclamações não resolvidas por questão, a linha ganha destaque vermelho (coluna `impacto`).
+- Enviar `resposta_professor` marca o feedback como `resolvido` automaticamente.
+- **No `Quiz.jsx`:** os states `isConfusing` e `commentStatus` devem ser resetados ao trocar de questão. Não altere o fluxo sem garantir esse reset.
 
 ### E. Behavioral Design & Comunidade
-*   **Comentários da Comunidade:** Feedbacks podem ser aprovados pelo Professor (coluna `publico = TRUE`). A rota `GET /api/questoes` anexa esses feedbacks via agregação relacional (`COALESCE(json_agg(...))`). Se alterar o SQL central de `/api/questoes`, tenha cuidado absoluto com as agregações de JSON.
-*   **Validação Social:** A tabela `questoes` possui contadores globais (`tentativas` e `acertos`). A rota de submissão de sessão faz um *loop* (via `lista_detalhes`) atualizando o banco a cada quiz finalizado. Não quebre a passagem do `lista_detalhes` na API, caso contrário a porcentagem de alunos que acertou a questão (Mostrada no Alert Verde) vai parar de funcionar.
-*   **Simulado Rápido:** O botão na home não passa pelas configs de matéria/tempo tradicionais. Ele intercepta as validações injetando valores literais (10 min / 10 questões globais).
+
+- Feedbacks aprovados pelo professor (`publico = TRUE`) são anexados via `COALESCE(json_agg(...))` na rota `GET /api/questoes`. Cuidado extremo ao alterar esse SQL — as agregações de JSON são frágeis.
+- A tabela `questoes` tem contadores globais (`tentativas`, `acertos`) atualizados em loop via `lista_detalhes` na submissão de sessão. Não quebre a passagem desse campo na API.
+- **Simulado Rápido:** injeta valores literais (10 min / 10 questões globais) sem passar pelas configs normais de matéria/tempo.
+
+### F. Pool de Conexões (database.py) — NOVO
+
+- O projeto **migrou de `psycopg2` puro para `psycopg` v3 com pool** (`psycopg_pool`).
+- Sempre use o context manager: `with get_conexao() as conn:` — nunca abra conexão avulsa.
+- O `database.py` cria a tabela `sessoes_questoes` e seus índices de forma defensiva na inicialização, apenas se as tabelas-base já existirem.
+- **Não coloque credenciais como fallback hardcoded** no `DB_CONFIG`. Use `""` como padrão para forçar erro claro se o `.env` não existir.
+- O pool sobe junto com o FastAPI via `lifespan`. O `iniciar_pool()` tem retentativa automática (10x com espera de 2s) para ambientes Docker.
+
+### G. Ordem de Inicialização do main.py — NOVO
+
+- **ARMADILHA CRÍTICA:** O `app.include_router()` deve vir DEPOIS de `app = FastAPI(...)`. Colocar qualquer `include_router` antes da criação do `app` causa `NameError: name 'app' is not defined` e derruba o servidor.
+- Ordem correta no `main.py`:
+  1. Imports
+  2. Definição do `lifespan`
+  3. `app = FastAPI(..., lifespan=lifespan)`
+  4. `app.add_middleware(...)`
+  5. Todos os `app.include_router(...)`
+  6. Rotas avulsas (`@app.get`)
+
+### H. Agregações SQL no PostgreSQL — NOVO
+
+- **PostgreSQL não aceita agregações aninhadas** (ex: `SUM()` dentro de `SUM()`). Isso causa o erro: `aggregate function calls cannot be nested`.
+- A solução é sempre usar **CTEs encadeadas**: uma CTE calcula os valores base, a próxima agrega em cima do resultado já calculado.
+- Padrão obrigatório para queries complexas no dashboard:
+  ```sql
+  WITH dados_base AS (
+      SELECT ... FROM ... GROUP BY ...  -- primeira agregação
+  ),
+  agregado_final AS (
+      SELECT jsonb_object_agg(...) FROM dados_base GROUP BY ...  -- segunda agregação
+  )
+  SELECT ... FROM agregado_final;
+  ```
 
 ---
 
-## 🛠️ Como dar manutenção no Código
-Para rodar ou modificar sem quebrar a pipeline de rotas:
+## 🗂️ 4. Estrutura de Rotas Atual
 
-1.  **Frontend:** Dentro de `painel-admin/`, sempre utilize comandos do Vite. Lembre que o botão "Sair" fica escondido na engrenagem superior (avatar).
-2.  **Backend:** Qualquer reestruturação no FastAPI deve reiniciar o servidor Uvicorn manual caso modifique `models.py` (A hot-reload padrão às vezes engasga no Windows por file lock).
-3.  **Variáveis:** Não mexer no `database.py` para injetar credenciais limpas (clear-text); o sistema é estritamente dependente do local `.env` da raiz.
+| Arquivo | Prefix | Rotas principais |
+|---|---|---|
+| `routes/auth.py` | `/api` | `POST /login` |
+| `routes/dashboard.py` | `/api` | `GET /dashboard`, `GET /dashboard/sessoes-por-mes`, `GET /alunos/desempenho` |
+| `routes/relatorios.py` | `/api` | `GET /relatorios/estudo` |
+| `routes/questoes.py` | `/api` | CRUD `/questoes` |
+| `routes/sessoes.py` | `/api` | `POST /sessoes`, `GET /historico` |
+| `routes/admin.py` | `/api` | CRUD `/usuarios`, `/materias` |
 
 ---
 
-## 🔁 Regra Operacional Git (obrigatória)
+## 🛠️ 5. Como dar Manutenção no Código
+
+1. **Frontend:** Dentro de `painel-admin/`, sempre use comandos do Vite. O botão "Sair" fica na engrenagem superior (avatar).
+2. **Backend:** Reinicie o Uvicorn manualmente após modificar `models.py` — o hot-reload pode engasgar no Windows por file lock.
+3. **Variáveis:** Nunca injete credenciais como clear-text no `database.py`. O sistema depende estritamente do `.env` na raiz.
+4. **Novo router:** Ao criar um novo arquivo em `routes/`, lembre de registrá-lo no `main.py` com `app.include_router()` — e sempre APÓS a linha `app = FastAPI(...)`.
+
+---
+
+## 🔁 6. Regra Operacional Git (obrigatória)
+
 Sempre que a IA fizer mudanças:
 
-1. Finalizar com commit local (`git add` + `git commit`).
-2. Informar comandos exatos para o usuário puxar no Antgravit.
-3. Orientar merge seguro na `main` com `fetch`, `pull`, `merge` e `push`.
+1. Consolidar tudo em um único commit por sessão de trabalho.
+2. Informar os comandos exatos para o usuário aplicar no Antgravit.
+3. Orientar merge seguro na `main`.
 
-### Comandos padrão para puxar no Antgravit e consolidar na `main`
+### Comandos padrão para consolidar na `main`
+
 ```bash
 git fetch --all --prune
 git checkout main
@@ -77,6 +150,7 @@ git push origin main
 ```
 
 ### Se tiver apenas o número do PR (ex.: 17)
+
 ```bash
 git fetch origin pull/17/head:pr-17
 git checkout main
@@ -85,4 +159,14 @@ git merge pr-17
 git push origin main
 ```
 
-*Criado em resposta à auditoria de sistema para garantir uma trilha documentada para as IAs mantenedoras do projeto Contabilidade Fácil.*
+### Verificar conflitos de merge antes de commitar
+
+```powershell
+Get-ChildItem -Recurse -Include *.py,*.jsx,*.js,*.sql | Select-String '<<<<<<<|=======|>>>>>>>'
+```
+
+Resultados em `.venv\` e `node_modules\` são **falsos positivos** — ignore. Apenas arquivos fora dessas pastas precisam de correção.
+
+---
+
+*Atualizado após sessão de auditoria e implementação — inclui correções de pool psycopg v3, separação de relatorios.py, bug de ordem no main.py, e bug de agregações aninhadas no PostgreSQL.*

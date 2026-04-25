@@ -37,21 +37,21 @@ const Alunos = () => {
   }, [])
 
   if (loading) {
-     return <CAlert color="info">Carregando dados acadêmicos...</CAlert>
+    return <CAlert color="info">Carregando dados acadêmicos...</CAlert>
   }
 
   if (listaAlunos.length === 0) {
-     return <CAlert color="secondary">Nenhum aluno registrou sessões de teste no momento.</CAlert>
+    return <CAlert color="secondary">Nenhum aluno registrou sessões de teste no momento.</CAlert>
   }
 
   return (
     <div className="alunos-dashboard">
       <h3 className="mb-4">Monitoramento Operacional dos Alunos</h3>
-      
+
       <CRow>
         <CCol xs={12}>
           {listaAlunos.map((aluno) => {
-            const gradeObj = calculateGrade(aluno.media_numero) 
+            const gradeObj = calculateGrade(aluno.media_numero)
             const nota = gradeObj ? gradeObj.grade : 'N/A'
             const percentual = Math.round(aluno.media_numero)
             const tempoString = formatarTempo(aluno.tempo_medio_segundos)
@@ -83,14 +83,14 @@ const Alunos = () => {
                       </CRow>
 
                       <hr className="mt-0" />
-                      
+
                       <div className="progress-group mb-4 mt-4">
                         <div className="progress-group-header align-items-center justify-content-between d-flex">
                           <span className="text-body-secondary">Tempo Acadêmico Médio</span>
                           <span className="ms-auto fw-semibold fs-5">{tempoString}</span>
                         </div>
                         <div className="progress-group-bars">
-                           <CProgress thin color="primary" value={100} />
+                          <CProgress thin color="primary" value={100} />
                         </div>
                       </div>
 
@@ -100,7 +100,7 @@ const Alunos = () => {
                           <span className="ms-auto fw-semibold fs-5">{aluno.questoes}</span>
                         </div>
                         <div className="progress-group-bars">
-                           <CProgress thin color="info" value={100} />
+                          <CProgress thin color="info" value={100} />
                         </div>
                       </div>
 
@@ -114,39 +114,39 @@ const Alunos = () => {
                         </div>
                         <div className="fs-5 fw-semibold">Gargalos de Aprendizado</div>
                       </div>
-                      
+
                       <hr className="mt-0" />
 
                       {Object.keys(aluno.erros_por_materia || {}).length === 0 ? (
-                         <div className="text-center text-muted mt-4">Nenhum histórico detalhado.</div>
+                        <div className="text-center text-muted mt-4">Nenhum histórico detalhado.</div>
                       ) : (
-                         Object.entries(aluno.erros_por_materia).map(([materia, dados], idx) => {
-                           const percentageError = dados.total > 0 ? (dados.erros / dados.total) * 100 : 0
-                           const hasErrors = dados.erros > 0
-                           
-                           return (
-                             <div className="progress-group mb-4" key={idx}>
-                               <div className="progress-group-header">
-                                 <span className="fw-semibold">
-                                     • {materia}
-                                 </span>
-                                 <span className="ms-auto fw-bold text-dark">
-                                   {dados.erros} erro{dados.erros !== 1 ? 's' : ''} {hasErrors ? '❌' : '✅'}
-                                   <span className="text-body-secondary small ms-2">
-                                      ({dados.total} totais)
-                                   </span>
-                                 </span>
-                               </div>
-                               <div className="progress-group-bars">
-                                 <CProgress 
-                                    thin 
-                                    color={hasErrors ? "danger" : "success"} 
-                                    value={hasErrors ? percentageError : 100} 
-                                 />
-                               </div>
-                             </div>
-                           )
-                         })
+                        Object.entries(aluno.erros_por_materia).map(([materia, dados], idx) => {
+                          const percentageError = dados.total > 0 ? (dados.erros / dados.total) * 100 : 0
+                          const hasErrors = dados.erros > 0
+
+                          return (
+                            <div className="progress-group mb-4" key={idx}>
+                              <div className="progress-group-header">
+                                <span className="fw-semibold">
+                                  • {materia}
+                                </span>
+                                <span className="ms-auto fw-bold text-dark">
+                                  {dados.erros} erro{dados.erros !== 1 ? 's' : ''} {hasErrors ? '❌' : '✅'}
+                                  <span className="text-body-secondary small ms-2">
+                                    ({dados.total} totais)
+                                  </span>
+                                </span>
+                              </div>
+                              <div className="progress-group-bars">
+                                <CProgress
+                                  thin
+                                  color={hasErrors ? "danger" : "success"}
+                                  value={hasErrors ? percentageError : 100}
+                                />
+                              </div>
+                            </div>
+                          )
+                        })
                       )}
 
                     </CCol>

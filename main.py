@@ -7,7 +7,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Importa as funções do pool e os roteadores
 from database import iniciar_pool, encerrar_pool
 from routes.questoes import router as questoes_router
 from routes.sessoes import router as sessoes_router
@@ -15,7 +14,8 @@ from routes.auth import router as auth_router
 from routes.dashboard import router as dashboard_router
 from routes.admin import router as admin_router
 from routes import relatorios
-app.include_router(relatorios.router)
+from routes import aluno
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -24,15 +24,16 @@ async def lifespan(app: FastAPI):
     yield
     encerrar_pool()
 
+
 # Criação do App com lifespan
 app = FastAPI(
     title="Contabilidade Fácil API",
     description="API da Plataforma de Questões de Contabilidade",
     version="2.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
-# Configuração de CORS (mantido "*" conforme seu original)
+# Configuração de CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -47,7 +48,8 @@ app.include_router(sessoes_router)
 app.include_router(auth_router)
 app.include_router(dashboard_router)
 app.include_router(admin_router)
-
+app.include_router(relatorios.router)
+app.include_router(aluno.router)
 
 
 @app.get("/")
