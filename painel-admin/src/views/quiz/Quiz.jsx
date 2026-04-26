@@ -1,37 +1,24 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import {
   CAlert,
   CBadge,
   CButton,
-  CCard,
-  CCardBody,
-  CCardFooter,
-  CCardHeader,
   CCol,
   CContainer,
-  CForm,
   CFormSelect,
   CFormTextarea,
   CNav,
   CNavItem,
   CNavLink,
-  CProgress,
   CRow,
   CSpinner,
-  CTable,
-  CTableBody,
-  CTableDataCell,
-  CTableHead,
-  CTableHeaderCell,
-  CTableRow,
 } from '@coreui/react'
+import CIcon from '@coreui/icons-react'
+import { cilCheckCircle, cilXCircle, cilLightbulb, cilVideo } from '@coreui/icons'
 import { API_URL } from '../../config'
-import {
-  calculateScore,
-  calculateGrade,
-  formatSeconds,
-  shuffle,
-} from '../../utils/quizUtils'
+import { calculateScore, calculateGrade, formatSeconds, shuffle } from '../../utils/quizUtils'
+
+/* ─── constants ────────────────────────────────────────────────────────────── */
 
 const TIME_OPTIONS = [
   { value: 300, label: '5 minutos' },
@@ -52,135 +39,354 @@ const QTD_OPTIONS = [
   { value: 50, label: '50 questões' },
 ]
 
-// ALTERAÇÃO 1: Adicionado 'E' ao array de letras
 const LETTERS = ['A', 'B', 'C', 'D', 'E']
 
-// --- Função auxiliar para converter links de vídeo (FASE 1) ---
-const obterLinkEmbed = (url) => {
-  if (!url) return null;
-  let embedUrl = url;
-  if (url.includes('youtube.com/watch?v=')) {
-    embedUrl = url.replace('watch?v=', 'embed/');
-    embedUrl = embedUrl.split('&')[0];
-  } else if (url.includes('youtu.be/')) {
-    embedUrl = url.replace('youtu.be/', 'www.youtube.com/embed/');
-  } else if (url.includes('vimeo.com/')) {
-    embedUrl = url.replace('vimeo.com/', 'player.vimeo.com/video/');
-  }
-  return embedUrl;
-};
-// ---------------------------------------------------------------------------
+/* ─── dynamic design tokens ─────────────────────────────────────────────────── */
 
-// ---------------------------------------------------------------------------
-// Componente interno – Tabela de revisão de respostas
-// ---------------------------------------------------------------------------
-const ReviewTable = ({ questionsAndAnswers }) => (
-  <CTable bordered striped hover responsive className="mt-3">
-    <CTableHead color="light">
-      <CTableRow>
-        <CTableHeaderCell style={{ width: '3%' }}>#</CTableHeaderCell>
-        <CTableHeaderCell>Pergunta</CTableHeaderCell>
-        <CTableHeaderCell style={{ width: '12%' }} className="text-center">
-          Sua resposta
-        </CTableHeaderCell>
-        <CTableHeaderCell style={{ width: '12%' }} className="text-center">
-          Resposta correta
-        </CTableHeaderCell>
-        <CTableHeaderCell style={{ width: '7%' }} className="text-center">
-          Resultado
-        </CTableHeaderCell>
-      </CTableRow>
-    </CTableHead>
-    <CTableBody>
-      {questionsAndAnswers.map((item, i) => (
-        <CTableRow key={i} color={item.isCorrect ? 'success' : 'danger'}>
-          <CTableDataCell>{i + 1}</CTableDataCell>
-          <CTableDataCell>{item.question}</CTableDataCell>
-          <CTableDataCell className="text-center fw-bold">{item.userAnswer}</CTableDataCell>
-          <CTableDataCell className="text-center fw-bold">{item.correctAnswer}</CTableDataCell>
-          <CTableDataCell className="text-center">
-            {item.isCorrect ? '✅' : '❌'}
-          </CTableDataCell>
-        </CTableRow>
-      ))}
-    </CTableBody>
-  </CTable>
+const getTokens = (isDark) => ({
+  blue: '#4f8ef7',
+  cyan: isDark ? '#22d3ee' : '#0891b2',
+  green: isDark ? '#22c55e' : '#15803d',
+  red: isDark ? '#f43f5e' : '#b91c1c',
+  amber: isDark ? '#f59e0b' : '#b45309',
+  purple: isDark ? '#a78bfa' : '#7c3aed',
+  surface: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
+  border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+  text: isDark ? '#e2e8f0' : '#1e293b',
+  muted: isDark ? 'rgba(226,232,240,0.45)' : 'rgba(15,23,42,0.5)',
+  bgGlow: (color, px = 18) =>
+    isDark
+      ? `0 0 ${px}px ${color}44, 0 0 ${px * 2}px ${color}22`
+      : `0 0 ${px}px ${color}22, 0 0 ${px * 2}px ${color}11`,
+  ring: (color) =>
+    isDark
+      ? `0 0 0 2px ${color}66, 0 0 18px ${color}44, 0 0 36px ${color}22`
+      : `0 0 0 2px ${color}55, 0 0 12px ${color}22`,
+})
+
+const glow = (color, px, isDark) =>
+  isDark
+    ? `0 0 ${px}px ${color}44, 0 0 ${px * 2}px ${color}22`
+    : `0 0 ${px}px ${color}22, 0 0 ${px * 2}px ${color}11`
+
+const ring = (color, isDark) =>
+  isDark
+    ? `0 0 0 2px ${color}66, ${glow(color, 18, isDark)}`
+    : `0 0 0 2px ${color}55, ${glow(color, 12, isDark)}`
+
+/* ─── dynamic global css ────────────────────────────────────────────────────── */
+
+const buildGlobalCss = (T) => `
+@keyframes halo-pulse {
+  0%,100% { box-shadow: 0 0 16px ${T.red}44, 0 0 32px ${T.red}22; }
+  50%      { box-shadow: 0 0 28px ${T.red}88, 0 0 48px ${T.red}44; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(.94); }
+  to   { opacity: 1; transform: scale(1);   }
+}
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.quiz-option-btn {
+  transition: box-shadow .15s, border-color .15s, background .15s, transform .1s !important;
+}
+.quiz-option-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+.quiz-tab-link { cursor: pointer; transition: color .15s !important; }
+.quiz-select {
+  background-color: ${T.surface} !important;
+  border: 1px solid ${T.border} !important;
+  color: ${T.text} !important;
+  border-radius: 10px !important;
+}
+.quiz-select:focus {
+  box-shadow: 0 0 0 2px ${T.blue}66 !important;
+  border-color: ${T.blue} !important;
+}
+.quiz-select option { background: ${T.surface}; color: ${T.text}; }
+.quiz-textarea {
+  background: ${T.surface} !important;
+  border: 1px solid ${T.border} !important;
+  color: ${T.text} !important;
+  border-radius: 10px !important;
+  resize: none !important;
+}
+.quiz-textarea:focus {
+  box-shadow: 0 0 0 2px ${T.blue}66 !important;
+  border-color: ${T.blue} !important;
+  outline: none !important;
+}
+.quiz-textarea::placeholder { color: ${T.muted} !important; }
+`
+
+/* ─── helper to inject & update global style ────────────────────────────────── */
+
+let globalStyleEl = null
+const updateGlobalStyle = (css) => {
+  if (!globalStyleEl) {
+    globalStyleEl = document.createElement('style')
+    document.head.appendChild(globalStyleEl)
+  }
+  globalStyleEl.textContent = css
+}
+
+/* ─── helpers ───────────────────────────────────────────────────────────────── */
+
+const obterLinkEmbed = (url) => {
+  if (!url) return null
+  let e = url
+  if (url.includes('youtube.com/watch?v=')) e = url.replace('watch?v=', 'embed/').split('&')[0]
+  else if (url.includes('youtu.be/')) e = url.replace('youtu.be/', 'www.youtube.com/embed/')
+  else if (url.includes('vimeo.com/')) e = url.replace('vimeo.com/', 'player.vimeo.com/video/')
+  return e
+}
+
+/* ─── sub-components ────────────────────────────────────────────────────────── */
+
+/** Glowing pill label */
+const Pill = ({ T, color, children, style }) => (
+  <span
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 5,
+      background: `${color}20`,
+      border: `1px solid ${color}50`,
+      borderRadius: 99,
+      padding: '3px 12px',
+      fontSize: 12,
+      fontWeight: 700,
+      color,
+      boxShadow: `0 0 10px ${color}30`,
+      letterSpacing: '0.05em',
+      ...style,
+    }}
+  >
+    {children}
+  </span>
 )
 
-// ---------------------------------------------------------------------------
-// Componente interno – Estatísticas finais
-// ---------------------------------------------------------------------------
-const StatsPanel = ({ score, correctAnswers, totalQuestions, elapsedSeconds, onReplay, onReset }) => {
-  const gradeResult = calculateGrade(score)
-  const totalMinutes = Math.floor(elapsedSeconds / 60)
-  const totalSecondsRest = elapsedSeconds % 60
+/** Single stat block used in results */
+const StatBox = ({ T, value, label, color }) => (
+  <div
+    style={{
+      background: T.surface,
+      border: `1px solid ${T.border}`,
+      borderRadius: 14,
+      padding: '18px 12px',
+      textAlign: 'center',
+      boxShadow: glow(color, 12, isDark),
+    }}
+  >
+    <div
+      style={{
+        fontSize: 30,
+        fontWeight: 800,
+        color,
+        fontVariantNumeric: 'tabular-nums',
+        textShadow: `0 0 20px ${color}88`,
+      }}
+    >
+      {value}
+    </div>
+    <div
+      style={{
+        fontSize: 11,
+        color: T.muted,
+        fontWeight: 600,
+        letterSpacing: '0.07em',
+        textTransform: 'uppercase',
+        marginTop: 4,
+      }}
+    >
+      {label}
+    </div>
+  </div>
+)
 
-  const gradeColor =
-    score >= 90 ? 'success' :
-      score >= 70 ? 'info' :
-        score >= 60 ? 'warning' : 'danger'
+/** Results panel */
+const StatsPanel = ({
+  T,
+  isDark,
+  score,
+  correctAnswers,
+  totalQuestions,
+  elapsedSeconds,
+  onReplay,
+  onReset,
+}) => {
+  const grade = calculateGrade(score)
+  const gradeColor = score >= 90 ? T.green : score >= 70 ? T.cyan : score >= 60 ? T.amber : T.red
+  const m = Math.floor(elapsedSeconds / 60)
+  const s = elapsedSeconds % 60
 
   return (
-    <div className="text-center py-2">
-      {gradeResult && (
-        <>
-          <p className="fs-5 text-muted mb-1">{gradeResult.remarks}</p>
-          <CBadge color={gradeColor} style={{ fontSize: '2rem', padding: '0.5rem 1.5rem' }} className="mb-4">
-            Nota: {gradeResult.grade}
-          </CBadge>
-        </>
+    <div style={{ animation: 'scale-in .4s ease', textAlign: 'center', padding: '8px 0' }}>
+      {grade && (
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontSize: 14, color: T.muted, marginBottom: 10 }}>{grade.remarks}</div>
+          <div
+            style={{
+              display: 'inline-block',
+              fontSize: 52,
+              fontWeight: 900,
+              color: gradeColor,
+              lineHeight: 1,
+              textShadow: `0 0 40px ${gradeColor}99, 0 0 80px ${gradeColor}44`,
+            }}
+          >
+            {grade.grade}
+          </div>
+        </div>
       )}
 
-      <CRow className="justify-content-center g-3 mb-4">
+      <CRow className="justify-content-center g-3 mb-5">
         <CCol xs={6} md={3}>
-          <CCard className="text-center border-0 bg-body-secondary h-100">
-            <CCardBody>
-              <div className="fs-3 fw-bold text-primary">{score}%</div>
-              <small className="text-muted">Percentual</small>
-            </CCardBody>
-          </CCard>
+          <StatBox T={T} value={`${score}%`} label="Percentual" color={T.blue} isDark={isDark} />
         </CCol>
         <CCol xs={6} md={3}>
-          <CCard className="text-center border-0 bg-body-secondary h-100">
-            <CCardBody>
-              <div className="fs-3 fw-bold text-success">{correctAnswers}</div>
-              <small className="text-muted">Acertos</small>
-            </CCardBody>
-          </CCard>
+          <StatBox T={T} value={correctAnswers} label="Acertos" color={T.green} isDark={isDark} />
         </CCol>
         <CCol xs={6} md={3}>
-          <CCard className="text-center border-0 bg-body-secondary h-100">
-            <CCardBody>
-              <div className="fs-3 fw-bold text-danger">{totalQuestions - correctAnswers}</div>
-              <small className="text-muted">Erros</small>
-            </CCardBody>
-          </CCard>
+          <StatBox
+            T={T}
+            value={totalQuestions - correctAnswers}
+            label="Erros"
+            color={T.red}
+            isDark={isDark}
+          />
         </CCol>
         <CCol xs={6} md={3}>
-          <CCard className="text-center border-0 bg-body-secondary h-100">
-            <CCardBody>
-              <div className="fs-3 fw-bold">{totalMinutes}m {totalSecondsRest}s</div>
-              <small className="text-muted">Tempo gasto</small>
-            </CCardBody>
-          </CCard>
+          <StatBox
+            T={T}
+            value={`${m}m ${s}s`}
+            label="Tempo gasto"
+            color={T.amber}
+            isDark={isDark}
+          />
         </CCol>
       </CRow>
 
-      <div className="d-flex justify-content-center gap-3 flex-wrap">
-        <CButton color="primary" onClick={onReplay}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <GlowButton T={T} isDark={isDark} color={T.blue} onClick={onReplay}>
           🔄 Refazer Quiz
-        </CButton>
-        <CButton color="secondary" variant="outline" onClick={onReset}>
+        </GlowButton>
+        <GlowButton T={T} isDark={isDark} color={T.muted} onClick={onReset} ghost>
           🏠 Voltar ao início
-        </CButton>
+        </GlowButton>
       </div>
     </div>
   )
 }
 
-// ---------------------------------------------------------------------------
-// Componente principal – Quiz
-// ---------------------------------------------------------------------------
+/** Glow-edged button */
+const GlowButton = ({
+  T,
+  isDark,
+  color = T.blue,
+  children,
+  onClick,
+  disabled,
+  ghost,
+  size,
+  style,
+}) => {
+  const [hov, setHov] = useState(false)
+  const base = ghost
+    ? { background: 'transparent', border: `1px solid ${T.border}`, color: T.muted }
+    : { background: hov ? `${color}28` : `${color}18`, border: `1px solid ${color}60`, color }
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        ...base,
+        borderRadius: 10,
+        fontWeight: 700,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        padding: size === 'sm' ? '5px 14px' : '9px 22px',
+        fontSize: size === 'sm' ? 12 : 14,
+        boxShadow: !ghost && hov ? glow(color, 16, isDark) : 'none',
+        transition: 'all .15s',
+        opacity: disabled ? 0.45 : 1,
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+/** Review table at end */
+const ReviewTable = ({ T, questionsAndAnswers }) => (
+  <div style={{ overflowX: 'auto', animation: 'fade-up .35s ease' }}>
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <thead>
+        <tr style={{ background: T.surface }}>
+          {['#', 'Pergunta', 'Sua resposta', 'Correta', ''].map((h) => (
+            <th
+              key={h}
+              style={{
+                padding: '10px 14px',
+                textAlign: 'left',
+                color: T.muted,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.07em',
+                textTransform: 'uppercase',
+                borderBottom: `1px solid ${T.border}`,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {questionsAndAnswers.map((item, i) => (
+          <tr
+            key={i}
+            style={{
+              borderBottom: `1px solid ${T.border}`,
+              background: item.isCorrect ? `${T.green}10` : `${T.red}10`,
+            }}
+          >
+            <td style={{ padding: '10px 14px', color: T.muted }}>{i + 1}</td>
+            <td style={{ padding: '10px 14px', color: T.text }}>{item.question}</td>
+            <td
+              style={{
+                padding: '10px 14px',
+                textAlign: 'center',
+                fontWeight: 700,
+                color: item.isCorrect ? T.green : T.red,
+              }}
+            >
+              {item.userAnswer}
+            </td>
+            <td
+              style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700, color: T.green }}
+            >
+              {item.correctAnswer}
+            </td>
+            <td style={{ padding: '10px 14px', textAlign: 'center', fontSize: 16 }}>
+              {item.isCorrect ? '✅' : '❌'}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)
+
+/* ─── main component ────────────────────────────────────────────────────────── */
+
 const Quiz = () => {
   const [status, setStatus] = useState('ready')
   const [questions, setQuestions] = useState([])
@@ -195,27 +401,46 @@ const Quiz = () => {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-
   const [questionsAndAnswers, setQuestionsAndAnswers] = useState([])
   const [activeTab, setActiveTab] = useState('stats')
-
   const [isAnswerConfirmed, setIsAnswerConfirmed] = useState(false)
   const [isConfusing, setIsConfusing] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [commentStatus, setCommentStatus] = useState('idle')
-
   const [materias, setMaterias] = useState([])
   const [materiaSelecionada, setMateriaSelecionada] = useState('')
   const [quantidade, setQuantidade] = useState(0)
+  const [isDark, setIsDark] = useState(false)
 
   const nomeAluno = sessionStorage.getItem('nome') || 'Aluno'
 
+  /* theme detection */
+  useEffect(() => {
+    const check = () =>
+      setIsDark(document.documentElement.getAttribute('data-coreui-theme') === 'dark')
+    check()
+    const obs = new MutationObserver(check)
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-coreui-theme'],
+    })
+    return () => obs.disconnect()
+  }, [])
+
+  /* dynamic tokens & global style */
+  const T = useMemo(() => getTokens(isDark), [isDark])
+  useEffect(() => {
+    updateGlobalStyle(buildGlobalCss(T))
+  }, [T])
+
   useEffect(() => {
     fetch(`${API_URL}/api/admin/materias`)
-      .then(res => res.json())
-      .then(data => setMaterias(Array.isArray(data) ? data : []))
-      .catch(() => { })
+      .then((r) => r.json())
+      .then((d) => setMaterias(Array.isArray(d) ? d : []))
+      .catch(() => {})
   }, [])
+
+  /* ── quiz logic (unchanged) ── */
 
   const startQuiz = async (questionsData) => {
     setError('')
@@ -230,7 +455,6 @@ const Quiz = () => {
     setSaved(false)
     setActiveTab('stats')
     setStatus('quiz')
-
     setIsAnswerConfirmed(false)
     setIsConfusing(false)
     setCommentText('')
@@ -247,16 +471,13 @@ const Quiz = () => {
       const qs = params.toString() ? `?${params.toString()}` : ''
       const res = await fetch(`${API_URL}/api/questoes${qs}`)
       const data = await res.json()
-      if (!res.ok || !Array.isArray(data) || data.length === 0) {
+      if (!res.ok || !Array.isArray(data) || data.length === 0)
         throw new Error('Nenhuma questão encontrada para esta matéria.')
-      }
       let pool = shuffle(data)
-      if (quantidade > 0 && quantidade < pool.length) {
-        pool = pool.slice(0, quantidade)
-      }
+      if (quantidade > 0 && quantidade < pool.length) pool = pool.slice(0, quantidade)
       await startQuiz(pool)
     } catch (err) {
-      setError(err.message || 'Erro ao buscar questões. Verifique se o backend está ativo.')
+      setError(err.message || 'Erro ao buscar questões.')
       setStatus('ready')
     }
   }
@@ -268,14 +489,12 @@ const Quiz = () => {
     try {
       const res = await fetch(`${API_URL}/api/questoes`)
       const data = await res.json()
-      if (!res.ok || !Array.isArray(data) || data.length === 0) {
+      if (!res.ok || !Array.isArray(data) || data.length === 0)
         throw new Error('Nenhuma questão encontrada.')
-      }
-      let pool = shuffle(data).slice(0, 10)
-      setTempoLimite(600) // 10 minutos
-      await startQuiz(pool)
+      setTempoLimite(600)
+      await startQuiz(shuffle(data).slice(0, 10))
     } catch (err) {
-      setError(err.message || 'Erro ao buscar questões. Verifique se o backend está ativo.')
+      setError(err.message || 'Erro ao buscar questões.')
       setStatus('ready')
     }
   }
@@ -285,21 +504,19 @@ const Quiz = () => {
       setError('Selecione uma alternativa antes de continuar.')
       return
     }
-
-    const question = questions[currentIndex]
-    const isCorrect = selectedOption === question.answer
-
-    const entry = {
-      id: question.id,
-      question: question.question,
-      userAnswer: selectedOption,
-      correctAnswer: question.answer,
-      isCorrect,
-    }
-    setQuestionsAndAnswers([...questionsAndAnswers, entry])
-
-    if (isCorrect) setScore((prev) => prev + 1)
-
+    const q = questions[currentIndex]
+    const isCorrect = selectedOption === q.answer
+    setQuestionsAndAnswers((prev) => [
+      ...prev,
+      {
+        id: q.id,
+        question: q.question,
+        userAnswer: selectedOption,
+        correctAnswer: q.answer,
+        isCorrect,
+      },
+    ])
+    if (isCorrect) setScore((p) => p + 1)
     setError('')
     setFeedback('')
     setIsAnswerConfirmed(true)
@@ -310,50 +527,45 @@ const Quiz = () => {
     setIsConfusing(false)
     setCommentText('')
     setCommentStatus('idle')
-
-    const nextIndex = currentIndex + 1
-    if (nextIndex >= questions.length) {
+    const next = currentIndex + 1
+    if (next >= questions.length) {
       setElapsedSeconds(Math.round((Date.now() - startTime) / 1000))
       setStatus('finished')
       return
     }
-
-    setCurrentIndex(nextIndex)
+    setCurrentIndex(next)
     setSelectedOption('')
   }
 
   const handleSendComment = async () => {
     if (!commentText.trim() && !isConfusing) return
-
     setCommentStatus('sending')
     try {
-      const currentQ = questions[currentIndex]
-      const payload = {
-        questao_id: currentQ.id,
-        nome_aluno: nomeAluno,
-        texto: commentText,
-        marcada_confusa: isConfusing
-      }
-
+      const q = questions[currentIndex]
       const res = await fetch(`${API_URL}/api/feedbacks_questoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          questao_id: q.id,
+          nome_aluno: nomeAluno,
+          texto: commentText,
+          marcada_confusa: isConfusing,
+        }),
       })
-
-      if (!res.ok) throw new Error('Erro ao salvar feedback')
-
+      if (!res.ok) throw new Error()
       setCommentStatus('sent')
-    } catch (e) {
-      setError('Falha ao enviar comentário. Tente novamente.')
+    } catch {
+      setError('Falha ao enviar comentário.')
       setCommentStatus('idle')
     }
   }
 
   const handleFinishEarly = () => {
-    if (!window.confirm('Deseja realmente encerrar o simulado? A nota será calculada com base nas questões já respondidas.')) return
+    if (!window.confirm('Deseja realmente encerrar o simulado?')) return
     setElapsedSeconds(Math.round((Date.now() - startTime) / 1000))
-    setFeedback(`Simulado encerrado pelo aluno. ${questionsAndAnswers.length} de ${questions.length} questões respondidas.`)
+    setFeedback(
+      `Simulado encerrado. ${questionsAndAnswers.length} de ${questions.length} questões respondidas.`,
+    )
     setStatus('finished')
   }
 
@@ -378,43 +590,38 @@ const Quiz = () => {
     try {
       const respondidas = questionsAndAnswers.length
       const porcentagem = calculateScore(respondidas, score)
-      const userMatricula = sessionStorage.getItem('matricula') || nomeAluno
+      const matricula = sessionStorage.getItem('matricula') || nomeAluno
       const materiaLabel = materiaSelecionada
-        ? materias.find(m => String(m.id) === String(materiaSelecionada))?.nome || 'Quiz de Contabilidade'
+        ? materias.find((m) => String(m.id) === String(materiaSelecionada))?.nome ||
+          'Quiz de Contabilidade'
         : 'Quiz de Contabilidade'
-      const payload = {
-        nome_aluno: userMatricula,
-        assunto_estudado: materiaLabel,
-        questoes_respondidas: respondidas,
-        taxa_acerto: porcentagem,
-        tempo_gasto_segundos: elapsedSeconds,
-        lista_detalhes: questionsAndAnswers.map(qa => ({
-          id: qa.id,
-          acertou: qa.isCorrect
-        }))
-      }
       const res = await fetch(`${API_URL}/api/sessoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          nome_aluno: matricula,
+          assunto_estudado: materiaLabel,
+          questoes_respondidas: respondidas,
+          taxa_acerto: porcentagem,
+          tempo_gasto_segundos: elapsedSeconds,
+          lista_detalhes: questionsAndAnswers.map((qa) => ({ id: qa.id, acertou: qa.isCorrect })),
+        }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data?.mensagem || 'Falha ao salvar sessão')
+      if (!res.ok) throw new Error(data?.mensagem || 'Falha ao salvar')
       setSaved(true)
       setFeedback('Sessão salva com sucesso no dashboard.')
     } catch {
-      setError('Não foi possível salvar a sessão. Tente novamente mais tarde.')
+      setError('Não foi possível salvar a sessão.')
     } finally {
       setSaving(false)
     }
   }
 
   useEffect(() => {
-    if (status !== 'quiz' || isAnswerConfirmed) return undefined
-    const timer = setInterval(() => {
-      setRemainingSeconds((prev) => prev - 1)
-    }, 1000)
-    return () => clearInterval(timer)
+    if (status !== 'quiz' || isAnswerConfirmed) return
+    const t = setInterval(() => setRemainingSeconds((p) => p - 1), 1000)
+    return () => clearInterval(t)
   }, [status, isAnswerConfirmed])
 
   useEffect(() => {
@@ -427,371 +634,865 @@ const Quiz = () => {
   }, [remainingSeconds, status, tempoLimite])
 
   useEffect(() => {
-    if (status === 'finished' && !saved) {
-      handleSaveSession()
-    }
+    if (status === 'finished' && !saved) handleSaveSession()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, saved])
 
+  /* ── derived ── */
   const currentQuestion = questions[currentIndex]
   const totalAnswered = questionsAndAnswers.length
   const totalQuestions = questions.length
   const finalScore = calculateScore(totalAnswered || totalQuestions, score)
+  const timerCritical = remainingSeconds <= 60
+  const progress = totalQuestions ? ((currentIndex + 1) / totalQuestions) * 100 : 0
+
+  /* ── shared card style ── */
+  const cardSt = {
+    background: T.surface,
+    border: `1px solid ${T.border}`,
+    borderRadius: 20,
+    backdropFilter: 'blur(16px)',
+    boxShadow: isDark ? '0 8px 40px rgba(0,0,0,0.4)' : '0 8px 30px rgba(0,0,0,0.08)',
+    overflow: 'hidden',
+  }
+
+  const labelSt = {
+    display: 'block',
+    marginBottom: 6,
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    color: T.muted,
+  }
+
+  /* ────────────────────────────────────────────────────────────────────────── */
 
   return (
     <CContainer className="py-4">
       <CRow className="justify-content-center">
         <CCol xs={12} xl={10}>
-          <CCard>
-            <CCardHeader>
-              <h2 className="mb-0">Quiz de Contabilidade</h2>
-            </CCardHeader>
+          {/* wrapper card */}
+          <div style={cardSt}>
+            {/* header */}
+            <div
+              style={{
+                padding: '20px 28px',
+                borderBottom: `1px solid ${T.border}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    background: `${T.blue}20`,
+                    border: `1px solid ${T.blue}40`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: glow(T.blue, 12, isDark),
+                    fontSize: 18,
+                  }}
+                >
+                  📘
+                </div>
+                <span
+                  style={{ fontWeight: 800, fontSize: 18, color: T.text, letterSpacing: '-0.02em' }}
+                >
+                  Quiz de Contabilidade
+                </span>
+              </div>
+              {status === 'quiz' && (
+                <Pill
+                  T={T}
+                  color={timerCritical ? T.red : T.cyan}
+                  style={{ animation: timerCritical ? 'halo-pulse 1s ease infinite' : 'none' }}
+                >
+                  ⏱ {formatSeconds(remainingSeconds)}
+                </Pill>
+              )}
+            </div>
 
-            <CCardBody>
-              {error && <CAlert color="danger" dismissible onClose={() => setError('')}>{error}</CAlert>}
-              {feedback && <CAlert color="info">{feedback}</CAlert>}
+            <div style={{ padding: '28px' }}>
+              {/* alerts */}
+              {error && (
+                <div
+                  style={{
+                    background: `${T.red}15`,
+                    border: `1px solid ${T.red}40`,
+                    borderRadius: 10,
+                    padding: '12px 16px',
+                    marginBottom: 20,
+                    color: T.red,
+                    fontSize: 14,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    animation: 'fade-up .25s ease',
+                  }}
+                >
+                  ⚠️ {error}
+                  <button
+                    onClick={() => setError('')}
+                    style={{
+                      marginLeft: 'auto',
+                      background: 'none',
+                      border: 'none',
+                      color: T.red,
+                      cursor: 'pointer',
+                      fontSize: 16,
+                      lineHeight: 1,
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+              {feedback && (
+                <div
+                  style={{
+                    background: `${T.cyan}12`,
+                    border: `1px solid ${T.cyan}35`,
+                    borderRadius: 10,
+                    padding: '12px 16px',
+                    marginBottom: 20,
+                    color: T.cyan,
+                    fontSize: 14,
+                    animation: 'fade-up .25s ease',
+                  }}
+                >
+                  ℹ️ {feedback}
+                </div>
+              )}
 
+              {/* ══ READY ══════════════════════════════════════════════════════ */}
               {status === 'ready' && (
-                <CForm>
-                  <p>Configure seu simulado e pressione <strong>Iniciar</strong>.</p>
-                  <CRow className="g-3 mb-4">
+                <div style={{ animation: 'fade-up .35s ease' }}>
+                  <div style={{ textAlign: 'center', marginBottom: 32 }}>
+                    <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
+                    <div
+                      style={{
+                        fontSize: 22,
+                        fontWeight: 800,
+                        color: T.text,
+                        letterSpacing: '-0.02em',
+                        marginBottom: 8,
+                      }}
+                    >
+                      Pronto para testar seus conhecimentos?
+                    </div>
+                    <div style={{ color: T.muted, fontSize: 14 }}>
+                      Configure sua sessão abaixo ou inicie o simulado rápido.
+                    </div>
+                  </div>
+
+                  <CRow className="g-3 mb-5">
                     <CCol xs={12} md={4}>
-                      <label className="form-label fw-bold small text-muted">📚 Matéria</label>
+                      <label style={labelSt}>📚 Matéria</label>
                       <CFormSelect
+                        className="quiz-select"
                         value={materiaSelecionada}
                         onChange={(e) => setMateriaSelecionada(e.target.value)}
                       >
                         <option value="">Todas as matérias</option>
                         {materias.map((m) => (
-                          <option key={m.id} value={m.id}>{m.nome}</option>
+                          <option key={m.id} value={m.id}>
+                            {m.nome}
+                          </option>
                         ))}
                       </CFormSelect>
                     </CCol>
                     <CCol xs={6} md={4}>
-                      <label className="form-label fw-bold small text-muted">🔢 Questões</label>
+                      <label style={labelSt}>🔢 Questões</label>
                       <CFormSelect
+                        className="quiz-select"
                         value={quantidade}
                         onChange={(e) => setQuantidade(Number(e.target.value))}
                       >
-                        {QTD_OPTIONS.map((item) => (
-                          <option key={item.value} value={item.value}>{item.label}</option>
+                        {QTD_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
                         ))}
                       </CFormSelect>
                     </CCol>
                     <CCol xs={6} md={4}>
-                      <label className="form-label fw-bold small text-muted">⏱ Tempo</label>
+                      <label style={labelSt}>⏱ Tempo</label>
                       <CFormSelect
+                        className="quiz-select"
                         value={tempoLimite}
                         onChange={(e) => setTempoLimite(Number(e.target.value))}
                       >
-                        {TIME_OPTIONS.map((item) => (
-                          <option key={item.value} value={item.value}>{item.label}</option>
+                        {TIME_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
                         ))}
                       </CFormSelect>
                     </CCol>
                   </CRow>
-                  <CButton color="primary" size="lg" onClick={fetchAndStart}>
-                    ▶ Iniciar Quiz Personalizado
-                  </CButton>
 
-                  <hr className="my-4" />
-                  <div className="text-center">
-                    <h5 className="text-muted mb-3">Ou vá direto ao ponto:</h5>
-                    <CButton
-                      color="success"
-                      size="lg"
-                      className="w-100 py-3 text-white fw-bold fs-5 shadow-sm"
-                      onClick={fetchAndStartSimuladoRapido}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <button
+                      onClick={fetchAndStart}
+                      style={{
+                        background: `linear-gradient(135deg, ${T.blue}cc, ${T.purple}cc)`,
+                        border: 'none',
+                        borderRadius: 12,
+                        padding: '14px',
+                        color: '#fff',
+                        fontWeight: 800,
+                        fontSize: 15,
+                        cursor: 'pointer',
+                        boxShadow: `${glow(T.blue, 20, isDark)}, 0 4px 16px rgba(0,0,0,0.3)`,
+                        letterSpacing: '-0.01em',
+                      }}
                     >
-                      ▶️ Começar Simulado Rápido (10 Aleatórias em 10min)
-                    </CButton>
+                      ▶ Iniciar Quiz Personalizado
+                    </button>
+                    <button
+                      onClick={fetchAndStartSimuladoRapido}
+                      style={{
+                        background: `${T.green}18`,
+                        border: `1px solid ${T.green}50`,
+                        borderRadius: 12,
+                        padding: '13px',
+                        color: T.green,
+                        fontWeight: 700,
+                        fontSize: 14,
+                        cursor: 'pointer',
+                        boxShadow: glow(T.green, 12, isDark),
+                      }}
+                    >
+                      ⚡ Simulado Rápido — 10 Questões · 10 min
+                    </button>
                   </div>
-                </CForm>
-              )}
-
-              {status === 'loading' && (
-                <div className="text-center py-5">
-                  <CSpinner color="primary" />
-                  <p className="mt-3 text-muted">Carregando questões...</p>
                 </div>
               )}
 
+              {/* ══ LOADING ═════════════════════════════════════════════════════ */}
+              {status === 'loading' && (
+                <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                  <div
+                    style={{
+                      width: 48,
+                      height: 48,
+                      border: `3px solid ${T.blue}30`,
+                      borderTopColor: T.blue,
+                      borderRadius: '50%',
+                      animation: 'spin-slow .8s linear infinite',
+                      margin: '0 auto 20px',
+                    }}
+                  />
+                  <div style={{ color: T.muted, fontSize: 14 }}>Carregando questões...</div>
+                </div>
+              )}
+
+              {/* ══ QUIZ ════════════════════════════════════════════════════════ */}
               {status === 'quiz' && currentQuestion && (
-                <>
+                <div style={{ animation: 'fade-up .3s ease' }}>
+                  {/* progress */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 10,
+                    }}
+                  >
+                    <span style={{ fontSize: 12, color: T.muted, fontWeight: 600 }}>
+                      Questão {currentIndex + 1} / {totalQuestions}
+                    </span>
+                    <span style={{ fontSize: 12, color: T.muted }}>
+                      {Math.round(progress)}% concluído
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      height: 6,
+                      background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)',
+                      borderRadius: 99,
+                      marginBottom: 24,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${progress}%`,
+                        background: `linear-gradient(90deg, ${T.blue}, ${T.purple})`,
+                        borderRadius: 99,
+                        transition: 'width .4s ease',
+                        boxShadow: glow(T.blue, 8, isDark),
+                      }}
+                    />
+                  </div>
+
                   <CRow>
-                    {/* COLUNA ESQUERDA: Questão, Opções e Gabarito */}
-                    <CCol lg={isAnswerConfirmed ? 7 : 12} style={{ transition: 'all 0.3s ease-in-out' }}>
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <strong>Pergunta {currentIndex + 1} de {totalQuestions}</strong>
-                        <span className={`text-${remainingSeconds <= 60 ? 'danger' : 'muted'} fw-bold`}>
-                          ⏱ {formatSeconds(remainingSeconds)}
-                        </span>
-                      </div>
-                      <CProgress
-                        className="mb-3"
-                        value={((currentIndex + 1) / totalQuestions) * 100}
-                        color="primary"
-                        height={10}
-                      />
-                      <p className="fs-5 mb-3">
+                    {/* question column */}
+                    <CCol lg={isAnswerConfirmed ? 7 : 12} style={{ transition: 'all .3s ease' }}>
+                      {/* confusing badge */}
+                      {isConfusing && (
+                        <Pill T={T} color={T.amber} style={{ marginBottom: 10 }}>
+                          ⚠️ Marcada como confusa
+                        </Pill>
+                      )}
+
+                      {/* question text */}
+                      <p
+                        style={{
+                          fontSize: 17,
+                          fontWeight: 600,
+                          color: T.text,
+                          lineHeight: 1.6,
+                          marginBottom: 20,
+                        }}
+                      >
                         {currentQuestion.question}
-                        {isConfusing && <CBadge color="warning" className="ms-2">Confusa</CBadge>}
                       </p>
 
-                      <CRow className="g-2">
-                        {currentQuestion.options.map((optionText, index) => {
-                          const optionValue = LETTERS[index]
-                          if (!optionValue) return null
+                      {/* options */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {currentQuestion.options.map((text, idx) => {
+                          const val = LETTERS[idx]
+                          if (!val) return null
+                          const isSel = selectedOption === val
+                          const isRight = val === currentQuestion.answer
 
-                          const isSelected = selectedOption === optionValue
-                          const isCorrectAnswer = optionValue === currentQuestion.answer
-
-                          let btnColor = 'secondary'
-                          let isSolid = false
+                          let borderColor = T.border
+                          let bg = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'
+                          let textColor = T.text
+                          let shadow = 'none'
+                          let leftColor = 'transparent'
 
                           if (isAnswerConfirmed) {
-                            if (isCorrectAnswer) {
-                              btnColor = 'success'
-                              isSolid = true
-                            } else if (isSelected) {
-                              btnColor = 'danger'
-                              isSolid = true
+                            if (isRight) {
+                              borderColor = T.green
+                              bg = `${T.green}14`
+                              textColor = T.green
+                              shadow = ring(T.green, isDark)
+                              leftColor = T.green
+                            } else if (isSel) {
+                              borderColor = T.red
+                              bg = `${T.red}12`
+                              textColor = T.red
+                              shadow = ring(T.red, isDark)
+                              leftColor = T.red
+                            } else {
+                              borderColor = 'transparent'
+                              textColor = isDark ? 'rgba(226,232,240,0.25)' : 'rgba(15,23,42,0.3)'
                             }
-                          } else if (isSelected) {
-                            btnColor = 'primary'
-                            isSolid = true
+                          } else if (isSel) {
+                            borderColor = T.blue
+                            bg = `${T.blue}18`
+                            textColor = T.blue
+                            shadow = ring(T.blue, isDark)
+                            leftColor = T.blue
                           }
 
-                          const colSize = currentQuestion.options.length >= 5 ? 12 : 6
-
                           return (
-                            <CCol xs={12} md={colSize} key={optionValue}>
-                              <CButton
-                                color={btnColor}
-                                variant={isSolid ? undefined : 'outline'}
-                                className={`w-100 p-2 text-start ${isAnswerConfirmed && !isCorrectAnswer && !isSelected ? 'opacity-50' : ''}`}
-                                onClick={() => !isAnswerConfirmed && setSelectedOption(optionValue)}
+                            <button
+                              key={val}
+                              className="quiz-option-btn"
+                              disabled={isAnswerConfirmed}
+                              onClick={() => !isAnswerConfirmed && setSelectedOption(val)}
+                              style={{
+                                background: bg,
+                                border: `1px solid ${borderColor}`,
+                                borderRadius: 12,
+                                padding: '12px 16px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 12,
+                                cursor: isAnswerConfirmed ? 'default' : 'pointer',
+                                textAlign: 'left',
+                                width: '100%',
+                                boxShadow: shadow,
+                                color: textColor,
+                                borderLeft: `3px solid ${leftColor || borderColor}`,
+                              }}
+                            >
+                              <span
                                 style={{
-                                  cursor: isAnswerConfirmed ? 'default' : 'pointer',
-                                  color: isSolid ? '#fff' : ''
+                                  minWidth: 28,
+                                  height: 28,
+                                  borderRadius: 8,
+                                  background: `${borderColor}30`,
+                                  border: `1px solid ${borderColor}`,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontWeight: 800,
+                                  fontSize: 12,
+                                  color: textColor,
+                                  flexShrink: 0,
                                 }}
                               >
-                                <strong className="me-2">{optionValue}.</strong> {optionText}
-                              </CButton>
-                            </CCol>
+                                {val}
+                              </span>
+                              <span style={{ fontSize: 14, lineHeight: 1.45 }}>{text}</span>
+                              {isAnswerConfirmed && isRight && (
+                                <span style={{ marginLeft: 'auto', fontSize: 16 }}>✓</span>
+                              )}
+                              {isAnswerConfirmed && isSel && !isRight && (
+                                <span style={{ marginLeft: 'auto', fontSize: 16 }}>✗</span>
+                              )}
+                            </button>
                           )
                         })}
-                      </CRow>
+                      </div>
 
-                      {/* ────────────────── FEEDBACK, EXPLICAÇÃO E COMENTÁRIOS ────────────────── */}
-                      {isAnswerConfirmed && (
-                        <div className="mt-3" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-
-                          {/* 1. Alerta de Acerto ou Erro + Validação Social */}
-                          <CAlert color={selectedOption === currentQuestion.answer ? 'success' : 'danger'}>
-                            <h5 className="alert-heading">
-                              {selectedOption === currentQuestion.answer ? '✅ Resposta Correta!' : '❌ Resposta Incorreta'}
-                            </h5>
-                            <p className="mb-0">
-                              A alternativa correta é a letra <strong>{currentQuestion.answer}</strong>.
-                            </p>
-
-                            {/* Validação Social */}
-                            {currentQuestion.tentativas > 0 && (
-                              <div className="mt-2 pt-2 border-top border-opacity-25 border-dark">
-                                <span className="fw-bold" style={{ fontSize: '0.9rem' }}>
-                                  👥 Validação Social: {Math.round((currentQuestion.acertos / currentQuestion.tentativas) * 100)}% dos alunos também acertaram essa questão.
-                                </span>
+                      {/* feedback alert */}
+                      {isAnswerConfirmed &&
+                        (() => {
+                          const ok = selectedOption === currentQuestion.answer
+                          return (
+                            <div
+                              style={{
+                                marginTop: 16,
+                                padding: '14px 16px',
+                                background: ok ? `${T.green}12` : `${T.red}12`,
+                                border: `1px solid ${ok ? T.green : T.red}40`,
+                                borderRadius: 12,
+                                animation: 'fade-up .3s ease',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  fontWeight: 700,
+                                  color: ok ? T.green : T.red,
+                                  marginBottom: 4,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 8,
+                                }}
+                              >
+                                {ok ? '✅ Correto!' : '❌ Incorreto'}
                               </div>
-                            )}
-                          </CAlert>
-                        </div>
-                      )}
-                    </CCol>
-
-                    {/* COLUNA DIREITA: Comentários da Comunidade e Enviar Feedback */}
-                    {isAnswerConfirmed && (
-                      <CCol lg={5}>
-                        <div className="mt-3 mt-lg-0" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-
-                          {/* 2. EXPLICAÇÃO DO PROFESSOR (Movido para lateral) */}
-                          <CCard className="mb-3 border-info shadow-sm">
-                            <CCardHeader className="bg-info text-white fw-bold py-2">
-                              💡 Explicação do Professor
-                            </CCardHeader>
-                            <CCardBody className="bg-light">
-                              <p className="mb-0 text-dark" style={{ whiteSpace: 'pre-wrap' }}>
-                                {currentQuestion.explicacao || 'Nenhum comentário adicional do professor para esta questão.'}
-                              </p>
-
-                              {/* ✅ FASE 1: VÍDEO NAS QUESTÕES */}
-                              {currentQuestion.link_video && (
-                                <div className="mt-3">
-                                  <hr className="text-info border-info opacity-25" />
-                                  <h6 className="fw-bold mb-2 text-danger">🎬 Vídeo de Apoio</h6>
-                                  <div className="ratio ratio-16x9">
-                                    <iframe
-                                      src={obterLinkEmbed(currentQuestion.link_video)}
-                                      title="Vídeo de Explicação"
-                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                      allowFullScreen
-                                      className="rounded border shadow-sm"
-                                    ></iframe>
-                                  </div>
+                              <div style={{ fontSize: 13, color: T.muted }}>
+                                A alternativa correta é a letra{' '}
+                                <strong style={{ color: T.green }}>{currentQuestion.answer}</strong>
+                                .
+                              </div>
+                              {currentQuestion.tentativas > 0 && (
+                                <div
+                                  style={{
+                                    marginTop: 8,
+                                    paddingTop: 8,
+                                    borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'}`,
+                                    fontSize: 12,
+                                    color: T.cyan,
+                                  }}
+                                >
+                                  👥{' '}
+                                  {Math.round(
+                                    (currentQuestion.acertos / currentQuestion.tentativas) * 100,
+                                  )}
+                                  % dos alunos acertaram esta questão.
                                 </div>
                               )}
+                            </div>
+                          )
+                        })()}
+                    </CCol>
 
-                            </CCardBody>
-                          </CCard>
+                    {/* sidebar column (explanation + comments) */}
+                    {isAnswerConfirmed && (
+                      <CCol lg={5}>
+                        <div
+                          style={{
+                            marginTop: 0,
+                            animation: 'fade-up .35s ease',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 12,
+                          }}
+                        >
+                          {/* explanation */}
+                          <div
+                            style={{
+                              background: `${T.cyan}08`,
+                              border: `1px solid ${T.cyan}30`,
+                              borderRadius: 14,
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <div
+                              style={{
+                                padding: '10px 14px',
+                                background: `${T.cyan}18`,
+                                borderBottom: `1px solid ${T.cyan}30`,
+                                fontWeight: 700,
+                                color: T.cyan,
+                                fontSize: 13,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                              }}
+                            >
+                              <CIcon icon={cilLightbulb} style={{ width: 14 }} /> Explicação do
+                              Professor
+                            </div>
+                            <div
+                              style={{
+                                padding: '14px',
+                                color: T.text,
+                                fontSize: 13,
+                                lineHeight: 1.6,
+                                whiteSpace: 'pre-wrap',
+                              }}
+                            >
+                              {currentQuestion.explicacao ||
+                                'Nenhuma explicação adicional para esta questão.'}
+                            </div>
+                            {currentQuestion.link_video && (
+                              <div style={{ padding: '0 14px 14px' }}>
+                                <div
+                                  style={{
+                                    fontWeight: 700,
+                                    color: T.red,
+                                    fontSize: 12,
+                                    marginBottom: 8,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                  }}
+                                >
+                                  <CIcon icon={cilVideo} style={{ width: 13 }} /> Vídeo de Apoio
+                                </div>
+                                <div
+                                  style={{
+                                    position: 'relative',
+                                    paddingBottom: '56.25%',
+                                    height: 0,
+                                    borderRadius: 10,
+                                    overflow: 'hidden',
+                                  }}
+                                >
+                                  <iframe
+                                    src={obterLinkEmbed(currentQuestion.link_video)}
+                                    title="Vídeo"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    style={{
+                                      position: 'absolute',
+                                      top: 0,
+                                      left: 0,
+                                      width: '100%',
+                                      height: '100%',
+                                      border: 'none',
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
 
-                          {/* 3. COMENTÁRIOS DA COMUNIDADE */}
-                          {currentQuestion.comentarios_publicos && currentQuestion.comentarios_publicos.length > 0 && (
-                            <CCard className="mb-3 border-success shadow-sm">
-                              <CCardHeader className="bg-success text-white fw-bold py-2">
+                          {/* community comments */}
+                          {currentQuestion.comentarios_publicos?.length > 0 && (
+                            <div
+                              style={{
+                                background: `${T.green}08`,
+                                border: `1px solid ${T.green}30`,
+                                borderRadius: 14,
+                                overflow: 'hidden',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  padding: '10px 14px',
+                                  background: `${T.green}18`,
+                                  borderBottom: `1px solid ${T.green}30`,
+                                  fontWeight: 700,
+                                  color: T.green,
+                                  fontSize: 13,
+                                }}
+                              >
                                 💬 Comentários da Comunidade
-                              </CCardHeader>
-                              <CCardBody className="bg-light">
-                                {currentQuestion.comentarios_publicos.map((comentario, idx) => (
-                                  <div key={idx} className={`mb-2 ${idx !== currentQuestion.comentarios_publicos.length - 1 ? 'border-bottom pb-2' : ''}`}>
-                                    <div className="d-flex justify-content-between align-items-center mb-1">
-                                      <strong className="text-success">{comentario.nome_aluno || 'Aluno'}</strong>
-                                      <small className="text-muted text-opacity-75">{new Date(comentario.data_criacao).toLocaleDateString('pt-BR')}</small>
+                              </div>
+                              <div
+                                style={{
+                                  padding: 14,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 12,
+                                }}
+                              >
+                                {currentQuestion.comentarios_publicos.map((c, i) => (
+                                  <div key={i}>
+                                    <div
+                                      style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: 4,
+                                      }}
+                                    >
+                                      <span
+                                        style={{ fontWeight: 700, color: T.green, fontSize: 12 }}
+                                      >
+                                        {c.nome_aluno || 'Aluno'}
+                                      </span>
+                                      <span style={{ color: T.muted, fontSize: 11 }}>
+                                        {new Date(c.data_criacao).toLocaleDateString('pt-BR')}
+                                      </span>
                                     </div>
-                                    <p className="mb-0 text-dark fst-italic">"{comentario.texto}"</p>
-                                    
-                                    {/* RESPOSTA DO PROFESSOR (Se existir) */}
-                                    {comentario.resposta_professor && (
-                                      <div className="mt-2 ms-3 p-2 border-start border-4 border-primary bg-body-tertiary rounded-end shadow-sm">
-                                        <div className="d-flex align-items-center gap-1 mb-1">
-                                          <small className="fw-bold text-primary">👨‍🏫 Resposta do Professor</small>
+                                    <p
+                                      style={{
+                                        color: T.text,
+                                        fontSize: 13,
+                                        margin: 0,
+                                        fontStyle: 'italic',
+                                        lineHeight: 1.5,
+                                      }}
+                                    >
+                                      "{c.texto}"
+                                    </p>
+                                    {c.resposta_professor && (
+                                      <div
+                                        style={{
+                                          marginTop: 8,
+                                          marginLeft: 12,
+                                          padding: '8px 12px',
+                                          background: `${T.blue}12`,
+                                          border: `1px solid ${T.blue}30`,
+                                          borderLeft: `3px solid ${T.blue}`,
+                                          borderRadius: '0 8px 8px 0',
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            fontSize: 11,
+                                            fontWeight: 700,
+                                            color: T.blue,
+                                            marginBottom: 4,
+                                          }}
+                                        >
+                                          👨‍🏫 Professor
                                         </div>
-                                        <p className="mb-0 small text-dark-emphasis">
-                                          {comentario.resposta_professor}
+                                        <p style={{ fontSize: 12, color: T.muted, margin: 0 }}>
+                                          {c.resposta_professor}
                                         </p>
                                       </div>
                                     )}
                                   </div>
                                 ))}
-                              </CCardBody>
-                            </CCard>
+                              </div>
+                            </div>
                           )}
 
-                          {/* 4. Área para o Aluno enviar comentário */}
-                          <CCard className="bg-body-tertiary border-0">
-                            <CCardBody className="py-3">
-                              <div className="d-flex justify-content-between align-items-center mb-2">
-                                <span className="fw-medium text-muted">
-                                  💬 Feedback sobre esta questão
-                                </span>
-                                <CButton
-                                  color="warning"
-                                  variant={isConfusing ? undefined : 'outline'}
-                                  size="sm"
-                                  className="rounded-pill"
-                                  onClick={() => setIsConfusing(!isConfusing)}
-                                  disabled={commentStatus === 'sending' || commentStatus === 'sent'}
-                                  style={{ color: isConfusing ? '#000' : '' }}
-                                >
-                                  {isConfusing ? '⚠️ Marcada como confusa' : '⚠️ Marcar como confusa'}
-                                </CButton>
-                              </div>
-
-                              <CFormTextarea
-                                placeholder="Teve dúvida no enunciado? Achou a questão ambígua? Descreva aqui — o professor irá revisar."
-                                rows={2}
-                                value={commentText}
-                                onChange={(e) => setCommentText(e.target.value)}
-                                maxLength={300}
+                          {/* feedback box */}
+                          <div
+                            style={{
+                              background: T.surface,
+                              border: `1px solid ${T.border}`,
+                              borderRadius: 14,
+                              padding: 14,
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: 10,
+                              }}
+                            >
+                              <span style={{ fontSize: 12, fontWeight: 700, color: T.muted }}>
+                                💬 Feedback sobre esta questão
+                              </span>
+                              <button
+                                onClick={() => setIsConfusing(!isConfusing)}
                                 disabled={commentStatus === 'sending' || commentStatus === 'sent'}
-                              />
-
-                              <div className="d-flex justify-content-between align-items-center mt-2">
-                                <small className="text-muted">{commentText.length} / 300</small>
-
-                                {commentStatus === 'sent' ? (
-                                  <span className="text-success fw-bold">✅ Feedback enviado ao professor!</span>
-                                ) : (
-                                  <CButton
-                                    color="info"
-                                    variant={commentText.length > 0 || isConfusing ? undefined : 'outline'}
-                                    size="sm"
-                                    onClick={handleSendComment}
-                                    disabled={(!commentText.trim() && !isConfusing) || commentStatus === 'sending'}
-                                    style={{ color: (commentText.length > 0 || isConfusing) ? '#fff' : '' }}
-                                  >
-                                    {commentStatus === 'sending' ? <CSpinner size="sm" /> : 'Enviar comentário'}
-                                  </CButton>
-                                )}
-                              </div>
-                            </CCardBody>
-                          </CCard>
+                                style={{
+                                  background: isConfusing ? `${T.amber}25` : 'transparent',
+                                  border: `1px solid ${isConfusing ? T.amber : T.border}`,
+                                  borderRadius: 20,
+                                  padding: '3px 10px',
+                                  color: isConfusing ? T.amber : T.muted,
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  boxShadow: isConfusing ? glow(T.amber, 8, isDark) : 'none',
+                                  transition: 'all .15s',
+                                }}
+                              >
+                                {isConfusing ? '⚠️ Confusa' : '⚠️ Marcar confusa'}
+                              </button>
+                            </div>
+                            <CFormTextarea
+                              className="quiz-textarea"
+                              placeholder="Teve dúvida no enunciado? Descreva aqui."
+                              rows={2}
+                              value={commentText}
+                              onChange={(e) => setCommentText(e.target.value)}
+                              maxLength={300}
+                              disabled={commentStatus === 'sending' || commentStatus === 'sent'}
+                            />
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginTop: 8,
+                              }}
+                            >
+                              <span style={{ fontSize: 11, color: T.muted }}>
+                                {commentText.length} / 300
+                              </span>
+                              {commentStatus === 'sent' ? (
+                                <Pill T={T} color={T.green}>
+                                  ✅ Enviado!
+                                </Pill>
+                              ) : (
+                                <GlowButton
+                                  T={T}
+                                  isDark={isDark}
+                                  size="sm"
+                                  color={T.cyan}
+                                  onClick={handleSendComment}
+                                  disabled={
+                                    (!commentText.trim() && !isConfusing) ||
+                                    commentStatus === 'sending'
+                                  }
+                                >
+                                  {commentStatus === 'sending' ? '...' : 'Enviar'}
+                                </GlowButton>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </CCol>
                     )}
                   </CRow>
 
-                  {/* ────────────────── BOTÕES DE NAVEGAÇÃO ────────────────── */}
-                  <div className="mt-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <div className="d-flex align-items-center gap-2">
-                      <span className="text-muted small">Aluno: {nomeAluno}</span>
-                      <CButton
-                        color="danger"
-                        variant="outline"
+                  {/* footer actions */}
+                  <div
+                    style={{
+                      marginTop: 28,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <Pill T={T} color={T.muted}>
+                        👤 {nomeAluno}
+                      </Pill>
+                      <GlowButton
+                        T={T}
+                        isDark={isDark}
+                        color={T.red}
                         size="sm"
+                        ghost
                         onClick={handleFinishEarly}
                         disabled={questionsAndAnswers.length === 0}
                       >
-                        ⛔ Encerrar Simulado
-                      </CButton>
+                        ⛔ Encerrar
+                      </GlowButton>
                     </div>
                     {!isAnswerConfirmed ? (
-                      <CButton
-                        color="success"
+                      <button
                         onClick={handleConfirmAnswer}
                         disabled={!selectedOption}
-                        className="text-white"
+                        style={{
+                          background: selectedOption
+                            ? `linear-gradient(135deg, ${T.green}cc, ${T.cyan}aa)`
+                            : isDark
+                              ? 'rgba(255,255,255,0.06)'
+                              : 'rgba(0,0,0,0.04)',
+                          border: 'none',
+                          borderRadius: 10,
+                          padding: '10px 24px',
+                          color: selectedOption ? '#fff' : T.muted,
+                          fontWeight: 800,
+                          fontSize: 14,
+                          cursor: selectedOption ? 'pointer' : 'not-allowed',
+                          boxShadow: selectedOption ? glow(T.green, 16, isDark) : 'none',
+                          transition: 'all .2s',
+                        }}
                       >
                         Confirmar resposta →
-                      </CButton>
+                      </button>
                     ) : (
-                      <CButton
-                        color="primary"
+                      <button
                         onClick={handleNextQuestion}
-                        className="text-white"
+                        style={{
+                          background: `linear-gradient(135deg, ${T.blue}cc, ${T.purple}aa)`,
+                          border: 'none',
+                          borderRadius: 10,
+                          padding: '10px 24px',
+                          color: '#fff',
+                          fontWeight: 800,
+                          fontSize: 14,
+                          cursor: 'pointer',
+                          boxShadow: glow(T.blue, 16, isDark),
+                        }}
                       >
-                        {currentIndex + 1 >= totalQuestions ? 'Finalizar Quiz →' : 'Próxima questão →'}
-                      </CButton>
+                        {currentIndex + 1 >= totalQuestions
+                          ? 'Finalizar Quiz →'
+                          : 'Próxima questão →'}
+                      </button>
                     )}
                   </div>
-                </>
+                </div>
               )}
 
-              {/* ────────────────── QUIZ FINALIZADO ────────────────── */}
+              {/* ══ FINISHED ════════════════════════════════════════════════════ */}
               {status === 'finished' && (
-                <>
-                  <CNav variant="tabs" className="mb-4">
-                    <CNavItem>
-                      <CNavLink
-                        active={activeTab === 'stats'}
-                        onClick={() => setActiveTab('stats')}
-                        style={{ cursor: 'pointer' }}
+                <div style={{ animation: 'fade-up .35s ease' }}>
+                  {/* tabs */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 4,
+                      marginBottom: 28,
+                      background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                      borderRadius: 12,
+                      padding: 4,
+                    }}
+                  >
+                    {[
+                      { id: 'stats', label: '📊 Estatísticas' },
+                      { id: 'qna', label: '📋 Revisão' },
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => setActiveTab(t.id)}
+                        style={{
+                          flex: 1,
+                          padding: '8px 0',
+                          borderRadius: 9,
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                          fontSize: 13,
+                          background:
+                            activeTab === t.id
+                              ? `linear-gradient(135deg, ${T.blue}cc, ${T.purple}cc)`
+                              : 'transparent',
+                          color: activeTab === t.id ? '#fff' : T.muted,
+                          boxShadow: activeTab === t.id ? glow(T.blue, 10, isDark) : 'none',
+                          transition: 'all .2s',
+                        }}
                       >
-                        📊 Estatísticas
-                      </CNavLink>
-                    </CNavItem>
-                    <CNavItem>
-                      <CNavLink
-                        active={activeTab === 'qna'}
-                        onClick={() => setActiveTab('qna')}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        📋 Revisão de Respostas
-                      </CNavLink>
-                    </CNavItem>
-                  </CNav>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
 
                   {activeTab === 'stats' && (
                     <StatsPanel
+                      T={T}
+                      isDark={isDark}
                       score={finalScore}
                       correctAnswers={score}
                       totalQuestions={totalAnswered || totalQuestions}
@@ -800,31 +1501,42 @@ const Quiz = () => {
                       onReset={handleReset}
                     />
                   )}
-
                   {activeTab === 'qna' && (
-                    <ReviewTable questionsAndAnswers={questionsAndAnswers} />
+                    <ReviewTable T={T} questionsAndAnswers={questionsAndAnswers} />
                   )}
-                </>
+                </div>
               )}
-            </CCardBody>
+            </div>
 
+            {/* footer */}
             {status === 'finished' && (
-              <CCardFooter className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <small className="text-muted">
-                  {saved ? '✅ Sessão salva no dashboard.' : saving ? 'Salvando sessão...' : ''}
-                </small>
-                <CButton
-                  color="primary"
-                  size="sm"
+              <div
+                style={{
+                  padding: '14px 28px',
+                  borderTop: `1px solid ${T.border}`,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                }}
+              >
+                <span style={{ fontSize: 12, color: saved ? T.green : T.muted }}>
+                  {saved ? '✅ Sessão salva no dashboard.' : saving ? '⏳ Salvando sessão...' : ''}
+                </span>
+                <GlowButton
+                  T={T}
+                  isDark={isDark}
+                  color={T.blue}
                   onClick={handleSaveSession}
                   disabled={saving || saved}
-                  className="text-white"
+                  size="sm"
                 >
-                  {saving ? <><CSpinner size="sm" className="me-1" /> Salvando...</> : saved ? 'Sessão salva' : 'Salvar sessão'}
-                </CButton>
-              </CCardFooter>
+                  {saving ? '⏳ Salvando...' : saved ? '✅ Sessão salva' : '💾 Salvar sessão'}
+                </GlowButton>
+              </div>
             )}
-          </CCard>
+          </div>
         </CCol>
       </CRow>
     </CContainer>
