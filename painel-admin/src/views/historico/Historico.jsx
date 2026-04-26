@@ -21,7 +21,11 @@ import { API_URL } from '../../config'
 const formatarData = (iso) => {
   if (!iso) return '—'
   const d = new Date(iso)
-  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return (
+    d.toLocaleDateString('pt-BR') +
+    ' ' +
+    d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  )
 }
 
 const formatarDataCurta = (iso) => {
@@ -40,8 +44,25 @@ const formatarTempo = (seg) => {
 const Historico = () => {
   const [sessoes, setSessoes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isDark, setIsDark] = useState(false)
   const matricula = sessionStorage.getItem('matricula')
   const nome = sessionStorage.getItem('nome') || 'Aluno'
+
+  // Detectar tema escuro observando o atributo data-coreui-theme no <html>
+  useEffect(() => {
+    const checkTheme = () => {
+      const html = document.documentElement
+      const theme = html.getAttribute('data-coreui-theme')
+      setIsDark(theme === 'dark')
+    }
+    checkTheme()
+    const observer = new MutationObserver(checkTheme)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-coreui-theme'],
+    })
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     if (!matricula) {
@@ -64,7 +85,7 @@ const Historico = () => {
     return (
       <div className="text-center py-5">
         <CSpinner color="primary" />
-        <p className="mt-3 text-muted">Carregando seu histórico...</p>
+        <p className="mt-3 text-medium-emphasis">Carregando seu histórico...</p>
       </div>
     )
   }
@@ -74,11 +95,12 @@ const Historico = () => {
   }
 
   const sessoesOrdemCronologica = [...sessoes].reverse()
+  const textMutedClass = isDark ? 'text-light-emphasis' : 'text-body-secondary'
 
   return (
     <>
       <h3 className="mb-4">📚 Meu Histórico de Estudos</h3>
-      <p className="text-muted mb-4">
+      <p className={`mb-4 ${textMutedClass}`}>
         Olá, <strong>{nome}</strong>! Aqui estão todas as suas sessões de quiz.
       </p>
 
@@ -89,41 +111,50 @@ const Historico = () => {
       ) : (
         <CRow>
           <CCol xs={12}>
-            {/* Resumo rápido */}
             <CRow className="mb-4">
               <CCol xs={6} md={3}>
-                <div className="border-start border-start-4 border-start-primary py-1 px-3">
-                  <div className="text-body-secondary small">Total de Sessões</div>
+                <div
+                  className={`border-start border-start-4 border-start-primary py-1 px-3 ${isDark ? 'bg-dark-subtle' : ''}`}
+                >
+                  <div className={`small ${textMutedClass}`}>Total de Sessões</div>
                   <div className="fs-5 fw-semibold">{sessoes.length}</div>
                 </div>
               </CCol>
               <CCol xs={6} md={3}>
-                <div className="border-start border-start-4 border-start-success py-1 px-3">
-                  <div className="text-body-secondary small">Melhor Nota</div>
+                <div
+                  className={`border-start border-start-4 border-start-success py-1 px-3 ${isDark ? 'bg-dark-subtle' : ''}`}
+                >
+                  <div className={`small ${textMutedClass}`}>Melhor Nota</div>
                   <div className="fs-5 fw-semibold">
                     {Math.max(...sessoes.map((s) => s.taxa_acerto)).toFixed(1)}%
                   </div>
                 </div>
               </CCol>
               <CCol xs={6} md={3}>
-                <div className="border-start border-start-4 border-start-info py-1 px-3">
-                  <div className="text-body-secondary small">Total de Questões</div>
+                <div
+                  className={`border-start border-start-4 border-start-info py-1 px-3 ${isDark ? 'bg-dark-subtle' : ''}`}
+                >
+                  <div className={`small ${textMutedClass}`}>Total de Questões</div>
                   <div className="fs-5 fw-semibold">
                     {sessoes.reduce((acc, s) => acc + s.questoes, 0)}
                   </div>
                 </div>
               </CCol>
               <CCol xs={6} md={3}>
-                <div className="border-start border-start-4 border-start-warning py-1 px-3">
-                  <div className="text-body-secondary small">Média Geral</div>
+                <div
+                  className={`border-start border-start-4 border-start-warning py-1 px-3 ${isDark ? 'bg-dark-subtle' : ''}`}
+                >
+                  <div className={`small ${textMutedClass}`}>Média Geral</div>
                   <div className="fs-5 fw-semibold">
-                    {(sessoes.reduce((acc, s) => acc + s.taxa_acerto, 0) / sessoes.length).toFixed(1)}%
+                    {(sessoes.reduce((acc, s) => acc + s.taxa_acerto, 0) / sessoes.length).toFixed(
+                      1,
+                    )}
+                    %
                   </div>
                 </div>
               </CCol>
             </CRow>
 
-            {/* Gráfico de evolução */}
             {sessoes.length >= 2 && (
               <CCard className="mb-4">
                 <CCardHeader>
@@ -139,7 +170,11 @@ const Historico = () => {
                           backgroundColor: 'rgba(75, 192, 192, 0.15)',
                           borderColor: 'rgba(75, 192, 192, 1)',
                           pointBackgroundColor: sessoesOrdemCronologica.map((s) =>
-                            s.taxa_acerto >= 80 ? '#2eb85c' : s.taxa_acerto >= 60 ? '#f9b115' : '#e55353'
+                            s.taxa_acerto >= 80
+                              ? '#2eb85c'
+                              : s.taxa_acerto >= 60
+                                ? '#f9b115'
+                                : '#e55353',
                           ),
                           pointRadius: 5,
                           pointHoverRadius: 7,
@@ -173,10 +208,16 @@ const Historico = () => {
                       },
                     }}
                   />
-                  <div className="d-flex justify-content-center gap-4 mt-3 small text-muted">
-                    <span><span className="badge bg-success">&nbsp;</span> ≥ 80%</span>
-                    <span><span className="badge bg-warning">&nbsp;</span> 60-79%</span>
-                    <span><span className="badge bg-danger">&nbsp;</span> &lt; 60%</span>
+                  <div className="d-flex justify-content-center gap-4 mt-3 small">
+                    <span>
+                      <span className="badge bg-success">&nbsp;</span> ≥ 80%
+                    </span>
+                    <span>
+                      <span className="badge bg-warning">&nbsp;</span> 60-79%
+                    </span>
+                    <span>
+                      <span className="badge bg-danger">&nbsp;</span> &lt; 60%
+                    </span>
                   </div>
                 </CCardBody>
               </CCard>
@@ -187,8 +228,14 @@ const Historico = () => {
                 <strong>Detalhes das Sessões</strong>
               </CCardHeader>
               <CCardBody>
-                <CTable align="middle" hover responsive bordered>
-                  <CTableHead className="text-nowrap" color="light">
+                <CTable
+                  align="middle"
+                  hover
+                  responsive
+                  bordered
+                  {...(isDark ? { color: 'dark' } : {})}
+                >
+                  <CTableHead color="dark" className="text-nowrap">
                     <CTableRow>
                       <CTableHeaderCell className="text-center">#</CTableHeaderCell>
                       <CTableHeaderCell>Data</CTableHeaderCell>

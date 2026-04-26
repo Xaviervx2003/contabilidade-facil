@@ -1,8 +1,8 @@
 ﻿/**
- * Application Routes Configuration â€” Contabilidade FÃ¡cil
+ * Application Routes Configuration — Contabilidade Fácil
  * @module routes
  *
- * allowedRoles: array de papÃ©is que podem acessar a rota.
+ * allowedRoles: array de papéis que podem acessar a rota.
  * Se ausente, qualquer papel logado pode acessar.
  */
 
@@ -22,18 +22,47 @@ const HistoricoAluno = React.lazy(() => import('./views/aluno/HistoricoAluno'))
 
 export const routes = [
   { path: '/', exact: true, name: 'Home' },
-  { path: '/dashboard', name: 'Dashboard', element: Dashboard, allowedRoles: ['admin', 'professor'] },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    element: Dashboard,
+    allowedRoles: ['admin', 'professor'],
+  },
   { path: '/quiz', name: 'Quiz', element: Quiz },
-  { path: '/videos', name: 'VÃ­deo-Aulas', element: VideoGallery },
-  { path: '/historico', name: 'Meu HistÃ³rico', element: Historico },
-  { path: '/questoes', name: 'GestÃ£o de QuestÃµes', element: GestaoQuestoes, allowedRoles: ['admin', 'professor'] },
+  { path: '/videos', name: 'Vídeo-Aulas', element: VideoGallery },
+  { path: '/historico', name: 'Meu Histórico', element: Historico },
+  {
+    path: '/questoes',
+    name: 'Gestão de Questões',
+    element: GestaoQuestoes,
+    allowedRoles: ['admin', 'professor'],
+  },
   { path: '/perfil', name: 'Minha Conta', element: Perfil },
-  { path: '/feedbacks', name: 'Feedbacks dos Alunos', element: FeedbacksQuestoes, allowedRoles: ['admin', 'professor'] },
-  { path: '/usuarios', name: 'GestÃ£o de UsuÃ¡rios', element: GestaoUsuarios, allowedRoles: ['admin'] },
-  { path: '/materias', name: 'GestÃ£o de MatÃ©rias', element: GestaoMaterias, allowedRoles: ['admin', 'professor'] },
-  { path: '/relatorios', name: 'RelatÃ³rios', element: Relatorios, allowedRoles: ['admin', 'professor'] },
-  { path: '/aluno/historico', name: 'Meu HistÃ³rico', element: HistoricoAluno },
+  {
+    path: '/feedbacks',
+    name: 'Feedbacks dos Alunos',
+    element: FeedbacksQuestoes,
+    allowedRoles: ['admin', 'professor'],
+  },
+  {
+    path: '/usuarios',
+    name: 'Gestão de Usuários',
+    element: GestaoUsuarios,
+    allowedRoles: ['admin'],
+  },
+  {
+    path: '/materias',
+    name: 'Gestão de Matérias',
+    element: GestaoMaterias,
+    allowedRoles: ['admin', 'professor'],
+  },
+  {
+    path: '/relatorios',
+    name: 'Relatórios',
+    element: Relatorios,
+    allowedRoles: ['admin', 'professor'],
+  },
+  { path: '/aluno/historico', name: 'Meu Histórico', element: HistoricoAluno },
 ]
 
 export default routes
-
