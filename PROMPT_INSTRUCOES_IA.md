@@ -9,11 +9,13 @@ O projeto é um **Ambiente Virtual de Aprendizagem (AVA)** completo, dividido em
 
 - **Backend (Python + FastAPI):** Arquitetura 100% modular, orquestrada pelo `main.py` e fatiada na pasta `routes/`:
   - `auth.py` — login e autenticação
-  - `dashboard.py` — métricas e desempenho dos alunos
-  - `relatorios.py` — relatório mensal de estudo (separado do dashboard)
+  - `dashboard.py` — métricas e desempenho dos alunos (inclui `/dashboard/visao-geral`)
+  - `relatorios.py` — relatório mensal de estudo (separado do dashboard, com filtros)
   - `questoes.py` — CRUD de questões
   - `sessoes.py` — submissão e histórico de quizzes
   - `admin.py` — gestão de usuários e matérias
+  - `aluno.py` — dados do aluno: gráficos, histórico diário, questões respondidas, feedbacks
+  - `progresso.py` — progresso do aluno no edital (% de questões respondidas)
 
 - **Banco de Dados (PostgreSQL):** Regras estruturadas no `init.sql`. Interação via **psycopg v3** com **pool de conexões** (`psycopg_pool`). O arquivo `database.py` gerencia o pool — não use `psycopg2` puro nem abra conexões avulsas.
 
@@ -58,6 +60,7 @@ Campo `papel` na tabela `usuarios`:
   - **Professor:** injeta `EXISTS` filtrando por `sessoes_questoes → questoes.criado_por`.
 - O filtro `eh_teste_professor IS NOT TRUE` é **obrigatório** em todas as queries do dashboard para que sessões de teste não contaminem as estatísticas da turma.
 - A rota `/api/relatorios/estudo` foi **separada para `routes/relatorios.py`**. Não a recoloque no `dashboard.py` — causaria rota duplicada e conflito de router.
+- O dashboard consome `/api/dashboard/visao-geral` (últimas atividades e progresso da turma). Não sobrecarregue a rota principal.
 
 ### D. Feedbacks e Painel Admin
 
@@ -105,68 +108,3 @@ Campo `papel` na tabela `usuarios`:
       SELECT jsonb_object_agg(...) FROM dados_base GROUP BY ...  -- segunda agregação
   )
   SELECT ... FROM agregado_final;
-  ```
-
----
-
-## 🗂️ 4. Estrutura de Rotas Atual
-
-| Arquivo | Prefix | Rotas principais |
-|---|---|---|
-| `routes/auth.py` | `/api` | `POST /login` |
-| `routes/dashboard.py` | `/api` | `GET /dashboard`, `GET /dashboard/sessoes-por-mes`, `GET /alunos/desempenho` |
-| `routes/relatorios.py` | `/api` | `GET /relatorios/estudo` |
-| `routes/questoes.py` | `/api` | CRUD `/questoes` |
-| `routes/sessoes.py` | `/api` | `POST /sessoes`, `GET /historico` |
-| `routes/admin.py` | `/api` | CRUD `/usuarios`, `/materias` |
-
----
-
-## 🛠️ 5. Como dar Manutenção no Código
-
-1. **Frontend:** Dentro de `painel-admin/`, sempre use comandos do Vite. O botão "Sair" fica na engrenagem superior (avatar).
-2. **Backend:** Reinicie o Uvicorn manualmente após modificar `models.py` — o hot-reload pode engasgar no Windows por file lock.
-3. **Variáveis:** Nunca injete credenciais como clear-text no `database.py`. O sistema depende estritamente do `.env` na raiz.
-4. **Novo router:** Ao criar um novo arquivo em `routes/`, lembre de registrá-lo no `main.py` com `app.include_router()` — e sempre APÓS a linha `app = FastAPI(...)`.
-
----
-
-## 🔁 6. Regra Operacional Git (obrigatória)
-
-Sempre que a IA fizer mudanças:
-
-1. Consolidar tudo em um único commit por sessão de trabalho.
-2. Informar os comandos exatos para o usuário aplicar no Antgravit.
-3. Orientar merge seguro na `main`.
-
-### Comandos padrão para consolidar na `main`
-
-```bash
-git fetch --all --prune
-git checkout main
-git pull origin main
-git merge origin/<nome-da-branch>
-git push origin main
-```
-
-### Se tiver apenas o número do PR (ex.: 17)
-
-```bash
-git fetch origin pull/17/head:pr-17
-git checkout main
-git pull origin main
-git merge pr-17
-git push origin main
-```
-
-### Verificar conflitos de merge antes de commitar
-
-```powershell
-Get-ChildItem -Recurse -Include *.py,*.jsx,*.js,*.sql | Select-String '<<<<<<<|=======|>>>>>>>'
-```
-
-Resultados em `.venv\` e `node_modules\` são **falsos positivos** — ignore. Apenas arquivos fora dessas pastas precisam de correção.
-
----
-
-*Atualizado após sessão de auditoria e implementação — inclui correções de pool psycopg v3, separação de relatorios.py, bug de ordem no main.py, e bug de agregações aninhadas no PostgreSQL.*

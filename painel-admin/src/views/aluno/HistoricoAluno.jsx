@@ -1,26 +1,29 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import {
     CCard, CCardBody, CCardHeader, CCol, CRow, CAlert, CBadge,
     CSpinner, CButton, CProgress, CTable, CTableBody, CTableDataCell,
-    CTableHead, CTableHeaderCell, CTableRow, CFormInput, CFormLabel,
+    CTableHead, CTableHeaderCell, CTableRow, CFormInput, CFormLabel, CFormSelect,
+    CModal, CModalBody, CModalHeader, CModalTitle,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
-    cilCalendar, cilClock, cilLibrary, cilChartLine, cilShare, cilStar, cilPlus, cilMinus,
+    cilCalendar, cilClock, cilLibrary, cilChartLine, cilShare,
+    cilStar, cilPlus, cilMinus, cilFilter, cilX, cilDataTransferDown,
+    cilWarning, cilHistory,
 } from '@coreui/icons'
 import {
-    LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+    LineChart, Line, BarChart, Bar, XAxis, YAxis,
+    CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 import { API_URL } from '../../config'
 
-/* ─── Helpers ──────────────────────────────────────────────────── */
+/* ─── Helpers ─── */
 const formatarTempo = (seg) => {
     if (!seg) return '0m'
     const m = Math.floor(seg / 60)
     const h = Math.floor(m / 60)
     return h > 0 ? `${h}h ${m % 60}m` : `${m}m`
 }
-
 const medalha = (v) => {
     if (v >= 90) return '🥇'
     if (v >= 70) return '🥈'
@@ -28,7 +31,203 @@ const medalha = (v) => {
     return '📚'
 }
 
-/* ─── Tooltip ──────────────────────────────────────────────────── */
+// Data local correta (fix: toISOString() retorna UTC, pode ser o dia errado no Brasil)
+const dataLocalHoje = () => {
+    return new Date().toLocaleDateString('sv') // formato YYYY-MM-DD em hora local
+}
+
+// Fetch com verificação de r.ok
+const fetchJSON = async (url) => {
+    const r = await fetch(url)
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
+    return r.json()
+}
+
+// Cache simples com TTL (5 minutos)
+const CACHE_TTL = 5 * 60 * 1000
+const cacheGet = (key) => {
+    try {
+        const raw = sessionStorage.getItem(`cache:${key}`)
+        if (!raw) return null
+        const { ts, data } = JSON.parse(raw)
+        if (Date.now() - ts > CACHE_TTL) { sessionStorage.removeItem(`cache:${key}`); return null }
+        return data
+    } catch { return null }
+}
+const cacheSet = (key, data) => {
+    try { sessionStorage.setItem(`cache:${key}`, JSON.stringify({ ts: Date.now(), data })) } catch { }
+}
+const cacheClear = (key) => {
+    try { sessionStorage.removeItem(`cache:${key}`) } catch { }
+}
+
+// Exportar CSV
+const exportarCSV = (dados, nomeArquivo = 'historico.csv') => {
+    if (!dados || !dados.length) return
+    const headers = Object.keys(dados[0]).join(',')
+    const linhas = dados.map(row =>
+        Object.values(row).map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')
+    )
+    const csv = [headers, ...linhas].join('\n')
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = nomeArquivo; a.click()
+    URL.revokeObjectURL(url)
+}
+
+/* ─── Toast ─── */
+const Toast = ({ mensagem, tipo = 'success', onClose }) => {
+    useEffect(() => {
+        const t = setTimeout(onClose, 4000)
+        return () => clearTimeout(t)
+    }, [onClose])
+    const cor = tipo === 'success' ? '#2eb85c' : tipo === 'warning' ? '#f9b115' : '#e55353'
+    return (
+        <div style={{
+            position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
+            background: '#1e2a38', color: '#fff', borderLeft: `4px solid ${cor}`,
+            borderRadius: 10, padding: '14px 20px', maxWidth: 320,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)', display: 'flex',
+            alignItems: 'center', gap: 10, fontSize: 14,
+        }}>
+            <span style={{ fontSize: 18 }}>{tipo === 'success' ? '🎉' : tipo === 'warning' ? '⚠️' : 'ℹ️'}</span>
+            <span>{mensagem}</span>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', marginLeft: 'auto', fontSize: 16 }}>×</button>
+        </div>
+    )
+}
+
+/* ─── Skeleton ─── */
+const Skeleton = ({ h = 20, w = '100%', radius = 6, style = {} }) => (
+    <div style={{
+        height: h, width: w, borderRadius: radius,
+        background: 'linear-gradient(90deg, #1e2a38 25%, #253447 50%, #1e2a38 75%)',
+        backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite',
+        ...style
+    }} />
+)
+const SkeletonCard = ({ isDark }) => {
+    const bg = isDark ? '#1a2535' : '#f8fafc'
+    const borderColor = isDark ? '#2d3f52' : '#e2e8f0'
+    return (
+        <CCard style={{ background: bg, border: `1px solid ${borderColor}`, borderRadius: 10, height: 120 }}>
+            <CCardBody>
+                <Skeleton h={12} w="60%" style={{ marginBottom: 10 }} />
+                <Skeleton h={28} w="40%" style={{ marginBottom: 8 }} />
+                <Skeleton h={10} w="80%" />
+            </CCardBody>
+        </CCard>
+    )
+}
+
+/* ─── Heatmap de Contribuição ─── */
+const HeatmapEstudo = ({ porDia, isDark }) => {
+    const hoje = new Date(dataLocalHoje())
+    const dias = 91 // ~13 semanas
+
+    const mapa = useMemo(() => {
+        const m = {}
+        if (!porDia) return m
+        porDia.forEach(d => { m[d.dia] = d.questoes })
+        return m
+    }, [porDia])
+
+    const maxQ = useMemo(() => Math.max(...Object.values(mapa), 1), [mapa])
+
+    const celulas = useMemo(() => {
+        const arr = []
+        for (let i = dias - 1; i >= 0; i--) {
+            const d = new Date(hoje)
+            d.setDate(d.getDate() - i)
+            const key = d.toLocaleDateString('sv')
+            arr.push({ key, questoes: mapa[key] || 0, data: d })
+        }
+        return arr
+    }, [mapa, dias])
+
+    const intensidade = (q) => {
+        if (q === 0) return isDark ? '#1e2a38' : '#eef2f7'
+        const pct = q / maxQ
+        if (pct < 0.25) return '#1a6fb5'
+        if (pct < 0.5) return '#2a8fd0'
+        if (pct < 0.75) return '#40aaec'
+        return '#7eb8f7'
+    }
+
+    const semanas = []
+    for (let i = 0; i < celulas.length; i += 7) {
+        semanas.push(celulas.slice(i, i + 7))
+    }
+
+    const [tooltip, setTooltip] = useState(null)
+    const mesesMostrados = new Set()
+
+    return (
+        <div style={{ overflowX: 'auto', position: 'relative' }}>
+            <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+            <div style={{ display: 'flex', gap: 3, alignItems: 'flex-start', paddingTop: 20 }}>
+                {semanas.map((semana, si) => {
+                    const primeiroDia = semana[0]?.data
+                    let labelMes = null
+                    if (primeiroDia) {
+                        const mesKey = `${primeiroDia.getFullYear()}-${primeiroDia.getMonth()}`
+                        if (!mesesMostrados.has(mesKey)) {
+                            mesesMostrados.add(mesKey)
+                            labelMes = primeiroDia.toLocaleDateString('pt-BR', { month: 'short' })
+                        }
+                    }
+                    return (
+                        <div key={si} style={{ display: 'flex', flexDirection: 'column', gap: 3, position: 'relative' }}>
+                            {labelMes && (
+                                <div style={{
+                                    position: 'absolute', top: -18, left: 0,
+                                    fontSize: 10, color: isDark ? '#5d7290' : '#94a3b8',
+                                    whiteSpace: 'nowrap'
+                                }}>{labelMes}</div>
+                            )}
+                            {semana.map((cel, di) => (
+                                <div
+                                    key={di}
+                                    title={`${cel.key}: ${cel.questoes} questões`}
+                                    onMouseEnter={(e) => setTooltip({ cel, x: e.clientX, y: e.clientY })}
+                                    onMouseLeave={() => setTooltip(null)}
+                                    style={{
+                                        width: 13, height: 13,
+                                        borderRadius: 3,
+                                        background: intensidade(cel.questoes),
+                                        cursor: cel.questoes > 0 ? 'pointer' : 'default',
+                                        transition: 'transform 0.1s',
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    )
+                })}
+            </div>
+            {tooltip && (
+                <div style={{
+                    position: 'fixed', top: tooltip.y - 50, left: tooltip.x + 12,
+                    background: isDark ? '#1e2a38' : '#1a2535', color: '#fff',
+                    borderRadius: 6, padding: '6px 10px', fontSize: 12,
+                    pointerEvents: 'none', zIndex: 9999, whiteSpace: 'nowrap'
+                }}>
+                    <strong>{tooltip.cel.questoes} questões</strong>
+                    <div style={{ color: '#8a9bb0', fontSize: 11 }}>{tooltip.cel.key}</div>
+                </div>
+            )}
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginTop: 8 }}>
+                <span style={{ fontSize: 10, color: isDark ? '#5d7290' : '#94a3b8' }}>Menos</span>
+                {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
+                    <div key={i} style={{ width: 11, height: 11, borderRadius: 2, background: intensidade(Math.round(p * maxQ)) }} />
+                ))}
+                <span style={{ fontSize: 10, color: isDark ? '#5d7290' : '#94a3b8' }}>Mais</span>
+            </div>
+        </div>
+    )
+}
+
+/* ─── Tooltip customizado ─── */
 const TooltipCustom = ({ active, payload, label, isDark }) => {
     if (!active || !payload?.length) return null
     const bg = isDark ? '#1e2a38' : '#ffffff'
@@ -46,10 +245,11 @@ const TooltipCustom = ({ active, payload, label, isDark }) => {
     )
 }
 
-/* ─── StatCard ──────────────────────────────────────────────────── */
-const StatCard = ({ icon, titulo, valor, sub, cor = '#7eb8f7', isDark, children }) => {
+/* ─── StatCard ─── */
+const StatCard = ({ icon, titulo, valor, sub, cor = '#7eb8f7', isDark, children, loading }) => {
     const bg = isDark ? '#1a2535' : '#f8fafc'
     const borderColor = isDark ? '#2d3f52' : '#e2e8f0'
+    if (loading) return <SkeletonCard isDark={isDark} />
     return (
         <CCard style={{ background: bg, border: `1px solid ${borderColor}`, borderLeft: `4px solid ${cor}`, borderRadius: 10, height: '100%' }}>
             <CCardBody className="d-flex flex-column">
@@ -65,19 +265,123 @@ const StatCard = ({ icon, titulo, valor, sub, cor = '#7eb8f7', isDark, children 
     )
 }
 
-/* ─── Componente Principal ─────────────────────────────────────── */
+/* ─── Modal de Sessões ─── */
+const ModalSessoes = ({ matricula, isDark, onClose }) => {
+    const [sessoes, setSessoes] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [pagina, setPagina] = useState(1)
+    const POR_PAGINA = 10
+
+    useEffect(() => {
+        fetchJSON(`${API_URL}/api/aluno/sessoes/${matricula}`)
+            .then(d => { setSessoes(Array.isArray(d) ? d : []); setLoading(false) })
+            .catch(() => setLoading(false))
+    }, [matricula])
+
+    const total = Math.ceil(sessoes.length / POR_PAGINA)
+    const paginas = sessoes.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA)
+
+    const bg = isDark ? '#1a2535' : '#ffffff'
+
+    return (
+        <CModal visible size="lg" onClose={onClose} scrollable>
+            <CModalHeader style={{ background: bg }}>
+                <CModalTitle style={{ color: isDark ? '#7eb8f7' : '#1a6fb5' }}>
+                    <CIcon icon={cilHistory} className="me-2" />Histórico de Sessões
+                </CModalTitle>
+            </CModalHeader>
+            <CModalBody style={{ background: bg }}>
+                {loading ? (
+                    <div className="text-center py-4"><CSpinner color="primary" /></div>
+                ) : sessoes.length === 0 ? (
+                    <CAlert color="secondary">Nenhuma sessão encontrada.</CAlert>
+                ) : (
+                    <>
+                        <CTable responsive hover {...(isDark ? { color: 'dark' } : {})}>
+                            <CTableHead>
+                                <CTableRow>
+                                    <CTableHeaderCell>Data</CTableHeaderCell>
+                                    <CTableHeaderCell>Matéria</CTableHeaderCell>
+                                    <CTableHeaderCell className="text-center">Questões</CTableHeaderCell>
+                                    <CTableHeaderCell className="text-center">Acerto</CTableHeaderCell>
+                                    <CTableHeaderCell className="text-center">Tempo</CTableHeaderCell>
+                                </CTableRow>
+                            </CTableHead>
+                            <CTableBody>
+                                {paginas.map((s, i) => (
+                                    <CTableRow key={i}>
+                                        <CTableDataCell style={{ fontSize: 13 }}>
+                                            {s.criado_em ? new Date(s.criado_em).toLocaleDateString('pt-BR') : '—'}
+                                        </CTableDataCell>
+                                        <CTableDataCell style={{ fontSize: 13 }}>{s.materia_nome || s.modo || '—'}</CTableDataCell>
+                                        <CTableDataCell className="text-center">{s.total_questoes ?? '—'}</CTableDataCell>
+                                        <CTableDataCell className="text-center">
+                                            <CBadge color={
+                                                (s.percentual_acerto ?? 0) >= 80 ? 'success' :
+                                                    (s.percentual_acerto ?? 0) >= 60 ? 'warning' : 'danger'
+                                            }>
+                                                {s.percentual_acerto ?? 0}%
+                                            </CBadge>
+                                        </CTableDataCell>
+                                        <CTableDataCell className="text-center" style={{ fontSize: 13 }}>
+                                            {formatarTempo(s.tempo_seg)}
+                                        </CTableDataCell>
+                                    </CTableRow>
+                                ))}
+                            </CTableBody>
+                        </CTable>
+                        {total > 1 && (
+                            <div className="d-flex justify-content-center gap-2 mt-3">
+                                <CButton size="sm" color="secondary" variant="outline" disabled={pagina === 1} onClick={() => setPagina(p => p - 1)}>‹</CButton>
+                                <span style={{ fontSize: 13, padding: '4px 8px' }}>Página {pagina} de {total}</span>
+                                <CButton size="sm" color="secondary" variant="outline" disabled={pagina === total} onClick={() => setPagina(p => p + 1)}>›</CButton>
+                            </div>
+                        )}
+                    </>
+                )}
+            </CModalBody>
+        </CModal>
+    )
+}
+
+/* ─── Componente Principal ─── */
 const HistoricoAluno = () => {
     const [dados, setDados] = useState(null)
     const [loading, setLoading] = useState(true)
     const [erro, setErro] = useState(null)
     const [isDark, setIsDark] = useState(false)
     const [metaDiaria, setMetaDiaria] = useState(10)
-    const [metaSemanal, setMetaSemanal] = useState(70) // nova: meta semanal
+    const [metaSemanal, setMetaSemanal] = useState(70)
     const [mostrarFinalizados, setMostrarFinalizados] = useState(false)
     const [progressoGeral, setProgressoGeral] = useState({ respondidas: 0, total: 0, percentual: 0 })
+    const [ranking, setRanking] = useState(null)
+    const [toast, setToast] = useState(null)
+    const [modalSessoes, setModalSessoes] = useState(false)
+    const metaJaCelebrada = useRef(false)
+
+    // Filtros — sincronizados com URL
+    const getParamURL = (key) => new URLSearchParams(window.location.hash.split('?')[1] || '').get(key) || ''
+    const [dataInicio, setDataInicio] = useState(getParamURL('data_inicio'))
+    const [dataFim, setDataFim] = useState(getParamURL('data_fim'))
+    const [filtroMateria, setFiltroMateria] = useState(getParamURL('materia_id'))
+    const [filtroAcerto, setFiltroAcerto] = useState(getParamURL('acerto'))
+    const [materias, setMaterias] = useState([])
 
     const matricula = sessionStorage.getItem('matricula')
     const nome = sessionStorage.getItem('nome') || 'Aluno'
+
+    // Sincronizar filtros com URL
+    useEffect(() => {
+        const params = new URLSearchParams()
+        if (dataInicio) params.set('data_inicio', dataInicio)
+        if (dataFim) params.set('data_fim', dataFim)
+        if (filtroMateria) params.set('materia_id', filtroMateria)
+        if (filtroAcerto) params.set('acerto', filtroAcerto)
+        const qs = params.toString()
+        const base = window.location.hash.split('?')[0]
+        const novaHash = qs ? `${base}?${qs}` : base
+        window.history.replaceState(null, '', novaHash)
+    }, [dataInicio, dataFim, filtroMateria, filtroAcerto])
 
     // Detecção de tema
     useEffect(() => {
@@ -88,59 +392,126 @@ const HistoricoAluno = () => {
         return () => obs.disconnect()
     }, [])
 
+    // Carregar matérias
     useEffect(() => {
+        fetchJSON(`${API_URL}/api/admin/materias`)
+            .then(d => setMaterias(Array.isArray(d) ? d : []))
+            .catch(() => { })
+    }, [])
+
+    // Carregar ranking
+    useEffect(() => {
+        if (!matricula) return
+        fetchJSON(`${API_URL}/api/aluno/ranking/${matricula}`)
+            .then(d => setRanking(d))
+            .catch(() => { })
+    }, [matricula])
+
+    // temFiltros como useMemo (fix: evita recriar buscarDados desnecessariamente)
+    const temFiltros = useMemo(
+        () => !!(dataInicio || dataFim || filtroMateria || filtroAcerto),
+        [dataInicio, dataFim, filtroMateria, filtroAcerto]
+    )
+
+    const buscarDados = useCallback((forcarAtualizacao = false) => {
         if (!matricula) {
             setErro('Matrícula não encontrada.')
             setLoading(false)
             return
         }
-        fetch(`${API_URL}/api/aluno/historico-grafico/${matricula}`)
-            .then(res => res.json())
-            .then(data => {
-                setDados(data)
-                setLoading(false)
-            })
-            .catch(err => {
-                setErro(`Erro ao carregar histórico: ${err.message}`)
-                setLoading(false)
-            })
-    }, [matricula])
+        setLoading(true)
 
-    // Buscar progresso geral
-    useEffect(() => {
-        if (!matricula) return
-        fetch(`${API_URL}/api/aluno/progresso/${matricula}`)
-            .then(res => res.json())
-            .then(setProgressoGeral)
-            .catch(() => { })
-    }, [matricula])
+        if (temFiltros) {
+            const params = new URLSearchParams()
+            if (dataInicio) params.set('data_inicio', dataInicio)
+            if (dataFim) params.set('data_fim', dataFim)
+            if (filtroMateria) params.set('materia_id', filtroMateria)
+            if (filtroAcerto) params.set('acerto', filtroAcerto)
+            const qs = params.toString() ? `?${params.toString()}` : ''
 
-    // Recuperar metas do localStorage
+            Promise.all([
+                fetchJSON(`${API_URL}/api/aluno/historico-filtrado/${matricula}${qs}`),
+                fetchJSON(`${API_URL}/api/aluno/progresso/${matricula}`)
+            ])
+                .then(([filtrado, progresso]) => {
+                    setDados(filtrado)
+                    setProgressoGeral(progresso)
+                    setLoading(false)
+                })
+                .catch(err => {
+                    setErro(`Erro ao carregar histórico: ${err.message}`)
+                    setLoading(false)
+                })
+        } else {
+            // Verificar cache (a não ser que seja forçado)
+            const cacheKey = `historico:${matricula}`
+            if (!forcarAtualizacao) {
+                const cached = cacheGet(cacheKey)
+                if (cached) {
+                    setDados(cached.dados)
+                    setProgressoGeral(cached.progresso)
+                    setLoading(false)
+                    return
+                }
+            }
+
+            Promise.all([
+                fetchJSON(`${API_URL}/api/aluno/historico-grafico/${matricula}`),
+                fetchJSON(`${API_URL}/api/aluno/historico-diario/${matricula}`),
+                fetchJSON(`${API_URL}/api/aluno/progresso/${matricula}`)
+            ])
+                .then(([mensal, diario, progresso]) => {
+                    const dadosCompletos = {
+                        ...mensal,
+                        por_dia: diario.serie_diaria
+                    }
+                    cacheSet(`historico:${matricula}`, { dados: dadosCompletos, progresso })
+                    setDados(dadosCompletos)
+                    setProgressoGeral(progresso)
+                    setLoading(false)
+                })
+                .catch(err => {
+                    setErro(`Erro ao carregar histórico: ${err.message}`)
+                    setLoading(false)
+                })
+        }
+    }, [matricula, temFiltros, dataInicio, dataFim, filtroMateria, filtroAcerto])
+
+    useEffect(() => { buscarDados() }, [buscarDados])
+
+    // Atualizar ao receber foco (forçar, ignorar cache)
     useEffect(() => {
-        const savedMetaSemanal = localStorage.getItem('metaSemanal')
-        if (savedMetaSemanal) setMetaSemanal(Number(savedMetaSemanal))
-        const savedMetaDiaria = localStorage.getItem('metaDiaria')
-        if (savedMetaDiaria) setMetaDiaria(Number(savedMetaDiaria))
+        const handler = () => { cacheClear(`historico:${matricula}`); buscarDados(true) }
+        window.addEventListener('focus', handler)
+        return () => window.removeEventListener('focus', handler)
+    }, [buscarDados, matricula])
+
+    // Metas do localStorage
+    useEffect(() => {
+        const s = localStorage.getItem('metaSemanal')
+        if (s) setMetaSemanal(Number(s))
+        const d = localStorage.getItem('metaDiaria')
+        if (d) setMetaDiaria(Number(d))
+    }, [])
+    useEffect(() => { localStorage.setItem('metaSemanal', metaSemanal) }, [metaSemanal])
+    useEffect(() => { localStorage.setItem('metaDiaria', metaDiaria) }, [metaDiaria])
+
+    const limparFiltros = useCallback(() => {
+        setDataInicio('')
+        setDataFim('')
+        setFiltroMateria('')
+        setFiltroAcerto('')
     }, [])
 
-    // Salvar metas no localStorage
-    useEffect(() => {
-        localStorage.setItem('metaSemanal', metaSemanal)
-    }, [metaSemanal])
-    useEffect(() => {
-        localStorage.setItem('metaDiaria', metaDiaria)
-    }, [metaDiaria])
-
-    // Constância
+    /* ─── Hooks calculados ─── */
     const constancia = useMemo(() => {
-        if (!dados?.por_dia) return { dias: 0, recorde: 0 }
+        if (!dados?.por_dia?.length) return { dias: 0, recorde: 0 }
         const dias = dados.por_dia.map(d => d.dia).sort().reverse()
         let consecutivos = 0, recorde = 0, atual = 0
-        const hoje = new Date().toISOString().split('T')[0]
-        let dataRef = new Date(hoje)
-
+        const hoje = dataLocalHoje() // fix: usar data local, não UTC
+        let dataRef = new Date(hoje + 'T12:00:00') // meio-dia para evitar problemas de DST
         for (let i = 0; i < 365; i++) {
-            const dataStr = dataRef.toISOString().split('T')[0]
+            const dataStr = dataRef.toLocaleDateString('sv')
             if (dias.includes(dataStr)) {
                 atual++
                 if (atual > recorde) recorde = atual
@@ -154,22 +525,21 @@ const HistoricoAluno = () => {
         return { dias: consecutivos, recorde }
     }, [dados])
 
-    // Questões hoje
     const questoesHoje = useMemo(() => {
         if (!dados?.por_dia) return 0
-        const hoje = new Date().toISOString().split('T')[0]
+        const hoje = dataLocalHoje() // fix: data local
         const diaHoje = dados.por_dia.find(d => d.dia === hoje)
         return diaHoje ? diaHoje.questoes : 0
     }, [dados])
 
-    // Últimos 7 dias (Estudo Semanal)
     const ultimos7Dias = useMemo(() => {
         if (!dados?.por_dia) return []
-        const hoje = new Date()
+        const hoje = new Date(dataLocalHoje() + 'T12:00:00')
         const dias = []
         for (let i = 6; i >= 0; i--) {
-            const data = new Date(hoje); data.setDate(data.getDate() - i)
-            const diaStr = data.toISOString().split('T')[0]
+            const data = new Date(hoje)
+            data.setDate(data.getDate() - i)
+            const diaStr = data.toLocaleDateString('sv')
             const diaObj = dados.por_dia.find(d => d.dia === diaStr)
             dias.push({
                 dia: data.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit' }),
@@ -179,93 +549,262 @@ const HistoricoAluno = () => {
         return dias
     }, [dados])
 
-    // Progresso da meta diária
     const progressoMeta = Math.min((questoesHoje / metaDiaria) * 100, 100)
-
-    // Meta semanal (questões nos últimos 7 dias)
     const questoesSemana = ultimos7Dias.reduce((acc, d) => acc + d.questoes, 0)
     const progressoSemanal = Math.min((questoesSemana / metaSemanal) * 100, 100)
 
-    // Compartilhar
+    // Toast de meta atingida (dispara uma vez por sessão)
+    useEffect(() => {
+        if (progressoMeta >= 100 && !metaJaCelebrada.current && !loading) {
+            metaJaCelebrada.current = true
+            setToast({ mensagem: `Meta diária atingida! ${questoesHoje} questões hoje! 🎯`, tipo: 'success' })
+        }
+    }, [progressoMeta, loading, questoesHoje])
+
+    const dadosGraficoEvolucao = useMemo(() => {
+        if (!dados?.por_dia) return []
+        return dados.por_dia.map(d => ({
+            ...d,
+            label: new Date(d.dia + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+        }))
+    }, [dados])
+
+    // Assuntos para reforçar
+    const assuntosReforcar = useMemo(() => {
+        if (!dados?.por_assunto) return []
+        return dados.por_assunto.filter(a => a.media_acerto < 60).slice(0, 5)
+    }, [dados])
+
+    /* ─── Exportar CSV ─── */
+    const handleExportarCSV = () => {
+        if (!dados) return
+        const linhas = []
+        if (dados.por_assunto?.length) {
+            dados.por_assunto.forEach(a => linhas.push({ tipo: 'assunto', nome: a.assunto, questoes: a.questoes, media_acerto: a.media_acerto }))
+        }
+        if (dados.por_dia?.length) {
+            dados.por_dia.forEach(d => linhas.push({ tipo: 'dia', nome: d.dia, questoes: d.questoes, media_acerto: d.media_acerto ?? '' }))
+        }
+        exportarCSV(linhas, `historico_${matricula}_${dataLocalHoje()}.csv`)
+    }
+
     const handleShare = async () => {
-        const texto = `📚 Meu progresso no Contabilidade Fácil:\n✅ ${dados.resumo.total_questoes} questões\n🎯 Média: ${dados.resumo.media_geral}%\n🔥 Constância: ${constancia.dias} dias\n🏆 Recorde: ${constancia.recorde} dias\n📅 Última sessão: ${new Date(dados.resumo.ultima_sessao).toLocaleDateString('pt-BR')}\n\nVem estudar comigo!`
+        const texto = `📚 Meu progresso no Contabilidade Fácil:\n✅ ${dados?.resumo?.total_questoes ?? 0} questões\n🎯 Média: ${dados?.resumo?.media_geral}%\n🔥 Constância: ${constancia.dias} dias\n🏆 Recorde: ${constancia.recorde} dias\n📅 Última sessão: ${dados?.resumo?.ultima_sessao ? new Date(dados.resumo.ultima_sessao).toLocaleDateString('pt-BR') : '—'}\n\nVem estudar comigo!`
         if (navigator.share) {
             try { await navigator.share({ title: 'Meu progresso', text: texto, url: window.location.origin }) } catch { }
         } else {
-            try { await navigator.clipboard.writeText(texto); alert('✅ Copiado!') } catch { alert('Compartilhamento não suportado.') }
+            try { await navigator.clipboard.writeText(texto); setToast({ mensagem: '✅ Texto copiado para a área de transferência!', tipo: 'success' }) } catch { alert('Compartilhamento não suportado.') }
         }
     }
 
-    if (loading) return <div className="text-center py-5"><CSpinner color="primary" /><p className="mt-3">Carregando...</p></div>
-    if (erro) return <CAlert color="danger">{erro}</CAlert>
-    if (!dados || dados.resumo.total_sessoes === 0) return <CAlert color="secondary">Você ainda não completou nenhuma sessão de estudo. Faça seu primeiro quiz!</CAlert>
+    /* ─── Estilos comuns ─── */
+    const bgCard = isDark ? '#1a2535' : '#ffffff'
+    const borderCard = isDark ? '#2d3f52' : '#e2e8f0'
+    const cardStyle = { background: bgCard, border: `1px solid ${borderCard}`, borderRadius: 10 }
 
-    const { resumo, por_mes, por_assunto } = dados
-    const ultima = resumo.ultima_sessao ? new Date(resumo.ultima_sessao).toLocaleDateString('pt-BR') : '—'
+    /* ─── Retornos condicionais ─── */
+    if (erro) return <CAlert color="danger">{erro}</CAlert>
+
+    const { resumo, por_dia, por_assunto } = dados || {}
+    const ultima = resumo?.ultima_sessao ? new Date(resumo.ultima_sessao).toLocaleDateString('pt-BR') : '—'
 
     return (
         <div style={{ padding: '24px', background: isDark ? '#111b27' : '#f4f7fa', minHeight: '100vh' }}>
+            <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+
+            {toast && <Toast mensagem={toast.mensagem} tipo={toast.tipo} onClose={() => setToast(null)} />}
+
+            {modalSessoes && <ModalSessoes matricula={matricula} isDark={isDark} onClose={() => setModalSessoes(false)} />}
+
             {/* Cabeçalho */}
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                 <div>
                     <h2 style={{ color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 800, margin: 0 }}>Meu Histórico de Aprendizado</h2>
-                    <p style={{ color: isDark ? '#5d7290' : '#64748b', margin: '4px 0 0', fontSize: 13 }}>Última sessão: {ultima}</p>
+                    <p style={{ color: isDark ? '#5d7290' : '#64748b', margin: '4px 0 0', fontSize: 13 }}>
+                        {loading ? 'Carregando...' : `Última sessão: ${ultima}`}
+                    </p>
                 </div>
-                <CButton color="primary" variant="outline" size="sm" onClick={handleShare}>
-                    <CIcon icon={cilShare} className="me-1" /> COMPARTILHAR
-                </CButton>
+                <div className="d-flex gap-2 flex-wrap">
+                    <CButton color="secondary" variant="outline" size="sm" onClick={() => setModalSessoes(true)}>
+                        <CIcon icon={cilHistory} className="me-1" /> Sessões
+                    </CButton>
+                    <CButton color="success" variant="outline" size="sm" onClick={handleExportarCSV} disabled={!dados}>
+                        <CIcon icon={cilDataTransferDown} className="me-1" /> Exportar CSV
+                    </CButton>
+                    <CButton color="primary" variant="outline" size="sm" onClick={handleShare}>
+                        <CIcon icon={cilShare} className="me-1" /> Compartilhar
+                    </CButton>
+                </div>
             </div>
 
+            {/* Filtros */}
+            <CCard className="mb-4" style={cardStyle}>
+                <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>
+                    <CIcon icon={cilFilter} className="me-2" /> Filtros
+                    {temFiltros && <CBadge color="primary" className="ms-2">Ativos</CBadge>}
+                </CCardHeader>
+                <CCardBody>
+                    <CRow className="g-3 align-items-end">
+                        <CCol xs={6} md={2}>
+                            <CFormLabel>Data Início</CFormLabel>
+                            <CFormInput type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
+                        </CCol>
+                        <CCol xs={6} md={2}>
+                            <CFormLabel>Data Fim</CFormLabel>
+                            <CFormInput type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
+                        </CCol>
+                        <CCol xs={6} md={3}>
+                            <CFormLabel>Matéria</CFormLabel>
+                            <CFormSelect value={filtroMateria} onChange={e => setFiltroMateria(e.target.value)}>
+                                <option value="">Todas</option>
+                                {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
+                            </CFormSelect>
+                        </CCol>
+                        <CCol xs={6} md={3}>
+                            <CFormLabel>Resultado</CFormLabel>
+                            <CFormSelect value={filtroAcerto} onChange={e => setFiltroAcerto(e.target.value)}>
+                                <option value="">Todos</option>
+                                <option value="acerto">Acertos</option>
+                                <option value="erro">Erros</option>
+                            </CFormSelect>
+                        </CCol>
+                        <CCol xs={12} md={2} className="d-flex align-items-end gap-2">
+                            <CButton color="secondary" variant="outline" size="sm" onClick={limparFiltros} disabled={!temFiltros}>
+                                <CIcon icon={cilX} className="me-1" /> Limpar
+                            </CButton>
+                        </CCol>
+                    </CRow>
+                </CCardBody>
+            </CCard>
+
+            {/* Ranking da Turma */}
+            {ranking && !loading && (
+                <CCard className="mb-4" style={{ ...cardStyle, borderLeft: `4px solid #f9b115` }}>
+                    <CCardBody className="d-flex align-items-center gap-3 flex-wrap">
+                        <CIcon icon={cilStar} style={{ color: '#f9b115' }} size="xl" />
+                        <div style={{ flex: 1 }}>
+                            <div style={{ color: isDark ? '#8a9bb0' : '#64748b', fontSize: 12, marginBottom: 2 }}>Seu Ranking na Turma</div>
+                            <div style={{ color: isDark ? '#e0e8f0' : '#1f2937', fontSize: 16, fontWeight: 700 }}>
+                                {ranking.posicao}º lugar de {ranking.total_alunos} alunos
+                            </div>
+                            <CProgress
+                                value={100 - ((ranking.posicao - 1) / ranking.total_alunos * 100)}
+                                color="warning"
+                                height={8}
+                                className="mt-2 rounded-pill"
+                            />
+                        </div>
+                        <CBadge color={ranking.percentil >= 80 ? 'success' : ranking.percentil >= 50 ? 'warning' : 'danger'}
+                            shape="rounded-pill" className="fs-6 px-3 py-2">
+                            Top {100 - ranking.percentil}%
+                        </CBadge>
+                    </CCardBody>
+                </CCard>
+            )}
+
             {/* Progresso Geral */}
-            <CCard className="mb-4" style={{ background: isDark ? '#1a2535' : '#ffffff', border: `1px solid ${isDark ? '#2d3f52' : '#e2e8f0'}`, borderRadius: 10 }}>
+            <CCard className="mb-4" style={cardStyle}>
                 <CCardBody className="d-flex align-items-center gap-3">
-                    <div style={{ flex: 1 }}>
-                        <h5 style={{ color: isDark ? '#e0e8f0' : '#1f2937', marginBottom: 8 }}>📊 Progresso no Edital</h5>
-                        <CProgress value={progressoGeral.percentual} color="success" height={24} className="rounded-pill">
-                            {progressoGeral.percentual}% ({progressoGeral.respondidas} de {progressoGeral.total} questões)
-                        </CProgress>
-                    </div>
-                    <CBadge color="success" shape="rounded-pill" className="fs-6 px-3 py-2">{progressoGeral.percentual}%</CBadge>
+                    {loading ? <Skeleton h={40} /> : (
+                        <>
+                            <div style={{ flex: 1 }}>
+                                <h5 style={{ color: isDark ? '#e0e8f0' : '#1f2937', marginBottom: 8 }}>📊 Progresso no Edital</h5>
+                                <CProgress value={progressoGeral.percentual} color="success" height={24} className="rounded-pill">
+                                    {progressoGeral.percentual}% ({progressoGeral.respondidas} de {progressoGeral.total} questões)
+                                </CProgress>
+                            </div>
+                            <CBadge color="success" shape="rounded-pill" className="fs-6 px-3 py-2">{progressoGeral.percentual}%</CBadge>
+                        </>
+                    )}
                 </CCardBody>
             </CCard>
 
             {/* Cards principais */}
             <CRow className="g-3 mb-4">
                 <CCol xs={6} md={4} lg={3}>
-                    <StatCard icon={cilChartLine} titulo="Constância nos Estudos" valor={`${constancia.dias} dias`} sub={`Recorde: ${constancia.recorde} dias`} cor="#2eb85c" isDark={isDark}>
+                    <StatCard loading={loading} icon={cilChartLine} titulo="Constância nos Estudos" valor={`${constancia.dias} dias`} sub={`Recorde: ${constancia.recorde} dias`} cor="#2eb85c" isDark={isDark}>
                         <CBadge color="success" shape="rounded-pill">{constancia.dias >= 7 ? '🔥 Excelente!' : '💪 Continue!'}</CBadge>
                     </StatCard>
                 </CCol>
                 <CCol xs={6} md={4} lg={3}>
-                    <StatCard icon={cilCalendar} titulo="Estudo do Dia" valor={`${questoesHoje} questões`} sub={`Meta: ${metaDiaria} questões/dia`} cor="#7eb8f7" isDark={isDark}>
-                        <CButton color="link" size="sm" className="p-0" onClick={() => setMostrarFinalizados(!mostrarFinalizados)}>{mostrarFinalizados ? 'OCULTAR' : 'MOSTRAR'}</CButton>
+                    <StatCard loading={loading} icon={cilCalendar} titulo="Estudo do Dia" valor={`${questoesHoje} questões`} sub={`Meta: ${metaDiaria} questões/dia`} cor="#7eb8f7" isDark={isDark}>
+                        <div className="d-flex align-items-center gap-2 mt-2">
+                            <CButton color="link" size="sm" className="p-0" onClick={() => setMostrarFinalizados(!mostrarFinalizados)}>
+                                {mostrarFinalizados ? 'OCULTAR' : 'MOSTRAR'}
+                            </CButton>
+                            {mostrarFinalizados && (
+                                <div style={{ flex: 1 }}>
+                                    <CProgress
+                                        value={progressoMeta}
+                                        color={progressoMeta >= 100 ? 'success' : progressoMeta >= 50 ? 'warning' : 'danger'}
+                                        height={8}
+                                        className="mt-1"
+                                    />
+                                    <small className="text-body-secondary">{questoesHoje} de {metaDiaria} questões</small>
+                                </div>
+                            )}
+                        </div>
                     </StatCard>
                 </CCol>
                 <CCol xs={6} md={4} lg={3}>
-                    <StatCard icon={cilClock} titulo="Tempo de Estudo" valor={formatarTempo(resumo.tempo_medio_seg * resumo.total_sessoes)} sub={`Média diária: ${formatarTempo(resumo.tempo_medio_seg)}`} cor="#f9b115" isDark={isDark} />
+                    <StatCard loading={loading} icon={cilClock} titulo="Tempo de Estudo" valor={formatarTempo((resumo?.tempo_medio_seg || 0) * (resumo?.total_sessoes || 0))} sub={`Média por sessão: ${formatarTempo(resumo?.tempo_medio_seg || 0)}`} cor="#f9b115" isDark={isDark} />
                 </CCol>
                 <CCol xs={6} md={4} lg={3}>
-                    <StatCard icon={cilLibrary} titulo="Questões Respondidas" valor={resumo.total_questoes} sub={`Média: ${resumo.media_geral}%`} cor="#9d7ef7" isDark={isDark}>
-                        <span style={{ fontSize: 20 }}>{medalha(resumo.media_geral)}</span>
+                    <StatCard loading={loading} icon={cilLibrary} titulo="Questões Respondidas" valor={resumo?.total_questoes || 0} sub={`Média: ${resumo?.media_geral || 0}%`} cor="#9d7ef7" isDark={isDark}>
+                        <span style={{ fontSize: 20 }}>{medalha(resumo?.media_geral || 0)}</span>
                     </StatCard>
                 </CCol>
             </CRow>
 
-            {/* Planejamento do Dia + Meta Semanal */}
+            {/* Assuntos para Reforçar */}
+            {!loading && assuntosReforcar.length > 0 && (
+                <CCard className="mb-4" style={{ ...cardStyle, borderLeft: '4px solid #e55353' }}>
+                    <CCardHeader style={{ background: 'transparent', border: 'none', color: '#e55353', fontWeight: 700 }}>
+                        <CIcon icon={cilWarning} className="me-2" /> Estudar Hoje — Assuntos para Reforçar
+                    </CCardHeader>
+                    <CCardBody>
+                        <CRow className="g-2">
+                            {assuntosReforcar.map((a, i) => (
+                                <CCol key={i} xs={12} md={6}>
+                                    <div style={{
+                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                        background: isDark ? '#1e2a38' : '#fff5f5',
+                                        border: `1px solid ${isDark ? '#3d2020' : '#fecaca'}`,
+                                        borderRadius: 8, padding: '10px 14px', gap: 10
+                                    }}>
+                                        <div>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#e0e8f0' : '#1f2937' }}>{a.assunto}</div>
+                                            <CBadge color="danger">{a.media_acerto}% de acerto</CBadge>
+                                        </div>
+                                        <CButton
+                                            color="danger" size="sm" variant="outline"
+                                            onClick={() => window.location.href = `/#/quiz?assunto=${encodeURIComponent(a.assunto)}`}
+                                        >
+                                            Praticar
+                                        </CButton>
+                                    </div>
+                                </CCol>
+                            ))}
+                        </CRow>
+                    </CCardBody>
+                </CCard>
+            )}
+
+            {/* Planejamento + Meta Semanal */}
             <CRow className="g-3 mb-4">
                 <CCol md={6}>
-                    <CCard style={{ background: isDark ? '#1a2535' : '#ffffff', border: `1px solid ${isDark ? '#2d3f52' : '#e2e8f0'}`, borderRadius: 10 }}>
+                    <CCard style={cardStyle}>
                         <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>📋 Planejamento do Dia</CCardHeader>
                         <CCardBody>
                             <div className="d-flex align-items-center gap-3 mb-3">
-                                <CFormLabel style={{ minWidth: 80, color: isDark ? '#8a9bb0' : '#64748b' }}>Meta diária</CFormLabel>
+                                <CFormLabel style={{ minWidth: 80 }}>Meta diária</CFormLabel>
                                 <CFormInput type="number" value={metaDiaria} onChange={e => setMetaDiaria(Number(e.target.value))} style={{ width: 80 }} />
-                                <div className="d-flex gap-1">
-                                    <CButton color="primary" variant="outline" size="sm" onClick={() => setMetaDiaria(metaDiaria + 5)}><CIcon icon={cilPlus} /></CButton>
-                                    <CButton color="primary" variant="outline" size="sm" onClick={() => setMetaDiaria(metaDiaria - 5)} disabled={metaDiaria <= 5}><CIcon icon={cilMinus} /></CButton>
-                                </div>
+                                <CButton color="primary" variant="outline" size="sm" onClick={() => setMetaDiaria(v => v + 5)}><CIcon icon={cilPlus} /></CButton>
+                                <CButton color="primary" variant="outline" size="sm" onClick={() => setMetaDiaria(v => v - 5)} disabled={metaDiaria <= 5}><CIcon icon={cilMinus} /></CButton>
                             </div>
-                            <CProgress value={progressoMeta} color={progressoMeta >= 100 ? 'success' : progressoMeta >= 50 ? 'warning' : 'danger'} height={24} className="rounded-pill">{questoesHoje} de {metaDiaria}</CProgress>
+                            <CProgress value={progressoMeta} color={progressoMeta >= 100 ? 'success' : progressoMeta >= 50 ? 'warning' : 'danger'} height={24} className="rounded-pill">
+                                {questoesHoje} de {metaDiaria}
+                            </CProgress>
                             <div className="text-end mt-2">
                                 <CButton color="primary" size="sm" onClick={() => window.location.href = '/#/quiz'}>🎯 Fazer Quiz</CButton>
                             </div>
@@ -273,105 +812,115 @@ const HistoricoAluno = () => {
                     </CCard>
                 </CCol>
                 <CCol md={6}>
-                    <CCard style={{ background: isDark ? '#1a2535' : '#ffffff', border: `1px solid ${isDark ? '#2d3f52' : '#e2e8f0'}`, borderRadius: 10 }}>
+                    <CCard style={cardStyle}>
                         <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>🎯 Meta Semanal</CCardHeader>
                         <CCardBody>
                             <div className="d-flex align-items-center gap-3 mb-3">
-                                <CFormLabel style={{ minWidth: 80, color: isDark ? '#8a9bb0' : '#64748b' }}>Meta semanal</CFormLabel>
+                                <CFormLabel style={{ minWidth: 80 }}>Meta semanal</CFormLabel>
                                 <CFormInput type="number" value={metaSemanal} onChange={e => setMetaSemanal(Number(e.target.value))} style={{ width: 80 }} />
                             </div>
-                            <CProgress value={progressoSemanal} color={progressoSemanal >= 100 ? 'success' : progressoSemanal >= 50 ? 'warning' : 'danger'} height={24} className="rounded-pill">{questoesSemana} de {metaSemanal}</CProgress>
+                            <CProgress value={progressoSemanal} color={progressoSemanal >= 100 ? 'success' : progressoSemanal >= 50 ? 'warning' : 'danger'} height={24} className="rounded-pill">
+                                {questoesSemana} de {metaSemanal}
+                            </CProgress>
                         </CCardBody>
                     </CCard>
                 </CCol>
             </CRow>
 
             {/* Estudo Semanal */}
-            <CCard className="mb-4" style={{ background: isDark ? '#1a2535' : '#ffffff', border: `1px solid ${isDark ? '#2d3f52' : '#e2e8f0'}`, borderRadius: 10 }}>
+            <CCard className="mb-4" style={cardStyle}>
                 <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>📅 Estudo Semanal</CCardHeader>
                 <CCardBody>
-                    <ResponsiveContainer width="100%" height={200}>
-                        <BarChart data={ultimos7Dias}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d3f52' : '#e2e8f0'} />
-                            <XAxis dataKey="dia" stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} />
-                            <YAxis stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} />
-                            <Tooltip content={<TooltipCustom isDark={isDark} />} />
-                            <Bar dataKey="questoes" name="Questões" fill="#7eb8f7" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {loading ? <Skeleton h={200} /> : ultimos7Dias.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={200}>
+                            <BarChart data={ultimos7Dias}>
+                                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d3f52' : '#e2e8f0'} />
+                                <XAxis dataKey="dia" stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} />
+                                <YAxis stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} />
+                                <Tooltip content={<TooltipCustom isDark={isDark} />} />
+                                <Bar dataKey="questoes" name="Questões" fill="#7eb8f7" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <p className="text-center text-body-secondary">Sem dados no período.</p>
+                    )}
                 </CCardBody>
             </CCard>
 
-            {/* Gráficos mensais */}
-            {por_mes.length > 0 && (
-                <CRow className="g-3 mb-4">
-                    <CCol md={6}>
-                        <CCard style={{ background: isDark ? '#1a2535' : '#ffffff', border: `1px solid ${isDark ? '#2d3f52' : '#e2e8f0'}`, borderRadius: 10 }}>
-                            <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>📈 Evolução da Taxa de Acerto</CCardHeader>
-                            <CCardBody>
-                                <ResponsiveContainer width="100%" height={220}>
-                                    <LineChart data={por_mes}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d3f52' : '#e2e8f0'} />
-                                        <XAxis dataKey="mes" stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} />
-                                        <YAxis domain={[0, 100]} stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} tickFormatter={v => `${v}%`} />
-                                        <Tooltip content={<TooltipCustom isDark={isDark} />} />
-                                        <Line type="monotone" dataKey="media_acerto" name="Acerto (%)" stroke="#2eb85c" strokeWidth={2} dot={{ r: 4 }} />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </CCardBody>
-                        </CCard>
-                    </CCol>
-                    <CCol md={6}>
-                        <CCard style={{ background: isDark ? '#1a2535' : '#ffffff', border: `1px solid ${isDark ? '#2d3f52' : '#e2e8f0'}`, borderRadius: 10 }}>
-                            <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>📊 Questões por Mês</CCardHeader>
-                            <CCardBody>
-                                <ResponsiveContainer width="100%" height={220}>
-                                    <BarChart data={por_mes}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d3f52' : '#e2e8f0'} />
-                                        <XAxis dataKey="mes" stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} />
-                                        <YAxis stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} />
-                                        <Tooltip content={<TooltipCustom isDark={isDark} />} />
-                                        <Bar dataKey="questoes" name="Questões" fill="#7eb8f7" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </CCardBody>
-                        </CCard>
-                    </CCol>
-                </CRow>
+            {/* Heatmap de Contribuição */}
+            {!loading && dados?.por_dia?.length > 0 && (
+                <CCard className="mb-4" style={cardStyle}>
+                    <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>
+                        🗓️ Frequência de Estudos (últimos 3 meses)
+                    </CCardHeader>
+                    <CCardBody>
+                        <HeatmapEstudo porDia={dados.por_dia} isDark={isDark} />
+                    </CCardBody>
+                </CCard>
             )}
 
-            {/* Tabela de Desempenho por Assunto */}
-            <CCard style={{ background: isDark ? '#1a2535' : '#ffffff', border: `1px solid ${isDark ? '#2d3f52' : '#e2e8f0'}`, borderRadius: 10 }}>
-                <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>📚 Desempenho por Assunto</CCardHeader>
-                <CCardBody>
-                    <CTable responsive hover {...(isDark ? { color: 'dark' } : {})}>
-                        <CTableHead>
-                            <CTableRow>
-                                <CTableHeaderCell>Assunto</CTableHeaderCell>
-                                <CTableHeaderCell className="text-center">Questões</CTableHeaderCell>
-                                <CTableHeaderCell className="text-center">Média (%)</CTableHeaderCell>
-                                <CTableHeaderCell className="text-center">Status</CTableHeaderCell>
-                            </CTableRow>
-                        </CTableHead>
-                        <CTableBody>
-                            {por_assunto.map((a, i) => (
-                                <CTableRow key={i}>
-                                    <CTableDataCell>{a.assunto}</CTableDataCell>
-                                    <CTableDataCell className="text-center">{a.questoes}</CTableDataCell>
-                                    <CTableDataCell className="text-center">
-                                        <CBadge color={a.media_acerto >= 80 ? 'success' : a.media_acerto >= 60 ? 'warning' : 'danger'}>
-                                            {a.media_acerto}%
-                                        </CBadge>
-                                    </CTableDataCell>
-                                    <CTableDataCell className="text-center">
-                                        {a.media_acerto >= 80 ? '✅ Dominado' : a.media_acerto >= 60 ? '📘 Em progresso' : '⚠️ Reforçar'}
-                                    </CTableDataCell>
+            {/* Gráfico de evolução */}
+            {!loading && dadosGraficoEvolucao.length > 0 && (
+                <CCard className="mb-4" style={cardStyle}>
+                    <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>📈 Evolução da Taxa de Acerto</CCardHeader>
+                    <CCardBody>
+                        <ResponsiveContainer width="100%" height={220}>
+                            <LineChart data={dadosGraficoEvolucao}>
+                                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d3f52' : '#e2e8f0'} />
+                                <XAxis dataKey="label" stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} />
+                                <YAxis domain={[0, 100]} stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} tickFormatter={v => `${v}%`} />
+                                <Tooltip content={<TooltipCustom isDark={isDark} />} />
+                                <Line type="monotone" dataKey="media_acerto" name="Acerto (%)" stroke="#2eb85c" strokeWidth={2} dot={{ r: 3 }} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </CCardBody>
+                </CCard>
+            )}
+
+            {/* Tabela Desempenho por Assunto */}
+            {!loading && por_assunto && por_assunto.length > 0 && (
+                <CCard style={cardStyle}>
+                    <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>📚 Desempenho por Assunto</span>
+                        <CBadge color="secondary">{por_assunto.length} assuntos</CBadge>
+                    </CCardHeader>
+                    <CCardBody>
+                        <CTable responsive hover {...(isDark ? { color: 'dark' } : {})}>
+                            <CTableHead>
+                                <CTableRow>
+                                    <CTableHeaderCell>Assunto</CTableHeaderCell>
+                                    <CTableHeaderCell className="text-center">Questões</CTableHeaderCell>
+                                    <CTableHeaderCell className="text-center">Média (%)</CTableHeaderCell>
+                                    <CTableHeaderCell className="text-center">Status</CTableHeaderCell>
                                 </CTableRow>
-                            ))}
-                        </CTableBody>
-                    </CTable>
-                </CCardBody>
-            </CCard>
+                            </CTableHead>
+                            <CTableBody>
+                                {por_assunto.map((a, i) => (
+                                    <CTableRow key={i} style={a.media_acerto < 60 ? { background: isDark ? '#1e1520' : '#fff5f5' } : {}}>
+                                        <CTableDataCell>{a.assunto}</CTableDataCell>
+                                        <CTableDataCell className="text-center">{a.questoes}</CTableDataCell>
+                                        <CTableDataCell className="text-center">
+                                            <CBadge color={a.media_acerto >= 80 ? 'success' : a.media_acerto >= 60 ? 'warning' : 'danger'}>
+                                                {a.media_acerto}%
+                                            </CBadge>
+                                        </CTableDataCell>
+                                        <CTableDataCell className="text-center">
+                                            {a.media_acerto >= 80 ? '✅ Dominado' : a.media_acerto >= 60 ? '📘 Em progresso' : '⚠️ Reforçar'}
+                                        </CTableDataCell>
+                                    </CTableRow>
+                                ))}
+                            </CTableBody>
+                        </CTable>
+                    </CCardBody>
+                </CCard>
+            )}
+
+            {/* Loading overlay para filtros (não bloqueia tela toda) */}
+            {loading && dados && (
+                <div style={{ textAlign: 'center', padding: 20 }}>
+                    <CSpinner color="primary" size="sm" /> <span style={{ fontSize: 13, color: isDark ? '#5d7290' : '#94a3b8' }}>Atualizando...</span>
+                </div>
+            )}
         </div>
     )
 }

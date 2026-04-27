@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react'
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import {
   CAlert,
   CBadge,
@@ -25,13 +25,21 @@ import {
   CTableRow,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilCheckCircle, cilXCircle, cilLightbulb, cilVideo } from '@coreui/icons'
+import {
+  cilCheckCircle,
+  cilXCircle,
+  cilLightbulb,
+  cilVideo,
+  cilFullscreen,
+  cilFullscreenExit,
+  cilShare,
+  cilVolumeHigh,
+  cilVolumeOff,
+} from '@coreui/icons'
 import { API_URL } from '../../config'
 import { calculateScore, calculateGrade, formatSeconds, shuffle } from '../../utils/quizUtils'
 
-/* ─── Constantes ─────────────────────────────────────────────────────────── */
-
-const SESSION_KEY = 'contabilidade_quiz_state'
+/* ─── Constantes e tokens ────────────────────────────────────────────────────── */
 
 const TIME_OPTIONS = [
   { value: 300, label: '5 minutos' },
@@ -53,8 +61,22 @@ const QTD_OPTIONS = [
 ]
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E']
+const SESSION_KEY = 'contabilidade_quiz_state'
 
-/* ─── Helpers ────────────────────────────────────────────────────────────── */
+const getTokens = (isDark) => ({
+  blue: '#4f8ef7',
+  cyan: isDark ? '#22d3ee' : '#0891b2',
+  green: isDark ? '#22c55e' : '#15803d',
+  red: isDark ? '#f43f5e' : '#b91c1c',
+  amber: isDark ? '#f59e0b' : '#b45309',
+  purple: isDark ? '#a78bfa' : '#7c3aed',
+  surface: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
+  border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+  text: isDark ? '#e2e8f0' : '#1e293b',
+  muted: isDark ? 'rgba(226,232,240,0.45)' : 'rgba(15,23,42,0.5)',
+})
+
+/* ─── Helpers ────────────────────────────────────────────────────────────────── */
 
 const obterLinkEmbed = (url) => {
   if (!url) return null
@@ -65,7 +87,6 @@ const obterLinkEmbed = (url) => {
   return e
 }
 
-/* Feature 8 — Feedback sonoro via Web Audio API */
 const playSound = (correct, enabled) => {
   if (!enabled) return
   try {
@@ -76,8 +97,8 @@ const playSound = (correct, enabled) => {
     gain.connect(ctx.destination)
     if (correct) {
       osc.type = 'sine'
-      osc.frequency.setValueAtTime(523, ctx.currentTime)       // C5
-      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.12) // E5
+      osc.frequency.setValueAtTime(523, ctx.currentTime)
+      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.12)
     } else {
       osc.type = 'square'
       osc.frequency.setValueAtTime(180, ctx.currentTime)
@@ -89,89 +110,33 @@ const playSound = (correct, enabled) => {
   } catch { }
 }
 
-/* ─── Sub-componentes ────────────────────────────────────────────────────── */
+/* ─── Skeleton de carregamento ───────────────────────────────────────────────── */
 
-/** Tabela de revisão ao final */
-const ReviewTable = ({ questionsAndAnswers, isDark }) => (
-  <CTable striped hover responsive {...(isDark ? { color: 'dark' } : {})}>
-    <CTableHead>
-      <CTableRow>
-        <CTableHeaderCell>#</CTableHeaderCell>
-        <CTableHeaderCell>Pergunta</CTableHeaderCell>
-        <CTableHeaderCell className="text-center">Sua resposta</CTableHeaderCell>
-        <CTableHeaderCell className="text-center">Correta</CTableHeaderCell>
-        <CTableHeaderCell className="text-center">Resultado</CTableHeaderCell>
-      </CTableRow>
-    </CTableHead>
-    <CTableBody>
-      {questionsAndAnswers.map((item, i) => (
-        <CTableRow key={i} color={item.isCorrect ? 'success' : 'danger'}>
-          <CTableDataCell>{i + 1}</CTableDataCell>
-          <CTableDataCell>{item.question}</CTableDataCell>
-          <CTableDataCell className="text-center fw-bold">{item.userAnswer}</CTableDataCell>
-          <CTableDataCell className="text-center fw-bold">{item.correctAnswer}</CTableDataCell>
-          <CTableDataCell className="text-center">{item.isCorrect ? '✅' : '❌'}</CTableDataCell>
-        </CTableRow>
-      ))}
-    </CTableBody>
-  </CTable>
-)
-
-/** Feature 3 — Desempenho por matéria */
-const StatsByMateria = ({ questionsAndAnswers, questions, isDark }) => {
-  const stats = useMemo(() => {
-    const map = {}
-    questionsAndAnswers.forEach(qa => {
-      const q = questions.find(q => q.id === qa.id)
-      const nome = q?.materia_nome || q?.materia || 'Geral'
-      if (!map[nome]) map[nome] = { total: 0, acertos: 0 }
-      map[nome].total++
-      if (qa.isCorrect) map[nome].acertos++
-    })
-    return Object.entries(map)
-      .map(([nome, d]) => ({ nome, ...d, pct: Math.round((d.acertos / d.total) * 100) }))
-      .sort((a, b) => b.pct - a.pct)
-  }, [questionsAndAnswers, questions])
-
-  if (stats.length <= 1) return null // só exibe quando há mais de uma matéria
-
+const SkeletonQuiz = ({ isDark }) => {
+  const bg = isDark ? '#1a2535' : '#f1f3f5'
+  const pulse = isDark ? '#253447' : '#e2e8f0'
   return (
-    <CCard className="mt-4 text-start">
-      <CCardHeader><strong>📚 Desempenho por Matéria</strong></CCardHeader>
-      <CCardBody className="p-0">
-        <CTable small {...(isDark ? { color: 'dark' } : {})} className="mb-0">
-          <CTableHead>
-            <CTableRow>
-              <CTableHeaderCell>Matéria</CTableHeaderCell>
-              <CTableHeaderCell className="text-center">Acertos</CTableHeaderCell>
-              <CTableHeaderCell className="text-center">Total</CTableHeaderCell>
-              <CTableHeaderCell className="text-center">%</CTableHeaderCell>
-            </CTableRow>
-          </CTableHead>
-          <CTableBody>
-            {stats.map((s, i) => (
-              <CTableRow key={i}>
-                <CTableDataCell>{s.nome}</CTableDataCell>
-                <CTableDataCell className="text-center text-success fw-bold">{s.acertos}</CTableDataCell>
-                <CTableDataCell className="text-center">{s.total}</CTableDataCell>
-                <CTableDataCell className="text-center">
-                  <CBadge color={s.pct >= 70 ? 'success' : s.pct >= 50 ? 'warning' : 'danger'}>
-                    {s.pct}%
-                  </CBadge>
-                </CTableDataCell>
-              </CTableRow>
-            ))}
-          </CTableBody>
-        </CTable>
-      </CCardBody>
-    </CCard>
+    <div style={{ padding: 24 }}>
+      {[...Array(5)].map((_, i) => (
+        <div
+          key={i}
+          style={{
+            height: 52,
+            background: `linear-gradient(90deg,${bg} 25%,${pulse} 50%,${bg} 75%)`,
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 1.4s infinite',
+            animationDelay: `${i * 0.1}s`,
+            borderRadius: 8,
+            marginBottom: 12,
+          }}
+        />
+      ))}
+    </div>
   )
 }
 
-/**
- * Feature 2 — Multi-select de matérias
- * Dropdown customizado com checkboxes. Fecha ao clicar fora.
- */
+/* ─── Componente de dropdown multi-matérias ───────────────────────────────────── */
+
 const MateriaMultiSelect = ({ materias, selected, onChange }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -214,26 +179,14 @@ const MateriaMultiSelect = ({ materias, selected, onChange }) => {
           <div className="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
             <small className="text-body-secondary">Selecione as matérias</small>
             {selected.length > 0 && (
-              <small
-                className="text-primary"
-                style={{ cursor: 'pointer' }}
-                onClick={() => onChange([])}
-              >
+              <small className="text-primary" style={{ cursor: 'pointer' }} onClick={() => onChange([])}>
                 Limpar
               </small>
             )}
           </div>
           {materias.map(m => (
-            <label
-              key={m.id}
-              className="d-flex align-items-center gap-2 px-3 py-2"
-              style={{ cursor: 'pointer', margin: 0 }}
-            >
-              <input
-                type="checkbox"
-                checked={selected.includes(String(m.id))}
-                onChange={() => toggle(m.id)}
-              />
+            <label key={m.id} className="d-flex align-items-center gap-2 px-3 py-2" style={{ cursor: 'pointer', margin: 0 }}>
+              <input type="checkbox" checked={selected.includes(String(m.id))} onChange={() => toggle(m.id)} />
               <span style={{ fontSize: 14 }}>{m.nome}</span>
             </label>
           ))}
@@ -243,22 +196,51 @@ const MateriaMultiSelect = ({ materias, selected, onChange }) => {
   )
 }
 
-/* ─── Componente principal ───────────────────────────────────────────────── */
+/* ─── Tabela de revisão ──────────────────────────────────────────────────────── */
+
+const ReviewTable = ({ questionsAndAnswers, isDark, T }) => (
+  <div style={{ overflowX: 'auto', animation: 'fade-up .35s ease' }}>
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <thead>
+        <tr style={{ background: T.surface }}>
+          {['#', 'Pergunta', 'Sua resposta', 'Correta', ''].map(h => (
+            <th key={h} style={{
+              padding: '10px 14px', textAlign: 'left', color: T.muted, fontSize: 11, fontWeight: 700,
+              letterSpacing: '0.07em', textTransform: 'uppercase', borderBottom: `1px solid ${T.border}`, whiteSpace: 'nowrap',
+            }}>
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {questionsAndAnswers.map((item, i) => (
+          <tr key={i} style={{ borderBottom: `1px solid ${T.border}`, background: item.isCorrect ? `${T.green}10` : `${T.red}10` }}>
+            <td style={{ padding: '10px 14px', color: T.muted }}>{i + 1}</td>
+            <td style={{ padding: '10px 14px', color: T.text }}>{item.question}</td>
+            <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700, color: item.isCorrect ? T.green : T.red }}>
+              {item.userAnswer}
+            </td>
+            <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700, color: T.green }}>
+              {item.correctAnswer}
+            </td>
+            <td style={{ padding: '10px 14px', textAlign: 'center', fontSize: 16 }}>
+              {item.isCorrect ? '✅' : '❌'}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)
+
+/* ─── Componente Principal ───────────────────────────────────────────────────── */
 
 const Quiz = () => {
-  /* ── State principal ── */
   const [status, setStatus] = useState('ready')
   const [questions, setQuestions] = useState([])
-
-  /**
-   * Feature 5 — Pular questão
-   * `queue` é um array de índices para `questions[]`.
-   * queue[0] = questão atual. Pular move queue[0] para o fim.
-   * Confirmar resposta remove queue[0]. queue vazio = fim do quiz.
-   */
   const [queue, setQueue] = useState([])
   const [skippedSet, setSkippedSet] = useState(new Set())
-
   const [selectedOption, setSelectedOption] = useState('')
   const [score, setScore] = useState(0)
   const [error, setError] = useState('')
@@ -276,34 +258,18 @@ const Quiz = () => {
   const [commentText, setCommentText] = useState('')
   const [commentStatus, setCommentStatus] = useState('idle')
   const [materias, setMaterias] = useState([])
-  const [materiasSelected, setMateriasSelected] = useState([])   // Feature 2
+  const [materiasSelected, setMateriasSelected] = useState([])
   const [quantidade, setQuantidade] = useState(0)
   const [isDark, setIsDark] = useState(false)
-
-  const [showDica, setShowDica] = useState(false)                           // Feature 4
-  const [soundEnabled, setSoundEnabled] = useState(                                 // Feature 8
-    () => localStorage.getItem('quiz_sound') === 'true'
-  )
-  const [focusMode, setFocusMode] = useState(false)                           // Feature 7
-  const [shareMsg, setShareMsg] = useState('')                              // Feature 9
-  const [savedSnapshot, setSavedSnapshot] = useState(null)                           // Feature 6
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [soundEnabled, setSoundEnabled] = useState(() => localStorage.getItem('quiz_sound') === 'true')
+  const [savedSnapshot, setSavedSnapshot] = useState(null)
+  const [showDica, setShowDica] = useState(false)
 
   const nomeAluno = sessionStorage.getItem('nome') || 'Aluno'
+  const T = useMemo(() => getTokens(isDark), [isDark])
 
-  /* ── Derivados ── */
-  const currentIndex = queue[0] ?? 0
-  const currentQuestion = status === 'quiz' ? questions[currentIndex] : null
-  const totalAnswered = questionsAndAnswers.length
-  const totalQuestions = questions.length
-  const finalScore = calculateScore(totalAnswered || totalQuestions, score)
-  const timerCritical = remainingSeconds <= 60
-  const progress = totalQuestions ? (totalAnswered / totalQuestions) * 100 : 0
-  const isRevisiting = status === 'quiz' && skippedSet.has(currentIndex)
-  const pendingSkipped = skippedSet.size - (isRevisiting ? 1 : 0)
-  const grade = useMemo(() => calculateGrade(finalScore), [finalScore])
-  const gradeColor = finalScore >= 90 ? 'success' : finalScore >= 70 ? 'info' : finalScore >= 60 ? 'warning' : 'danger'
-
-  /* ── Detecção de tema ── */
+  /* ── Detecção de tema ──────────────────────────────────────────────────────── */
   useEffect(() => {
     const check = () => setIsDark(document.documentElement.getAttribute('data-coreui-theme') === 'dark')
     check()
@@ -312,16 +278,40 @@ const Quiz = () => {
     return () => obs.disconnect()
   }, [])
 
-  /* ── Feature 6: verificar estado salvo ao montar ── */
-  useEffect(() => {
-    const raw = sessionStorage.getItem(SESSION_KEY)
-    if (raw) {
-      try { setSavedSnapshot(JSON.parse(raw)) }
-      catch { sessionStorage.removeItem(SESSION_KEY) }
+  /* ── Fullscreen ────────────────────────────────────────────────────────────── */
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => { })
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => { })
     }
   }, [])
 
-  /* ── Feature 6: salvar estado durante o quiz ── */
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', handler)
+    return () => document.removeEventListener('fullscreenchange', handler)
+  }, [])
+
+  /* ── Som ───────────────────────────────────────────────────────────────────── */
+  useEffect(() => { localStorage.setItem('quiz_sound', String(soundEnabled)) }, [soundEnabled])
+
+  /* ── Buscar matérias ───────────────────────────────────────────────────────── */
+  useEffect(() => {
+    fetch(`${API_URL}/api/admin/materias`)
+      .then(r => r.json())
+      .then(d => setMaterias(Array.isArray(d) ? d : []))
+      .catch(() => { })
+  }, [])
+
+  /* ── Snapshot (salvar estado) ───────────────────────────────────────────────── */
+  useEffect(() => {
+    const raw = sessionStorage.getItem(SESSION_KEY)
+    if (raw) {
+      try { setSavedSnapshot(JSON.parse(raw)) } catch { sessionStorage.removeItem(SESSION_KEY) }
+    }
+  }, [])
+
   useEffect(() => {
     if (status !== 'quiz') return
     try {
@@ -333,37 +323,11 @@ const Quiz = () => {
     } catch { }
   }, [status, queue, score, questionsAndAnswers, remainingSeconds])
 
-  /* ── Feature 6: limpar ao terminar ── */
   useEffect(() => {
     if (status === 'finished') sessionStorage.removeItem(SESSION_KEY)
   }, [status])
 
-  /* ── Feature 7: modo foco ── */
-  useEffect(() => {
-    let el = document.getElementById('quiz-focus-style')
-    if (!el) {
-      el = document.createElement('style')
-      el.id = 'quiz-focus-style'
-      document.head.appendChild(el)
-    }
-    el.textContent = focusMode
-      ? '.sidebar, .sidebar-backdrop { display: none !important; } .wrapper { --cui-sidebar-occupy-start: 0 !important; }'
-      : ''
-    return () => { el.textContent = '' }
-  }, [focusMode])
-
-  /* ── Feature 8: persistir preferência de som ── */
-  useEffect(() => { localStorage.setItem('quiz_sound', String(soundEnabled)) }, [soundEnabled])
-
-  /* ── Fetch matérias ── */
-  useEffect(() => {
-    fetch(`${API_URL}/api/admin/materias`)
-      .then(r => r.json())
-      .then(d => setMaterias(Array.isArray(d) ? d : []))
-      .catch(() => { })
-  }, [])
-
-  /* ── Timer ── */
+  /* ── Timer ─────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     if (status !== 'quiz' || isAnswerConfirmed) return
     const t = setInterval(() => setRemainingSeconds(p => p - 1), 1000)
@@ -381,9 +345,8 @@ const Quiz = () => {
     if (status === 'finished' && !saved) handleSaveSession()
   }, [status, saved])
 
-  /* ─── Funções de controle ─────────────────────────────────────────────── */
+  /* ── Lógica do quiz ────────────────────────────────────────────────────────── */
 
-  /** Inicia o quiz com um tempo específico (evita race condition de setState) */
   const startQuizWithTime = (questionsData, timeLimit) => {
     const indices = [...Array(questionsData.length).keys()]
     setError(''); setFeedback('')
@@ -397,7 +360,6 @@ const Quiz = () => {
 
   const startQuiz = (questionsData) => startQuizWithTime(questionsData, tempoLimite)
 
-  /* Feature 6: retomar estado salvo */
   const resumeSnapshot = (snapshot) => {
     setQuestions(snapshot.questions); setQueue(snapshot.queue); setScore(snapshot.score)
     setQuestionsAndAnswers(snapshot.questionsAndAnswers); setTempoLimite(snapshot.tempoLimite)
@@ -416,14 +378,10 @@ const Quiz = () => {
       let data = await res.json()
       if (!res.ok || !Array.isArray(data) || data.length === 0)
         throw new Error('Nenhuma questão encontrada.')
-
-      /* Feature 2: filtrar por matérias selecionadas */
       if (materiasSelected.length > 0) {
         data = data.filter(q => materiasSelected.includes(String(q.materia_id)))
-        if (data.length === 0)
-          throw new Error('Nenhuma questão para as matérias selecionadas.')
+        if (data.length === 0) throw new Error('Nenhuma questão para as matérias selecionadas.')
       }
-
       let pool = shuffle(data)
       if (quantidade > 0 && quantidade < pool.length) pool = pool.slice(0, quantidade)
       startQuiz(pool)
@@ -449,22 +407,20 @@ const Quiz = () => {
 
   const handleConfirmAnswer = () => {
     if (!selectedOption) { setError('Selecione uma alternativa.'); return }
-    const q = questions[currentIndex]
+    const q = questions[queue[0]]
     const isCorrect = selectedOption === q.answer
     setQuestionsAndAnswers(prev => [...prev, {
-      id: q.id, question: q.question,
-      userAnswer: selectedOption, correctAnswer: q.answer, isCorrect,
+      id: q.id, question: q.question, userAnswer: selectedOption, correctAnswer: q.answer, isCorrect,
       materia_nome: q.materia_nome || q.materia,
     }])
     if (isCorrect) setScore(p => p + 1)
     setError(''); setIsAnswerConfirmed(true)
-    playSound(isCorrect, soundEnabled)                                  // Feature 8
-    setSkippedSet(prev => { const n = new Set(prev); n.delete(currentIndex); return n })
+    playSound(isCorrect, soundEnabled)
+    setSkippedSet(prev => { const n = new Set(prev); n.delete(queue[0]); return n })
   }
 
   const handleNextQuestion = () => {
-    setIsAnswerConfirmed(false); setIsConfusing(false)
-    setCommentText(''); setCommentStatus('idle'); setShowDica(false)
+    setIsAnswerConfirmed(false); setIsConfusing(false); setCommentText(''); setCommentStatus('idle'); setShowDica(false)
     const newQueue = queue.slice(1)
     if (newQueue.length === 0) {
       setElapsedSeconds(Math.round((Date.now() - startTime) / 1000))
@@ -473,10 +429,9 @@ const Quiz = () => {
     setQueue(newQueue); setSelectedOption('')
   }
 
-  /* Feature 5: Pular questão — move para o fim da fila */
   const handleSkip = () => {
     if (queue.length <= 1) return
-    setSkippedSet(prev => new Set([...prev, currentIndex]))
+    setSkippedSet(prev => new Set([...prev, queue[0]]))
     setQueue(q => [...q.slice(1), q[0]])
     setSelectedOption(''); setIsAnswerConfirmed(false); setShowDica(false)
     setIsConfusing(false); setCommentText(''); setCommentStatus('idle')
@@ -486,16 +441,14 @@ const Quiz = () => {
     if (!commentText.trim() && !isConfusing) return
     setCommentStatus('sending')
     try {
-      const q = questions[currentIndex]
+      const q = questions[queue[0]]
       await fetch(`${API_URL}/api/feedbacks_questoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questao_id: q.id, nome_aluno: nomeAluno, texto: commentText, marcada_confusa: isConfusing }),
       })
       setCommentStatus('sent')
-    } catch {
-      setError('Falha ao enviar comentário.'); setCommentStatus('idle')
-    }
+    } catch { setError('Falha ao enviar comentário.'); setCommentStatus('idle') }
   }
 
   const handleFinishEarly = () => {
@@ -506,7 +459,6 @@ const Quiz = () => {
     setStatus('finished')
   }
 
-  /* Feature 1: Refazer apenas os erros */
   const handleRetryErrors = () => {
     const wrongIds = new Set(questionsAndAnswers.filter(qa => !qa.isCorrect).map(qa => qa.id))
     const wrongQuestions = questions.filter(q => wrongIds.has(q.id))
@@ -518,7 +470,6 @@ const Quiz = () => {
 
   const handleReset = () => {
     sessionStorage.removeItem(SESSION_KEY)
-    setFocusMode(false)
     setStatus('ready'); setQuestions([]); setQuestionsAndAnswers([])
     setQueue([]); setSkippedSet(new Set())
     setScore(0); setFeedback(''); setError(''); setSaved(false)
@@ -549,12 +500,9 @@ const Quiz = () => {
       })
       if (!res.ok) throw new Error()
       setSaved(true); setFeedback('Sessão salva com sucesso no dashboard.')
-    } catch {
-      setError('Não foi possível salvar a sessão.')
-    } finally { setSaving(false) }
+    } catch { setError('Não foi possível salvar a sessão.') } finally { setSaving(false) }
   }
 
-  /* Feature 9: Compartilhar resultado */
   const handleShare = async () => {
     const m = Math.floor(elapsedSeconds / 60)
     const s = elapsedSeconds % 60
@@ -562,163 +510,152 @@ const Quiz = () => {
     try {
       if (navigator.share) {
         await navigator.share({ title: 'Quiz de Contabilidade', text })
-        setShareMsg('✅ Compartilhado!')
       } else {
         await navigator.clipboard.writeText(text)
-        setShareMsg('✅ Copiado para a área de transferência!')
+        alert('✅ Copiado!')
       }
     } catch { }
-    setTimeout(() => setShareMsg(''), 3000)
   }
 
-  /* ─── Render ─────────────────────────────────────────────────────────── */
+  /* ── Derivados ─────────────────────────────────────────────────────────────── */
+
+  const currentIndex = queue[0] ?? 0
+  const currentQuestion = status === 'quiz' ? questions[currentIndex] : null
+  const totalAnswered = questionsAndAnswers.length
+  const totalQuestions = questions.length
+  const finalScore = calculateScore(totalAnswered || totalQuestions, score)
+  const timerCritical = remainingSeconds <= 60
+  const progress = totalQuestions ? (totalAnswered / totalQuestions) * 100 : 0
+  const isRevisiting = status === 'quiz' && skippedSet.has(currentIndex)
+  const pendingSkipped = skippedSet.size - (isRevisiting ? 1 : 0)
+  const grade = useMemo(() => calculateGrade(finalScore), [finalScore])
+  const gradeColor = finalScore >= 90 ? 'success' : finalScore >= 70 ? 'info' : finalScore >= 60 ? 'warning' : 'danger'
+
+  /* ── Render ────────────────────────────────────────────────────────────────── */
+
+  const cardBg = isDark ? '#1a2535' : '#ffffff'
+  const cardBorder = isDark ? '#2d3f52' : '#e2e8f0'
+  const bgPage = isDark ? '#111b27' : '#f4f7fa'
 
   return (
-    <CContainer className="py-4">
+    <CContainer fluid style={{ background: bgPage, minHeight: '100vh', padding: '24px' }}>
+      <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}@keyframes fade-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+
+      {/* Snapshot retomada */}
+      {savedSnapshot && status === 'ready' && (
+        <CAlert color="warning" className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+          <span>📌 Você tem um quiz em andamento ({savedSnapshot.questionsAndAnswers?.length ?? 0} questões respondidas).</span>
+          <div className="d-flex gap-2 flex-shrink-0">
+            <CButton color="warning" size="sm" onClick={() => resumeSnapshot(savedSnapshot)}>Continuar</CButton>
+            <CButton color="secondary" size="sm" variant="outline" onClick={() => { setSavedSnapshot(null); sessionStorage.removeItem(SESSION_KEY) }}>Descartar</CButton>
+          </div>
+        </CAlert>
+      )}
+
       <CRow className="justify-content-center">
         <CCol xs={12} xl={10}>
-          <CCard className="shadow-sm">
-
-            {/* ── Cabeçalho ── */}
-            <CCardHeader className={`d-flex justify-content-between align-items-center flex-wrap gap-2 ${isDark ? 'text-light' : ''}`}>
-              <div className="d-flex align-items-center gap-2 flex-wrap">
-                <h4 className="mb-0">📘 Quiz de Contabilidade</h4>
-                {/* Feature 7: Modo foco */}
+          <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, overflow: 'hidden', boxShadow: isDark ? '0 8px 40px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)' }}>
+            {/* Cabeçalho */}
+            <div style={{ padding: '16px 24px', borderBottom: `1px solid ${cardBorder}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+              <h4 style={{ color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 800, margin: 0, fontSize: 18 }}>
+                📘 Quiz de Contabilidade
+              </h4>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 {status === 'quiz' && (
-                  <CButton
-                    color={focusMode ? 'warning' : 'secondary'}
-                    variant="outline" size="sm"
-                    onClick={() => setFocusMode(f => !f)}
-                    title={focusMode ? 'Sair do modo foco' : 'Ativar modo foco (oculta sidebar)'}
-                  >
-                    {focusMode ? '⊠ Sair do foco' : '⛶ Modo foco'}
-                  </CButton>
-                )}
-              </div>
-              <div className="d-flex align-items-center gap-2">
-                {/* Feature 8: Toggle som */}
-                <CButton
-                  color="secondary" variant="outline" size="sm"
-                  onClick={() => setSoundEnabled(s => !s)}
-                  title={soundEnabled ? 'Desativar som' : 'Ativar som'}
-                >
-                  {soundEnabled ? '🔊 Som' : '🔇 Mudo'}
-                </CButton>
-                {/* Timer */}
-                {status === 'quiz' && (
-                  <CBadge color={timerCritical ? 'danger' : 'info'} className="fs-6">
+                  <CBadge color={timerCritical ? 'danger' : 'info'} style={{ fontSize: 14, padding: '6px 12px' }}>
                     ⏱ {formatSeconds(remainingSeconds)}
                   </CBadge>
                 )}
+                <CButton color="link" size="sm" onClick={toggleFullscreen} title="Modo Foco">
+                  <CIcon icon={isFullscreen ? cilFullscreenExit : cilFullscreen} size="lg" />
+                </CButton>
               </div>
-            </CCardHeader>
+            </div>
 
-            <CCardBody>
+            {/* Corpo */}
+            <div style={{ padding: 24 }}>
+
               {error && <CAlert color="danger" dismissible onClose={() => setError('')}>{error}</CAlert>}
               {feedback && <CAlert color="info">{feedback}</CAlert>}
 
               {/* ══ READY ══════════════════════════════════════════════════════════ */}
               {status === 'ready' && (
-                <>
-                  {/* Feature 6: Prompt de retomada */}
-                  {savedSnapshot && (
-                    <CAlert color="warning" className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-                      <span>📌 Você tem um quiz em andamento ({savedSnapshot.questionsAndAnswers?.length ?? 0} questões respondidas). Deseja continuar?</span>
-                      <div className="d-flex gap-2 flex-shrink-0">
-                        <CButton color="warning" size="sm" onClick={() => resumeSnapshot(savedSnapshot)}>Continuar</CButton>
-                        <CButton color="secondary" size="sm" variant="outline" onClick={() => { setSavedSnapshot(null); sessionStorage.removeItem(SESSION_KEY) }}>Descartar</CButton>
-                      </div>
-                    </CAlert>
-                  )}
+                <div style={{ animation: 'fade-up .35s ease' }}>
+                  <div style={{ textAlign: 'center', marginBottom: 32 }}>
+                    <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
+                    <h5 style={{ color: T.text, fontWeight: 800, marginBottom: 8 }}>Pronto para testar seus conhecimentos?</h5>
+                    <p style={{ color: T.muted, fontSize: 14 }}>Configure sua sessão abaixo ou inicie o simulado rápido.</p>
+                  </div>
 
-                  <h5 className="mb-4 text-center">🎯 Configurar Quiz</h5>
                   <CRow className="g-3 mb-4">
-                    {/* Feature 2: Multi-select matérias */}
                     <CCol md={4}>
-                      <label className="form-label">Matéria(s)</label>
-                      <MateriaMultiSelect
-                        materias={materias}
-                        selected={materiasSelected}
-                        onChange={setMateriasSelected}
-                      />
+                      <label className="form-label" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: T.muted }}>Matéria(s)</label>
+                      <MateriaMultiSelect materias={materias} selected={materiasSelected} onChange={setMateriasSelected} />
                     </CCol>
                     <CCol md={4}>
-                      <label className="form-label">Nº de Questões</label>
+                      <label className="form-label" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: T.muted }}>Nº de Questões</label>
                       <CFormSelect value={quantidade} onChange={e => setQuantidade(Number(e.target.value))}>
                         {QTD_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                       </CFormSelect>
                     </CCol>
                     <CCol md={4}>
-                      <label className="form-label">Tempo Limite</label>
+                      <label className="form-label" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: T.muted }}>Tempo Limite</label>
                       <CFormSelect value={tempoLimite} onChange={e => setTempoLimite(Number(e.target.value))}>
                         {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                       </CFormSelect>
                     </CCol>
                   </CRow>
-                  <div className="d-grid gap-2">
-                    <CButton color="primary" size="lg" onClick={fetchAndStart}>▶ Iniciar Quiz Personalizado</CButton>
-                    <CButton color="success" size="lg" variant="outline" onClick={fetchAndStartSimuladoRapido}>⚡ Simulado Rápido (10 questões, 10 min)</CButton>
-                  </div>
-                </>
-              )}
 
-              {/* ══ LOADING ═══════════════════════════════════════════════════════ */}
-              {status === 'loading' && (
-                <div className="text-center py-5">
-                  <CSpinner color="primary" />
-                  <p className="mt-3 text-body-secondary">Carregando questões...</p>
+                  <div className="d-grid gap-2">
+                    <button onClick={fetchAndStart} style={{
+                      background: `linear-gradient(135deg, ${T.blue}cc, ${T.purple}cc)`,
+                      border: 'none', borderRadius: 10, padding: '14px', color: '#fff', fontWeight: 800,
+                      fontSize: 15, cursor: 'pointer', transition: 'transform .15s',
+                    }}>
+                      ▶ Iniciar Quiz Personalizado
+                    </button>
+                    <button onClick={fetchAndStartSimuladoRapido} style={{
+                      background: `${T.green}18`, border: `1px solid ${T.green}50`, borderRadius: 10,
+                      padding: '13px', color: T.green, fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                      transition: 'transform .15s',
+                    }}>
+                      ⚡ Simulado Rápido — 10 Questões · 10 min
+                    </button>
+                  </div>
                 </div>
               )}
 
+              {/* ══ LOADING ═══════════════════════════════════════════════════════ */}
+              {status === 'loading' && <SkeletonQuiz isDark={isDark} />}
+
               {/* ══ QUIZ ══════════════════════════════════════════════════════════ */}
               {status === 'quiz' && currentQuestion && (
-                <>
+                <div style={{ animation: 'fade-up .3s ease' }}>
                   {/* Progresso */}
-                  <div className="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
-                    <span className="small text-body-secondary">
-                      Respondidas: <strong>{totalAnswered}</strong> de {totalQuestions}
-                    </span>
-                    <div className="d-flex gap-2 align-items-center flex-wrap">
-                      {/* Feature 5: indicador de puladas */}
-                      {pendingSkipped > 0 && (
-                        <CBadge color="warning" title="Questões puladas aguardando resposta">
-                          ⏭ {pendingSkipped} pulada{pendingSkipped > 1 ? 's' : ''}
-                        </CBadge>
-                      )}
-                      {isRevisiting && (
-                        <CBadge color="info">🔄 Revisitando questão pulada</CBadge>
-                      )}
-                      <small className="text-body-secondary">{Math.round(progress)}%</small>
-                    </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <small style={{ color: T.muted }}>Questão {totalAnswered + 1} de {totalQuestions}</small>
+                    <small style={{ color: T.muted }}>{Math.round(progress)}%</small>
                   </div>
-                  <CProgress value={progress} className="mb-4" color="primary" />
+                  <CProgress value={progress} color="primary" className="mb-4" height={6} />
 
-                  {/* Feature 4: Dica (se a questão tiver o campo `dica`) */}
                   {currentQuestion.dica && !isAnswerConfirmed && (
                     <div className="mb-3">
-                      <CButton
-                        color="warning" variant="outline" size="sm"
-                        onClick={() => setShowDica(d => !d)}
-                      >
-                        💡 {showDica ? 'Ocultar dica' : 'Ver dica'}
-                      </CButton>
-                      {showDica && (
-                        <CAlert color="warning" className="mt-2 mb-0 py-2 small">
-                          <strong>💡 Dica:</strong> {currentQuestion.dica}
-                        </CAlert>
-                      )}
+                      <CButton color="warning" variant="outline" size="sm" onClick={() => setShowDica(d => !d)}>💡 {showDica ? 'Ocultar dica' : 'Ver dica'}</CButton>
+                      {showDica && <CAlert color="warning" className="mt-2 mb-0 py-2 small"><strong>💡 Dica:</strong> {currentQuestion.dica}</CAlert>}
                     </div>
                   )}
 
-                  <p className="fs-5 mb-4">{currentQuestion.question}</p>
+                  <p style={{ fontSize: 16, color: T.text, fontWeight: 600, marginBottom: 20, lineHeight: 1.6 }}>
+                    {currentQuestion.question}
+                  </p>
 
-                  {/* Alternativas */}
                   <div className="d-grid gap-2 mb-4">
                     {currentQuestion.options.map((option, idx) => {
                       const val = LETTERS[idx]
                       const isSelected = selectedOption === val
                       const isCorrectAnswer = val === currentQuestion.answer
                       let color = 'secondary', variant = 'outline'
+                      let bg = 'transparent'
                       if (isAnswerConfirmed) {
                         if (isCorrectAnswer) { color = 'success'; variant = undefined }
                         else if (isSelected) { color = 'danger'; variant = undefined }
@@ -728,6 +665,7 @@ const Quiz = () => {
                           disabled={isAnswerConfirmed}
                           onClick={() => !isAnswerConfirmed && setSelectedOption(val)}
                           className="text-start py-2"
+                          style={{ fontWeight: isSelected || isAnswerConfirmed ? 700 : 400, transition: 'all .15s' }}
                         >
                           <strong>{val}.</strong> {option}
                         </CButton>
@@ -735,227 +673,178 @@ const Quiz = () => {
                     })}
                   </div>
 
-                  {/* Feedback de resposta */}
                   {isAnswerConfirmed && (
                     <CAlert color={selectedOption === currentQuestion.answer ? 'success' : 'danger'}>
                       <CIcon icon={selectedOption === currentQuestion.answer ? cilCheckCircle : cilXCircle} className="me-2" />
                       {selectedOption === currentQuestion.answer ? 'Correto!' : 'Incorreto'} — Resposta correta: <strong>{currentQuestion.answer}</strong>
                       {currentQuestion.tentativas > 0 && (
-                        <div className="mt-1 small">
-                          👥 {Math.round((currentQuestion.acertos / currentQuestion.tentativas) * 100)}% dos alunos acertaram.
-                        </div>
+                        <div className="mt-1 small">👥 {Math.round((currentQuestion.acertos / currentQuestion.tentativas) * 100)}% dos alunos acertaram.</div>
                       )}
                     </CAlert>
                   )}
 
-                  {/* Ações */}
-                  <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-                    <div className="d-flex gap-2 flex-wrap">
-                      <CButton color="danger" variant="outline" size="sm"
-                        onClick={handleFinishEarly}
-                        disabled={questionsAndAnswers.length === 0}
-                      >
-                        ⛔ Encerrar
-                      </CButton>
-                      {/* Feature 5: Pular questão */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20, flexWrap: 'wrap', gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <CButton color="danger" variant="outline" size="sm" onClick={handleFinishEarly} disabled={questionsAndAnswers.length === 0}>⛔ Encerrar</CButton>
                       {!isAnswerConfirmed && queue.length > 1 && (
-                        <CButton color="secondary" variant="outline" size="sm" onClick={handleSkip}>
-                          ⏭ Pular
-                        </CButton>
+                        <CButton color="secondary" variant="outline" size="sm" onClick={handleSkip}>⏭ Pular</CButton>
                       )}
                     </div>
-
                     {!isAnswerConfirmed ? (
-                      <CButton color="success" onClick={handleConfirmAnswer} disabled={!selectedOption}>
+                      <button onClick={handleConfirmAnswer} disabled={!selectedOption} style={{
+                        background: selectedOption ? T.green : T.border, border: 'none', borderRadius: 8, padding: '8px 20px',
+                        color: selectedOption ? '#fff' : T.muted, fontWeight: 700, cursor: selectedOption ? 'pointer' : 'not-allowed',
+                        transition: 'all .2s',
+                      }}>
                         Confirmar resposta
-                      </CButton>
+                      </button>
                     ) : (
-                      <CButton color="primary" onClick={handleNextQuestion}>
+                      <button onClick={handleNextQuestion} style={{
+                        background: T.blue, border: 'none', borderRadius: 8, padding: '8px 20px',
+                        color: '#fff', fontWeight: 700, cursor: 'pointer', transition: 'all .2s',
+                      }}>
                         {queue.length <= 1 ? 'Finalizar Quiz ✓' : 'Próxima →'}
-                      </CButton>
+                      </button>
                     )}
                   </div>
 
-                  {/* Painel lateral: explicação + comentários + feedback */}
+                  {/* Painel lateral */}
                   {isAnswerConfirmed && (
                     <CRow className="mt-4">
                       <CCol md={6}>
-                        <CCard>
-                          <CCardHeader className="bg-info text-white">
-                            <CIcon icon={cilLightbulb} className="me-1" /> Explicação do Professor
-                          </CCardHeader>
-                          <CCardBody>
-                            <p style={{ whiteSpace: 'pre-wrap' }}>{currentQuestion.explicacao || 'Nenhuma explicação adicional.'}</p>
-                            {currentQuestion.link_video && (
-                              <div className="ratio ratio-16x9 mt-2">
-                                <iframe src={obterLinkEmbed(currentQuestion.link_video)} title="Vídeo" allowFullScreen />
+                        <div style={{ background: `${T.cyan}08`, border: `1px solid ${T.cyan}30`, borderRadius: 10, overflow: 'hidden' }}>
+                          <div style={{ padding: '10px 14px', background: `${T.cyan}18`, borderBottom: `1px solid ${T.cyan}30`, fontWeight: 700, color: T.cyan, fontSize: 13 }}>
+                            <CIcon icon={cilLightbulb} style={{ width: 14 }} /> Explicação do Professor
+                          </div>
+                          <div style={{ padding: 14, color: T.text, fontSize: 13, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                            {currentQuestion.explicacao || 'Nenhuma explicação adicional.'}
+                          </div>
+                          {currentQuestion.link_video && (
+                            <div style={{ padding: '0 14px 14px' }}>
+                              <div style={{ fontWeight: 700, color: T.red, fontSize: 12, marginBottom: 8 }}><CIcon icon={cilVideo} style={{ width: 13 }} /> Vídeo de Apoio</div>
+                              <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, borderRadius: 8, overflow: 'hidden' }}>
+                                <iframe src={obterLinkEmbed(currentQuestion.link_video)} title="Vídeo" allowFullScreen style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }} />
                               </div>
-                            )}
-                          </CCardBody>
-                        </CCard>
+                            </div>
+                          )}
+                        </div>
                       </CCol>
                       <CCol md={6}>
                         {currentQuestion.comentarios_publicos?.length > 0 && (
-                          <CCard className="mb-3">
-                            <CCardHeader className="bg-success text-white">💬 Comentários da Comunidade</CCardHeader>
-                            <CCardBody>
+                          <div style={{ background: `${T.green}08`, border: `1px solid ${T.green}30`, borderRadius: 10, overflow: 'hidden', marginBottom: 12 }}>
+                            <div style={{ padding: '10px 14px', background: `${T.green}18`, borderBottom: `1px solid ${T.green}30`, fontWeight: 700, color: T.green, fontSize: 13 }}>
+                              💬 Comentários da Comunidade
+                            </div>
+                            <div style={{ padding: 14 }}>
                               {currentQuestion.comentarios_publicos.map((c, i) => (
-                                <div key={i} className="mb-2">
-                                  <strong className="small">{c.nome_aluno}</strong>{' '}
-                                  <small className="text-body-secondary">{new Date(c.data_criacao).toLocaleDateString('pt-BR')}</small>
-                                  <p className="mb-0 fst-italic small">"{c.texto}"</p>
+                                <div key={i} style={{ marginBottom: i < currentQuestion.comentarios_publicos.length - 1 ? 12 : 0 }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <strong style={{ color: T.green, fontSize: 12 }}>{c.nome_aluno}</strong>
+                                    <small style={{ color: T.muted }}>{new Date(c.data_criacao).toLocaleDateString('pt-BR')}</small>
+                                  </div>
+                                  <p style={{ color: T.text, fontSize: 13, margin: '4px 0 0', fontStyle: 'italic' }}>"{c.texto}"</p>
                                   {c.resposta_professor && (
-                                    <div className="ms-3 p-2 border-start border-primary mt-1">
-                                      <small className="fw-bold text-primary">👨‍🏫 Professor:</small>{' '}
-                                      <small>{c.resposta_professor}</small>
+                                    <div style={{ marginTop: 8, marginLeft: 12, padding: '8px 12px', background: `${T.blue}12`, borderLeft: `3px solid ${T.blue}`, borderRadius: '0 6px 6px 0' }}>
+                                      <small style={{ fontWeight: 700, color: T.blue }}>👨‍🏫 Professor:</small>{' '}
+                                      <small style={{ color: T.muted }}>{c.resposta_professor}</small>
                                     </div>
                                   )}
                                 </div>
                               ))}
-                            </CCardBody>
-                          </CCard>
+                            </div>
+                          </div>
                         )}
-                        <CCard>
-                          <CCardBody>
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                              <span className="small fw-bold">💬 Feedback</span>
-                              <CButton
-                                color="warning" size="sm"
-                                variant={isConfusing ? undefined : 'outline'}
-                                onClick={() => setIsConfusing(!isConfusing)}
-                                disabled={commentStatus === 'sent'}
-                              >
-                                {isConfusing ? '⚠️ Confusa' : 'Marcar confusa'}
-                              </CButton>
-                            </div>
-                            <CFormTextarea
-                              placeholder="Descreva sua dúvida..."
-                              value={commentText}
-                              onChange={e => setCommentText(e.target.value)}
-                              maxLength={300}
-                              disabled={commentStatus === 'sent'}
-                            />
-                            <div className="d-flex justify-content-between align-items-center mt-2">
-                              <small className="text-body-secondary">{commentText.length}/300</small>
-                              {commentStatus === 'sent' ? (
-                                <CButton color="success" size="sm" disabled>✅ Enviado</CButton>
-                              ) : (
-                                <CButton color="info" size="sm"
-                                  onClick={handleSendComment}
-                                  disabled={!commentText.trim() && !isConfusing}
-                                >
-                                  Enviar
-                                </CButton>
-                              )}
-                            </div>
-                          </CCardBody>
-                        </CCard>
+                        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: 14 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                            <small style={{ fontWeight: 700, color: T.muted }}>💬 Feedback</small>
+                            <CButton color="warning" size="sm" variant={isConfusing ? undefined : 'outline'} onClick={() => setIsConfusing(!isConfusing)} disabled={commentStatus === 'sent'}>
+                              {isConfusing ? '⚠️ Confusa' : 'Marcar confusa'}
+                            </CButton>
+                          </div>
+                          <CFormTextarea value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Descreva sua dúvida..." maxLength={300} disabled={commentStatus === 'sent'} />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                            <small style={{ color: T.muted }}>{commentText.length}/300</small>
+                            {commentStatus === 'sent' ? (
+                              <CButton color="success" size="sm" disabled>✅ Enviado</CButton>
+                            ) : (
+                              <CButton color="info" size="sm" onClick={handleSendComment} disabled={!commentText.trim() && !isConfusing}>Enviar</CButton>
+                            )}
+                          </div>
+                        </div>
                       </CCol>
                     </CRow>
                   )}
-                </>
+                </div>
               )}
 
-              {/* ══ FINISHED ══════════════════════════════════════════════════════ */}
+              {/* ══ FINISHED ════════════════════════════════════════════════════ */}
               {status === 'finished' && (
-                <>
+                <div style={{ animation: 'fade-up .35s ease' }}>
                   <CNav variant="tabs" className="mb-4">
-                    <CNavItem>
-                      <CNavLink active={activeTab === 'stats'} style={{ cursor: 'pointer' }} onClick={() => setActiveTab('stats')}>📊 Estatísticas</CNavLink>
-                    </CNavItem>
-                    <CNavItem>
-                      <CNavLink active={activeTab === 'qna'} style={{ cursor: 'pointer' }} onClick={() => setActiveTab('qna')}>📋 Revisão</CNavLink>
-                    </CNavItem>
+                    <CNavItem><CNavLink active={activeTab === 'stats'} onClick={() => setActiveTab('stats')}>📊 Estatísticas</CNavLink></CNavItem>
+                    <CNavItem><CNavLink active={activeTab === 'qna'} onClick={() => setActiveTab('qna')}>📋 Revisão</CNavLink></CNavItem>
                   </CNav>
 
                   {activeTab === 'stats' && (
-                    <div className="text-center">
+                    <div style={{ textAlign: 'center' }}>
                       <CBadge color={gradeColor} className="fs-2 px-4 py-2 mb-2">{grade.grade}</CBadge>
-                      {grade.remarks && <p className="text-body-secondary mb-4">{grade.remarks}</p>}
+                      {grade.remarks && <p style={{ color: T.muted, marginBottom: 20 }}>{grade.remarks}</p>}
 
                       <CRow className="g-3 mb-4">
                         <CCol xs={6} md={3}>
-                          <CCard className="text-center border-0">
-                            <CCardBody>
-                              <div className="fs-3 text-primary fw-bold">{finalScore}%</div>
-                              <small className="text-body-secondary">Percentual</small>
-                            </CCardBody>
-                          </CCard>
+                          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: 18 }}>
+                            <div style={{ fontSize: 28, fontWeight: 800, color: T.blue }}>{finalScore}%</div>
+                            <small style={{ color: T.muted }}>Percentual</small>
+                          </div>
                         </CCol>
                         <CCol xs={6} md={3}>
-                          <CCard className="text-center border-0">
-                            <CCardBody>
-                              <div className="fs-3 text-success fw-bold">{score}</div>
-                              <small className="text-body-secondary">Acertos</small>
-                            </CCardBody>
-                          </CCard>
+                          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: 18 }}>
+                            <div style={{ fontSize: 28, fontWeight: 800, color: T.green }}>{score}</div>
+                            <small style={{ color: T.muted }}>Acertos</small>
+                          </div>
                         </CCol>
                         <CCol xs={6} md={3}>
-                          <CCard className="text-center border-0">
-                            <CCardBody>
-                              <div className="fs-3 text-danger fw-bold">{totalAnswered - score}</div>
-                              <small className="text-body-secondary">Erros</small>
-                            </CCardBody>
-                          </CCard>
+                          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: 18 }}>
+                            <div style={{ fontSize: 28, fontWeight: 800, color: T.red }}>{totalAnswered - score}</div>
+                            <small style={{ color: T.muted }}>Erros</small>
+                          </div>
                         </CCol>
                         <CCol xs={6} md={3}>
-                          <CCard className="text-center border-0">
-                            <CCardBody>
-                              <div className="fs-3 fw-bold">
-                                {Math.floor(elapsedSeconds / 60)}m {elapsedSeconds % 60}s
-                              </div>
-                              <small className="text-body-secondary">Tempo</small>
-                            </CCardBody>
-                          </CCard>
+                          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: 18 }}>
+                            <div style={{ fontSize: 28, fontWeight: 800, color: T.amber }}>{Math.floor(elapsedSeconds / 60)}m {elapsedSeconds % 60}s</div>
+                            <small style={{ color: T.muted }}>Tempo</small>
+                          </div>
                         </CCol>
                       </CRow>
 
-                      {/* Feature 9: Compartilhar */}
-                      {shareMsg && <CAlert color="success" className="py-2 mb-3">{shareMsg}</CAlert>}
-
-                      <div className="d-flex justify-content-center gap-2 flex-wrap">
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
                         <CButton color="primary" onClick={handleReplay}>🔄 Refazer</CButton>
-                        {/* Feature 1: Refazer erros */}
                         {score < totalAnswered && (
-                          <CButton color="danger" variant="outline" onClick={handleRetryErrors}>
-                            ❌ Refazer erros ({totalAnswered - score})
-                          </CButton>
+                          <CButton color="danger" variant="outline" onClick={handleRetryErrors}>❌ Refazer erros ({totalAnswered - score})</CButton>
                         )}
-                        {/* Feature 9: Compartilhar */}
-                        <CButton color="success" variant="outline" onClick={handleShare}>
-                          📤 Compartilhar
-                        </CButton>
+                        <CButton color="success" variant="outline" onClick={handleShare}>📤 Compartilhar</CButton>
                         <CButton color="secondary" variant="outline" onClick={handleReset}>🏠 Voltar</CButton>
                       </div>
-
-                      {/* Feature 3: Desempenho por matéria */}
-                      <StatsByMateria
-                        questionsAndAnswers={questionsAndAnswers}
-                        questions={questions}
-                        isDark={isDark}
-                      />
                     </div>
                   )}
 
-                  {activeTab === 'qna' && (
-                    <ReviewTable questionsAndAnswers={questionsAndAnswers} isDark={isDark} />
-                  )}
-                </>
+                  {activeTab === 'qna' && <ReviewTable questionsAndAnswers={questionsAndAnswers} isDark={isDark} T={T} />}
+                </div>
               )}
-            </CCardBody>
+            </div>
 
+            {/* Rodapé */}
             {status === 'finished' && (
-              <CCardFooter className="d-flex justify-content-between align-items-center">
-                <small className={saved ? 'text-success' : 'text-body-secondary'}>
-                  {saved ? '✅ Sessão salva no dashboard' : saving ? '⏳ Salvando...' : ''}
+              <div style={{ padding: '14px 24px', borderTop: `1px solid ${cardBorder}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <small style={{ color: saved ? T.green : T.muted }}>
+                  {saved ? '✅ Sessão salva' : saving ? '⏳ Salvando...' : ''}
                 </small>
                 <CButton color="primary" size="sm" onClick={handleSaveSession} disabled={saving || saved}>
-                  {saving ? '⏳ Salvando...' : saved ? '✅ Sessão salva' : '💾 Salvar sessão'}
+                  {saving ? 'Salvando...' : saved ? '✅ Salvo' : '💾 Salvar sessão'}
                 </CButton>
-              </CCardFooter>
+              </div>
             )}
-
-          </CCard>
+          </div>
         </CCol>
       </CRow>
     </CContainer>
