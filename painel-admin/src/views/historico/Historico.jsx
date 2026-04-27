@@ -16,16 +16,21 @@ import {
   CSpinner,
 } from '@coreui/react'
 import { CChartLine } from '@coreui/react-chartjs'
+import CIcon from '@coreui/icons-react'
+import {
+  cilList,
+  cilStar,
+  cilCheckCircle,
+  cilClock,
+  cilChart,
+} from '@coreui/icons'
 import { API_URL } from '../../config'
 
+// ── Utilitários ────────────────────────────────────────────
 const formatarData = (iso) => {
   if (!iso) return '—'
   const d = new Date(iso)
-  return (
-    d.toLocaleDateString('pt-BR') +
-    ' ' +
-    d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-  )
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
 
 const formatarDataCurta = (iso) => {
@@ -35,34 +40,32 @@ const formatarDataCurta = (iso) => {
 }
 
 const formatarTempo = (seg) => {
-  if (!seg) return '0m 0s'
+  if (!seg) return '0m'
   const m = Math.floor(seg / 60)
   const s = seg % 60
-  return `${m}m ${s}s`
+  return s > 0 ? `${m}m ${s}s` : `${m}m`
 }
 
+// ── Componente de Card de Resumo ────────────────────────────
+const ResumoCard = ({ titulo, valor, cor, icone }) => (
+  <div className={`d-flex align-items-center p-3 rounded-3 shadow-sm border-${cor}`}
+    style={{ backgroundColor: `var(--cui-${cor}-bg-subtle)`, borderLeft: `4px solid var(--cui-${cor})` }}>
+    <div className="me-3 fs-3" style={{ color: `var(--cui-${cor})` }}>
+      <CIcon icon={icone} size="lg" />
+    </div>
+    <div>
+      <div className="text-body-secondary small">{titulo}</div>
+      <div className="fs-4 fw-bold" style={{ color: `var(--cui-${cor})` }}>{valor}</div>
+    </div>
+  </div>
+)
+
+// ── Componente Principal ────────────────────────────────────
 const Historico = () => {
   const [sessoes, setSessoes] = useState([])
   const [loading, setLoading] = useState(true)
-  const [isDark, setIsDark] = useState(false)
   const matricula = sessionStorage.getItem('matricula')
   const nome = sessionStorage.getItem('nome') || 'Aluno'
-
-  // Detectar tema escuro observando o atributo data-coreui-theme no <html>
-  useEffect(() => {
-    const checkTheme = () => {
-      const html = document.documentElement
-      const theme = html.getAttribute('data-coreui-theme')
-      setIsDark(theme === 'dark')
-    }
-    checkTheme()
-    const observer = new MutationObserver(checkTheme)
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-coreui-theme'],
-    })
-    return () => observer.disconnect()
-  }, [])
 
   useEffect(() => {
     if (!matricula) {
@@ -81,11 +84,12 @@ const Historico = () => {
       })
   }, [matricula])
 
+  // ── Estados de loading / vazio ─────────────────────────────
   if (loading) {
     return (
       <div className="text-center py-5">
-        <CSpinner color="primary" />
-        <p className="mt-3 text-medium-emphasis">Carregando seu histórico...</p>
+        <CSpinner color="primary" size="sm" />
+        <p className="mt-3 text-muted small">Carregando seu histórico...</p>
       </div>
     )
   }
@@ -94,150 +98,155 @@ const Historico = () => {
     return <CAlert color="warning">Faça login para ver seu histórico.</CAlert>
   }
 
+  // ── Cálculos para os cards ─────────────────────────────────
+  const totalSessoes = sessoes.length
+  const melhorNota = totalSessoes > 0 ? Math.max(...sessoes.map((s) => s.taxa_acerto)).toFixed(1) : '0'
+  const totalQuestoes = sessoes.reduce((acc, s) => acc + s.questoes, 0)
+  const mediaGeral = totalSessoes > 0
+    ? (sessoes.reduce((acc, s) => acc + s.taxa_acerto, 0) / totalSessoes).toFixed(1)
+    : '0'
+
   const sessoesOrdemCronologica = [...sessoes].reverse()
-  const textMutedClass = isDark ? 'text-light-emphasis' : 'text-body-secondary'
 
   return (
-    <>
-      <h3 className="mb-4">📚 Meu Histórico de Estudos</h3>
-      <p className={`mb-4 ${textMutedClass}`}>
-        Olá, <strong>{nome}</strong>! Aqui estão todas as suas sessões de quiz.
-      </p>
+    <div className="p-3 p-md-4">
+      {/* ── Cabeçalho ────────────────────────────────────── */}
+      <div className="mb-4">
+        <h3 className="mb-1 d-flex align-items-center gap-2">
+          <CIcon icon={cilList} size="lg" className="text-primary" />
+          Meu Histórico de Estudos
+        </h3>
+        <p className="text-muted small mb-0">
+          Olá, <strong>{nome}</strong>! Acompanhe todas as suas sessões de quiz.
+        </p>
+      </div>
 
-      {sessoes.length === 0 ? (
-        <CAlert color="secondary">
-          Você ainda não completou nenhum quiz. Comece agora na aba <strong>Quiz</strong>!
-        </CAlert>
+      {/* ── Conteúdo ─────────────────────────────────────── */}
+      {totalSessoes === 0 ? (
+        <CCard className="text-center p-5 border-0 shadow-sm">
+          <CCardBody>
+            <div className="fs-1 mb-3">📚</div>
+            <h5 className="text-muted">Nenhum quiz realizado</h5>
+            <p className="text-muted small">Comece agora na aba <strong>Quiz</strong> para construir seu histórico.</p>
+          </CCardBody>
+        </CCard>
       ) : (
-        <CRow>
-          <CCol xs={12}>
-            <CRow className="mb-4">
-              <CCol xs={6} md={3}>
-                <div
-                  className={`border-start border-start-4 border-start-primary py-1 px-3 ${isDark ? 'bg-dark-subtle' : ''}`}
-                >
-                  <div className={`small ${textMutedClass}`}>Total de Sessões</div>
-                  <div className="fs-5 fw-semibold">{sessoes.length}</div>
-                </div>
-              </CCol>
-              <CCol xs={6} md={3}>
-                <div
-                  className={`border-start border-start-4 border-start-success py-1 px-3 ${isDark ? 'bg-dark-subtle' : ''}`}
-                >
-                  <div className={`small ${textMutedClass}`}>Melhor Nota</div>
-                  <div className="fs-5 fw-semibold">
-                    {Math.max(...sessoes.map((s) => s.taxa_acerto)).toFixed(1)}%
-                  </div>
-                </div>
-              </CCol>
-              <CCol xs={6} md={3}>
-                <div
-                  className={`border-start border-start-4 border-start-info py-1 px-3 ${isDark ? 'bg-dark-subtle' : ''}`}
-                >
-                  <div className={`small ${textMutedClass}`}>Total de Questões</div>
-                  <div className="fs-5 fw-semibold">
-                    {sessoes.reduce((acc, s) => acc + s.questoes, 0)}
-                  </div>
-                </div>
-              </CCol>
-              <CCol xs={6} md={3}>
-                <div
-                  className={`border-start border-start-4 border-start-warning py-1 px-3 ${isDark ? 'bg-dark-subtle' : ''}`}
-                >
-                  <div className={`small ${textMutedClass}`}>Média Geral</div>
-                  <div className="fs-5 fw-semibold">
-                    {(sessoes.reduce((acc, s) => acc + s.taxa_acerto, 0) / sessoes.length).toFixed(
-                      1,
-                    )}
-                    %
-                  </div>
-                </div>
-              </CCol>
-            </CRow>
+        <>
+          {/* ── Cards de resumo ────────────────────────── */}
+          <CRow className="g-3 mb-4">
+            <CCol xs={6} md={3}>
+              <ResumoCard
+                titulo="Total de Sessões"
+                valor={totalSessoes}
+                cor="primary"
+                icone={cilList}
+              />
+            </CCol>
+            <CCol xs={6} md={3}>
+              <ResumoCard
+                titulo="Melhor Nota"
+                valor={`${melhorNota}%`}
+                cor="success"
+                icone={cilStar}
+              />
+            </CCol>
+            <CCol xs={6} md={3}>
+              <ResumoCard
+                titulo="Questões Realizadas"
+                valor={totalQuestoes}
+                cor="info"
+                icone={cilCheckCircle}
+              />
+            </CCol>
+            <CCol xs={6} md={3}>
+              <ResumoCard
+                titulo="Média Geral"
+                valor={`${mediaGeral}%`}
+                cor="warning"
+                icone={cilChart}
+              />
+            </CCol>
+          </CRow>
 
-            {sessoes.length >= 2 && (
-              <CCard className="mb-4">
-                <CCardHeader>
-                  <strong>📈 Evolução do Desempenho</strong>
-                </CCardHeader>
-                <CCardBody>
-                  <CChartLine
-                    data={{
-                      labels: sessoesOrdemCronologica.map((s) => formatarDataCurta(s.data)),
-                      datasets: [
-                        {
-                          label: 'Nota (%)',
-                          backgroundColor: 'rgba(75, 192, 192, 0.15)',
-                          borderColor: 'rgba(75, 192, 192, 1)',
-                          pointBackgroundColor: sessoesOrdemCronologica.map((s) =>
-                            s.taxa_acerto >= 80
-                              ? '#2eb85c'
-                              : s.taxa_acerto >= 60
-                                ? '#f9b115'
-                                : '#e55353',
-                          ),
-                          pointRadius: 5,
-                          pointHoverRadius: 7,
-                          fill: true,
-                          tension: 0.3,
-                          data: sessoesOrdemCronologica.map((s) => s.taxa_acerto.toFixed(1)),
-                        },
-                      ],
-                    }}
-                    options={{
-                      responsive: true,
-                      plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                          callbacks: {
-                            title: (ctx) => {
-                              const idx = ctx[0].dataIndex
-                              const s = sessoesOrdemCronologica[idx]
-                              return `${formatarData(s.data)} — ${s.assunto}`
-                            },
-                            label: (ctx) => `Nota: ${ctx.raw}%`,
-                          },
-                        },
-                      },
-                      scales: {
-                        y: {
-                          min: 0,
-                          max: 100,
-                          ticks: { callback: (v) => `${v}%` },
-                        },
-                      },
-                    }}
-                  />
-                  <div className="d-flex justify-content-center gap-4 mt-3 small">
-                    <span>
-                      <span className="badge bg-success">&nbsp;</span> ≥ 80%
-                    </span>
-                    <span>
-                      <span className="badge bg-warning">&nbsp;</span> 60-79%
-                    </span>
-                    <span>
-                      <span className="badge bg-danger">&nbsp;</span> &lt; 60%
-                    </span>
-                  </div>
-                </CCardBody>
-              </CCard>
-            )}
-
-            <CCard>
-              <CCardHeader>
-                <strong>Detalhes das Sessões</strong>
+          {/* ── Gráfico de evolução ────────────────────── */}
+          {sessoes.length >= 2 && (
+            <CCard className="mb-4 shadow-sm border-0">
+              <CCardHeader className="bg-transparent border-0 d-flex align-items-center gap-2">
+                <CIcon icon={cilChart} className="text-primary" />
+                <strong>Evolução do Desempenho</strong>
               </CCardHeader>
               <CCardBody>
-                <CTable
-                  align="middle"
-                  hover
-                  responsive
-                  bordered
-                  {...(isDark ? { color: 'dark' } : {})}
-                >
-                  <CTableHead color="dark" className="text-nowrap">
+                <CChartLine
+                  data={{
+                    labels: sessoesOrdemCronologica.map((s) => formatarDataCurta(s.data)),
+                    datasets: [
+                      {
+                        label: 'Nota (%)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.15)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        pointBackgroundColor: sessoesOrdemCronologica.map((s) =>
+                          s.taxa_acerto >= 80 ? '#2eb85c' : s.taxa_acerto >= 60 ? '#f9b115' : '#e55353'
+                        ),
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        fill: true,
+                        tension: 0.3,
+                        data: sessoesOrdemCronologica.map((s) => s.taxa_acerto.toFixed(1)),
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: {
+                        backgroundColor: '#1e2a38',
+                        titleColor: '#7eb8f7',
+                        bodyColor: '#e0e8f0',
+                        borderColor: '#2d3f52',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false,
+                      },
+                    },
+                    scales: {
+                      y: {
+                        min: 0,
+                        max: 100,
+                        ticks: {
+                          callback: (v) => `${v}%`,
+                          color: '#8a9bb0',
+                        },
+                        grid: { color: '#2d3f52' },
+                      },
+                      x: {
+                        ticks: { color: '#8a9bb0' },
+                        grid: { display: false },
+                      },
+                    },
+                  }}
+                />
+                <div className="d-flex justify-content-center gap-4 mt-3 small text-muted">
+                  <span><span className="badge bg-success">&nbsp;</span> ≥ 80%</span>
+                  <span><span className="badge bg-warning">&nbsp;</span> 60-79%</span>
+                  <span><span className="badge bg-danger">&nbsp;</span> &lt; 60%</span>
+                </div>
+              </CCardBody>
+            </CCard>
+          )}
+
+          {/* ── Tabela de detalhes ──────────────────────── */}
+          <CCard className="shadow-sm border-0">
+            <CCardHeader className="bg-transparent border-0 d-flex align-items-center gap-2">
+              <CIcon icon={cilClock} className="text-primary" />
+              <strong>Detalhes das Sessões</strong>
+            </CCardHeader>
+            <CCardBody className="p-0 p-md-3">
+              <div className="table-responsive">
+                <CTable align="middle" hover className="mb-0">
+                  <CTableHead className="text-nowrap" color="light">
                     <CTableRow>
-                      <CTableHeaderCell className="text-center">#</CTableHeaderCell>
+                      <CTableHeaderCell className="text-center" style={{ width: '40px' }}>#</CTableHeaderCell>
                       <CTableHeaderCell>Data</CTableHeaderCell>
                       <CTableHeaderCell>Assunto</CTableHeaderCell>
                       <CTableHeaderCell className="text-center">Questões</CTableHeaderCell>
@@ -248,42 +257,48 @@ const Historico = () => {
                   </CTableHead>
                   <CTableBody>
                     {sessoes.map((sessao, index) => {
-                      const cor =
-                        sessao.taxa_acerto >= 80
-                          ? 'success'
-                          : sessao.taxa_acerto >= 60
-                            ? 'warning'
-                            : 'danger'
+                      const aprova = sessao.taxa_acerto >= 60
+                      const cor = sessao.taxa_acerto >= 80 ? 'success' : sessao.taxa_acerto >= 60 ? 'warning' : 'danger'
                       return (
-                        <CTableRow key={sessao.id}>
-                          <CTableDataCell className="text-center">{index + 1}</CTableDataCell>
-                          <CTableDataCell>{formatarData(sessao.data)}</CTableDataCell>
-                          <CTableDataCell>{sessao.assunto}</CTableDataCell>
-                          <CTableDataCell className="text-center fw-bold">
-                            {sessao.questoes}
+                        <CTableRow key={sessao.id} className="align-middle">
+                          <CTableDataCell className="text-center small text-muted">{index + 1}</CTableDataCell>
+                          <CTableDataCell className="small">{formatarData(sessao.data)}</CTableDataCell>
+                          <CTableDataCell>
+                            <span className="fw-medium">{sessao.assunto}</span>
                           </CTableDataCell>
+                          <CTableDataCell className="text-center fw-bold small">{sessao.questoes}</CTableDataCell>
                           <CTableDataCell className="text-center">
-                            <CBadge color={cor} shape="rounded-pill" className="px-3 py-2">
+                            <CBadge color={cor} shape="rounded-pill" className="px-3 py-1 fs-6">
                               {sessao.taxa_acerto.toFixed(1)}%
                             </CBadge>
                           </CTableDataCell>
-                          <CTableDataCell className="text-center">
+                          <CTableDataCell className="text-center small">
+                            <CIcon icon={cilClock} size="sm" className="me-1 text-muted" />
                             {formatarTempo(sessao.tempo_segundos)}
                           </CTableDataCell>
                           <CTableDataCell className="text-center">
-                            {sessao.taxa_acerto >= 60 ? '✅ Aprovado' : '❌ Reprovado'}
+                            {aprova ? (
+                              <span className="text-success small fw-medium">
+                                <CIcon icon={cilCheckCircle} size="sm" className="me-1" />
+                                Aprovado
+                              </span>
+                            ) : (
+                              <span className="text-danger small fw-medium">
+                                ❌ Reprovado
+                              </span>
+                            )}
                           </CTableDataCell>
                         </CTableRow>
                       )
                     })}
                   </CTableBody>
                 </CTable>
-              </CCardBody>
-            </CCard>
-          </CCol>
-        </CRow>
+              </div>
+            </CCardBody>
+          </CCard>
+        </>
       )}
-    </>
+    </div>
   )
 }
 
