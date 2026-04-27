@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import CIcon from '@coreui/icons-react'
 import {
   cilSpeedometer,
@@ -10,6 +10,7 @@ import {
   cilLibrary,
   cilVideo,
   cilChartLine,
+  cilListRich,
 } from '@coreui/icons'
 import { CNavItem, CNavTitle } from '@coreui/react'
 
@@ -17,6 +18,7 @@ const getNavItens = () => {
   const papelUsuario = sessionStorage.getItem('papel') || 'aluno'
 
   const itens = [
+    // ── Seção Estudos (visível para TODOS) ──
     {
       component: CNavTitle,
       name: 'Estudos',
@@ -39,8 +41,21 @@ const getNavItens = () => {
       to: '/aluno/historico',
       icon: <CIcon icon={cilHistory} customClassName="nav-icon" />,
     },
+    {
+      component: CNavItem,
+      name: 'Minhas Questões',
+      to: '/aluno/questoes',
+      icon: <CIcon icon={cilListRich} customClassName="nav-icon" />,
+    },
+    {
+      component: CNavItem,
+      name: 'Meus Feedbacks',
+      to: '/aluno/feedbacks',
+      icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" />,
+    },
   ]
 
+  // ── Seções de professor/admin ──
   if (papelUsuario === 'professor' || papelUsuario === 'admin') {
     itens.unshift(
       {

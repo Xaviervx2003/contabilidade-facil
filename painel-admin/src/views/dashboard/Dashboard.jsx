@@ -26,6 +26,8 @@ import {
   cilChart,
   cilClock,
   cilCheckCircle,
+  cilHistory,
+  cilBarChart,
 } from '@coreui/icons'
 
 import { API_URL } from '../../config'
@@ -122,6 +124,32 @@ const useAlunos = (userId, pagina, porPagina = 10) => {
   return { data, loading, error }
 }
 
+const useVisaoGeral = (userId) => {
+  const [visao, setVisao] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    setLoading(true)
+    setError(null)
+    fetch(buildUrl('/api/dashboard/visao-geral', userId))
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json()
+      })
+      .then(data => {
+        setVisao(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        setError(err.message)
+        setLoading(false)
+      })
+  }, [userId])
+
+  return { visao, loading, error }
+}
+
 // ── Componentes auxiliares ──────────────────────────────
 const StatCard = ({ titulo, valor, cor, icone, loading }) => (
   <div
@@ -163,10 +191,21 @@ const Dashboard = () => {
 
   const [pagina, setPagina] = useState(1)
   const porPagina = 10
+  const [isDark, setIsDark] = useState(false)
+
+  // Detecção de tema escuro
+  useEffect(() => {
+    const check = () => setIsDark(document.documentElement.getAttribute('data-coreui-theme') === 'dark')
+    check()
+    const obs = new MutationObserver(check)
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-coreui-theme'] })
+    return () => obs.disconnect()
+  }, [])
 
   const { stats, loading: loadingStats, error: errorStats } = useDashboardStats(userId)
   const { data, loading: loadingAlunos, error: errorAlunos } = useAlunos(userId, pagina, porPagina)
   const { chartData, loading: loadingChart, error: errorChart } = useChartData(userId)
+  const { visao, loading: loadingVisao, error: errorVisao } = useVisaoGeral(userId)
 
   const { alunos, total_paginas } = data
 
@@ -185,6 +224,11 @@ const Dashboard = () => {
     URL.revokeObjectURL(url)
   }, [alunos])
 
+  // Cálculo do progresso da turma
+  const percentualTurma = stats?.total_questoes_banco && visao?.media_questoes_por_aluno
+    ? Math.min((visao.media_questoes_por_aluno / stats.total_questoes_banco) * 100, 100).toFixed(1)
+    : 0
+
   return (
     <div className="p-3 p-md-4">
       {/* Aviso de sessão não identificada */}
@@ -200,12 +244,12 @@ const Dashboard = () => {
         <CAlert color="danger" className="mb-3">Erro ao carregar métricas: {errorStats}</CAlert>
       )}
 
-      {/* Cards de métricas principais (substitui WidgetsDropdown) */}
+      {/* Cards de métricas principais */}
       <CRow className="g-3 mb-4">
         <CCol xs={12} sm={6} xl={3}>
           <StatCard
-            titulo="Usuários Ativos"
-            valor={stats?.usuarios_ativos ?? '—'}
+            titulo="Alunos Ativos"
+            valor={stats?.alunos_ativos ?? '—'}
             cor="info"
             icone={cilPeople}
             loading={loadingStats}
@@ -222,7 +266,7 @@ const Dashboard = () => {
         </CCol>
         <CCol xs={12} sm={6} xl={3}>
           <StatCard
-            titulo="Tempo Médio"
+            titulo="Tempo Médio por Sessão"
             valor={stats?.tempo_medio_minutos ? `${stats.tempo_medio_minutos} min` : '—'}
             cor="warning"
             icone={cilClock}
@@ -231,12 +275,102 @@ const Dashboard = () => {
         </CCol>
         <CCol xs={12} sm={6} xl={3}>
           <StatCard
-            titulo="Engajamento"
-            valor="Ativo"
+            titulo="Questões no Banco"
+            valor={stats?.total_questoes_banco ?? '—'}
             cor="danger"
             icone={cilChart}
-            loading={false}
+            loading={loadingStats}
           />
+        </CCol>
+      </CRow>
+
+      {/* Progresso Geral da Turma + Últimas Atividades */}
+      <CRow className="g-3 mb-4">
+        <CCol md={6}>
+          <CCard className="shadow-sm border-0 h-100">
+            <CCardHeader className="bg-transparent border-0 d-flex align-items-center gap-2">
+              <CIcon icon={cilBarChart} className="text-success" />
+              <strong>Progresso Geral da Turma</strong>
+            </CCardHeader>
+            <CCardBody className="d-flex flex-column justify-content-center">
+              {loadingVisao ? (
+                <CSpinner color="success" size="sm" />
+              ) : errorVisao ? (
+                <CAlert color="danger" className="mb-0">{errorVisao}</CAlert>
+              ) : (
+                <>
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <span className="text-body-secondary small">Média de questões por aluno</span>
+                    <span className="fw-bold text-success fs-5">
+                      {visao?.media_questoes_por_aluno?.toFixed(0) || 0}
+                    </span>
+                  </div>
+                  <CProgress
+                    color="success"
+                    value={percentualTurma}
+                    height={32}
+                    className="rounded-pill fw-bold fs-6"
+                    style={isDark ? { backgroundColor: '#2d3f52' } : {}}
+                  >
+                    {percentualTurma}%
+                  </CProgress>
+                  <small className="text-body-secondary mt-2">
+                    Total de questões no banco: {stats?.total_questoes_banco || 0}
+                  </small>
+                </>
+              )}
+            </CCardBody>
+          </CCard>
+        </CCol>
+        <CCol md={6}>
+          <CCard className="shadow-sm border-0 h-100">
+            <CCardHeader className="bg-transparent border-0 d-flex align-items-center gap-2">
+              <CIcon icon={cilHistory} className="text-info" />
+              <strong>Últimas Atividades</strong>
+            </CCardHeader>
+            <CCardBody>
+              {loadingVisao ? (
+                <CSpinner color="info" size="sm" />
+              ) : errorVisao ? (
+                <CAlert color="danger" className="mb-0">{errorVisao}</CAlert>
+              ) : (
+                <div className="table-responsive">
+                  <CTable small hover className="mb-0" {...(isDark ? { color: 'dark' } : {})}>
+                    <CTableHead>
+                      <CTableRow>
+                        <CTableHeaderCell>Aluno</CTableHeaderCell>
+                        <CTableHeaderCell>Assunto</CTableHeaderCell>
+                        <CTableHeaderCell className="text-center">Qtd</CTableHeaderCell>
+                        <CTableHeaderCell className="text-center">Acerto</CTableHeaderCell>
+                      </CTableRow>
+                    </CTableHead>
+                    <CTableBody>
+                      {visao?.ultimas_sessoes?.length > 0 ? (
+                        visao.ultimas_sessoes.map((sessao, idx) => (
+                          <CTableRow key={idx}>
+                            <CTableDataCell className="fw-medium">{sessao.aluno}</CTableDataCell>
+                            <CTableDataCell>{sessao.assunto}</CTableDataCell>
+                            <CTableDataCell className="text-center">{sessao.questoes}</CTableDataCell>
+                            <CTableDataCell className="text-center">
+                              <span className={`badge bg-${sessao.acerto >= 80 ? 'success' : sessao.acerto >= 60 ? 'warning' : 'danger'}`}>
+                                {sessao.acerto}%
+                              </span>
+                            </CTableDataCell>
+                          </CTableRow>
+                        ))
+                      ) : (
+                        <CTableRow>
+                          <CTableDataCell colSpan={4} className="text-center py-3 text-body-secondary">
+                            Nenhuma atividade recente.
+                          </CTableDataCell>
+                        </CTableRow>
+                      )}
+                    </CTableBody>
+                  </CTable>
+                </div>
+              )}
+            </CCardBody>
+          </CCard>
         </CCol>
       </CRow>
 
@@ -248,8 +382,7 @@ const Dashboard = () => {
               <strong>Resumo Real do Projeto e Desempenho Global</strong>
             </CCardHeader>
             <CCardBody>
-              {/* Mini stats antigos foram substituídos pelos cards acima, mas mantive o bloco opcional caso queira algo adicional */}
-              {/* O gráfico permanece */}
+              {/* Gráfico */}
               {errorChart ? (
                 <CAlert color="warning">Gráfico indisponível: {errorChart}</CAlert>
               ) : (

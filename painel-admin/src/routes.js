@@ -19,6 +19,8 @@ const GestaoMaterias = React.lazy(() => import('./views/admin/GestaoMaterias'))
 const VideoGallery = React.lazy(() => import('./views/videos/VideoGallery'))
 const Relatorios = React.lazy(() => import('./views/relatorios/Relatorios'))
 const HistoricoAluno = React.lazy(() => import('./views/aluno/HistoricoAluno'))
+const MinhasQuestoes = React.lazy(() => import('./views/aluno/MinhasQuestoes'))
+const MeusFeedbacks = React.lazy(() => import('./views/aluno/MeusFeedbacks'))
 
 export const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -31,6 +33,8 @@ export const routes = [
   { path: '/quiz', name: 'Quiz', element: Quiz },
   { path: '/videos', name: 'Vídeo-Aulas', element: VideoGallery },
   { path: '/historico', name: 'Meu Histórico', element: Historico },
+  { path: '/aluno/questoes', name: 'Minhas Questões', element: MinhasQuestoes },
+  { path: '/aluno/feedbacks', name: 'Meus Feedbacks', element: MeusFeedbacks },
   {
     path: '/questoes',
     name: 'Gestão de Questões',
