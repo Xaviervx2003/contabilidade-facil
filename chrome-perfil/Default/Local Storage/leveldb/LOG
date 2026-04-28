@@ -1,0 +1,9 @@
+2026/04/28-11:39:00.751 5570 Reusing MANIFEST C:\projetos\contabilidade facil\chrome-perfil\Default\Local Storage\leveldb/MANIFEST-000001
+2026/04/28-11:39:00.763 5570 Recovering log #15
+2026/04/28-11:39:00.774 5570 Reusing old log C:\projetos\contabilidade facil\chrome-perfil\Default\Local Storage\leveldb/000015.log 
+2026/04/28-11:39:27.477 9448 Level-0 table #20: started
+2026/04/28-11:39:27.489 9448 Level-0 table #20: 99300 bytes OK
+2026/04/28-11:39:27.492 9448 Delete type=0 #15
+2026/04/28-11:42:01.075 9448 Level-0 table #22: started
+2026/04/28-11:42:01.087 9448 Level-0 table #22: 139582 bytes OK
+2026/04/28-11:42:01.090 9448 Delete type=0 #19

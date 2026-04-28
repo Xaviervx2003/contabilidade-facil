@@ -6,11 +6,9 @@ import {
   varchar,
   char,
   integer,
-  timestamp,
   primaryKey,
 } from "drizzle-orm/pg-core";
 
-// Tabela principal de Questões
 export const questoes = pgTable("questoes", {
   id: serial("id").primaryKey(),
   assunto: varchar("assunto", { length: 255 }),
@@ -22,21 +20,18 @@ export const questoes = pgTable("questoes", {
   opcao_e: text("opcao_e"),
   resposta_correta: char("resposta_correta", { length: 1 }).notNull(),
   explicacao: text("explicacao"),
-  criado_por: integer("criado_por"),
   tentativas: integer("tentativas").default(0),
   acertos: integer("acertos").default(0),
   link_video: text("link_video"),
-  criado_em: timestamp("criado_em").defaultNow(),
-  id_externo: integer("id_externo").unique(),   // 🆕 para rastrear a origem
+  // ✅ Unique constraint — já cria índice interno automaticamente
+  id_externo: integer("id_externo").unique(),
 });
 
-// Tabela de Matérias
 export const materias = pgTable("materias", {
   id: serial("id").primaryKey(),
   nome: varchar("nome", { length: 255 }).notNull().unique(),
 });
 
-// Tabela Pivot (Relacionamento N:M)
 export const questoesMaterias = pgTable(
   "questoes_materias",
   {

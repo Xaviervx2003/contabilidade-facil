@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.progresso import router as progresso_router
-
+from routes.favoritos import router as favoritos_router
 
 from database import iniciar_pool, encerrar_pool
 from routes.questoes import router as questoes_router
@@ -53,6 +53,7 @@ app.include_router(admin_router)
 app.include_router(relatorios.router)
 app.include_router(aluno.router)
 app.include_router(progresso_router)
+app.include_router(favoritos_router)
 
 @app.get("/")
 def healthcheck():
