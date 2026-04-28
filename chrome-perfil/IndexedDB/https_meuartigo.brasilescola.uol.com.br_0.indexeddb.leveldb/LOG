@@ -1,6 +1,0 @@
-2026/04/11-11:02:13.932 4100 Creating DB C:\Users\direcao\AppData\Local\Google\Chrome\User Data\Default\IndexedDB\https_meuartigo.brasilescola.uol.com.br_0.indexeddb.leveldb since it was missing.
-2026/04/11-11:02:13.938 4100 Reusing MANIFEST C:\Users\direcao\AppData\Local\Google\Chrome\User Data\Default\IndexedDB\https_meuartigo.brasilescola.uol.com.br_0.indexeddb.leveldb/MANIFEST-000001
-2026/04/11-11:02:16.597 434c Level-0 table #5: started
-2026/04/11-11:02:16.600 434c Level-0 table #5: 60421 bytes OK
-2026/04/11-11:02:16.603 434c Delete type=0 #3
-2026/04/11-11:02:16.603 434c Manual compaction at level-0 from (begin) .. (end); will stop at (end)

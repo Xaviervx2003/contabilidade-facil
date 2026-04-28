@@ -1,1 +1,0 @@
-const r=e=>`storedVol:${e}`;async function a(e){if(!e)return 100;const o=r(e),t=(await chrome.storage.local.get(o))[o];return typeof t=="number"&&!Number.isNaN(t)?t:100}async function n(e,o){e&&await chrome.storage.local.set({[r(e)]:o})}export{r as a,a as g,n as s};
