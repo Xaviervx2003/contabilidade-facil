@@ -379,9 +379,23 @@ const Quiz = () => {
       if (!res.ok || !Array.isArray(data) || data.length === 0)
         throw new Error('Nenhuma questão encontrada.')
       if (materiasSelected.length > 0) {
-        data = data.filter(q => materiasSelected.includes(String(q.materia_id)))
-        if (data.length === 0) throw new Error('Nenhuma questão para as matérias selecionadas.')
-      }
+  const selectedNomes = materiasSelected.map(id => {
+    const m = materias.find(mat => String(mat.id) === String(id));
+    return m ? m.nome : '';
+  }).filter(Boolean);
+
+  data = data.filter(q => {
+    // Opção 1: materia_id (vinculado via questoes_materias)
+    if (q.materia_id) return materiasSelected.includes(String(q.materia_id));
+    // Opção 2: materia_ids (array de IDs)
+    if (q.materia_ids) return q.materia_ids.some(id => materiasSelected.includes(String(id)));
+    // Opção 3: assunto textual (fallback para questões importadas)
+    const assunto = (q.assunto || '').toLowerCase();
+    return selectedNomes.some(nome => assunto.includes(nome.toLowerCase()));
+  });
+  
+  if (data.length === 0) throw new Error('Nenhuma questão para as matérias selecionadas.');
+}
       let pool = shuffle(data)
       if (quantidade > 0 && quantidade < pool.length) pool = pool.slice(0, quantidade)
       startQuiz(pool)

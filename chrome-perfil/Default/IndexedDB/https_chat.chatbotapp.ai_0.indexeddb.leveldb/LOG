@@ -1,0 +1,7 @@
+2026/04/11-10:22:59.058 4100 Creating DB C:\Users\direcao\AppData\Local\Google\Chrome\User Data\Default\IndexedDB\https_chat.chatbotapp.ai_0.indexeddb.leveldb since it was missing.
+2026/04/11-10:22:59.063 4100 Reusing MANIFEST C:\Users\direcao\AppData\Local\Google\Chrome\User Data\Default\IndexedDB\https_chat.chatbotapp.ai_0.indexeddb.leveldb/MANIFEST-000001
+2026/04/11-10:22:59.185 65c Manual compaction at level-0 from '\x00\x01\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x02\x00\x00\x00' @ 0 : 0; will stop at (end)
+2026/04/11-10:23:16.321 434c Level-0 table #5: started
+2026/04/11-10:23:16.324 434c Level-0 table #5: 4879 bytes OK
+2026/04/11-10:23:16.326 434c Delete type=0 #3
+2026/04/11-10:23:16.326 434c Manual compaction at level-0 from (begin) .. (end); will stop at (end)

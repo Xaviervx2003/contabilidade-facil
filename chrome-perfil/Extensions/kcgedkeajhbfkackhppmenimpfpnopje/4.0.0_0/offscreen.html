@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <!--
+      Monetize: classic script runs during parse before any deferred `type="module"` bundle.
+      Vite injects the offscreen entry in <head>; if wall were only in <body>, the bundle ran
+      first and initPaywallSdk saw no window.paywall — no iframe after reload.
+    -->
+    <script src="./wall.2.1.3.js"></script>
+  <script type="module" crossorigin src="/assets/offscreen-a115010c.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/chunk-956e9514.js">
+  <link rel="modulepreload" crossorigin href="/assets/chunk-cc5c9a50.js">
+  <link rel="modulepreload" crossorigin href="/assets/chunk-9b57d86b.js">
+</head>
+<body>
+    
+</body>
+</html>

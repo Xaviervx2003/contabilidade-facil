@@ -443,3 +443,74 @@ def ranking_aluno(matricula: str):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar ranking: {str(e)}")
+# ==========================================
+# ROTAS FALTANTES PARA O FRONTEND FUNCIONAR
+# ==========================================
+
+@router.get("/progresso/{matricula}")
+def progresso_aluno(matricula: str):
+    """
+    Retorna o total de questões únicas que o aluno já respondeu 
+    versus o total de questões disponíveis no banco (Edital).
+    """
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            
+            # Conta quantas questões únicas o aluno já fez
+            cursor.execute("""
+                SELECT COUNT(DISTINCT sq.questao_id)
+                FROM sessoes_questoes sq
+                JOIN sessoes_estudo s ON s.id = sq.sessao_id
+                WHERE s.nome_aluno = %s
+            """, (matricula,))
+            respondidas = cursor.fetchone()[0] or 0
+
+            # Conta o total de questões cadastradas na plataforma
+            cursor.execute("SELECT COUNT(id) FROM questoes")
+            total = cursor.fetchone()[0] or 1 # Evita divisão por zero
+
+            percentual = min(round((respondidas / total) * 100, 1), 100.0)
+
+            return {
+                "respondidas": respondidas,
+                "total": total,
+                "percentual": percentual
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar progresso: {str(e)}")
+
+
+@router.get("/sessoes/{matricula}")
+def listar_sessoes(matricula: str):
+    """
+    Alimenta o Modal "Histórico de Sessões" no frontend.
+    """
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT 
+                    criado_em, 
+                    COALESCE(assunto_estudado, 'Geral') AS materia_nome,
+                    questoes_respondidas AS total_questoes,
+                    taxa_acerto AS percentual_acerto,
+                    tempo_gasto_segundos AS tempo_seg
+                FROM sessoes_estudo
+                WHERE nome_aluno = %s
+                ORDER BY criado_em DESC
+                LIMIT 100
+            """, (matricula,))
+            rows = cursor.fetchall()
+            
+            return [
+                {
+                    "criado_em": r[0].isoformat() if r[0] else None,
+                    "materia_nome": r[1],
+                    "total_questoes": r[2],
+                    "percentual_acerto": r[3],
+                    "tempo_seg": r[4]
+                } for r in rows
+            ]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar sessões: {str(e)}")

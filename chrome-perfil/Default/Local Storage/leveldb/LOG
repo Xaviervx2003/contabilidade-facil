@@ -1,0 +1,9 @@
+2026/04/28-07:06:53.744 2d1c Reusing MANIFEST C:\Users\direcao\Documents\contabilidade-facil\chrome-perfil\Default\Local Storage\leveldb/MANIFEST-000001
+2026/04/28-07:06:53.754 2d1c Recovering log #48
+2026/04/28-07:06:53.757 2d1c Level-0 table #51: started
+2026/04/28-07:06:53.784 2d1c Level-0 table #51: 172557 bytes OK
+2026/04/28-07:06:53.786 2d1c Recovering log #50
+2026/04/28-07:06:53.791 2d1c Reusing old log C:\Users\direcao\Documents\contabilidade-facil\chrome-perfil\Default\Local Storage\leveldb/000050.log 
+2026/04/28-07:06:53.794 2d1c Delete type=0 #48
+2026/04/28-07:07:36.815 2d1c Level-0 table #53: started
+2026/04/28-07:07:36.825 2d1c Level-0 table #53: 226016 bytes OK

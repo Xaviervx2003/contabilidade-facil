@@ -1,0 +1,21 @@
+2026/04/28-07:04:22.382 1910 Reusing MANIFEST C:\Users\direcao\Documents\contabilidade-facil\chrome-perfil\Default\Local Storage\leveldb/MANIFEST-000001
+2026/04/28-07:04:22.391 1910 Recovering log #43
+2026/04/28-07:04:22.393 1910 Level-0 table #46: started
+2026/04/28-07:04:22.403 1910 Level-0 table #46: 232874 bytes OK
+2026/04/28-07:04:22.404 1910 Recovering log #45
+2026/04/28-07:04:22.407 1910 Reusing old log C:\Users\direcao\Documents\contabilidade-facil\chrome-perfil\Default\Local Storage\leveldb/000045.log 
+2026/04/28-07:04:22.409 1910 Delete type=0 #43
+2026/04/28-07:04:22.410 4588 Compacting 4@0 + 1@1 files
+2026/04/28-07:04:22.458 4588 Generated table #47@0: 296 keys, 1222868 bytes
+2026/04/28-07:04:22.458 4588 Compacted 4@0 + 1@1 files => 1222868 bytes
+2026/04/28-07:04:22.459 4588 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/04/28-07:04:22.461 4588 Delete type=2 #38
+2026/04/28-07:04:22.461 4588 Delete type=2 #40
+2026/04/28-07:04:22.461 4588 Delete type=2 #42
+2026/04/28-07:04:22.461 4588 Delete type=2 #44
+2026/04/28-07:04:22.461 4588 Delete type=2 #46
+2026/04/28-07:04:53.264 4588 Level-0 table #49: started
+2026/04/28-07:04:53.272 4588 Level-0 table #49: 46690 bytes OK
+2026/04/28-07:04:53.275 4588 Delete type=0 #45
+2026/04/28-07:04:53.294 1910 Level-0 table #51: started
+2026/04/28-07:04:53.304 1910 Level-0 table #51: 172557 bytes OK

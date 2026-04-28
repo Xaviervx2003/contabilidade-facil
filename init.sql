@@ -179,3 +179,7 @@ INSERT INTO questoes (assunto, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, re
     'A'
 )
 ON CONFLICT DO NOTHING;
+ALTER TABLE questoes
+    ADD COLUMN IF NOT EXISTS dica TEXT DEFAULT NULL;
+ALTER TABLE questoes
+    ADD COLUMN IF NOT EXISTS dica TEXT DEFAULT NULL;

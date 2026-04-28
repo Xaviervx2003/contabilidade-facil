@@ -1,0 +1,56 @@
+{
+   "action": {
+      "default_icon": "images/icon_48.png",
+      "default_popup": "popup.html",
+      "default_title": "__MSG_appName__"
+   },
+   "background": {
+      "service_worker": "service-worker-loader.js",
+      "type": "module"
+   },
+   "commands": {
+      "_execute_action": {
+         "suggested_key": {
+            "default": "Ctrl+Shift+6"
+         }
+      }
+   },
+   "content_scripts": [ {
+      "all_frames": true,
+      "js": [ "assets/index.tsx-loader-c717d85e.js" ],
+      "matches": [ "http://*/*", "https://*/*" ],
+      "run_at": "document_end"
+   } ],
+   "default_locale": "en",
+   "description": "__MSG_shortDesc__",
+   "externally_connectable": {
+      "matches": [ "https://platform.micro-tools.online/*" ]
+   },
+   "host_permissions": [ "\u003Call_urls>" ],
+   "icons": {
+      "128": "images/icon_128.png",
+      "16": "images/icon_16.png",
+      "20": "images/icon_20.png",
+      "24": "images/icon_24.png",
+      "256": "images/icon_256.png",
+      "32": "images/icon_32.png",
+      "48": "images/icon_48.png",
+      "512": "images/icon_512.png",
+      "64": "images/icon_64.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA22ABk7HR9UtOUmdo7eNNzUYqDiNu97LAG6m+pXbu9JZjyCJZuL4OcXMdMxIMHnPP8tPRhqJ3JVrVD4c0FATnknMxlalEs7xDFyxGXTyAvc5MF+R6WDoEUCv+JV3N9s+irrPnrRQ2hD33HaUkQryRR71X8cKHTiaWJRmXqk8TBcykfoWmlI9CKO3S1XtTEnWmTQTSHfAEMtXYq4MYcBXCjUqpshJRM49wrq+Ixj3Nplszns2WFDaIeazkK79jDZPfH8/0JuJeiwNlk/jMHjoATuRu7nDbwzr2c2JW4ic3F4BXqYv/7dGttfPdqDU4bxQXrYcQGkZrKVeo/bmSQbMWHQIDAQAB",
+   "manifest_version": 3,
+   "name": "__MSG_appName__",
+   "permissions": [ "tabs", "tabCapture", "storage", "offscreen", "scripting" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "4.0.0",
+   "web_accessible_resources": [ {
+      "matches": [  ],
+      "resources": [ "images/icon_16.png", "images/icon_20.png", "images/icon_24.png", "images/icon_32.png", "images/icon_48.png", "images/icon_64.png", "images/icon_128.png", "images/icon_256.png", "images/icon_512.png" ],
+      "use_dynamic_url": false
+   }, {
+      "matches": [ "http://*/*", "https://*/*" ],
+      "resources": [ "assets/chunk-9b57d86b.js", "assets/chunk-0598ba2e.js", "assets/chunk-717881bb.js" ],
+      "use_dynamic_url": false
+   } ]
+}

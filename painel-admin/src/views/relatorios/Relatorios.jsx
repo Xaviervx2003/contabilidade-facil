@@ -221,7 +221,7 @@ const Relatorios = () => {
   }, [])
 
   useEffect(() => {
-    fetch(`${API_URL}/api/materias`)
+    fetch(`${API_URL}/api/admin/materias`)
       .then((res) => res.json())
       .then((data) => setMaterias(Array.isArray(data) ? data : []))
       .catch(() => {})

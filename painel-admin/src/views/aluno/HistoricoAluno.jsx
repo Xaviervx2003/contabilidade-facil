@@ -31,19 +31,14 @@ const medalha = (v) => {
     return '📚'
 }
 
-// Data local correta (fix: toISOString() retorna UTC, pode ser o dia errado no Brasil)
-const dataLocalHoje = () => {
-    return new Date().toLocaleDateString('sv') // formato YYYY-MM-DD em hora local
-}
+const dataLocalHoje = () => new Date().toLocaleDateString('sv')
 
-// Fetch com verificação de r.ok
 const fetchJSON = async (url) => {
     const r = await fetch(url)
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
     return r.json()
 }
 
-// Cache simples com TTL (5 minutos)
 const CACHE_TTL = 5 * 60 * 1000
 const cacheGet = (key) => {
     try {
@@ -61,7 +56,6 @@ const cacheClear = (key) => {
     try { sessionStorage.removeItem(`cache:${key}`) } catch { }
 }
 
-// Exportar CSV
 const exportarCSV = (dados, nomeArquivo = 'historico.csv') => {
     if (!dados || !dados.length) return
     const headers = Object.keys(dados[0]).join(',')
@@ -76,7 +70,6 @@ const exportarCSV = (dados, nomeArquivo = 'historico.csv') => {
     URL.revokeObjectURL(url)
 }
 
-/* ─── Toast ─── */
 const Toast = ({ mensagem, tipo = 'success', onClose }) => {
     useEffect(() => {
         const t = setTimeout(onClose, 4000)
@@ -98,7 +91,6 @@ const Toast = ({ mensagem, tipo = 'success', onClose }) => {
     )
 }
 
-/* ─── Skeleton ─── */
 const Skeleton = ({ h = 20, w = '100%', radius = 6, style = {} }) => (
     <div style={{
         height: h, width: w, borderRadius: radius,
@@ -121,108 +113,114 @@ const SkeletonCard = ({ isDark }) => {
     )
 }
 
-/* ─── Heatmap de Contribuição ─── */
-const HeatmapEstudo = ({ porDia, isDark }) => {
-    const hoje = new Date(dataLocalHoje())
-    const dias = 91 // ~13 semanas
-
-    const mapa = useMemo(() => {
-        const m = {}
-        if (!porDia) return m
-        porDia.forEach(d => { m[d.dia] = d.questoes })
-        return m
-    }, [porDia])
-
-    const maxQ = useMemo(() => Math.max(...Object.values(mapa), 1), [mapa])
-
-    const celulas = useMemo(() => {
-        const arr = []
-        for (let i = dias - 1; i >= 0; i--) {
-            const d = new Date(hoje)
-            d.setDate(d.getDate() - i)
-            const key = d.toLocaleDateString('sv')
-            arr.push({ key, questoes: mapa[key] || 0, data: d })
-        }
-        return arr
-    }, [mapa, dias])
-
-    const intensidade = (q) => {
-        if (q === 0) return isDark ? '#1e2a38' : '#eef2f7'
-        const pct = q / maxQ
-        if (pct < 0.25) return '#1a6fb5'
-        if (pct < 0.5) return '#2a8fd0'
-        if (pct < 0.75) return '#40aaec'
-        return '#7eb8f7'
-    }
-
-    const semanas = []
-    for (let i = 0; i < celulas.length; i += 7) {
-        semanas.push(celulas.slice(i, i + 7))
-    }
-
+/* ─── Heatmap de Contribuição (ocupa 100% da largura) ─── */
+const Heatmap = ({ data, isDark }) => {
     const [tooltip, setTooltip] = useState(null)
-    const mesesMostrados = new Set()
+    const containerRef = useRef(null)
+
+    const CELL_SIZE = 16
+    const CELL_GAP = 4
+    const TOTAL_WEEKS = 20
+
+    const grid = useMemo(() => {
+        if (!data || data.length === 0) return []
+        const hoje = new Date()
+        const totalDias = TOTAL_WEEKS * 7
+        const start = new Date(hoje)
+        start.setDate(hoje.getDate() - totalDias + 1)
+
+        const mapa = new Map(data.map(d => [d.dia, d.questoes || 0]))
+
+        const semanas = []
+        let cursor = new Date(start)
+        let semana = []
+        while (cursor <= hoje) {
+            const diaStr = cursor.toISOString().split('T')[0]
+            const qtd = mapa.get(diaStr) || 0
+            semana.push({ dia: diaStr, questoes: qtd, data: new Date(cursor) })
+            if (cursor.getDay() === 6) {
+                semanas.push(semana)
+                semana = []
+            }
+            cursor.setDate(cursor.getDate() + 1)
+        }
+        if (semana.length > 0) semanas.push(semana)
+        return semanas
+    }, [data])
+
+    const getColor = (qtd) => {
+        if (qtd === 0) return isDark ? '#1a2535' : '#ebedf0'
+        if (qtd <= 5) return isDark ? '#0e4429' : '#9be9a8'
+        if (qtd <= 15) return isDark ? '#006d32' : '#40c463'
+        if (qtd <= 30) return isDark ? '#26a641' : '#30a14e'
+        return isDark ? '#39d353' : '#216e39'
+    }
+
+    const handleMouseEnter = (e, dia, qtd) => {
+        const rect = e.target.getBoundingClientRect()
+        setTooltip({ x: rect.left + rect.width / 2, y: rect.top - 8, dia, qtd })
+    }
+
+    const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
     return (
-        <div style={{ overflowX: 'auto', position: 'relative' }}>
-            <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
-            <div style={{ display: 'flex', gap: 3, alignItems: 'flex-start', paddingTop: 20 }}>
-                {semanas.map((semana, si) => {
-                    const primeiroDia = semana[0]?.data
-                    let labelMes = null
-                    if (primeiroDia) {
-                        const mesKey = `${primeiroDia.getFullYear()}-${primeiroDia.getMonth()}`
-                        if (!mesesMostrados.has(mesKey)) {
-                            mesesMostrados.add(mesKey)
-                            labelMes = primeiroDia.toLocaleDateString('pt-BR', { month: 'short' })
-                        }
-                    }
-                    return (
-                        <div key={si} style={{ display: 'flex', flexDirection: 'column', gap: 3, position: 'relative' }}>
-                            {labelMes && (
-                                <div style={{
-                                    position: 'absolute', top: -18, left: 0,
-                                    fontSize: 10, color: isDark ? '#5d7290' : '#94a3b8',
-                                    whiteSpace: 'nowrap'
-                                }}>{labelMes}</div>
-                            )}
-                            {semana.map((cel, di) => (
+        <div ref={containerRef} style={{ width: '100%', overflowX: 'auto' }}>
+            <div style={{ display: 'flex', gap: CELL_GAP, marginBottom: 6, paddingLeft: 32 }}>
+                {diasSemana.map((d, i) => (
+                    <div key={i} style={{
+                        width: CELL_SIZE, height: CELL_SIZE, fontSize: 10,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: isDark ? '#5d7290' : '#94a3b8',
+                    }}>
+                        {i % 2 === 0 ? d.charAt(0) : ''}
+                    </div>
+                ))}
+            </div>
+            <div style={{ display: 'flex', gap: CELL_GAP }}>
+                {[0, 1, 2, 3, 4, 5, 6].map(linha => (
+                    <div key={linha} style={{ display: 'flex', flexDirection: 'column', gap: CELL_GAP }}>
+                        {grid.map((week, wi) => {
+                            const cell = week[linha]
+                            if (!cell) return <div key={wi} style={{ width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4 }} />
+                            return (
                                 <div
-                                    key={di}
-                                    title={`${cel.key}: ${cel.questoes} questões`}
-                                    onMouseEnter={(e) => setTooltip({ cel, x: e.clientX, y: e.clientY })}
-                                    onMouseLeave={() => setTooltip(null)}
+                                    key={wi}
+                                    title={`${cell.dia}: ${cell.questoes} questões`}
                                     style={{
-                                        width: 13, height: 13,
-                                        borderRadius: 3,
-                                        background: intensidade(cel.questoes),
-                                        cursor: cel.questoes > 0 ? 'pointer' : 'default',
-                                        transition: 'transform 0.1s',
+                                        width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4,
+                                        background: getColor(cell.questoes),
+                                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+                                        cursor: 'pointer', transition: 'background .2s',
                                     }}
+                                    onMouseEnter={e => handleMouseEnter(e, cell.dia, cell.questoes)}
+                                    onMouseLeave={() => setTooltip(null)}
                                 />
-                            ))}
-                        </div>
-                    )
-                })}
+                            )
+                        })}
+                    </div>
+                ))}
+            </div>
+            <div style={{ display: 'flex', gap: CELL_GAP, marginTop: 8, alignItems: 'center', justifyContent: 'flex-end', paddingRight: 16 }}>
+                <span style={{ fontSize: 10, color: isDark ? '#5d7290' : '#94a3b8', marginRight: 4 }}>Menos</span>
+                {[0, 5, 15, 30, 50].map((nivel, i) => (
+                    <div key={i} style={{ width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4, background: getColor(nivel + 1) }} />
+                ))}
+                <span style={{ fontSize: 10, color: isDark ? '#5d7290' : '#94a3b8', marginLeft: 4 }}>Mais</span>
             </div>
             {tooltip && (
                 <div style={{
-                    position: 'fixed', top: tooltip.y - 50, left: tooltip.x + 12,
-                    background: isDark ? '#1e2a38' : '#1a2535', color: '#fff',
-                    borderRadius: 6, padding: '6px 10px', fontSize: 12,
-                    pointerEvents: 'none', zIndex: 9999, whiteSpace: 'nowrap'
+                    position: 'fixed', left: tooltip.x, top: tooltip.y,
+                    transform: 'translate(-50%, -100%)',
+                    background: isDark ? '#1e2a38' : '#fff',
+                    border: `1px solid ${isDark ? '#2d3f52' : '#d1dbe8'}`,
+                    borderRadius: 6, padding: '4px 10px', fontSize: 12,
+                    color: isDark ? '#e0e8f0' : '#1f2937',
+                    pointerEvents: 'none', whiteSpace: 'nowrap', zIndex: 1060,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                 }}>
-                    <strong>{tooltip.cel.questoes} questões</strong>
-                    <div style={{ color: '#8a9bb0', fontSize: 11 }}>{tooltip.cel.key}</div>
+                    {tooltip.dia} — <strong>{tooltip.qtd} questões</strong>
                 </div>
             )}
-            <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginTop: 8 }}>
-                <span style={{ fontSize: 10, color: isDark ? '#5d7290' : '#94a3b8' }}>Menos</span>
-                {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
-                    <div key={i} style={{ width: 11, height: 11, borderRadius: 2, background: intensidade(Math.round(p * maxQ)) }} />
-                ))}
-                <span style={{ fontSize: 10, color: isDark ? '#5d7290' : '#94a3b8' }}>Mais</span>
-            </div>
         </div>
     )
 }
@@ -280,7 +278,6 @@ const ModalSessoes = ({ matricula, isDark, onClose }) => {
 
     const total = Math.ceil(sessoes.length / POR_PAGINA)
     const paginas = sessoes.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA)
-
     const bg = isDark ? '#1a2535' : '#ffffff'
 
     return (
@@ -359,7 +356,6 @@ const HistoricoAluno = () => {
     const [modalSessoes, setModalSessoes] = useState(false)
     const metaJaCelebrada = useRef(false)
 
-    // Filtros — sincronizados com URL
     const getParamURL = (key) => new URLSearchParams(window.location.hash.split('?')[1] || '').get(key) || ''
     const [dataInicio, setDataInicio] = useState(getParamURL('data_inicio'))
     const [dataFim, setDataFim] = useState(getParamURL('data_fim'))
@@ -407,7 +403,6 @@ const HistoricoAluno = () => {
             .catch(() => { })
     }, [matricula])
 
-    // temFiltros como useMemo (fix: evita recriar buscarDados desnecessariamente)
     const temFiltros = useMemo(
         () => !!(dataInicio || dataFim || filtroMateria || filtroAcerto),
         [dataInicio, dataFim, filtroMateria, filtroAcerto]
@@ -443,7 +438,6 @@ const HistoricoAluno = () => {
                     setLoading(false)
                 })
         } else {
-            // Verificar cache (a não ser que seja forçado)
             const cacheKey = `historico:${matricula}`
             if (!forcarAtualizacao) {
                 const cached = cacheGet(cacheKey)
@@ -461,10 +455,7 @@ const HistoricoAluno = () => {
                 fetchJSON(`${API_URL}/api/aluno/progresso/${matricula}`)
             ])
                 .then(([mensal, diario, progresso]) => {
-                    const dadosCompletos = {
-                        ...mensal,
-                        por_dia: diario.serie_diaria
-                    }
+                    const dadosCompletos = { ...mensal, por_dia: diario.serie_diaria }
                     cacheSet(`historico:${matricula}`, { dados: dadosCompletos, progresso })
                     setDados(dadosCompletos)
                     setProgressoGeral(progresso)
@@ -479,14 +470,12 @@ const HistoricoAluno = () => {
 
     useEffect(() => { buscarDados() }, [buscarDados])
 
-    // Atualizar ao receber foco (forçar, ignorar cache)
     useEffect(() => {
         const handler = () => { cacheClear(`historico:${matricula}`); buscarDados(true) }
         window.addEventListener('focus', handler)
         return () => window.removeEventListener('focus', handler)
     }, [buscarDados, matricula])
 
-    // Metas do localStorage
     useEffect(() => {
         const s = localStorage.getItem('metaSemanal')
         if (s) setMetaSemanal(Number(s))
@@ -508,8 +497,8 @@ const HistoricoAluno = () => {
         if (!dados?.por_dia?.length) return { dias: 0, recorde: 0 }
         const dias = dados.por_dia.map(d => d.dia).sort().reverse()
         let consecutivos = 0, recorde = 0, atual = 0
-        const hoje = dataLocalHoje() // fix: usar data local, não UTC
-        let dataRef = new Date(hoje + 'T12:00:00') // meio-dia para evitar problemas de DST
+        const hoje = dataLocalHoje()
+        let dataRef = new Date(hoje + 'T12:00:00')
         for (let i = 0; i < 365; i++) {
             const dataStr = dataRef.toLocaleDateString('sv')
             if (dias.includes(dataStr)) {
@@ -527,7 +516,7 @@ const HistoricoAluno = () => {
 
     const questoesHoje = useMemo(() => {
         if (!dados?.por_dia) return 0
-        const hoje = dataLocalHoje() // fix: data local
+        const hoje = dataLocalHoje()
         const diaHoje = dados.por_dia.find(d => d.dia === hoje)
         return diaHoje ? diaHoje.questoes : 0
     }, [dados])
@@ -553,7 +542,6 @@ const HistoricoAluno = () => {
     const questoesSemana = ultimos7Dias.reduce((acc, d) => acc + d.questoes, 0)
     const progressoSemanal = Math.min((questoesSemana / metaSemanal) * 100, 100)
 
-    // Toast de meta atingida (dispara uma vez por sessão)
     useEffect(() => {
         if (progressoMeta >= 100 && !metaJaCelebrada.current && !loading) {
             metaJaCelebrada.current = true
@@ -569,13 +557,11 @@ const HistoricoAluno = () => {
         }))
     }, [dados])
 
-    // Assuntos para reforçar
     const assuntosReforcar = useMemo(() => {
         if (!dados?.por_assunto) return []
         return dados.por_assunto.filter(a => a.media_acerto < 60).slice(0, 5)
     }, [dados])
 
-    /* ─── Exportar CSV ─── */
     const handleExportarCSV = () => {
         if (!dados) return
         const linhas = []
@@ -597,7 +583,6 @@ const HistoricoAluno = () => {
         }
     }
 
-    /* ─── Estilos comuns ─── */
     const bgCard = isDark ? '#1a2535' : '#ffffff'
     const borderCard = isDark ? '#2d3f52' : '#e2e8f0'
     const cardStyle = { background: bgCard, border: `1px solid ${borderCard}`, borderRadius: 10 }
@@ -613,7 +598,6 @@ const HistoricoAluno = () => {
             <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
 
             {toast && <Toast mensagem={toast.mensagem} tipo={toast.tipo} onClose={() => setToast(null)} />}
-
             {modalSessoes && <ModalSessoes matricula={matricula} isDark={isDark} onClose={() => setModalSessoes(false)} />}
 
             {/* Cabeçalho */}
@@ -687,15 +671,9 @@ const HistoricoAluno = () => {
                             <div style={{ color: isDark ? '#e0e8f0' : '#1f2937', fontSize: 16, fontWeight: 700 }}>
                                 {ranking.posicao}º lugar de {ranking.total_alunos} alunos
                             </div>
-                            <CProgress
-                                value={100 - ((ranking.posicao - 1) / ranking.total_alunos * 100)}
-                                color="warning"
-                                height={8}
-                                className="mt-2 rounded-pill"
-                            />
+                            <CProgress value={100 - ((ranking.posicao - 1) / ranking.total_alunos * 100)} color="warning" height={8} className="mt-2 rounded-pill" />
                         </div>
-                        <CBadge color={ranking.percentil >= 80 ? 'success' : ranking.percentil >= 50 ? 'warning' : 'danger'}
-                            shape="rounded-pill" className="fs-6 px-3 py-2">
+                        <CBadge color={ranking.percentil >= 80 ? 'success' : ranking.percentil >= 50 ? 'warning' : 'danger'} shape="rounded-pill" className="fs-6 px-3 py-2">
                             Top {100 - ranking.percentil}%
                         </CBadge>
                     </CCardBody>
@@ -719,6 +697,16 @@ const HistoricoAluno = () => {
                 </CCardBody>
             </CCard>
 
+            {/* Mapa de Calor (Heatmap) */}
+            <CCard className="mb-4" style={cardStyle}>
+                <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>
+                    🔥 Mapa de Contribuição de Estudos
+                </CCardHeader>
+                <CCardBody style={{ overflowX: 'auto', padding: '16px 24px' }}>
+                    {loading ? <Skeleton h={160} /> : <Heatmap data={dados?.por_dia} isDark={isDark} />}
+                </CCardBody>
+            </CCard>
+
             {/* Cards principais */}
             <CRow className="g-3 mb-4">
                 <CCol xs={6} md={4} lg={3}>
@@ -734,12 +722,7 @@ const HistoricoAluno = () => {
                             </CButton>
                             {mostrarFinalizados && (
                                 <div style={{ flex: 1 }}>
-                                    <CProgress
-                                        value={progressoMeta}
-                                        color={progressoMeta >= 100 ? 'success' : progressoMeta >= 50 ? 'warning' : 'danger'}
-                                        height={8}
-                                        className="mt-1"
-                                    />
+                                    <CProgress value={progressoMeta} color={progressoMeta >= 100 ? 'success' : progressoMeta >= 50 ? 'warning' : 'danger'} height={8} className="mt-1" />
                                     <small className="text-body-secondary">{questoesHoje} de {metaDiaria} questões</small>
                                 </div>
                             )}
@@ -776,12 +759,7 @@ const HistoricoAluno = () => {
                                             <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#e0e8f0' : '#1f2937' }}>{a.assunto}</div>
                                             <CBadge color="danger">{a.media_acerto}% de acerto</CBadge>
                                         </div>
-                                        <CButton
-                                            color="danger" size="sm" variant="outline"
-                                            onClick={() => window.location.href = `/#/quiz?assunto=${encodeURIComponent(a.assunto)}`}
-                                        >
-                                            Praticar
-                                        </CButton>
+                                        <CButton color="danger" size="sm" variant="outline" onClick={() => window.location.href = `/#/quiz?assunto=${encodeURIComponent(a.assunto)}`}>Praticar</CButton>
                                     </div>
                                 </CCol>
                             ))}
@@ -847,18 +825,6 @@ const HistoricoAluno = () => {
                 </CCardBody>
             </CCard>
 
-            {/* Heatmap de Contribuição */}
-            {!loading && dados?.por_dia?.length > 0 && (
-                <CCard className="mb-4" style={cardStyle}>
-                    <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>
-                        🗓️ Frequência de Estudos (últimos 3 meses)
-                    </CCardHeader>
-                    <CCardBody>
-                        <HeatmapEstudo porDia={dados.por_dia} isDark={isDark} />
-                    </CCardBody>
-                </CCard>
-            )}
-
             {/* Gráfico de evolução */}
             {!loading && dadosGraficoEvolucao.length > 0 && (
                 <CCard className="mb-4" style={cardStyle}>
@@ -915,7 +881,6 @@ const HistoricoAluno = () => {
                 </CCard>
             )}
 
-            {/* Loading overlay para filtros (não bloqueia tela toda) */}
             {loading && dados && (
                 <div style={{ textAlign: 'center', padding: 20 }}>
                     <CSpinner color="primary" size="sm" /> <span style={{ fontSize: 13, color: isDark ? '#5d7290' : '#94a3b8' }}>Atualizando...</span>
