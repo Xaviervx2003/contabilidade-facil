@@ -7,6 +7,7 @@ import {
   char,
   integer,
   primaryKey,
+  AnyPgColumn, // ✅ Adicionado para permitir a auto-referência na árvore
 } from "drizzle-orm/pg-core";
 
 export const questoes = pgTable("questoes", {
@@ -25,11 +26,25 @@ export const questoes = pgTable("questoes", {
   link_video: text("link_video"),
   // ✅ Unique constraint — já cria índice interno automaticamente
   id_externo: integer("id_externo").unique(),
+  
+  // ✅ Novos Metadados de Concursos
+  banca: varchar("banca", { length: 255 }),
+  orgao: varchar("orgao", { length: 255 }),
+  cargo: varchar("cargo", { length: 255 }),
+  ano: integer("ano"),
+  escolaridade: varchar("escolaridade", { length: 255 }),
+  modalidade: varchar("modalidade", { length: 255 }),
 });
 
 export const materias = pgTable("materias", {
   id: serial("id").primaryKey(),
-  nome: varchar("nome", { length: 255 }).notNull().unique(),
+  nome: varchar("nome", { length: 255 }).notNull(),
+  // ✅ Novo: Ordem hierárquica oficial do edital (ex: 1.1.2)
+  indice: varchar("indice", { length: 50 }),
+  // ✅ Novo: ID da API do Gran Cursos para não duplicar e cruzar os dados
+  id_externo: integer("id_externo").unique(),
+  // ✅ Novo: Auto-referência para criar a árvore (disciplina -> assunto -> subassunto)
+  parent_id: integer("parent_id").references((): AnyPgColumn => materias.id, { onDelete: "cascade" }),
 });
 
 export const questoesMaterias = pgTable(

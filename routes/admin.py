@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api/admin", tags=["Administração"])
 
 
 # ══════════════════════════════════════════════════════════════
-# 1. GESTÃO DE MATÉRIAS
+# 1. GESTÃO DE MATÉRIAS (Hierárquica com id_externo)
 # ══════════════════════════════════════════════════════════════
 
 @router.post("/materias")
@@ -20,8 +20,8 @@ def criar_materia(materia: MateriaRequest):
         with get_conexao() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO materias (nome) VALUES (%s) RETURNING id;",
-                (materia.nome,)
+                "INSERT INTO materias (nome, parent_id, id_externo) VALUES (%s, %s, %s) RETURNING id;",
+                (materia.nome, materia.parent_id, materia.id_externo)
             )
             novo_id = cursor.fetchone()[0]
             conn.commit()
@@ -36,14 +36,80 @@ def listar_materias():
         with get_conexao() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT m.id, m.nome, COUNT(qm.questao_id) AS total_questoes
+                SELECT m.id, m.nome, m.parent_id, m.id_externo, m.indice, COUNT(qm.questao_id) AS total_questoes
                 FROM materias m
                 LEFT JOIN questoes_materias qm ON m.id = qm.materia_id
-                GROUP BY m.id, m.nome
-                ORDER BY m.nome ASC;
+                GROUP BY m.id, m.nome, m.parent_id, m.id_externo, m.indice
+                ORDER BY m.indice ASC NULLS LAST, m.nome ASC;
             """)
             linhas = cursor.fetchall()
-        return [{"id": l[0], "nome": l[1], "total_questoes": l[2]} for l in linhas]
+        return [{"id": l[0], "nome": l[1], "parent_id": l[2], "id_externo": l[3], "indice": l[4], "total_questoes": l[5]} for l in linhas]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/materias/arvore")
+def arvore_materias(esconder_vazias: bool = False):
+    """Retorna apenas as matérias raiz (parent_id IS NULL)."""
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            
+            query = """
+                SELECT m.id, m.nome, m.indice,
+                       COUNT(qm.questao_id) AS total_questoes,
+                       EXISTS(SELECT 1 FROM materias child WHERE child.parent_id = m.id) AS tem_filhos
+                FROM materias m
+                LEFT JOIN questoes_materias qm ON m.id = qm.materia_id
+                WHERE m.parent_id IS NULL
+                GROUP BY m.id, m.nome, m.indice
+            """
+            
+            if esconder_vazias:
+                # Mostrar apenas se tiver questões diretamente OU se tiver filhos
+                query += """
+                HAVING COUNT(qm.questao_id) > 0 OR EXISTS(SELECT 1 FROM materias child WHERE child.parent_id = m.id)
+                """
+                
+            query += " ORDER BY m.indice ASC NULLS LAST, m.nome ASC;"
+            
+            cursor.execute(query)
+            linhas = cursor.fetchall()
+        return [{"id": l[0], "nome": l[1], "indice": l[2], "total_questoes": l[3], "tem_filhos": l[4]} for l in linhas]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/materias/{materia_id}/filhos")
+def listar_filhos(materia_id: int, esconder_vazias: bool = False):
+    """Retorna os filhos diretos de uma matéria com contagem de questões."""
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            
+            query = """
+                SELECT m.id, m.nome, m.parent_id, m.id_externo, m.indice,
+                       COUNT(qm.questao_id) AS total_questoes,
+                       EXISTS(SELECT 1 FROM materias child WHERE child.parent_id = m.id) AS tem_filhos
+                FROM materias m
+                LEFT JOIN questoes_materias qm ON m.id = qm.materia_id
+                WHERE m.parent_id = %s
+                GROUP BY m.id, m.nome, m.parent_id, m.id_externo, m.indice
+            """
+            
+            if esconder_vazias:
+                query += """
+                HAVING COUNT(qm.questao_id) > 0 OR EXISTS(SELECT 1 FROM materias child WHERE child.parent_id = m.id)
+                """
+                
+            query += " ORDER BY m.indice ASC NULLS LAST, m.nome ASC;"
+            
+            cursor.execute(query, (materia_id,))
+            linhas = cursor.fetchall()
+        return [{
+            "id": l[0], "nome": l[1], "parent_id": l[2], "id_externo": l[3], "indice": l[4],
+            "total_questoes": l[5], "tem_filhos": l[6]
+        } for l in linhas]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -54,8 +120,8 @@ def editar_materia(materia_id: int, materia: MateriaRequest):
         with get_conexao() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "UPDATE materias SET nome = %s WHERE id = %s;",
-                (materia.nome, materia_id)
+                "UPDATE materias SET nome = %s, parent_id = %s, id_externo = %s WHERE id = %s;",
+                (materia.nome, materia.parent_id, materia.id_externo, materia_id)
             )
             conn.commit()
         return {"sucesso": True, "mensagem": "Matéria atualizada!"}

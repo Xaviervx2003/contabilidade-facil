@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import {
   CAlert,
   CButton,
@@ -8,8 +8,8 @@ import {
   CBadge,
   CCol,
   CFormInput,
+  CFormSelect,
   CInputGroup,
-  CInputGroupText,
   CRow,
   CSpinner,
   CTable,
@@ -20,7 +20,7 @@ import {
   CTableRow,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPencil, cilTrash, cilPlus, cilCheckAlt, cilX } from '@coreui/icons'
+import { cilPencil, cilTrash, cilPlus, cilCheckAlt, cilX, cilChevronRight } from '@coreui/icons'
 import { API_URL } from '../../config'
 
 const GestaoMaterias = () => {
@@ -30,14 +30,18 @@ const GestaoMaterias = () => {
   const [success, setSuccess] = useState('')
 
   const [novaMateria, setNovaMateria] = useState('')
+  const [parentID, setParentID] = useState('')
+  
   const [editandoId, setEditandoId] = useState(null)
   const [editandoNome, setEditandoNome] = useState('')
+  const [editandoParentId, setEditandoParentId] = useState('')
 
   const carregar = async () => {
     setLoading(true)
     try {
       const res = await fetch(`${API_URL}/api/admin/materias`)
-      setMaterias(await res.json())
+      const data = await res.json()
+      setMaterias(Array.isArray(data) ? data : [])
     } catch {
       setError('Erro ao carregar matérias.')
     } finally {
@@ -47,6 +51,35 @@ const GestaoMaterias = () => {
 
   useEffect(() => { carregar() }, [])
 
+  // ── Lógica de Árvore ───────────────────────────────────────────
+  
+  const tree = useMemo(() => {
+    const map = {}
+    materias.forEach(m => map[m.id] = { ...m, children: [] })
+    const roots = []
+    materias.forEach(m => {
+      if (m.parent_id && map[m.parent_id]) {
+        map[m.parent_id].children.push(map[m.id])
+      } else {
+        roots.push(map[m.id])
+      }
+    })
+    return roots
+  }, [materias])
+
+  // Achatar a árvore para exibição na tabela com indentação
+  const flattenedList = useMemo(() => {
+    const list = []
+    const recurse = (node, depth = 0) => {
+      list.push({ ...node, depth })
+      node.children.forEach(c => recurse(c, depth + 1))
+    }
+    tree.forEach(root => recurse(root))
+    return list
+  }, [tree])
+
+  // ──────────────────────────────────────────────────────────────
+
   const criar = async () => {
     if (!novaMateria.trim()) return
     setError('')
@@ -54,12 +87,15 @@ const GestaoMaterias = () => {
       const res = await fetch(`${API_URL}/api/admin/materias`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: novaMateria.trim() }),
+        body: JSON.stringify({ 
+          nome: novaMateria.trim(),
+          parent_id: parentID === '' ? null : parseInt(parentID)
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail)
       setSuccess('Matéria criada!')
-      setNovaMateria('')
+      setNovaMateria(''); setParentID('')
       carregar()
       setTimeout(() => setSuccess(''), 3000)
     } catch (e) {
@@ -74,7 +110,10 @@ const GestaoMaterias = () => {
       const res = await fetch(`${API_URL}/api/admin/materias/${editandoId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: editandoNome.trim() }),
+        body: JSON.stringify({ 
+          nome: editandoNome.trim(),
+          parent_id: editandoParentId === '' ? null : parseInt(editandoParentId)
+        }),
       })
       if (!res.ok) throw new Error('Erro ao salvar')
       setEditandoId(null)
@@ -87,7 +126,7 @@ const GestaoMaterias = () => {
   }
 
   const deletar = async (id, nome) => {
-    if (!window.confirm(`Deletar "${nome}"? Isso removerá os vínculos com questões e professores.`)) return
+    if (!window.confirm(`Deletar "${nome}"? Isso removerá todas as subcategorias também!`)) return
     try {
       const res = await fetch(`${API_URL}/api/admin/materias/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Erro ao deletar')
@@ -105,66 +144,86 @@ const GestaoMaterias = () => {
       {success && <CAlert color="success" dismissible onClose={() => setSuccess('')}>{success}</CAlert>}
 
       <CCard className="mb-4">
-        <CCardHeader className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <div className="d-flex align-items-center gap-2">
-            <strong>Gestão de Matérias</strong>
-            <CBadge color="secondary">{materias.length} matérias</CBadge>
-          </div>
-          <CInputGroup style={{ maxWidth: 360 }}>
-            <CFormInput
-              placeholder="Nome da nova matéria..."
-              value={novaMateria}
-              onChange={(e) => setNovaMateria(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && criar()}
-            />
-            <CButton color="primary" onClick={criar} disabled={!novaMateria.trim()}>
-              <CIcon icon={cilPlus} className="me-1" /> Criar
-            </CButton>
-          </CInputGroup>
+        <CCardHeader>
+          <strong>Gestão Hierárquica de Matérias (Categorias)</strong>
         </CCardHeader>
-
         <CCardBody>
+          <div className="bg-light p-3 rounded mb-4 border">
+            <h6 className="mb-3 fw-bold">Criar Nova Categoria / Subcategoria</h6>
+            <CRow className="g-3 align-items-end">
+              <CCol md={5}>
+                <label className="form-label small text-muted text-uppercase">Nome da Categoria</label>
+                <CFormInput
+                  placeholder="Ex: Introdução à Administração"
+                  value={novaMateria}
+                  onChange={(e) => setNovaMateria(e.target.value)}
+                />
+              </CCol>
+              <CCol md={5}>
+                <label className="form-label small text-muted text-uppercase">Categoria Pai (Opcional)</label>
+                <CFormSelect value={parentID} onChange={(e) => setParentID(e.target.value)}>
+                  <option value="">Nenhuma (Raiz)</option>
+                  {flattenedList.map(m => (
+                    <option key={m.id} value={m.id}>
+                      {'. . '.repeat(m.depth)} {m.nome}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
+              <CCol md={2}>
+                <CButton color="primary" className="w-100" onClick={criar} disabled={!novaMateria.trim()}>
+                  <CIcon icon={cilPlus} className="me-1" /> Criar
+                </CButton>
+              </CCol>
+            </CRow>
+          </div>
+
           {loading ? (
             <div className="text-center py-5"><CSpinner /></div>
           ) : (
             <CTable align="middle" hover responsive bordered className="mb-0">
               <CTableHead className="table-light">
                 <CTableRow>
-                  <CTableHeaderCell style={{ width: '5%' }}>#</CTableHeaderCell>
-                  <CTableHeaderCell>Nome da Matéria</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center" style={{ width: '15%' }}>Questões</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center" style={{ width: '15%' }}>Ações</CTableHeaderCell>
+                  <CTableHeaderCell style={{ width: '60%' }}>Hierarquia</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Questões</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Ações</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
-                {materias.length === 0 ? (
+                {flattenedList.length === 0 ? (
                   <CTableRow>
-                    <CTableDataCell colSpan={4} className="text-center py-4 text-muted">
-                      Nenhuma matéria cadastrada.
+                    <CTableDataCell colSpan={3} className="text-center py-4 text-muted">
+                      Nenhuma categoria cadastrada.
                     </CTableDataCell>
                   </CTableRow>
-                ) : materias.map((m, idx) => (
-                  <CTableRow key={m.id}>
-                    <CTableDataCell className="text-muted">{idx + 1}</CTableDataCell>
+                ) : flattenedList.map((m) => (
+                  <CTableRow key={m.id} className={m.depth === 0 ? 'fw-bold' : ''}>
                     <CTableDataCell>
-                      {editandoId === m.id ? (
-                        <CInputGroup size="sm">
-                          <CFormInput
-                            value={editandoNome}
-                            onChange={(e) => setEditandoNome(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && salvarEdicao()}
-                            autoFocus
-                          />
-                          <CButton color="success" variant="outline" onClick={salvarEdicao}>
-                            <CIcon icon={cilCheckAlt} />
-                          </CButton>
-                          <CButton color="secondary" variant="outline" onClick={() => setEditandoId(null)}>
-                            <CIcon icon={cilX} />
-                          </CButton>
-                        </CInputGroup>
-                      ) : (
-                        <strong>{m.nome}</strong>
-                      )}
+                      <div style={{ paddingLeft: m.depth * 30, display: 'flex', alignItems: 'center' }}>
+                        {m.depth > 0 && <CIcon icon={cilChevronRight} className="text-muted me-2" style={{ width: 12 }} />}
+                        
+                        {editandoId === m.id ? (
+                          <div className="d-flex flex-column gap-2 w-100">
+                             <CInputGroup size="sm">
+                                <CFormInput
+                                  value={editandoNome}
+                                  onChange={(e) => setEditandoNome(e.target.value)}
+                                  autoFocus
+                                />
+                                <CButton color="success" variant="outline" onClick={salvarEdicao}><CIcon icon={cilCheckAlt} /></CButton>
+                                <CButton color="secondary" variant="outline" onClick={() => setEditandoId(null)}><CIcon icon={cilX} /></CButton>
+                             </CInputGroup>
+                             <CFormSelect size="sm" value={editandoParentId} onChange={e => setEditandoParentId(e.target.value)}>
+                                <option value="">Mudar para Raiz</option>
+                                {flattenedList.filter(f => f.id !== m.id).map(f => (
+                                  <option key={f.id} value={f.id}>{'. . '.repeat(f.depth)} {f.nome}</option>
+                                ))}
+                             </CFormSelect>
+                          </div>
+                        ) : (
+                          <span>{m.nome}</span>
+                        )}
+                      </div>
                     </CTableDataCell>
                     <CTableDataCell className="text-center">
                       <CBadge color="info" shape="rounded-pill" className="px-3">
@@ -177,7 +236,11 @@ const GestaoMaterias = () => {
                         variant="outline"
                         size="sm"
                         className="me-2"
-                        onClick={() => { setEditandoId(m.id); setEditandoNome(m.nome) }}
+                        onClick={() => { 
+                          setEditandoId(m.id); 
+                          setEditandoNome(m.nome);
+                          setEditandoParentId(m.parent_id || '')
+                        }}
                         disabled={editandoId === m.id}
                       >
                         <CIcon icon={cilPencil} />

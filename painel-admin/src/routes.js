@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Application Routes Configuration — Contabilidade Fácil
  * @module routes
  *
@@ -11,7 +11,7 @@ import React from 'react'
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Quiz = React.lazy(() => import('./views/quiz/Quiz'))
 const GestaoQuestoes = React.lazy(() => import('./views/questoes/GestaoQuestoes'))
-const Historico = React.lazy(() => import('./views/historico/Historico'))
+const Alunos = React.lazy(() => import('./views/aluno/Alunos'))
 const Perfil = React.lazy(() => import('./views/perfil/Perfil'))
 const FeedbacksQuestoes = React.lazy(() => import('./views/feedbacks/FeedbacksQuestoes'))
 const GestaoUsuarios = React.lazy(() => import('./views/admin/GestaoUsuarios'))
@@ -21,6 +21,8 @@ const Relatorios = React.lazy(() => import('./views/relatorios/Relatorios'))
 const HistoricoAluno = React.lazy(() => import('./views/aluno/HistoricoAluno'))
 const MinhasQuestoes = React.lazy(() => import('./views/aluno/MinhasQuestoes'))
 const MeusFeedbacks = React.lazy(() => import('./views/aluno/MeusFeedbacks'))
+const GestaoTrilhas = React.lazy(() => import('./views/admin/GestaoTrilhas'))
+const MinhasTrilhas = React.lazy(() => import('./views/aluno/MinhasTrilhas'))
 
 export const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -32,7 +34,7 @@ export const routes = [
   },
   { path: '/quiz', name: 'Quiz', element: Quiz },
   { path: '/videos', name: 'Vídeo-Aulas', element: VideoGallery },
-  { path: '/historico', name: 'Meu Histórico', element: Historico },
+
   { path: '/aluno/questoes', name: 'Minhas Questões', element: MinhasQuestoes },
   { path: '/aluno/feedbacks', name: 'Meus Feedbacks', element: MeusFeedbacks },
   {
@@ -66,7 +68,20 @@ export const routes = [
     element: Relatorios,
     allowedRoles: ['admin', 'professor'],
   },
+  {
+    path: '/admin/desempenho',
+    name: 'Desempenho dos Alunos',
+    element: Alunos,
+    allowedRoles: ['admin', 'professor'],
+  },
+  {
+    path: '/admin/trilhas',
+    name: 'Gestão de Trilhas',
+    element: GestaoTrilhas,
+    allowedRoles: ['admin', 'professor'],
+  },
   { path: '/aluno/historico', name: 'Meu Histórico', element: HistoricoAluno },
+  { path: '/aluno/trilhas', name: 'Minhas Trilhas', element: MinhasTrilhas },
 ]
 
 export default routes

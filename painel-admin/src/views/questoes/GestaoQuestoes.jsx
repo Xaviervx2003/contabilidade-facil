@@ -35,6 +35,7 @@ import { cilPencil, cilTrash, cilSearch, cilCloudUpload } from '@coreui/icons'
 import { API_URL } from '../../config'
 
 import { useSearchParams } from 'react-router-dom'
+import MateriaMultiSelect from '../../components/MateriaMultiSelect'
 
 const PER_PAGE = 20
 
@@ -65,6 +66,12 @@ const GestaoQuestoes = () => {
     resposta_correta: 'A',
     explicacao: '',
     link_video: '',        // ← FASE 1: Link de vídeo opcional
+    banca: '',
+    orgao: '',
+    cargo: '',
+    ano: '',
+    escolaridade: '',
+    modalidade: '',
   })
 
   const carregarMaterias = async () => {
@@ -111,6 +118,12 @@ const GestaoQuestoes = () => {
       resposta_correta: 'A',
       explicacao: '',
       link_video: '',      // ← FASE 1
+      banca: '',
+      orgao: '',
+      cargo: '',
+      ano: '',
+      escolaridade: '',
+      modalidade: '',
     })
     setModoEdicao(false)
     setModalVisible(true)
@@ -129,6 +142,12 @@ const GestaoQuestoes = () => {
       resposta_correta: q.answer,
       explicacao: q.explicacao || '',
       link_video: q.link_video || '',   // ← FASE 1: Carrega o link existente
+      banca: q.banca || '',
+      orgao: q.orgao || '',
+      cargo: q.cargo || '',
+      ano: q.ano || '',
+      escolaridade: q.escolaridade || '',
+      modalidade: q.modalidade || '',
     })
     setModoEdicao(true)
     setModalVisible(true)
@@ -173,6 +192,12 @@ const GestaoQuestoes = () => {
           resposta_correta: formData.resposta_correta,
           explicacao: formData.explicacao,
           link_video: formData.link_video || null,  // ← FASE 1: Envia null se vazio
+          banca: formData.banca || null,
+          orgao: formData.orgao || null,
+          cargo: formData.cargo || null,
+          ano: formData.ano ? parseInt(formData.ano) : null,
+          escolaridade: formData.escolaridade || null,
+          modalidade: formData.modalidade || null,
         }),
       })
 
@@ -400,21 +425,41 @@ const GestaoQuestoes = () => {
             {/* CHECKBOXES DE MATÉRIAS */}
             <div className="mb-4 p-3 border rounded bg-light">
               <label className="fw-bold mb-2">Vincular a quais matérias?</label>
-              <div className="d-flex flex-wrap gap-3">
-                {materiasDisponiveis.length > 0 ? (
-                  materiasDisponiveis.map(m => (
-                    <CFormCheck
-                      key={m.id}
-                      id={`materia-q-${m.id}`}
-                      label={m.nome}
-                      checked={formData.materia_ids.includes(m.id)}
-                      onChange={() => toggleMateria(m.id)}
-                    />
-                  ))
-                ) : (
-                  <span className="text-muted small">Nenhuma matéria cadastrada no sistema ainda.</span>
-                )}
-              </div>
+              <MateriaMultiSelect 
+                materias={materiasDisponiveis} 
+                selected={formData.materia_ids.map(String)} 
+                onChange={(selected) => setFormData({ ...formData, materia_ids: selected.map(Number) })}
+              />
+            </div>
+
+            <div className="mb-4 p-3 border rounded bg-light">
+              <label className="fw-bold mb-3 d-block text-primary">Metadados do Concurso</label>
+              <CRow className="g-3">
+                <CCol md={4}>
+                  <label className="form-label fw-bold">Banca</label>
+                  <CFormInput value={formData.banca} onChange={e => setFormData({ ...formData, banca: e.target.value })} placeholder="Ex: FGV, CESPE" />
+                </CCol>
+                <CCol md={4}>
+                  <label className="form-label fw-bold">Órgão</label>
+                  <CFormInput value={formData.orgao} onChange={e => setFormData({ ...formData, orgao: e.target.value })} placeholder="Ex: Receita Federal" />
+                </CCol>
+                <CCol md={4}>
+                  <label className="form-label fw-bold">Cargo</label>
+                  <CFormInput value={formData.cargo} onChange={e => setFormData({ ...formData, cargo: e.target.value })} placeholder="Ex: Auditor" />
+                </CCol>
+                <CCol md={4}>
+                  <label className="form-label fw-bold">Ano</label>
+                  <CFormInput type="number" value={formData.ano} onChange={e => setFormData({ ...formData, ano: e.target.value })} placeholder="Ex: 2024" />
+                </CCol>
+                <CCol md={4}>
+                  <label className="form-label fw-bold">Escolaridade</label>
+                  <CFormInput value={formData.escolaridade} onChange={e => setFormData({ ...formData, escolaridade: e.target.value })} placeholder="Ex: Nível Superior" />
+                </CCol>
+                <CCol md={4}>
+                  <label className="form-label fw-bold">Modalidade</label>
+                  <CFormInput value={formData.modalidade} onChange={e => setFormData({ ...formData, modalidade: e.target.value })} placeholder="Ex: Múltipla Escolha" />
+                </CCol>
+              </CRow>
             </div>
 
             <div className="mb-3">

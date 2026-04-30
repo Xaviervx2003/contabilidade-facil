@@ -1,8 +1,8 @@
-// scraper.ts
+// scraper.ts — v3 Final
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Client } from "pg";
 import { questoes, materias, questoesMaterias } from "./schema";
 
@@ -95,6 +95,13 @@ async function rodarExtrator() {
         break;
       }
       dados = await resposta.json();
+
+      // Salva amostra da primeira página para inspeção
+      if (pagina === 1) {
+        const fs = require('fs');
+        fs.writeFileSync('sample_questoes.json', JSON.stringify(dados, null, 2));
+        console.log("  📄 Amostra salva em sample_questoes.json");
+      }
     } catch (err) {
       console.error("  Erro na requisição:", err);
       continue;
@@ -115,41 +122,64 @@ async function rodarExtrator() {
       console.log("  Sem mais questões.");
       break;
     }
-    console.log(`  ${rows.length} questões. Inserindo...`);
+    console.log(`  ${rows.length} questões recebidas. Processando...`);
 
     for (const item of rows) {
+      // ── Alternativas ──────────────────────────────────────────────────────────
       const alternativas = { a: "", b: "", c: "", d: "", e: null as string | null };
       const itens: any[] = item.itens || [];
 
       itens.forEach((alt: any) => {
         const letra = (alt.rotulo || alt.letra || "").trim().charAt(0).toLowerCase();
-        const texto = alt.corpo_clean || alt.corpo || alt.texto || "";
-        if (letra === "a") alternativas.a = texto.trim();
-        if (letra === "b") alternativas.b = texto.trim();
-        if (letra === "c") alternativas.c = texto.trim();
-        if (letra === "d") alternativas.d = texto.trim();
-        if (letra === "e") alternativas.e = texto.trim();
+        const texto = (alt.corpo_clean || alt.corpo || alt.texto || "").trim();
+        if (letra === "a") alternativas.a = texto;
+        if (letra === "b") alternativas.b = texto;
+        if (letra === "c") alternativas.c = texto;
+        if (letra === "d") alternativas.d = texto;
+        if (letra === "e") alternativas.e = texto;
       });
 
+      // Pula questões sem A/B/C/D (ex: formato I/II/III ou Certo/Errado)
       if (!alternativas.a || !alternativas.b || !alternativas.c || !alternativas.d) {
+        console.log(
+          `  ⚠️ Pulando ID ${item.id} — alternativas incompletas` +
+          ` (rótulos: ${itens.map((i: any) => i.rotulo).join(", ")})`
+        );
         totalPuladas++;
         continue;
       }
 
-      const itemCorreto = itens.find((alt: any) => alt.id === item.resposta || alt.correta === true);
+      // ── Gabarito ──────────────────────────────────────────────────────────────
+      const itemCorreto = itens.find(
+        (alt: any) => alt.id === item.resposta || alt.correta === true
+      );
       const gabaritoLetra = itemCorreto
         ? (itemCorreto.rotulo || itemCorreto.letra || "A").trim().charAt(0).toUpperCase()
         : "A";
 
-      const nomeMateria = item.assuntos?.[0]?.nome || "Administração Geral";
+      // ── Metadados ─────────────────────────────────────────────────────────────
+      const prova = item.provas?.[0];
+      const nomeProva = prova?.nome || null;   // "FGV - ALE RJ - Especialista - 2024"
+      const escolaridade = prova?.nivel || null;   // "Superior", "Médio", etc.
+
+      // Concatena múltiplos valores com " / " e descarta vazios
+      const banca = (item.bancas || []).map((b: any) => b.nome).filter(Boolean).join(" / ") || null;
+      const orgao = (item.orgaos || []).map((o: any) => o.nome).filter(Boolean).join(" / ") || null;
+      const cargo = (item.cargos || []).map((c: any) => c.descricao).filter(Boolean).join(" / ") || null;
+
+      // Ano mais recente garantido (sem depender de campos especulativos)
+      const ano = item.anos?.length ? Math.max(...item.anos.map(Number)) : null;
+
+      const modalidade = item.tipo || null;
+      const primeiroAssunto = (item.assuntos?.[0]?.nome || "Sem Assunto").slice(0, 255);
       const enunciado = (item.enunciado_clean || item.enunciado || "").trim();
 
+      // ── Validações finais ─────────────────────────────────────────────────────
       if (!enunciado) {
+        console.warn(`  ⚠️ Pulando ID ${item.id} — enunciado vazio`);
         totalPuladas++;
         continue;
       }
-
-      // Validação do id_externo (obrigatório para ON CONFLICT)
       if (!item.id) {
         console.warn(`  ⚠️ Questão sem id_externo, pulando...`);
         totalPuladas++;
@@ -157,100 +187,107 @@ async function rodarExtrator() {
       }
 
       try {
-        // ✅ INSERT corrigido: SEM criado_por e criado_em (não existem no banco)
-        await db.insert(questoes).values({
-          assunto: nomeMateria.slice(0, 255),
-          enunciado: enunciado,
-          opcao_a: alternativas.a,
-          opcao_b: alternativas.b,
-          opcao_c: alternativas.c,
-          opcao_d: alternativas.d,
-          opcao_e: alternativas.e,
-          resposta_correta: gabaritoLetra.charAt(0), // garante 1 caractere para char(1)
-          explicacao: null, // usa DEFAULT do banco se quiser
-          tentativas: 0,
-          acertos: 0,
-          link_video: null,
-          id_externo: item.id, // ✅ obrigatório e único
-          // ❌ criado_por e criado_em REMOVIDOS — não existem na tabela
-        }).onConflictDoNothing({ target: questoes.id_externo });
+        // ── 1. UPSERT da Questão com .returning() (zero SELECT extra) ─────────
+        const [questaoSalva] = await db
+          .insert(questoes)
+          .values({
+            assunto: primeiroAssunto,
+            enunciado: enunciado,
+            opcao_a: alternativas.a,
+            opcao_b: alternativas.b,
+            opcao_c: alternativas.c,
+            opcao_d: alternativas.d,
+            opcao_e: alternativas.e,
+            resposta_correta: gabaritoLetra.charAt(0),
+            explicacao: null,
+            tentativas: 0,
+            acertos: 0,
+            link_video: null,
+            id_externo: item.id,
+            banca: banca?.slice(0, 255),
+            orgao: orgao?.slice(0, 255),
+            cargo: cargo?.slice(0, 255),
+            ano: ano,
+            escolaridade: (nomeProva || escolaridade)?.slice(0, 255),
+            modalidade: modalidade?.slice(0, 255),
+          })
+          .onConflictDoUpdate({
+            target: questoes.id_externo,
+            set: {
+              // Atualiza metadados E assunto principal no re-scan
+              assunto: primeiroAssunto,
+              banca: banca?.slice(0, 255),
+              orgao: orgao?.slice(0, 255),
+              cargo: cargo?.slice(0, 255),
+              ano: ano,
+              escolaridade: (nomeProva || escolaridade)?.slice(0, 255),
+              modalidade: modalidade?.slice(0, 255),
+            },
+          })
+          .returning({ id: questoes.id });
 
-        // Buscar ID real da questão (funciona mesmo se já existia)
-        const [existente] = await db.select({ id: questoes.id })
-          .from(questoes)
-          .where(eq(questoes.id_externo, item.id))
-          .limit(1);
-
-        if (!existente?.id) {
-          console.warn(`  ⚠️ Questão ID externo ${item.id} não persistida (conflito silencioso?)`);
+        if (!questaoSalva?.id) {
+          console.warn(`  ⚠️ UPSERT sem retorno para ID externo ${item.id}`);
           totalPuladas++;
           continue;
         }
 
-        // UPSERT da matéria (insere se não existir, ou busca se já existe)
-        let materiaId: number | undefined;
+        // ── 2. UPSERT de TODOS os Assuntos + Vínculo ─────────────────────────
+        for (const assuntoApi of (item.assuntos || [])) {
+          const idExternoMat = assuntoApi.id;
+          const nomeMat = (assuntoApi.nome || "").slice(0, 255);
 
-        const [matInserida] = await db.insert(materias)
-          .values({ nome: nomeMateria.slice(0, 255) })
-          .onConflictDoNothing({ target: materias.nome })
-          .returning({ id: materias.id });
+          if (!idExternoMat || !nomeMat) continue;
 
-        if (matInserida?.id) {
-          materiaId = matInserida.id;
-        } else {
-          const [matExistente] = await db.select({ id: materias.id })
-            .from(materias)
-            .where(eq(materias.nome, nomeMateria))
-            .limit(1);
-          materiaId = matExistente?.id;
-        }
+          // Upsert da matéria: atualiza nome se mudou na API
+          const [matSalva] = await db
+            .insert(materias)
+            .values({ nome: nomeMat, id_externo: idExternoMat })
+            .onConflictDoUpdate({
+              target: materias.id_externo,
+              set: { nome: nomeMat },
+            })
+            .returning({ id: materias.id });
 
-        if (materiaId) {
-          await db.insert(questoesMaterias)
-            .values({ questao_id: existente.id, materia_id: materiaId })
-            .onConflictDoNothing();
+          const materiaId = matSalva?.id;
+
+          // Vínculo questão <-> matéria (idempotente)
+          if (materiaId) {
+            await db
+              .insert(questoesMaterias)
+              .values({ questao_id: questaoSalva.id, materia_id: materiaId })
+              .onConflictDoNothing();
+          }
         }
 
         totalInseridas++;
         if (totalInseridas % 25 === 0) {
-          console.log(`  [✓] ${totalInseridas} inseridas... (último ID: ${item.id})`);
+          console.log(`  [✓] ${totalInseridas} processadas... (Último ID: ${item.id})`);
         }
 
       } catch (err: any) {
-        // 🔹 LOG COMPLETO DO ERRO POSTGRESQL
         console.error(`\n💥 ERRO AO INSERIR ID ${item?.id}:`);
-        console.error(`   📛 Message: ${err?.message}`);
-        console.error(`   🔢 Code: ${err?.code}`);
-        console.error(`   📌 Detail: ${err?.detail}`);
-        console.error(`   🔗 Hint: ${err?.hint}`);
+        console.error(`   📛 Message:    ${err?.message}`);
+        console.error(`   🔢 Code:       ${err?.code}`);
+        console.error(`   📌 Detail:     ${err?.detail}`);
+        console.error(`   🔗 Hint:       ${err?.hint}`);
         console.error(`   🎯 Constraint: ${err?.constraint}`);
-        console.error(`   📍 Where: ${err?.where}`);
+        console.error(`   📍 Where:      ${err?.where}`);
 
-        // Classificação rápida do erro
-        switch (err?.code) {
-          case "23505":
-            console.error("   → Conflito de unicidade (id_externo já existe)");
-            break;
-          case "23502":
-            console.error("   → Violação de NOT NULL — coluna obrigatória sem valor");
-            break;
-          case "22001":
-            console.error("   → String muito longa — aumente VARCHAR ou use TEXT");
-            break;
-          case "23514":
-            console.error("   → Violação de CHECK constraint");
-            break;
-          case "42703":
-            console.error("   → Coluna não existe — verifique schema vs banco");
-            break;
-          default:
-            console.error("   → Erro desconhecido");
-        }
+        const erros: Record<string, string> = {
+          "23505": "Conflito de unicidade (id_externo já existe)",
+          "23502": "Violação de NOT NULL — coluna obrigatória sem valor",
+          "22001": "String muito longa — aumente VARCHAR ou use TEXT",
+          "23514": "Violação de CHECK constraint",
+          "42703": "Coluna não existe — verifique schema vs banco",
+        };
+        console.error(`   → ${erros[err?.code] ?? "Erro desconhecido"}`);
 
         totalPuladas++;
       }
     }
 
+    // Pausa aleatória entre páginas para evitar rate limit
     const pausa = 2000 + Math.random() * 2000;
     console.log(`  Pausando ${(pausa / 1000).toFixed(1)}s...\n`);
     await new Promise(r => setTimeout(r, pausa));

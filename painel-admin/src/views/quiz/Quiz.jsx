@@ -35,6 +35,7 @@ import {
   cilShare,
   cilVolumeHigh,
   cilVolumeOff,
+  cilStar,
 } from '@coreui/icons'
 import { API_URL } from '../../config'
 import { calculateScore, calculateGrade, formatSeconds, shuffle } from '../../utils/quizUtils'
@@ -135,66 +136,9 @@ const SkeletonQuiz = ({ isDark }) => {
   )
 }
 
-/* ─── Componente de dropdown multi-matérias ───────────────────────────────────── */
+/* ─── Componente de dropdown em ÁRVORE (Tree Select) ─────────────────────────── */
 
-const MateriaMultiSelect = ({ materias, selected, onChange }) => {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  const toggle = (id) => {
-    const s = String(id)
-    onChange(selected.includes(s) ? selected.filter(x => x !== s) : [...selected, s])
-  }
-
-  const label =
-    selected.length === 0 ? 'Todas as matérias' :
-      selected.length === 1 ? (materias.find(m => String(m.id) === selected[0])?.nome ?? '1 selecionada') :
-        `${selected.length} matérias selecionadas`
-
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button
-        type="button"
-        className="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center"
-        onClick={() => setOpen(o => !o)}
-        style={{ textAlign: 'left', overflow: 'hidden' }}
-      >
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-        <span className="ms-2 flex-shrink-0">{open ? '▲' : '▼'}</span>
-      </button>
-
-      {open && (
-        <div style={{
-          position: 'absolute', zIndex: 1050, width: '100%', top: '100%', left: 0, marginTop: 2,
-          background: 'var(--cui-body-bg)', border: '1px solid var(--cui-border-color)',
-          borderRadius: 6, boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-          maxHeight: 220, overflowY: 'auto',
-        }}>
-          <div className="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
-            <small className="text-body-secondary">Selecione as matérias</small>
-            {selected.length > 0 && (
-              <small className="text-primary" style={{ cursor: 'pointer' }} onClick={() => onChange([])}>
-                Limpar
-              </small>
-            )}
-          </div>
-          {materias.map(m => (
-            <label key={m.id} className="d-flex align-items-center gap-2 px-3 py-2" style={{ cursor: 'pointer', margin: 0 }}>
-              <input type="checkbox" checked={selected.includes(String(m.id))} onChange={() => toggle(m.id)} />
-              <span style={{ fontSize: 14 }}>{m.nome}</span>
-            </label>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
+import MateriaMultiSelect from '../../components/MateriaMultiSelect'
 
 /* ─── Tabela de revisão ──────────────────────────────────────────────────────── */
 
@@ -265,9 +209,48 @@ const Quiz = () => {
   const [soundEnabled, setSoundEnabled] = useState(() => localStorage.getItem('quiz_sound') === 'true')
   const [savedSnapshot, setSavedSnapshot] = useState(null)
   const [showDica, setShowDica] = useState(false)
+  const [modoEstudo, setModoEstudo] = useState('todas') // 'todas' | 'nao_respondidas' | 'erros'
+  const [bancaSelecionada, setBancaSelecionada] = useState('')
+  const [orgaoSelecionado, setOrgaoSelecionado] = useState('')
+  const [cargoSelecionado, setCargoSelecionado] = useState('')
+  const [anoSelecionado, setAnoSelecionado] = useState('')
+
+  // ⭐ Favoritos
+  const [favoritos, setFavoritos] = useState([])
 
   const nomeAluno = sessionStorage.getItem('nome') || 'Aluno'
+  const matricula = sessionStorage.getItem('matricula')
   const T = useMemo(() => getTokens(isDark), [isDark])
+
+  /* ── Carregar favoritos ao montar ──────────────────────────────────────────── */
+  useEffect(() => {
+    if (!matricula) return
+    fetch(`${API_URL}/api/favoritos/${matricula}`)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        const ids = Array.isArray(data) ? data.map(item => item.questao_id) : []
+        setFavoritos(ids)
+      })
+      .catch(() => { })
+  }, [matricula])
+
+  /* ── Alternar favorito ─────────────────────────────────────────────────────── */
+  const alternarFavorito = async (questaoId) => {
+    if (!matricula) return
+    const ehFavorito = favoritos.includes(questaoId)
+
+    if (ehFavorito) {
+      await fetch(`${API_URL}/api/favoritos/remover/${questaoId}?matricula=${matricula}`, { method: 'DELETE' })
+      setFavoritos(prev => prev.filter(id => id !== questaoId))
+    } else {
+      await fetch(`${API_URL}/api/favoritos/adicionar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matricula, questao_id: questaoId })
+      })
+      setFavoritos(prev => [...prev, questaoId])
+    }
+  }
 
   /* ── Detecção de tema ──────────────────────────────────────────────────────── */
   useEffect(() => {
@@ -374,28 +357,39 @@ const Quiz = () => {
   const fetchAndStart = async () => {
     setError(''); setFeedback(''); setStatus('loading')
     try {
-      const res = await fetch(`${API_URL}/api/questoes`)
+      // Monta URL com filtros server-side para evitar baixar todo o banco
+      const params = new URLSearchParams()
+      if (materiasSelected.length === 1) {
+        params.set('materia_id', materiasSelected[0])
+      }
+      if (matricula) {
+        params.set('matricula', matricula)
+        params.set('modo_estudo', modoEstudo)
+      }
+      if (bancaSelecionada) params.set('banca', bancaSelecionada)
+      if (orgaoSelecionado) params.set('orgao', orgaoSelecionado)
+      if (cargoSelecionado) params.set('cargo', cargoSelecionado)
+      if (anoSelecionado) params.set('ano', anoSelecionado)
+      
+      // Pede apenas o necessário + margem para shuffle
+      const maxNeeded = quantidade > 0 ? Math.min(quantidade * 3, 500) : 500
+      params.set('limit', String(maxNeeded))
+
+      const url = `${API_URL}/api/questoes${params.toString() ? '?' + params.toString() : ''}`
+      const res = await fetch(url)
       let data = await res.json()
       if (!res.ok || !Array.isArray(data) || data.length === 0)
-        throw new Error('Nenhuma questão encontrada.')
-      if (materiasSelected.length > 0) {
-  const selectedNomes = materiasSelected.map(id => {
-    const m = materias.find(mat => String(mat.id) === String(id));
-    return m ? m.nome : '';
-  }).filter(Boolean);
+        throw new Error('Nenhuma questão encontrada para este filtro.')
 
-  data = data.filter(q => {
-    // Opção 1: materia_id (vinculado via questoes_materias)
-    if (q.materia_id) return materiasSelected.includes(String(q.materia_id));
-    // Opção 2: materia_ids (array de IDs)
-    if (q.materia_ids) return q.materia_ids.some(id => materiasSelected.includes(String(id)));
-    // Opção 3: assunto textual (fallback para questões importadas)
-    const assunto = (q.assunto || '').toLowerCase();
-    return selectedNomes.some(nome => assunto.includes(nome.toLowerCase()));
-  });
-  
-  if (data.length === 0) throw new Error('Nenhuma questão para as matérias selecionadas.');
-}
+      // Filtro client-side residual (multi-matéria ou fallback por assunto)
+      if (materiasSelected.length > 1) {
+        data = data.filter(q => {
+          if (q.materia_ids) return q.materia_ids.some(id => materiasSelected.includes(String(id)));
+          return false;
+        });
+        if (data.length === 0) throw new Error('Nenhuma questão para as matérias selecionadas.');
+      }
+
       let pool = shuffle(data)
       if (quantidade > 0 && quantidade < pool.length) pool = pool.slice(0, quantidade)
       startQuiz(pool)
@@ -408,7 +402,7 @@ const Quiz = () => {
   const fetchAndStartSimuladoRapido = async () => {
     setError(''); setFeedback(''); setStatus('loading')
     try {
-      const res = await fetch(`${API_URL}/api/questoes`)
+      const res = await fetch(`${API_URL}/api/questoes?limit=30`)
       const data = await res.json()
       if (!res.ok || !Array.isArray(data) || data.length === 0)
         throw new Error('Nenhuma questão encontrada.')
@@ -602,23 +596,63 @@ const Quiz = () => {
                   </div>
 
                   <CRow className="g-3 mb-4">
-                    <CCol md={4}>
-                      <label className="form-label" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: T.muted }}>Matéria(s)</label>
-                      <MateriaMultiSelect materias={materias} selected={materiasSelected} onChange={setMateriasSelected} />
+                    <CCol md={12}>
+                      <label className="form-label" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: T.muted }}>Disciplina e Assunto</label>
+                      <MateriaMultiSelect materias={materias} selected={materiasSelected} onChange={setMateriasSelected} esconderVazias={true} />
                     </CCol>
                     <CCol md={4}>
+                      <label className="form-label" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: T.muted }}>Banca</label>
+                      <input type="text" className="form-control" placeholder="Ex: FGV, CESPE..." value={bancaSelecionada} onChange={e => setBancaSelecionada(e.target.value)} />
+                    </CCol>
+                    <CCol md={4}>
+                      <label className="form-label" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: T.muted }}>Órgão</label>
+                      <input type="text" className="form-control" placeholder="Ex: Receita Federal" value={orgaoSelecionado} onChange={e => setOrgaoSelecionado(e.target.value)} />
+                    </CCol>
+                    <CCol md={4}>
+                      <label className="form-label" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: T.muted }}>Cargo</label>
+                      <input type="text" className="form-control" placeholder="Ex: Auditor" value={cargoSelecionado} onChange={e => setCargoSelecionado(e.target.value)} />
+                    </CCol>
+                    <CCol md={2}>
+                      <label className="form-label" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: T.muted }}>Ano</label>
+                      <input type="number" className="form-control" placeholder="Ex: 2024" value={anoSelecionado} onChange={e => setAnoSelecionado(e.target.value)} />
+                    </CCol>
+                    <CCol md={3}>
                       <label className="form-label" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: T.muted }}>Nº de Questões</label>
                       <CFormSelect value={quantidade} onChange={e => setQuantidade(Number(e.target.value))}>
                         {QTD_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                       </CFormSelect>
                     </CCol>
-                    <CCol md={4}>
+                    <CCol md={3}>
                       <label className="form-label" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: T.muted }}>Tempo Limite</label>
                       <CFormSelect value={tempoLimite} onChange={e => setTempoLimite(Number(e.target.value))}>
                         {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                       </CFormSelect>
                     </CCol>
                   </CRow>
+
+                  <div className="mb-4">
+                    <label className="form-label" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: T.muted }}>Focar em quais questões?</label>
+                    <CRow className="g-2">
+                      {[
+                        { id: 'todas', label: 'Todas as Questões', desc: 'Revisar todo o banco' },
+                        { id: 'nao_respondidas', label: 'Não Respondidas', desc: 'Apenas o que nunca fiz' },
+                        { id: 'erros', label: 'Meus Erros', desc: 'Focar no que errei antes' },
+                      ].map(m => (
+                        <CCol key={m.id} sm={4}>
+                          <div
+                            onClick={() => setModoEstudo(m.id)}
+                            style={{
+                              cursor: 'pointer', padding: '10px', borderRadius: 10, border: `1px solid ${modoEstudo === m.id ? T.blue : T.border}`,
+                              background: modoEstudo === m.id ? `${T.blue}10` : 'transparent', transition: 'all .2s'
+                            }}
+                          >
+                            <div style={{ fontWeight: 700, fontSize: 12, color: modoEstudo === m.id ? T.blue : T.text }}>{m.label}</div>
+                            <div style={{ fontSize: 10, color: T.muted }}>{m.desc}</div>
+                          </div>
+                        </CCol>
+                      ))}
+                    </CRow>
+                  </div>
 
                   <div className="d-grid gap-2">
                     <button onClick={fetchAndStart} style={{
@@ -659,9 +693,48 @@ const Quiz = () => {
                     </div>
                   )}
 
-                  <p style={{ fontSize: 16, color: T.text, fontWeight: 600, marginBottom: 20, lineHeight: 1.6 }}>
-                    {currentQuestion.question}
-                  </p>
+                  <div style={{ marginBottom: 12 }}>
+                    {[
+                      currentQuestion.banca,
+                      currentQuestion.ano,
+                      currentQuestion.orgao,
+                      currentQuestion.cargo,
+                      currentQuestion.escolaridade
+                    ].filter(Boolean).map((tag, idx) => (
+                      <CBadge key={idx} color="secondary" shape="rounded-pill" style={{ marginRight: 6, fontSize: 11, background: T.surface, color: T.text, border: `1px solid ${T.border}` }}>
+                        {tag}
+                      </CBadge>
+                    ))}
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                    <p style={{ fontSize: 16, color: T.text, fontWeight: 600, lineHeight: 1.6, margin: 0, flex: 1 }}>
+                      {currentQuestion.question}
+                    </p>
+                    {/* ⭐ Botão de Favorito */}
+                    <button
+                      onClick={() => alternarFavorito(currentQuestion.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 4,
+                        borderRadius: '50%',
+                        transition: 'transform .15s',
+                      }}
+                      title={favoritos.includes(currentQuestion.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                    >
+                      <CIcon
+                        icon={cilStar}
+                        style={{
+                          width: 22,
+                          height: 22,
+                          color: favoritos.includes(currentQuestion.id) ? '#f59e0b' : isDark ? '#5d7290' : '#94a3b8',
+                          transition: 'color .2s',
+                        }}
+                      />
+                    </button>
+                  </div>
 
                   <div className="d-grid gap-2 mb-4">
                     {currentQuestion.options.map((option, idx) => {
@@ -669,7 +742,6 @@ const Quiz = () => {
                       const isSelected = selectedOption === val
                       const isCorrectAnswer = val === currentQuestion.answer
                       let color = 'secondary', variant = 'outline'
-                      let bg = 'transparent'
                       if (isAnswerConfirmed) {
                         if (isCorrectAnswer) { color = 'success'; variant = undefined }
                         else if (isSelected) { color = 'danger'; variant = undefined }
