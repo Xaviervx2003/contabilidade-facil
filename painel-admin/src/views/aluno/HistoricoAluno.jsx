@@ -363,8 +363,9 @@ const HistoricoAluno = () => {
     const [filtroAcerto, setFiltroAcerto] = useState(getParamURL('acerto'))
     const [materias, setMaterias] = useState([])
 
-    const matricula = sessionStorage.getItem('matricula')
-    const nome = sessionStorage.getItem('nome') || 'Aluno'
+    const matriculaUrl = getParamURL('matricula')
+    const matricula = matriculaUrl || sessionStorage.getItem('matricula')
+    const nome = matriculaUrl ? `Aluno (${matriculaUrl})` : (sessionStorage.getItem('nome') || 'Aluno')
 
     // Sincronizar filtros com URL
     useEffect(() => {

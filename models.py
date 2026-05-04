@@ -56,6 +56,8 @@ class FeedbackRequest(BaseModel):
 
 class MateriaRequest(BaseModel):
     nome: str
+    parent_id: Optional[int] = None
+    id_externo: Optional[int] = None
 
 
 class PromoverProfessorRequest(BaseModel):
@@ -73,3 +75,9 @@ class QuestaoRequest(BaseModel):
     resposta_correta: str
     explicacao: Optional[str] = None
     link_video: Optional[str] = None   # ← FASE 1: Link YouTube/Vimeo opcional
+    banca: Optional[str] = None
+    orgao: Optional[str] = None
+    cargo: Optional[str] = None
+    ano: Optional[int] = None
+    escolaridade: Optional[str] = None
+    modalidade: Optional[str] = None

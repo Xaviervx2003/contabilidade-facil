@@ -1,0 +1,406 @@
+[
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.",
+  "pai": 404571,
+  "nome": "Introdução à Administração",
+  "filhos": [
+    417269,
+    417294,
+    404613,
+    417282,
+    417270,
+    417274,
+    417273,
+    404674,
+    404675,
+    404678,
+    404677,
+    404676
+  ],
+  "id": 404572,
+  "nivel": 2,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.1.",
+  "pai": 404572,
+  "nome": "Conceitos introdutórios de Administração",
+  "filhos": [
+    417294,
+    404613
+  ],
+  "id": 417269,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.1.1.",
+  "pai": 417269,
+  "nome": "Conceitos de administração/organização",
+  "filhos": [],
+  "id": 417294,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.1.2.",
+  "pai": 417269,
+  "nome": "Eficiência, eficácia e efetividade",
+  "filhos": [],
+  "id": 404613,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.2.",
+  "pai": 404572,
+  "nome": "Ambiente organizacional",
+  "filhos": [],
+  "id": 417282,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.3.",
+  "pai": 404572,
+  "nome": "Papéis dos administradores",
+  "filhos": [],
+  "id": 417270,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.4.",
+  "pai": 404572,
+  "nome": "Níveis organizacionais",
+  "filhos": [],
+  "id": 417274,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.5.",
+  "pai": 404572,
+  "nome": "Habilidades do Administrador",
+  "filhos": [],
+  "id": 417273,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.6.",
+  "pai": 404572,
+  "nome": "Processo organizacional (PODC)",
+  "filhos": [
+    404675,
+    404678,
+    404677,
+    404676
+  ],
+  "id": 404674,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.6.1.",
+  "pai": 404674,
+  "nome": "Planejamento",
+  "filhos": [],
+  "id": 404675,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.6.2.",
+  "pai": 404674,
+  "nome": "Organização",
+  "filhos": [],
+  "id": 404678,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.6.3.",
+  "pai": 404674,
+  "nome": "Direção",
+  "filhos": [],
+  "id": 404677,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.1.6.4.",
+  "pai": 404674,
+  "nome": "Controle",
+  "filhos": [],
+  "id": 404676,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.",
+  "pai": 404571,
+  "nome": "Teorias da Administração",
+  "filhos": [
+    404573,
+    404575,
+    404574,
+    404576,
+    404577,
+    404578,
+    404579,
+    404580,
+    404581,
+    404582,
+    404583,
+    404584,
+    404585,
+    404586,
+    417240,
+    417280,
+    404587,
+    404589,
+    404591,
+    404592
+  ],
+  "id": 417276,
+  "nivel": 2,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.1.",
+  "pai": 417276,
+  "nome": "Abordagem clássica",
+  "filhos": [
+    404575,
+    404574,
+    404576
+  ],
+  "id": 404573,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.1.1.",
+  "pai": 404573,
+  "nome": "Teoria da administração científica",
+  "filhos": [],
+  "id": 404575,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.1.2.",
+  "pai": 404573,
+  "nome": "Teoria clássica",
+  "filhos": [
+    404576
+  ],
+  "id": 404574,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.1.2.1.",
+  "pai": 404574,
+  "nome": "Princípios gerais da administração segundo Fayol",
+  "filhos": [],
+  "id": 404576,
+  "nivel": 5,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.2.",
+  "pai": 417276,
+  "nome": "Abordagem humanística",
+  "filhos": [
+    404578
+  ],
+  "id": 404577,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.2.1.",
+  "pai": 404577,
+  "nome": "Teoria das relações humanas ",
+  "filhos": [],
+  "id": 404578,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.3.",
+  "pai": 417276,
+  "nome": "Abordagem neoclássica",
+  "filhos": [
+    404580,
+    404581
+  ],
+  "id": 404579,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.3.1.",
+  "pai": 404579,
+  "nome": "Teoria Neoclássica da Administração",
+  "filhos": [],
+  "id": 404580,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.3.2.",
+  "pai": 404579,
+  "nome": "Administração por objetivos (APO)",
+  "filhos": [],
+  "id": 404581,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.4.",
+  "pai": 417276,
+  "nome": "Abordagem Estruturalista ",
+  "filhos": [
+    404583,
+    404584
+  ],
+  "id": 404582,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.4.1.",
+  "pai": 404582,
+  "nome": "Teoria da burocracia",
+  "filhos": [],
+  "id": 404583,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.4.2.",
+  "pai": 404582,
+  "nome": "Teoria estruturalista",
+  "filhos": [],
+  "id": 404584,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.5.",
+  "pai": 417276,
+  "nome": "Abordagem Comportamental ",
+  "filhos": [
+    404586,
+    417240,
+    417280
+  ],
+  "id": 404585,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.5.1.",
+  "pai": 404585,
+  "nome": "Teoria comportamental ou behaviorista da Administração ",
+  "filhos": [],
+  "id": 404586,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.5.2.",
+  "pai": 404585,
+  "nome": "Comportamento organizacional ",
+  "filhos": [],
+  "id": 417240,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.5.3.",
+  "pai": 404585,
+  "nome": "Teoria do Desenvolvimento Organizacional",
+  "filhos": [],
+  "id": 417280,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.6.",
+  "pai": 417276,
+  "nome": "Abordagem Sistêmica",
+  "filhos": [
+    404589
+  ],
+  "id": 404587,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.6.1.",
+  "pai": 404587,
+  "nome": "Teoria Geral dos Sistemas ",
+  "filhos": [],
+  "id": 404589,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.7.",
+  "pai": 417276,
+  "nome": "Abordagem Contingencial ",
+  "filhos": [
+    404592
+  ],
+  "id": 404591,
+  "nivel": 3,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+},
+{
+  "assunto_raiz": 404571,
+  "indice": "4.2.7.1.",
+  "pai": 404591,
+  "nome": "Teoria contingencial ",
+  "filhos": [],
+  "id": 404592,
+  "nivel": 4,
+  "index": "assunto-arvore-multinivel-1.14.1-8"
+}
+]

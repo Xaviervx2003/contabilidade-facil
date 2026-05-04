@@ -17,6 +17,17 @@ router = APIRouter(prefix="/api", tags=["Questões"])
 def obter_questoes(
     usuario_id: Optional[int] = Query(None),
     materia_id: Optional[int] = Query(None),
+    limit: Optional[int] = Query(None, ge=1, le=500, description="Limita o número de questões retornadas"),
+    matricula: Optional[str] = Query(None, description="Matrícula do aluno para filtros de histórico"),
+    modo_estudo: Optional[str] = Query("todas", description="Modo de estudo: todas, nao_respondidas, erros"),
+    banca: Optional[str] = Query(None, description="Filtrar por banca organizadora"),
+    orgao: Optional[str] = Query(None, description="Filtrar por órgão"),
+    cargo: Optional[str] = Query(None, description="Filtrar por cargo"),
+    ano: Optional[int] = Query(None, description="Filtrar por ano"),
+    escolaridade: Optional[str] = Query(None, description="Filtrar por escolaridade"),
+    page: Optional[int] = Query(None, ge=1, description="Página para paginação server-side"),
+    per_page: Optional[int] = Query(None, ge=1, le=100, description="Itens por página"),
+    busca: Optional[str] = Query(None, description="Busca textual no enunciado/matéria"),
 ):
     try:
         with get_conexao() as conn:
@@ -44,17 +55,120 @@ def obter_questoes(
             if materia_id:
                 conditions.append("""
                     q.id IN (
-                        SELECT qm3.questao_id FROM questoes_materias qm3 WHERE qm3.materia_id = %s
+                        WITH RECURSIVE sub_materias AS (
+                            SELECT id FROM materias WHERE id = %s
+                            UNION ALL
+                            SELECT m.id FROM materias m
+                            JOIN sub_materias sm ON m.parent_id = sm.id
+                        )
+                        SELECT qm3.questao_id 
+                        FROM questoes_materias qm3 
+                        WHERE qm3.materia_id IN (SELECT id FROM sub_materias)
                     )
                 """)
                 params.append(materia_id)
+
+            # Filtros de Histórico (Baseado na matrícula do aluno)
+            if matricula:
+                if modo_estudo == "nao_respondidas":
+                    # Questões que o aluno nunca respondeu
+                    conditions.append("""
+                        q.id NOT IN (
+                            SELECT sq.questao_id 
+                            FROM sessoes_questoes sq
+                            JOIN sessoes_estudo se ON sq.sessao_id = se.id
+                            WHERE se.nome_aluno = %s
+                        )
+                    """)
+                    params.append(matricula)
+                elif modo_estudo == "erros":
+                    conditions.append("""
+                        q.id IN (
+                            SELECT sq.questao_id 
+                            FROM sessoes_questoes sq
+                            JOIN sessoes_estudo se ON sq.sessao_id = se.id
+                            WHERE se.nome_aluno = %s AND sq.acertou = FALSE
+                        )
+                    """)
+                    params.append(matricula)
+
+            if banca:
+                conditions.append("q.banca ILIKE %s")
+                params.append(f"%{banca}%")
+            if orgao:
+                conditions.append("q.orgao ILIKE %s")
+                params.append(f"%{orgao}%")
+            if cargo:
+                conditions.append("q.cargo ILIKE %s")
+                params.append(f"%{cargo}%")
+            if ano:
+                conditions.append("q.ano = %s")
+                params.append(ano)
+            if escolaridade:
+                conditions.append("q.escolaridade ILIKE %s")
+                params.append(f"%{escolaridade}%")
+
+            # Busca textual server-side (enunciado ou matéria)
+            if busca and busca.strip():
+                conditions.append("""
+                    (q.enunciado ILIKE %s OR EXISTS (
+                        SELECT 1 FROM questoes_materias qm_busca
+                        JOIN materias m_busca ON qm_busca.materia_id = m_busca.id
+                        WHERE qm_busca.questao_id = q.id AND m_busca.nome ILIKE %s
+                    ) OR CAST(q.id AS TEXT) = %s)
+                """)
+                termo_busca = f"%{busca.strip()}%"
+                params.extend([termo_busca, termo_busca, busca.strip()])
 
             filtro_where = ""
             if conditions:
                 filtro_where = "WHERE " + " AND ".join(conditions)
 
+            # ── Modo paginado (admin) vs modo legado (quiz do aluno) ──
+            use_pagination = page is not None
+            if use_pagination:
+                pg = page or 1
+                pp = per_page or 20
+
+                # 1) COUNT total para a paginação
+                cursor.execute(
+                    f"SELECT COUNT(*) FROM questoes q {filtro_where};",
+                    tuple(params)
+                )
+                total = cursor.fetchone()[0]
+
+                offset = (pg - 1) * pp
+                limite_sql = f"LIMIT {pp} OFFSET {offset}"
+            else:
+                # Modo legado: retorna array simples (compatível com quiz do aluno)
+                limite_sql = ""
+                if limit is not None:
+                    limite_sql = f"LIMIT {int(limit)}"
+
             # ✅ FASE 1: Inclui q.link_video no SELECT
             cursor.execute(f"""
+                WITH feedbacks_agrupados AS (
+                    SELECT 
+                        questao_id,
+                        json_agg(json_build_object(
+                            'nome_aluno', nome_aluno, 
+                            'texto', texto, 
+                            'data_criacao', data_criacao,
+                            'resposta_professor', resposta_professor
+                        )) as comentarios
+                    FROM feedbacks_questoes
+                    WHERE publico = TRUE
+                    GROUP BY questao_id
+                ),
+                materias_agrupadas AS (
+                    SELECT
+                        qm.questao_id,
+                        STRING_AGG(m.nome, ', ' ORDER BY m.nome) AS materias,
+                        ARRAY_AGG(m.id) FILTER (WHERE m.id IS NOT NULL) AS materia_ids
+                    FROM questoes_materias qm
+                    JOIN materias m ON qm.materia_id = m.id
+                    GROUP BY qm.questao_id
+                )
                 SELECT
                     q.id,
                     q.enunciado,
@@ -67,29 +181,22 @@ def obter_questoes(
                     q.explicacao,
                     q.tentativas,
                     q.acertos,
-                    STRING_AGG(m.nome, ', ' ORDER BY m.nome) AS materias,
-                    ARRAY_AGG(m.id) FILTER (WHERE m.id IS NOT NULL) AS materia_ids,
-                    COALESCE((
-                        SELECT json_agg(json_build_object(
-                            'nome_aluno', f.nome_aluno, 
-                            'texto', f.texto, 
-                            'data_criacao', f.data_criacao,
-                            'resposta_professor', f.resposta_professor  -- ← ADICIONADO
-                        ))
-                        FROM feedbacks_questoes f
-                        WHERE f.questao_id = q.id AND f.publico = TRUE
-                    ), '[]'::json) AS comentarios_publicos,
-                    q.link_video
+                    ma.materias,
+                    ma.materia_ids,
+                    COALESCE(fa.comentarios, '[]'::json) AS comentarios_publicos,
+                    q.link_video,
+                    q.banca,
+                    q.orgao,
+                    q.cargo,
+                    q.ano,
+                    q.escolaridade,
+                    q.modalidade
                 FROM questoes q
-                LEFT JOIN questoes_materias qm ON q.id = qm.questao_id
-                LEFT JOIN materias m           ON qm.materia_id = m.id
+                LEFT JOIN materias_agrupadas ma ON ma.questao_id = q.id
+                LEFT JOIN feedbacks_agrupados fa ON fa.questao_id = q.id
                 {filtro_where}
-                GROUP BY
-                    q.id, q.enunciado,
-                    q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d, q.opcao_e,
-                    q.resposta_correta, q.explicacao, q.tentativas, q.acertos,
-                    q.link_video
-                ORDER BY q.id ASC;
+                ORDER BY q.id ASC
+                {limite_sql};
             """, tuple(params))
             linhas = cursor.fetchall()
 
@@ -112,12 +219,61 @@ def obter_questoes(
                 "materia_ids":           linha[12] or [],
                 "comentarios_publicos":  linha[13] if linha[13] else [],
                 "link_video":            linha[14] or None,
+                "banca":                 linha[15] or None,
+                "orgao":                 linha[16] or None,
+                "cargo":                 linha[17] or None,
+                "ano":                   linha[18] or None,
+                "escolaridade":          linha[19] or None,
+                "modalidade":            linha[20] or None,
             })
 
+        # Retorno paginado (admin) vs array simples (legado/quiz)
+        if use_pagination:
+            return {
+                "data": resultado,
+                "total": total,
+                "page": pg,
+                "per_page": pp,
+                "total_pages": -(-total // pp),  # ceil division
+            }
         return resultado
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar questões: {str(e)}")
+
+
+@router.get("/filtros/questoes")
+def obter_filtros_questoes():
+    """Retorna listas de valores únicos para os filtros de questões."""
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            
+            filtros = {}
+            
+            # Bancas
+            cursor.execute("SELECT DISTINCT banca FROM questoes WHERE banca IS NOT NULL ORDER BY banca;")
+            filtros['bancas'] = [row[0] for row in cursor.fetchall()]
+            
+            # Órgãos
+            cursor.execute("SELECT DISTINCT orgao FROM questoes WHERE orgao IS NOT NULL ORDER BY orgao;")
+            filtros['orgaos'] = [row[0] for row in cursor.fetchall()]
+            
+            # Cargos
+            cursor.execute("SELECT DISTINCT cargo FROM questoes WHERE cargo IS NOT NULL ORDER BY cargo;")
+            filtros['cargos'] = [row[0] for row in cursor.fetchall()]
+            
+            # Anos
+            cursor.execute("SELECT DISTINCT ano FROM questoes WHERE ano IS NOT NULL ORDER BY ano DESC;")
+            filtros['anos'] = [row[0] for row in cursor.fetchall()]
+            
+            # Escolaridade
+            cursor.execute("SELECT DISTINCT escolaridade FROM questoes WHERE escolaridade IS NOT NULL ORDER BY escolaridade;")
+            filtros['escolaridades'] = [row[0] for row in cursor.fetchall()]
+            
+            return filtros
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao carregar filtros: {str(e)}")
 
 
 @router.post("/questoes")
@@ -130,8 +286,8 @@ def criar_questao(questao: QuestaoRequest):
             cursor.execute("""
                 INSERT INTO questoes
                     (enunciado, opcao_a, opcao_b, opcao_c, opcao_d, opcao_e,
-                     resposta_correta, explicacao, link_video)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     resposta_correta, explicacao, link_video, banca, orgao, cargo, ano, escolaridade, modalidade)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id;
             """, (
                 questao.enunciado,
@@ -143,6 +299,12 @@ def criar_questao(questao: QuestaoRequest):
                 questao.resposta_correta,
                 questao.explicacao,
                 questao.link_video or None,
+                questao.banca,
+                questao.orgao,
+                questao.cargo,
+                questao.ano,
+                questao.escolaridade,
+                questao.modalidade,
             ))
             nova_id = cursor.fetchone()[0]
 
@@ -180,7 +342,13 @@ def atualizar_questao(questao_id: int, questao: QuestaoRequest):
                     opcao_e          = %s,
                     resposta_correta = %s,
                     explicacao       = %s,
-                    link_video       = %s
+                    link_video       = %s,
+                    banca            = %s,
+                    orgao            = %s,
+                    cargo            = %s,
+                    ano              = %s,
+                    escolaridade     = %s,
+                    modalidade       = %s
                 WHERE id = %s;
             """, (
                 questao.enunciado,
@@ -192,6 +360,12 @@ def atualizar_questao(questao_id: int, questao: QuestaoRequest):
                 questao.resposta_correta,
                 questao.explicacao,
                 questao.link_video or None,
+                questao.banca,
+                questao.orgao,
+                questao.cargo,
+                questao.ano,
+                questao.escolaridade,
+                questao.modalidade,
                 questao_id,
             ))
 

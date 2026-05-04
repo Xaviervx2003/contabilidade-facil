@@ -86,7 +86,7 @@ const STAT_META = [
   },
   {
     key: 'alunos_ativos',
-    label: 'Alunos Ativos',
+    label: 'Alunos Ativos no Mês',
     icon: cilPeople,
     accent: '#ec4899',
     bg: 'rgba(236,72,153,0.10)',
@@ -202,9 +202,12 @@ const Relatorios = () => {
   })
   const [materias, setMaterias] = useState([])
   const [filtroMateria, setFiltroMateria] = useState('')
+  const [alunos, setAlunos] = useState([])
+  const [filtroAluno, setFiltroAluno] = useState('')
   const [isDark, setIsDark] = useState(false)
 
   const userId = sessionStorage.getItem('userId')
+  const papelUsuario = sessionStorage.getItem('papel')
 
   useEffect(() => {
     const checkTheme = () => {
@@ -225,7 +228,14 @@ const Relatorios = () => {
       .then((res) => res.json())
       .then((data) => setMaterias(Array.isArray(data) ? data : []))
       .catch(() => {})
-  }, [])
+
+    if (papelUsuario === 'admin' || papelUsuario === 'professor') {
+      fetch(`${API_URL}/api/alunos/desempenho?por_pagina=1000`)
+        .then((res) => res.json())
+        .then((data) => setAlunos(Array.isArray(data.alunos) ? data.alunos : (Array.isArray(data) ? data : [])))
+        .catch(() => {})
+    }
+  }, [papelUsuario])
 
   const buscarRelatorio = async (mes, ano) => {
     try {
@@ -236,6 +246,7 @@ const Relatorios = () => {
       if (mes) params.append('mes', mes)
       if (ano) params.append('ano', ano)
       if (filtroMateria) params.append('materia_id', filtroMateria)
+      if (filtroAluno) params.append('aluno_matricula', filtroAluno)
 
       const res = await fetch(`${API_URL}/api/relatorios/estudo?${params.toString()}`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -255,7 +266,7 @@ const Relatorios = () => {
       dados.periodo.ano || hoje.getFullYear(),
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, filtroMateria])
+  }, [userId, filtroMateria, filtroAluno])
 
   const handlePeriodoChange = (e) => {
     const [ano, mes] = e.target.value.split('-').map(Number)
@@ -400,6 +411,24 @@ const Relatorios = () => {
             ))}
           </CFormSelect>
         </div>
+
+        {(papelUsuario === 'admin' || papelUsuario === 'professor') && (
+          <div style={{ minWidth: 200, flex: 1, maxWidth: 280 }}>
+            <label style={labelStyle}>Aluno</label>
+            <CFormSelect
+              value={filtroAluno}
+              onChange={(e) => setFiltroAluno(e.target.value)}
+              style={{ ...inputStyle, fontSize: 14 }}
+            >
+              <option value="">Todos os alunos</option>
+              {alunos.map((a) => (
+                <option key={a.matricula} value={a.matricula}>
+                  {a.nome} ({a.matricula})
+                </option>
+              ))}
+            </CFormSelect>
+          </div>
+        )}
 
         <div style={{ marginLeft: 'auto' }}>
           <CButton

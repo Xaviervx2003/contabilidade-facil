@@ -45,11 +45,24 @@ const GestaoQuestoes = () => {
 
   const [questoes, setQuestoes] = useState([])
   const [materiasDisponiveis, setMateriasDisponiveis] = useState([])
+  
+  // Opções para os selects de filtro
+  const [filtrosOpcoes, setFiltrosOpcoes] = useState({ bancas: [], orgaos: [], cargos: [], anos: [] })
+  
+  // Valores selecionados nos filtros
+  const [filtroBanca, setFiltroBanca] = useState('')
+  const [filtroOrgao, setFiltroOrgao] = useState('')
+  const [filtroCargo, setFiltroCargo] = useState('')
+  const [filtroAno, setFiltroAno] = useState('')
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [searchTerm, setSearchTerm] = useState(buscaInicial)
+  const [debouncedSearch, setDebouncedSearch] = useState(buscaInicial)
   const [currentPage, setCurrentPage] = useState(1)
+  const [totalQuestoes, setTotalQuestoes] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
 
   const [modalVisible, setModalVisible] = useState(false)
   const [modoEdicao, setModoEdicao] = useState(false)
@@ -84,15 +97,53 @@ const GestaoQuestoes = () => {
     }
   }
 
+  const carregarFiltrosOpcoes = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/filtros/questoes`)
+      const data = await res.json()
+      setFiltrosOpcoes(data)
+    } catch (err) {
+      console.error("Erro ao carregar opções de filtros", err)
+    }
+  }
+
+  // Debounce de busca (400ms) para não sobrecarregar a API
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+      setCurrentPage(1)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  // Resetar página ao mudar filtros
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filtroBanca, filtroOrgao, filtroCargo, filtroAno])
+
   const carregarQuestoes = async () => {
     setLoading(true)
     setError('')
     try {
       const userId = sessionStorage.getItem('userId')
-      const params = userId ? `?usuario_id=${userId}` : ''
-      const res = await fetch(`${API_URL}/api/questoes${params}`)
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        per_page: String(PER_PAGE),
+      })
+      if (userId) params.set('usuario_id', userId)
+      if (debouncedSearch.trim()) params.set('busca', debouncedSearch.trim())
+      if (filtroBanca) params.set('banca', filtroBanca)
+      if (filtroOrgao) params.set('orgao', filtroOrgao)
+      if (filtroCargo) params.set('cargo', filtroCargo)
+      if (filtroAno) params.set('ano', filtroAno)
+
+      const res = await fetch(`${API_URL}/api/questoes?${params.toString()}`)
       const data = await res.json()
-      setQuestoes(data)
+
+      // Resposta paginada: { data: [...], total, page, per_page, total_pages }
+      setQuestoes(data.data || [])
+      setTotalQuestoes(data.total || 0)
+      setTotalPages(data.total_pages || 1)
     } catch (err) {
       setError('Erro ao carregar questões da API.')
     } finally {
@@ -102,8 +153,13 @@ const GestaoQuestoes = () => {
 
   useEffect(() => {
     carregarMaterias()
-    carregarQuestoes()
+    carregarFiltrosOpcoes()
   }, [])
+
+  // Recarrega sempre que a página ou a busca muda
+  useEffect(() => {
+    carregarQuestoes()
+  }, [currentPage, debouncedSearch, filtroBanca, filtroOrgao, filtroCargo, filtroAno])
 
   const abrirParaNovo = () => {
     setFormData({
@@ -265,151 +321,180 @@ const GestaoQuestoes = () => {
         {success && <CAlert color="success" dismissible onClose={() => setSuccess('')}>{success}</CAlert>}
 
         <CCard className="mb-4">
-          <CCardHeader className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div className="d-flex align-items-center gap-2">
-              <strong>Gestão de Questões do Quiz</strong>
-              <CBadge color="secondary">{questoes.length} questões</CBadge>
+          <CCardHeader className="d-flex flex-column gap-3">
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div className="d-flex align-items-center gap-2">
+                <strong>Gestão de Questões do Quiz</strong>
+                <CBadge color="secondary">{totalQuestoes} questões</CBadge>
+              </div>
+              <div className="d-flex align-items-center flex-wrap gap-2 mt-2 mt-md-0 w-100 justify-content-md-end">
+                <CInputGroup style={{ maxWidth: '100%', width: 'auto', flex: '1 1 250px' }}>
+                  <CInputGroupText><CIcon icon={cilSearch} size="sm" /></CInputGroupText>
+                  <CFormInput
+                    placeholder="Buscar enunciado ou matéria..."
+                    value={searchTerm}
+                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1) }}
+                  />
+                </CInputGroup>
+                <div className="d-flex gap-2 flex-grow-1 flex-md-grow-0">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    id="csv-import-input"
+                    style={{ display: 'none' }}
+                    onChange={handleCsvImport}
+                  />
+                  <CButton
+                    color="success"
+                    variant="outline"
+                    className="flex-grow-1 flex-md-grow-0"
+                    onClick={() => document.getElementById('csv-import-input').click()}
+                    title="Importar via CSV"
+                  >
+                    <CIcon icon={cilCloudUpload} className="me-1" /> CSV
+                  </CButton>
+                  <CButton color="primary" onClick={abrirParaNovo} className="flex-grow-1 flex-md-grow-0">
+                    + Nova
+                  </CButton>
+                </div>
+              </div>
             </div>
-            <div className="d-flex align-items-center gap-2">
-              <CInputGroup style={{ maxWidth: 280 }}>
-                <CInputGroupText><CIcon icon={cilSearch} size="sm" /></CInputGroupText>
-                <CFormInput
-                  placeholder="Buscar enunciado ou matéria..."
-                  value={searchTerm}
-                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1) }}
-                />
-              </CInputGroup>
-              <input
-                type="file"
-                accept=".csv"
-                id="csv-import-input"
-                style={{ display: 'none' }}
-                onChange={handleCsvImport}
-              />
-              <CButton
-                color="success"
-                variant="outline"
-                onClick={() => document.getElementById('csv-import-input').click()}
-                title="Importar questões via arquivo CSV"
-              >
-                <CIcon icon={cilCloudUpload} className="me-1" /> CSV
-              </CButton>
-              <CButton color="primary" onClick={abrirParaNovo}>
-                + Nova Questão
-              </CButton>
-            </div>
+
+            {/* Filtros Avançados */}
+            <CRow className="g-2 bg-light p-2 rounded mx-0 border">
+              <CCol xs="12" md="3">
+                <CFormSelect
+                  size="sm"
+                  value={filtroBanca}
+                  onChange={(e) => setFiltroBanca(e.target.value)}
+                >
+                  <option value="">Todas as Bancas</option>
+                  {filtrosOpcoes.bancas?.map(b => <option key={b} value={b}>{b}</option>)}
+                </CFormSelect>
+              </CCol>
+              <CCol xs="12" md="3">
+                <CFormSelect
+                  size="sm"
+                  value={filtroOrgao}
+                  onChange={(e) => setFiltroOrgao(e.target.value)}
+                >
+                  <option value="">Todos os Órgãos</option>
+                  {filtrosOpcoes.orgaos?.map(o => <option key={o} value={o}>{o}</option>)}
+                </CFormSelect>
+              </CCol>
+              <CCol xs="12" md="3">
+                <CFormSelect
+                  size="sm"
+                  value={filtroCargo}
+                  onChange={(e) => setFiltroCargo(e.target.value)}
+                >
+                  <option value="">Todos os Cargos</option>
+                  {filtrosOpcoes.cargos?.map(c => <option key={c} value={c}>{c}</option>)}
+                </CFormSelect>
+              </CCol>
+              <CCol xs="12" md="3">
+                <CFormSelect
+                  size="sm"
+                  value={filtroAno}
+                  onChange={(e) => setFiltroAno(e.target.value)}
+                >
+                  <option value="">Todos os Anos</option>
+                  {filtrosOpcoes.anos?.map(a => <option key={a} value={a}>{a}</option>)}
+                </CFormSelect>
+              </CCol>
+            </CRow>
           </CCardHeader>
 
           <CCardBody>
-            {(() => {
-              const filtered = questoes.filter((q) => {
-                if (!searchTerm.trim()) return true
-                const term = searchTerm.toLowerCase()
-                return (
-                  (q.question && q.question.toLowerCase().includes(term)) ||
-                  (q.assunto && q.assunto.toLowerCase().includes(term)) ||
-                  (q.materias_nomes && q.materias_nomes.toLowerCase().includes(term)) ||
-                  String(q.id).includes(term)
-                )
-              })
-              const totalPages = Math.ceil(filtered.length / PER_PAGE)
-              const start = (currentPage - 1) * PER_PAGE
-              const paginated = filtered.slice(start, start + PER_PAGE)
+            <CTable align="middle" className="mb-0 border" hover responsive>
+              <CTableHead color="light">
+                <CTableRow>
+                  <CTableHeaderCell>ID</CTableHeaderCell>
+                  <CTableHeaderCell>Matérias</CTableHeaderCell>
+                  <CTableHeaderCell>Enunciado</CTableHeaderCell>
+                  {/* ← FASE 1: Coluna de vídeo na tabela */}
+                  <CTableHeaderCell className="text-center">Vídeo</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Ações</CTableHeaderCell>
+                </CTableRow>
+              </CTableHead>
+              <CTableBody>
+                {loading ? (
+                  <CTableRow><CTableDataCell colSpan="5" className="text-center py-4"><CSpinner color="primary" /></CTableDataCell></CTableRow>
+                ) : questoes.length === 0 ? (
+                  <CTableRow><CTableDataCell colSpan="5" className="text-center py-4 text-muted">Nenhuma questão encontrada.</CTableDataCell></CTableRow>
+                ) : questoes.map((q) => (
+                  <CTableRow key={q.id}>
+                    <CTableDataCell>
+                      <strong>#{q.id}</strong>
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      {q.materias_nomes ? (
+                        <span className="small text-primary fw-medium">{q.materias_nomes}</span>
+                      ) : (
+                        <span className="small text-muted fst-italic">{q.assunto || 'Multi-Matéria'}</span>
+                      )}
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      <div style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {q.question}
+                      </div>
+                    </CTableDataCell>
+                    {/* ← FASE 1: Indicador visual se a questão tem vídeo */}
+                    <CTableDataCell className="text-center">
+                      {q.link_video
+                        ? <CBadge color="danger" title={q.link_video}>▶ Vídeo</CBadge>
+                        : <span className="text-muted small">—</span>
+                      }
+                    </CTableDataCell>
+                    <CTableDataCell className="text-center">
+                      <CButton color="info" variant="ghost" onClick={() => abrirParaEdicao(q)}>
+                        <CIcon icon={cilPencil} /> Editar
+                      </CButton>
+                      <CButton color="danger" variant="ghost" className="ms-2" onClick={() => deletarQuestao(q.id)}>
+                        <CIcon icon={cilTrash} /> Excluir
+                      </CButton>
+                    </CTableDataCell>
+                  </CTableRow>
+                ))}
+              </CTableBody>
+            </CTable>
 
-              return (
-                <>
-                  <CTable align="middle" className="mb-0 border" hover responsive>
-                    <CTableHead color="light">
-                      <CTableRow>
-                        <CTableHeaderCell>ID</CTableHeaderCell>
-                        <CTableHeaderCell>Matérias</CTableHeaderCell>
-                        <CTableHeaderCell>Enunciado</CTableHeaderCell>
-                        {/* ← FASE 1: Coluna de vídeo na tabela */}
-                        <CTableHeaderCell className="text-center">Vídeo</CTableHeaderCell>
-                        <CTableHeaderCell className="text-center">Ações</CTableHeaderCell>
-                      </CTableRow>
-                    </CTableHead>
-                    <CTableBody>
-                      {loading ? (
-                        <CTableRow><CTableDataCell colSpan="5" className="text-center py-4"><CSpinner color="primary" /></CTableDataCell></CTableRow>
-                      ) : paginated.length === 0 ? (
-                        <CTableRow><CTableDataCell colSpan="5" className="text-center py-4 text-muted">Nenhuma questão encontrada.</CTableDataCell></CTableRow>
-                      ) : paginated.map((q) => (
-                        <CTableRow key={q.id}>
-                          <CTableDataCell>
-                            <strong>#{q.id}</strong>
-                          </CTableDataCell>
-                          <CTableDataCell>
-                            {q.materias_nomes ? (
-                              <span className="small text-primary fw-medium">{q.materias_nomes}</span>
-                            ) : (
-                              <span className="small text-muted fst-italic">{q.assunto || 'Multi-Matéria'}</span>
-                            )}
-                          </CTableDataCell>
-                          <CTableDataCell>
-                            <div style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {q.question}
-                            </div>
-                          </CTableDataCell>
-                          {/* ← FASE 1: Indicador visual se a questão tem vídeo */}
-                          <CTableDataCell className="text-center">
-                            {q.link_video
-                              ? <CBadge color="danger" title={q.link_video}>▶ Vídeo</CBadge>
-                              : <span className="text-muted small">—</span>
-                            }
-                          </CTableDataCell>
-                          <CTableDataCell className="text-center">
-                            <CButton color="info" variant="ghost" onClick={() => abrirParaEdicao(q)}>
-                              <CIcon icon={cilPencil} /> Editar
-                            </CButton>
-                            <CButton color="danger" variant="ghost" className="ms-2" onClick={() => deletarQuestao(q.id)}>
-                              <CIcon icon={cilTrash} /> Excluir
-                            </CButton>
-                          </CTableDataCell>
-                        </CTableRow>
-                      ))}
-                    </CTableBody>
-                  </CTable>
-
-                  {totalPages > 1 && (
-                    <div className="d-flex justify-content-between align-items-center mt-3">
-                      <small className="text-muted">
-                        Mostrando {start + 1}–{Math.min(start + PER_PAGE, filtered.length)} de {filtered.length}
-                      </small>
-                      <CPagination size="sm" aria-label="Navegação de questões">
+            {totalPages > 1 && (
+              <div className="d-flex justify-content-between align-items-center mt-3">
+                <small className="text-muted">
+                  Mostrando {(currentPage - 1) * PER_PAGE + 1}–{Math.min(currentPage * PER_PAGE, totalQuestoes)} de {totalQuestoes}
+                </small>
+                <CPagination size="sm" aria-label="Navegação de questões">
+                  <CPaginationItem
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                  >
+                    ‹
+                  </CPaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => Math.abs(p - currentPage) <= 2 || p === 1 || p === totalPages)
+                    .map((p, idx, arr) => (
+                      <React.Fragment key={p}>
+                        {idx > 0 && arr[idx - 1] !== p - 1 && (
+                          <CPaginationItem disabled>…</CPaginationItem>
+                        )}
                         <CPaginationItem
-                          disabled={currentPage === 1}
-                          onClick={() => setCurrentPage(currentPage - 1)}
+                          active={p === currentPage}
+                          onClick={() => setCurrentPage(p)}
                         >
-                          ‹
+                          {p}
                         </CPaginationItem>
-                        {Array.from({ length: totalPages }, (_, i) => i + 1)
-                          .filter(p => Math.abs(p - currentPage) <= 2 || p === 1 || p === totalPages)
-                          .map((p, idx, arr) => (
-                            <React.Fragment key={p}>
-                              {idx > 0 && arr[idx - 1] !== p - 1 && (
-                                <CPaginationItem disabled>…</CPaginationItem>
-                              )}
-                              <CPaginationItem
-                                active={p === currentPage}
-                                onClick={() => setCurrentPage(p)}
-                              >
-                                {p}
-                              </CPaginationItem>
-                            </React.Fragment>
-                          ))}
-                        <CPaginationItem
-                          disabled={currentPage === totalPages}
-                          onClick={() => setCurrentPage(currentPage + 1)}
-                        >
-                          ›
-                        </CPaginationItem>
-                      </CPagination>
-                    </div>
-                  )}
-                </>
-              )
-            })()}
+                      </React.Fragment>
+                    ))}
+                  <CPaginationItem
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                  >
+                    ›
+                  </CPaginationItem>
+                </CPagination>
+              </div>
+            )}
           </CCardBody>
         </CCard>
       </CCol>

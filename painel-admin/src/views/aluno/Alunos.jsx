@@ -27,7 +27,8 @@ const Alunos = () => {
     fetch(`${API_URL}/api/alunos/desempenho`)
       .then(res => res.json())
       .then(data => {
-        setListaAlunos(data)
+        // O backend retorna um objeto com { alunos: [...], total: ... } para suportar paginação
+        setListaAlunos(Array.isArray(data.alunos) ? data.alunos : (Array.isArray(data) ? data : []))
         setLoading(false)
       })
       .catch(err => {

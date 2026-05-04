@@ -131,15 +131,15 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista, ma
   if (modoLista) {
     // ─── MODO LISTA ───
     return (
-      <div ref={cardRef} style={{
-        display: 'flex', gap: 16, background: bgCard,
+      <div ref={cardRef} className="d-flex flex-column flex-md-row gap-3 p-3 mb-3" style={{
+        background: bgCard,
         border: `1px solid ${assistido ? (isDark ? '#1a3d2b' : '#d1f0df') : borderCard}`,
         borderLeft: assistido ? '4px solid #2eb85c' : `4px solid ${isDark ? '#2d3f52' : '#e2e8f0'}`,
-        borderRadius: 10, padding: 12, marginBottom: 10,
+        borderRadius: 10,
         transition: 'border-color 0.2s',
       }}>
         {/* Thumbnail lista */}
-        <div style={{ width: 140, flexShrink: 0, position: 'relative', borderRadius: 8, overflow: 'hidden', background: '#000', alignSelf: 'flex-start' }}>
+        <div className="align-self-center align-self-md-start" style={{ width: '100%', maxWidth: '240px', flexShrink: 0, position: 'relative', borderRadius: 8, overflow: 'hidden', background: '#000' }}>
           {iframeAtivo ? (
             <iframe
               src={embedUrl}

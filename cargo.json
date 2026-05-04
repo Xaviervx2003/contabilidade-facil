@@ -1,0 +1,3652 @@
+{
+  "message": {
+    "text": "OK",
+    "type": "info",
+    "slug": "OK"
+  },
+  "pagination": true,
+  "data": {
+    "total": 22739,
+    "perPage": "50",
+    "pages": 455,
+    "page": 1,
+    "rows": [
+      {
+        "descricao": "Professor anos iniciais - Área: Educação infantil e Educação de Jovens e Adultos",
+        "palavrasChave": [
+          "Professor de Educação Básica / Infantil / Fundamental"
+        ],
+        "orgaos": [
+          1293
+        ],
+        "niveis": [
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Educação (Professores, Especialistas e outros)",
+            "id": 7
+          }
+        ],
+        "timestamp": "2024-06-09 23:01:55",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 21749,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 50,
+        "qtdComentarios": 2,
+        "slug": "professor-anos-iniciais-area-educacao-infantil-e-educacao-de-jovens-e-adultos",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Fiscal de Desenvolvimento Econômico",
+        "palavrasChave": [],
+        "orgaos": [
+          1293
+        ],
+        "niveis": [
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2024-06-09 23:01:55",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 21799,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 50,
+        "qtdComentarios": 2,
+        "slug": "fiscal-de-desenvolvimento-economico",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Judiciário - Área Desenvolvimento",
+        "palavrasChave": [
+          "Analista Judiciário – Área: TI"
+        ],
+        "orgaos": [
+          1140
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Tribunais / Justiça Comum Federal e Estadual (STF, STJ, CNJ, TRFs e TJ’s)",
+            "id": 40
+          },
+          {
+            "nome": "Tribunais",
+            "id": 103
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:06",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 512,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 50,
+        "qtdComentarios": 0,
+        "slug": "analista-judiciario-area-desenvolvimento",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Judiciário - Área Engenharia Eletricista",
+        "palavrasChave": [
+          "Analista Judiciário – Área: Engenharia"
+        ],
+        "orgaos": [
+          1130,
+          1366,
+          1151,
+          1140,
+          1136
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Engenharia",
+            "id": 51
+          },
+          {
+            "nome": "Tribunais",
+            "id": 103
+          },
+          {
+            "nome": "Tribunais / Justiça Comum Federal e Estadual (STF, STJ, CNJ, TRFs e TJ’s)",
+            "id": 40
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:06",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 520,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 5,
+        "qtdProvas": 5,
+        "qtdQuestoes": 300,
+        "qtdComentarios": 3,
+        "slug": "analista-judiciario-area-engenharia-eletricista",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Judiciário - Área Engenharia Mecânica",
+        "palavrasChave": [
+          "Analista Judiciário – Área: Engenharia"
+        ],
+        "orgaos": [
+          1216,
+          1366,
+          7819,
+          1096,
+          1363,
+          1130,
+          1138,
+          1151,
+          1164,
+          1210,
+          1215
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Tribunais / Justiça Eleitoral (TSE, TREs)",
+            "id": 39
+          },
+          {
+            "nome": "Tribunais",
+            "id": 103
+          },
+          {
+            "nome": "Engenharia",
+            "id": 51
+          },
+          {
+            "nome": "Tribunais / Justiça Comum Federal e Estadual (STF, STJ, CNJ, TRFs e TJ’s)",
+            "id": 40
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:06",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 522,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 7,
+        "qtdProvas": 7,
+        "qtdQuestoes": 590,
+        "qtdComentarios": 40,
+        "slug": "analista-judiciario-area-engenharia-mecanica",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Judiciário - Área Estatística",
+        "palavrasChave": [
+          "Analista Judiciário – Área: Estatística"
+        ],
+        "orgaos": [
+          1157,
+          1155,
+          1151,
+          1146,
+          1143,
+          1141,
+          1140,
+          1138,
+          1136,
+          1134,
+          7819,
+          3089,
+          1366,
+          1216,
+          1215,
+          1210,
+          1200,
+          1195,
+          1175,
+          1173,
+          1172,
+          1171,
+          1168,
+          1161,
+          1160
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Tribunais / Justiça Trabalhista (TST, TRTs)",
+            "id": 43
+          },
+          {
+            "nome": "Tribunais",
+            "id": 103
+          },
+          {
+            "nome": "Tribunais / Justiça Comum Federal e Estadual (STF, STJ, CNJ, TRFs e TJ’s)",
+            "id": 40
+          },
+          {
+            "nome": "Tribunais / Justiça Eleitoral (TSE, TREs)",
+            "id": 39
+          },
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:06",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 524,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 21,
+        "qtdProvas": 22,
+        "qtdQuestoes": 1860,
+        "qtdComentarios": 219,
+        "slug": "analista-judiciario-area-estatistica",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Judiciário - Área História",
+        "palavrasChave": [
+          "Analista Judiciário – Área: História"
+        ],
+        "orgaos": [
+          1216
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Tribunais / Justiça Eleitoral (TSE, TREs)",
+            "id": 39
+          },
+          {
+            "nome": "Tribunais",
+            "id": 103
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 528,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 80,
+        "qtdComentarios": 8,
+        "slug": "analista-judiciario-area-historia",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Judiciário - Área Letras",
+        "palavrasChave": [
+          "Analista Judiciário – Área: Letras"
+        ],
+        "orgaos": [
+          1138,
+          1140
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Tribunais",
+            "id": 103
+          },
+          {
+            "nome": "Tribunais / Justiça Comum Federal e Estadual (STF, STJ, CNJ, TRFs e TJ’s)",
+            "id": 40
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 532,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 2,
+        "qtdProvas": 2,
+        "qtdQuestoes": 170,
+        "qtdComentarios": 3,
+        "slug": "analista-judiciario-area-letras",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Judiciário - Área Medicina / Psiquiatria",
+        "palavrasChave": [
+          "Analista Judiciário – Área: Medicina"
+        ],
+        "orgaos": [
+          1141
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Saúde",
+            "id": 99
+          },
+          {
+            "nome": "Saúde (Concursos)",
+            "id": 37
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 538,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 17,
+        "qtdProvas": 17,
+        "qtdQuestoes": 1080,
+        "qtdComentarios": 63,
+        "slug": "analista-judiciario-area-medicina-psiquiatria",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Judiciário - Área Odontologia / Periodontia",
+        "palavrasChave": [
+          "Analista Judiciário – Área: Odontologia"
+        ],
+        "orgaos": [
+          1171,
+          1151,
+          1177
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Saúde (Concursos)",
+            "id": 37
+          },
+          {
+            "nome": "Saúde",
+            "id": 99
+          },
+          {
+            "nome": "Tribunais",
+            "id": 103
+          },
+          {
+            "nome": "Tribunais / Justiça Trabalhista (TST, TRTs)",
+            "id": 43
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 547,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 2,
+        "qtdProvas": 2,
+        "qtdQuestoes": 180,
+        "qtdComentarios": 14,
+        "slug": "analista-judiciario-area-odontologia-periodontia",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista - Área Organizacional Jurídica",
+        "palavrasChave": [
+          "Analista",
+          "Direito",
+          "Advogado",
+          "advocacia",
+          "Jurídico",
+          "Jurídica",
+          "judiciário",
+          "judiciária",
+          "judicial",
+          "defensor público",
+          "juiz",
+          "procurador",
+          "ciências Jurídicas"
+        ],
+        "orgaos": [
+          12
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 565,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 2,
+        "qtdQuestoes": 90,
+        "qtdComentarios": 3,
+        "slug": "analista-area-organizacional-juridica",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista - Área Organizacional Suporte Técnico-Administrativo",
+        "palavrasChave": [
+          "Administração",
+          "administrador",
+          "administrativo",
+          "Administrativa",
+          "Recursos Humanos",
+          "administração de empresas",
+          "Analista"
+        ],
+        "orgaos": [
+          12
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 568,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 3,
+        "qtdQuestoes": 140,
+        "qtdComentarios": 1,
+        "slug": "analista-area-organizacional-suporte-tecnico-administrativo",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Legislativo - Área Contábil",
+        "palavrasChave": [
+          "Analista",
+          "Ciências Contábeis",
+          "Contabilidade",
+          "contabilista",
+          "contábil",
+          "contador",
+          "Cálculo",
+          "custos",
+          "controle",
+          "controladoria"
+        ],
+        "orgaos": [
+          7049,
+          1800
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Legislativa / Câmara de Vereadores",
+            "id": 92
+          },
+          {
+            "nome": "Legislativa",
+            "id": 27
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 570,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 0,
+        "qtdProvas": 0,
+        "qtdQuestoes": 0,
+        "qtdComentarios": 0,
+        "slug": "analista-legislativo-area-contabil",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Ministerial - Área Biologia",
+        "palavrasChave": [
+          "Analista",
+          "Biologia",
+          "Biólogo",
+          "ciências biológicas"
+        ],
+        "orgaos": [
+          497
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Funções Essenciais à Justiça",
+            "id": 44
+          },
+          {
+            "nome": "Funções Essenciais à Justiça / MP's (União e Estaduais)",
+            "id": 100
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 579,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 120,
+        "qtdComentarios": 9,
+        "slug": "analista-ministerial-area-biologia",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Ministerial - Área Enfermagem",
+        "palavrasChave": [
+          "Analista",
+          "Enfermeiro",
+          "enfermagem",
+          "enfermaria"
+        ],
+        "orgaos": [
+          1168,
+          497
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Tribunais",
+            "id": 103
+          },
+          {
+            "nome": "Saúde",
+            "id": 99
+          },
+          {
+            "nome": "Saúde (Concursos)",
+            "id": 37
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 584,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 2,
+        "qtdProvas": 2,
+        "qtdQuestoes": 180,
+        "qtdComentarios": 12,
+        "slug": "analista-ministerial-area-enfermagem",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Ministerial - Área Engenharia Ambiental",
+        "palavrasChave": [
+          "Analista",
+          "Engenharia Ambiental",
+          "engenheiro ambiental"
+        ],
+        "orgaos": [
+          3220,
+          497
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Engenharia",
+            "id": 51
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 585,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 120,
+        "qtdComentarios": 9,
+        "slug": "analista-ministerial-area-engenharia-ambiental",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Ministerial - Área Fisioterapia",
+        "palavrasChave": [
+          "Analista",
+          "Fisioterapia",
+          "fisioterapeuta"
+        ],
+        "orgaos": [
+          497
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Saúde (Concursos)",
+            "id": 37
+          },
+          {
+            "nome": "Saúde",
+            "id": 99
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 589,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 120,
+        "qtdComentarios": 9,
+        "slug": "analista-ministerial-area-fisioterapia",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Técnico - Área Engenharia de Segurança do Trabalho",
+        "palavrasChave": [
+          "Analista",
+          "Engenharia de Segurança do Trabalho",
+          "Engenheiro de Segurança do Trabalho",
+          "técnico",
+          "Técnica"
+        ],
+        "orgaos": [
+          341,
+          450,
+          1452
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          },
+          {
+            "nome": "Engenharia",
+            "id": 51
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 642,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 2,
+        "qtdProvas": 2,
+        "qtdQuestoes": 90,
+        "qtdComentarios": 1,
+        "slug": "analista-tecnico-area-engenharia-de-seguranca-do-trabalho",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analista Técnico - Área Informática",
+        "palavrasChave": [
+          "Analista",
+          "Tecnologia",
+          "informática",
+          "ciência da Computação",
+          "microinformática",
+          "tecnologia da informação",
+          "analista de sistemas",
+          "desenvolvimento de sistemas",
+          "redes",
+          "banco de dados",
+          "programação",
+          "computador",
+          "computação",
+          "engenharia de sistemas",
+          "hardware",
+          "internet",
+          "sistemas",
+          "suporte",
+          "processamento",
+          "técnico",
+          "Técnica"
+        ],
+        "orgaos": [
+          1094,
+          4214,
+          4318
+        ],
+        "niveis": [
+          "Superior",
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Tecnologia da Informação (T.I.)",
+            "id": 49
+          },
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 648,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 2,
+        "qtdProvas": 2,
+        "qtdQuestoes": 90,
+        "qtdComentarios": 5,
+        "slug": "analista-tecnico-area-informatica",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Analistas - Área Risco de Crédito",
+        "palavrasChave": [
+          "Analista"
+        ],
+        "orgaos": [
+          11
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Poder Executivo / Empresas Estatais",
+            "id": 97
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 654,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 60,
+        "qtdComentarios": 1,
+        "slug": "analistas-area-risco-de-credito",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Arquivologista",
+        "palavrasChave": [
+          "Arquivologia",
+          "arquivista",
+          "arquivo",
+          "arquivologista",
+          "documentarista",
+          "documento",
+          "documentação"
+        ],
+        "orgaos": [
+          1157,
+          2314,
+          885,
+          840,
+          720,
+          1901,
+          1280,
+          2364,
+          3011,
+          471,
+          5450,
+          3938,
+          3140,
+          3524,
+          1049,
+          36,
+          65,
+          121,
+          294,
+          407,
+          433,
+          455,
+          1272,
+          1239
+        ],
+        "niveis": [
+          "Superior",
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          },
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Poder Executivo / Ministérios",
+            "id": 93
+          },
+          {
+            "nome": "Poder Executivo / Secretarias Municipais",
+            "id": 95
+          },
+          {
+            "nome": "Poder Executivo - Secretarias Estaduais",
+            "id": 94
+          },
+          {
+            "nome": "Agências Reguladoras",
+            "id": 59
+          },
+          {
+            "nome": "Agências Reguladoras / Agências Federais",
+            "id": 61
+          },
+          {
+            "nome": "Financeira / Outros órgãos financeiros",
+            "id": 83
+          },
+          {
+            "nome": "Financeira (BACEN, STN, CVM, SUSEP, e outros)",
+            "id": 9
+          },
+          {
+            "nome": "Concessionárias de Serviços Públicos / Companhias Elétricas",
+            "id": 60
+          },
+          {
+            "nome": "Concessionárias de Serviços Públicos",
+            "id": 47
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 660,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 21,
+        "qtdProvas": 23,
+        "qtdQuestoes": 1128,
+        "qtdComentarios": 129,
+        "slug": "arquivologista",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Assessor de Engenharia",
+        "palavrasChave": [
+          "Engenharia",
+          "engenheiro"
+        ],
+        "orgaos": [
+          1108
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Engenharia",
+            "id": 51
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 673,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 60,
+        "qtdComentarios": 0,
+        "slug": "assessor-de-engenharia",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Assessor Especializado",
+        "palavrasChave": [],
+        "orgaos": [
+          371,
+          5073
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 674,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 80,
+        "qtdComentarios": 3,
+        "slug": "assessor-especializado",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Assessor Jurídico",
+        "palavrasChave": [
+          "Direito",
+          "Advogado",
+          "advocacia",
+          "Jurídico",
+          "Jurídica",
+          "judiciário",
+          "judiciária",
+          "judicial",
+          "defensor público",
+          "juiz",
+          "procurador",
+          "ciências Jurídicas"
+        ],
+        "orgaos": [
+          3665,
+          3646,
+          3491,
+          3480,
+          3431,
+          3395,
+          3213,
+          3144,
+          3059,
+          2860,
+          2546,
+          1538,
+          1128,
+          1111,
+          1108,
+          1088,
+          760,
+          502,
+          138,
+          85,
+          7033,
+          6351,
+          6287,
+          6270,
+          6156,
+          5815,
+          7056,
+          7392,
+          7584,
+          7746,
+          7906,
+          10362,
+          3695,
+          3944,
+          3948,
+          4018,
+          4030,
+          4040,
+          4289,
+          4317,
+          4380,
+          4469,
+          4471,
+          4488,
+          4676,
+          4711,
+          4717,
+          4787,
+          4800,
+          4892,
+          4938,
+          5787,
+          13906,
+          4997,
+          5137,
+          5237,
+          5242,
+          6886,
+          5249,
+          5345,
+          5362,
+          5447,
+          5463,
+          5486,
+          5531,
+          5537
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Conselhos de Fiscalização",
+            "id": 3
+          },
+          {
+            "nome": "Outras",
+            "id": 28
+          },
+          {
+            "nome": "Legislativa",
+            "id": 27
+          },
+          {
+            "nome": "Legislativa / Câmara de Vereadores",
+            "id": 92
+          },
+          {
+            "nome": "Previdenciária (INSS e outros)",
+            "id": 36
+          },
+          {
+            "nome": "Funções Essenciais à Justiça",
+            "id": 44
+          },
+          {
+            "nome": "Funções Essenciais à Justiça / Procuradorias (AGU, PGE's e PGM's)",
+            "id": 102
+          },
+          {
+            "nome": "Poder Executivo - Secretarias Estaduais",
+            "id": 94
+          },
+          {
+            "nome": "Funções Essenciais à Justiça / Defensorias (DPU, DPEs)",
+            "id": 38
+          },
+          {
+            "nome": "Poder Executivo / Empresas Estatais",
+            "id": 97
+          },
+          {
+            "nome": "Tribunais / Justiça Comum Federal e Estadual (STF, STJ, CNJ, TRFs e TJ’s)",
+            "id": 40
+          },
+          {
+            "nome": "Tribunais",
+            "id": 103
+          },
+          {
+            "nome": "Controle e Gestão",
+            "id": 57
+          },
+          {
+            "nome": "Controle e Gestão / Controle (Tribunais de Contas, Controladorias Internas)",
+            "id": 67
+          },
+          {
+            "nome": "Agências Reguladoras",
+            "id": 59
+          },
+          {
+            "nome": "Agências Reguladoras / Agências Federais",
+            "id": 61
+          },
+          {
+            "nome": "Jurídica",
+            "id": 89
+          },
+          {
+            "nome": "Jurídica / Procuradorias (PGEs, PGMs e Administração Indireta)",
+            "id": 23
+          },
+          {
+            "nome": "Funções Essenciais à Justiça / MP's (União e Estaduais)",
+            "id": 100
+          },
+          {
+            "nome": "Poder Executivo / Secretarias Municipais",
+            "id": 95
+          },
+          {
+            "nome": "Consórcios",
+            "id": 48
+          },
+          {
+            "nome": "Poder Executivo / Autarquias e Fundações",
+            "id": 96
+          },
+          {
+            "nome": "Concessionárias de Serviços Públicos",
+            "id": 47
+          },
+          {
+            "nome": "Concessionárias de Serviços Públicos / Outras",
+            "id": 66
+          },
+          {
+            "nome": "Jurídica / Advocacia",
+            "id": 105
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 675,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 47,
+        "qtdProvas": 51,
+        "qtdQuestoes": 2609,
+        "qtdComentarios": 476,
+        "slug": "assessor-juridico",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Assistente Administrativo - Área Enfermagem",
+        "palavrasChave": [
+          "Enfermeiro",
+          "enfermagem",
+          "enfermaria",
+          "serviços gerais",
+          "encanador",
+          "marceneiro",
+          "mecânico",
+          "manutenção",
+          "conserto",
+          "conservação",
+          "reparos",
+          "Merendeira",
+          "Zelador",
+          "zeladoria",
+          "Elétrico",
+          "Hidráulico",
+          "merendeiro",
+          "Eletricidade",
+          "eletricista",
+          "eletrônica",
+          "eletrotécnica",
+          "serviços auxiliares",
+          "estação",
+          "encanador",
+          "almoxarifado",
+          "carga",
+          "descarga",
+          "lavador",
+          "atendente",
+          "atendimento",
+          "cenotécnica",
+          "cenotécnico",
+          "montador",
+          "operador de luz",
+          "operador de som",
+          "operador de vídeo",
+          "sonoplastia",
+          "assistente",
+          "Auxiliar",
+          "cozinha",
+          "creche",
+          "cozinheiro",
+          "campo",
+          "funerário",
+          "funerária",
+          "funeral",
+          "copeira",
+          "gari",
+          "sepultador",
+          "sepultamento",
+          "fotógrafo",
+          "fotografia",
+          "carpinteiro",
+          "hidráulica",
+          "caldeireiro",
+          "carteiro",
+          "balança",
+          "embarque",
+          "movimentação",
+          "coveiro",
+          "movimentação de cargas",
+          "estoque",
+          "estoquista",
+          "faxina",
+          "faxineiro",
+          "ferramenta",
+          "ferramenteiro",
+          "vigilante",
+          "vigia",
+          "vigilância",
+          "usinador ferramenteiro",
+          "trator",
+          "tratorista",
+          "impressor",
+          "instalador",
+          "corte",
+          "costura",
+          "crochê tricô",
+          "jardineiro",
+          "jardinagem",
+          "Laboratorista",
+          "Lavanderia",
+          "lavagem",
+          "leiturista de hidrant"
+        ],
+        "orgaos": [
+          105
+        ],
+        "niveis": [
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Saúde",
+            "id": 99
+          },
+          {
+            "nome": "Saúde (Concursos)",
+            "id": 37
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 683,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 60,
+        "qtdComentarios": 0,
+        "slug": "assistente-administrativo-area-enfermagem",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Assistente Administrativo - Área Secretário",
+        "palavrasChave": [
+          "serviços gerais",
+          "encanador",
+          "marceneiro",
+          "mecânico",
+          "manutenção",
+          "conserto",
+          "conservação",
+          "reparos",
+          "Merendeira",
+          "Zelador",
+          "zeladoria",
+          "Elétrico",
+          "Hidráulico",
+          "merendeiro",
+          "Eletricidade",
+          "eletricista",
+          "eletrônica",
+          "eletrotécnica",
+          "serviços auxiliares",
+          "estação",
+          "encanador",
+          "almoxarifado",
+          "carga",
+          "descarga",
+          "lavador",
+          "atendente",
+          "atendimento",
+          "cenotécnica",
+          "cenotécnico",
+          "montador",
+          "operador de luz",
+          "operador de som",
+          "operador de vídeo",
+          "sonoplastia",
+          "assistente",
+          "Auxiliar",
+          "cozinha",
+          "creche",
+          "cozinheiro",
+          "campo",
+          "funerário",
+          "funerária",
+          "funeral",
+          "copeira",
+          "gari",
+          "sepultador",
+          "sepultamento",
+          "fotógrafo",
+          "fotografia",
+          "carpinteiro",
+          "hidráulica",
+          "caldeireiro",
+          "carteiro",
+          "balança",
+          "embarque",
+          "movimentação",
+          "coveiro",
+          "movimentação de cargas",
+          "estoque",
+          "estoquista",
+          "faxina",
+          "faxineiro",
+          "ferramenta",
+          "ferramenteiro",
+          "vigilante",
+          "vigia",
+          "vigilância",
+          "usinador ferramenteiro",
+          "trator",
+          "tratorista",
+          "impressor",
+          "instalador",
+          "corte",
+          "costura",
+          "crochê tricô",
+          "jardineiro",
+          "jardinagem",
+          "Laboratorista",
+          "Lavanderia",
+          "lavagem",
+          "leiturista de hidrante",
+          "locutor",
+          "lubrificador",
+          "marceneiro"
+        ],
+        "orgaos": [
+          2860,
+          105
+        ],
+        "niveis": [
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 685,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 2,
+        "qtdProvas": 2,
+        "qtdQuestoes": 100,
+        "qtdComentarios": 3,
+        "slug": "assistente-administrativo-area-secretario",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Assistente Contábil",
+        "palavrasChave": [
+          "Ciências Contábeis",
+          "Contabilidade",
+          "contabilista",
+          "contábil",
+          "contador",
+          "Cálculo",
+          "custos",
+          "controle",
+          "controladoria",
+          "serviços gerais",
+          "encanador",
+          "marceneiro",
+          "mecânico",
+          "manutenção",
+          "conserto",
+          "conservação",
+          "reparos",
+          "Merendeira",
+          "Zelador",
+          "zeladoria",
+          "Elétrico",
+          "Hidráulico",
+          "merendeiro",
+          "Eletricidade",
+          "eletricista",
+          "eletrônica",
+          "eletrotécnica",
+          "serviços auxiliares",
+          "estação",
+          "encanador",
+          "almoxarifado",
+          "carga",
+          "descarga",
+          "lavador",
+          "atendente",
+          "atendimento",
+          "cenotécnica",
+          "cenotécnico",
+          "montador",
+          "operador de luz",
+          "operador de som",
+          "operador de vídeo",
+          "sonoplastia",
+          "assistente",
+          "Auxiliar",
+          "cozinha",
+          "creche",
+          "cozinheiro",
+          "campo",
+          "funerário",
+          "funerária",
+          "funeral",
+          "copeira",
+          "gari",
+          "sepultador",
+          "sepultamento",
+          "fotógrafo",
+          "fotografia",
+          "carpinteiro",
+          "hidráulica",
+          "caldeireiro",
+          "carteiro",
+          "balança",
+          "embarque",
+          "movimentação",
+          "coveiro",
+          "movimentação de cargas",
+          "estoque",
+          "estoquista",
+          "faxina",
+          "faxineiro",
+          "ferramenta",
+          "ferramenteiro",
+          "vigilante",
+          "vigia",
+          "vigilância",
+          "usinador ferramenteiro",
+          "trator",
+          "tratorista",
+          "impressor",
+          "instalador",
+          "corte",
+          "costura",
+          "crochê tricô",
+          "jardineiro"
+        ],
+        "orgaos": [
+          3746,
+          6952,
+          5918,
+          5657,
+          5360,
+          3986,
+          4368,
+          5287,
+          4403,
+          4570,
+          4980,
+          144,
+          833,
+          1315,
+          1344,
+          1639,
+          3280,
+          3506
+        ],
+        "niveis": [
+          "Superior",
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Poder Executivo / Autarquias e Fundações",
+            "id": 96
+          },
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Conselhos de Fiscalização",
+            "id": 3
+          },
+          {
+            "nome": "Legislativa / Câmara de Vereadores",
+            "id": 92
+          },
+          {
+            "nome": "Legislativa",
+            "id": 27
+          },
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 686,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 16,
+        "qtdProvas": 13,
+        "qtdQuestoes": 695,
+        "qtdComentarios": 32,
+        "slug": "assistente-contabil",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Assistente Cultural - Área Iluminação Cênica",
+        "palavrasChave": [
+          "serviços gerais",
+          "encanador",
+          "marceneiro",
+          "mecânico",
+          "manutenção",
+          "conserto",
+          "conservação",
+          "reparos",
+          "Merendeira",
+          "Zelador",
+          "zeladoria",
+          "Elétrico",
+          "Hidráulico",
+          "merendeiro",
+          "Eletricidade",
+          "eletricista",
+          "eletrônica",
+          "eletrotécnica",
+          "serviços auxiliares",
+          "estação",
+          "encanador",
+          "almoxarifado",
+          "carga",
+          "descarga",
+          "lavador",
+          "atendente",
+          "atendimento",
+          "cenotécnica",
+          "cenotécnico",
+          "montador",
+          "operador de luz",
+          "operador de som",
+          "operador de vídeo",
+          "sonoplastia",
+          "assistente",
+          "Auxiliar",
+          "cozinha",
+          "creche",
+          "cozinheiro",
+          "campo",
+          "funerário",
+          "funerária",
+          "funeral",
+          "copeira",
+          "gari",
+          "sepultador",
+          "sepultamento",
+          "fotógrafo",
+          "fotografia",
+          "carpinteiro",
+          "hidráulica",
+          "caldeireiro",
+          "carteiro",
+          "balança",
+          "embarque",
+          "movimentação",
+          "coveiro",
+          "movimentação de cargas",
+          "estoque",
+          "estoquista",
+          "faxina",
+          "faxineiro",
+          "ferramenta",
+          "ferramenteiro",
+          "vigilante",
+          "vigia",
+          "vigilância",
+          "usinador ferramenteiro",
+          "trator",
+          "tratorista",
+          "impressor",
+          "instalador",
+          "corte",
+          "costura",
+          "crochê tricô",
+          "jardineiro",
+          "jardinagem",
+          "Laboratorista",
+          "Lavanderia",
+          "lavagem",
+          "leiturista de hidrante",
+          "locutor",
+          "lubrificador",
+          "marceneiro"
+        ],
+        "orgaos": [
+          356
+        ],
+        "niveis": [
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Poder Executivo - Secretarias Estaduais",
+            "id": 94
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 689,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 40,
+        "qtdComentarios": 1,
+        "slug": "assistente-cultural-area-iluminacao-cenica",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Assistente de Biblioteca",
+        "palavrasChave": [
+          "Biblioteconomia",
+          "bibliotecário",
+          "biblioteca",
+          "bibliotecária",
+          "biblioteconomista",
+          "serviços gerais",
+          "encanador",
+          "marceneiro",
+          "mecânico",
+          "manutenção",
+          "conserto",
+          "conservação",
+          "reparos",
+          "Merendeira",
+          "Zelador",
+          "zeladoria",
+          "Elétrico",
+          "Hidráulico",
+          "merendeiro",
+          "Eletricidade",
+          "eletricista",
+          "eletrônica",
+          "eletrotécnica",
+          "serviços auxiliares",
+          "estação",
+          "encanador",
+          "almoxarifado",
+          "carga",
+          "descarga",
+          "lavador",
+          "atendente",
+          "atendimento",
+          "cenotécnica",
+          "cenotécnico",
+          "montador",
+          "operador de luz",
+          "operador de som",
+          "operador de vídeo",
+          "sonoplastia",
+          "assistente",
+          "Auxiliar",
+          "cozinha",
+          "creche",
+          "cozinheiro",
+          "campo",
+          "funerário",
+          "funerária",
+          "funeral",
+          "copeira",
+          "gari",
+          "sepultador",
+          "sepultamento",
+          "fotógrafo",
+          "fotografia",
+          "carpinteiro",
+          "hidráulica",
+          "caldeireiro",
+          "carteiro",
+          "balança",
+          "embarque",
+          "movimentação",
+          "coveiro",
+          "movimentação de cargas",
+          "estoque",
+          "estoquista",
+          "faxina",
+          "faxineiro",
+          "ferramenta",
+          "ferramenteiro",
+          "vigilante",
+          "vigia",
+          "vigilância",
+          "usinador ferramenteiro",
+          "trator",
+          "tratorista",
+          "impressor",
+          "instalador",
+          "corte",
+          "costura",
+          "crochê tricô",
+          "jardineiro",
+          "jardinagem",
+          "Laboratorista",
+          "Lav"
+        ],
+        "orgaos": [
+          2272,
+          703,
+          2377
+        ],
+        "niveis": [
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 704,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 25,
+        "qtdComentarios": 0,
+        "slug": "assistente-de-biblioteca",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Assistente de Desenvolvimento - Área Monitoramento",
+        "palavrasChave": [
+          "serviços gerais",
+          "encanador",
+          "marceneiro",
+          "mecânico",
+          "manutenção",
+          "conserto",
+          "conservação",
+          "reparos",
+          "Merendeira",
+          "Zelador",
+          "zeladoria",
+          "Elétrico",
+          "Hidráulico",
+          "merendeiro",
+          "Eletricidade",
+          "eletricista",
+          "eletrônica",
+          "eletrotécnica",
+          "serviços auxiliares",
+          "estação",
+          "encanador",
+          "almoxarifado",
+          "carga",
+          "descarga",
+          "lavador",
+          "atendente",
+          "atendimento",
+          "cenotécnica",
+          "cenotécnico",
+          "montador",
+          "operador de luz",
+          "operador de som",
+          "operador de vídeo",
+          "sonoplastia",
+          "assistente",
+          "Auxiliar",
+          "cozinha",
+          "creche",
+          "cozinheiro",
+          "campo",
+          "funerário",
+          "funerária",
+          "funeral",
+          "copeira",
+          "gari",
+          "sepultador",
+          "sepultamento",
+          "fotógrafo",
+          "fotografia",
+          "carpinteiro",
+          "hidráulica",
+          "caldeireiro",
+          "carteiro",
+          "balança",
+          "embarque",
+          "movimentação",
+          "coveiro",
+          "movimentação de cargas",
+          "estoque",
+          "estoquista",
+          "faxina",
+          "faxineiro",
+          "ferramenta",
+          "ferramenteiro",
+          "vigilante",
+          "vigia",
+          "vigilância",
+          "usinador ferramenteiro",
+          "trator",
+          "tratorista",
+          "impressor",
+          "instalador",
+          "corte",
+          "costura",
+          "crochê tricô",
+          "jardineiro",
+          "jardinagem",
+          "Laboratorista",
+          "Lavanderia",
+          "lavagem",
+          "leiturista de hidrante",
+          "locutor",
+          "lubrificador",
+          "marceneiro"
+        ],
+        "orgaos": [
+          337
+        ],
+        "niveis": [
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 711,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 60,
+        "qtdComentarios": 0,
+        "slug": "assistente-de-desenvolvimento-area-monitoramento",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Assistente de Informática - Área Programação",
+        "palavrasChave": [
+          "Tecnologia",
+          "informática",
+          "ciência da Computação",
+          "microinformática",
+          "tecnologia da informação",
+          "analista de sistemas",
+          "desenvolvimento de sistemas",
+          "redes",
+          "banco de dados",
+          "programação",
+          "computador",
+          "computação",
+          "engenharia de sistemas",
+          "hardware",
+          "internet",
+          "sistemas",
+          "suporte",
+          "processamento",
+          "serviços gerais",
+          "encanador",
+          "marceneiro",
+          "mecânico",
+          "manutenção",
+          "conserto",
+          "conservação",
+          "reparos",
+          "Merendeira",
+          "Zelador",
+          "zeladoria",
+          "Elétrico",
+          "Hidráulico",
+          "merendeiro",
+          "Eletricidade",
+          "eletricista",
+          "eletrônica",
+          "eletrotécnica",
+          "serviços auxiliares",
+          "estação",
+          "encanador",
+          "almoxarifado",
+          "carga",
+          "descarga",
+          "lavador",
+          "atendente",
+          "atendimento",
+          "cenotécnica",
+          "cenotécnico",
+          "montador",
+          "operador de luz",
+          "operador de som",
+          "operador de vídeo",
+          "sonoplastia",
+          "assistente",
+          "Auxiliar",
+          "cozinha",
+          "creche",
+          "cozinheiro",
+          "campo",
+          "funerário",
+          "funerária",
+          "funeral",
+          "copeira",
+          "gari",
+          "sepultador",
+          "sepultamento",
+          "fotógrafo",
+          "fotografia",
+          "carpinteiro",
+          "hidráulica",
+          "caldeireiro",
+          "carteiro",
+          "balança",
+          "embarque",
+          "movimentação",
+          "coveiro",
+          "movimentação de cargas",
+          "estoque",
+          "estoquista",
+          "faxina",
+          "faxi"
+        ],
+        "orgaos": [
+          104
+        ],
+        "niveis": [
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Concessionárias de Serviços Públicos",
+            "id": 47
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 728,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 40,
+        "qtdComentarios": 0,
+        "slug": "assistente-de-informatica-area-programacao",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Assistente Social - Área Educação",
+        "palavrasChave": [
+          "Educação",
+          "ensino",
+          "professor",
+          "diretor",
+          "fundamental",
+          "médio",
+          "superior",
+          "infantil",
+          "escolar",
+          "escolares",
+          "escola",
+          "educacional",
+          "educacionais",
+          "aluno",
+          "disciplina",
+          "licenciado",
+          "magistério",
+          "Serviço Social",
+          "Assistente Social",
+          "Assistência Social"
+        ],
+        "orgaos": [
+          4146,
+          844,
+          6979,
+          745,
+          4667
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Educação (Professores, Especialistas e outros)",
+            "id": 7
+          },
+          {
+            "nome": "Saúde",
+            "id": 99
+          },
+          {
+            "nome": "Saúde (Concursos)",
+            "id": 37
+          },
+          {
+            "nome": "Educação / Especialistas em Educação",
+            "id": 70
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 752,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 2,
+        "qtdProvas": 3,
+        "qtdQuestoes": 90,
+        "qtdComentarios": 12,
+        "slug": "assistente-social-area-educacao",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Atendente de Consultório Dentário",
+        "palavrasChave": [
+          "Odontologia",
+          "dentista",
+          "odontólogo",
+          "prótese",
+          "periodontia",
+          "endodontia",
+          "higiene dental",
+          "cirurgião dentista",
+          "dentística",
+          "restauração",
+          "restauradora",
+          "odontológico",
+          "Higiene Bucal",
+          "prótese dentária",
+          "serviços gerais",
+          "encanador",
+          "marceneiro",
+          "mecânico",
+          "manutenção",
+          "conserto",
+          "conservação",
+          "reparos",
+          "Merendeira",
+          "Zelador",
+          "zeladoria",
+          "Elétrico",
+          "Hidráulico",
+          "merendeiro",
+          "Eletricidade",
+          "eletricista",
+          "eletrônica",
+          "eletrotécnica",
+          "serviços auxiliares",
+          "estação",
+          "encanador",
+          "almoxarifado",
+          "carga",
+          "descarga",
+          "lavador",
+          "atendente",
+          "atendimento",
+          "cenotécnica",
+          "cenotécnico",
+          "montador",
+          "operador de luz",
+          "operador de som",
+          "operador de vídeo",
+          "sonoplastia",
+          "assistente",
+          "Auxiliar",
+          "cozinha",
+          "creche",
+          "cozinheiro",
+          "campo",
+          "funerário",
+          "funerária",
+          "funeral",
+          "copeira",
+          "gari",
+          "sepultador",
+          "sepultamento",
+          "fotógrafo",
+          "fotografia",
+          "carpinteiro",
+          "hidráulica",
+          "caldeireiro",
+          "carteiro",
+          "balança",
+          "embarque",
+          "movimentação",
+          "coveiro",
+          "movimentação de cargas",
+          "estoque",
+          "estoquista",
+          "faxina",
+          "faxineiro",
+          "ferramenta",
+          "ferramenteiro",
+          "vigilante",
+          "vigia",
+          "vigilância",
+          "usinador ferramenteiro",
+          "tr"
+        ],
+        "orgaos": [
+          6810,
+          1280,
+          1296,
+          1626,
+          1900,
+          2347,
+          2464,
+          2543,
+          2607,
+          3030,
+          3073,
+          3074,
+          3080,
+          3120,
+          3232,
+          3721,
+          3834,
+          3960,
+          4299,
+          4317,
+          4546,
+          4593,
+          4882,
+          4968,
+          5102,
+          5479,
+          6020,
+          6270,
+          6349,
+          6394,
+          6550,
+          1222,
+          7706,
+          578,
+          581,
+          603,
+          614,
+          680,
+          738,
+          746,
+          760,
+          863,
+          1051,
+          1058,
+          1220
+        ],
+        "niveis": [
+          "Médio",
+          "Fundamental"
+        ],
+        "carreiras": [
+          {
+            "nome": "Saúde",
+            "id": 99
+          },
+          {
+            "nome": "Saúde (Concursos)",
+            "id": 37
+          },
+          {
+            "nome": "Outras",
+            "id": 28
+          },
+          {
+            "nome": "Poder Executivo / Autarquias e Fundações",
+            "id": 96
+          },
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Poder Executivo / Secretarias Municipais",
+            "id": 95
+          },
+          {
+            "nome": "Poder Executivo - Secretarias Estaduais",
+            "id": 94
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 783,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 29,
+        "qtdProvas": 32,
+        "qtdQuestoes": 1280,
+        "qtdComentarios": 56,
+        "slug": "atendente-de-consultorio-dentario",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auditor - Área Direito",
+        "palavrasChave": [
+          "Auditoria",
+          "auditor",
+          "controle interno",
+          "controle externo",
+          "Direito",
+          "Advogado",
+          "advocacia",
+          "Jurídico",
+          "Jurídica",
+          "judiciário",
+          "judiciária",
+          "judicial",
+          "defensor público",
+          "juiz",
+          "procurador",
+          "ciências Jurídicas"
+        ],
+        "orgaos": [
+          49,
+          6236,
+          5154,
+          746,
+          601
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Poder Executivo - Secretarias Estaduais",
+            "id": 94
+          },
+          {
+            "nome": "Controle e Gestão / Controle (Tribunais de Contas, Controladorias Internas)",
+            "id": 67
+          },
+          {
+            "nome": "Controle e Gestão",
+            "id": 57
+          },
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1,
+          2
+        ],
+        "id": 793,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 120,
+        "qtdComentarios": 30,
+        "slug": "auditor-area-direito",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auditor - Área Engenharia Civil",
+        "palavrasChave": [
+          "Auditoria",
+          "auditor",
+          "controle interno",
+          "controle externo",
+          "Engenheiro civil",
+          "engenharia civil"
+        ],
+        "orgaos": [
+          49,
+          601
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Engenharia",
+            "id": 51
+          },
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Poder Executivo / Secretarias Municipais",
+            "id": 95
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 795,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 2,
+        "qtdProvas": 2,
+        "qtdQuestoes": 200,
+        "qtdComentarios": 14,
+        "slug": "auditor-area-engenharia-civil",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auditor - Área Contábil",
+        "palavrasChave": [
+          "Auditoria",
+          "auditor",
+          "controle interno",
+          "controle externo",
+          "Ciências Contábeis",
+          "Contabilidade",
+          "contabilista",
+          "contábil",
+          "contador",
+          "Cálculo",
+          "custos",
+          "controle",
+          "controladoria",
+          "Auditor Público Interno"
+        ],
+        "orgaos": [
+          2146,
+          73,
+          49,
+          6273
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Controle e Gestão / Controle (Tribunais de Contas, Controladorias Internas)",
+            "id": 67
+          },
+          {
+            "nome": "Controle e Gestão",
+            "id": 57
+          },
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Poder Executivo / Autarquias e Fundações",
+            "id": 96
+          },
+          {
+            "nome": "Poder Executivo - Secretarias Estaduais",
+            "id": 94
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 797,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 2,
+        "qtdProvas": 3,
+        "qtdQuestoes": 240,
+        "qtdComentarios": 10,
+        "slug": "auditor-area-contabil",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auditor de Tributos",
+        "palavrasChave": [
+          "Auditoria",
+          "auditor",
+          "controle interno",
+          "controle externo",
+          "tributarista",
+          "tributário",
+          "tributação",
+          "imposto",
+          "arrecadação",
+          "arrecadador",
+          "tributo",
+          "fazendário",
+          "fazendária",
+          "fazenda",
+          "fiscal",
+          "rendas",
+          "tributarista",
+          "tributário",
+          "tributação",
+          "imposto",
+          "arrecadação",
+          "arrecadador",
+          "fiscalização",
+          "tributária"
+        ],
+        "orgaos": [
+          11272,
+          3778,
+          3320,
+          3036,
+          2464,
+          1854,
+          714,
+          4271,
+          5300,
+          5333,
+          6062,
+          6724,
+          13675
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Fiscal / Municipal (Sefin/ISS)",
+            "id": 12
+          },
+          {
+            "nome": "Fiscal",
+            "id": 84
+          },
+          {
+            "nome": "Controle e Gestão",
+            "id": 57
+          },
+          {
+            "nome": "Controle e Gestão / Controle (Tribunais de Contas, Controladorias Internas)",
+            "id": 67
+          },
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 812,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 6,
+        "qtdProvas": 6,
+        "qtdQuestoes": 295,
+        "qtdComentarios": 20,
+        "slug": "auditor-de-tributos",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auditor Fiscal de Controle Externo - Área Ciências da Computação",
+        "palavrasChave": [
+          "Auditoria",
+          "auditor",
+          "controle interno",
+          "controle externo",
+          "fiscal",
+          "fiscalização",
+          "tributo",
+          "fazendário",
+          "fazendária",
+          "fazenda",
+          "fiscal",
+          "rendas",
+          "tributarista",
+          "tributário",
+          "tributação",
+          "imposto",
+          "arrecadação",
+          "arrecadador",
+          "fiscalização",
+          "tributária",
+          "Tecnologia",
+          "informática",
+          "ciência da Computação",
+          "microinformática",
+          "tecnologia da informação",
+          "analista de sistemas",
+          "desenvolvimento de sistemas",
+          "redes",
+          "banco de dados",
+          "programação",
+          "computador",
+          "computação",
+          "engenharia de sistemas",
+          "hardware",
+          "internet",
+          "sistemas",
+          "suporte",
+          "processamento"
+        ],
+        "orgaos": [
+          1121,
+          1111
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Tecnologia da Informação (T.I.)",
+            "id": 49
+          },
+          {
+            "nome": "Controle e Gestão / Controle (Tribunais de Contas, Controladorias Internas)",
+            "id": 67
+          },
+          {
+            "nome": "Controle e Gestão",
+            "id": 57
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 874,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 2,
+        "qtdProvas": 2,
+        "qtdQuestoes": 200,
+        "qtdComentarios": 39,
+        "slug": "auditor-fiscal-de-controle-externo-area-ciencias-da-computacao",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auditor Fiscal de Renda Municipal",
+        "palavrasChave": [
+          "Auditoria",
+          "auditor",
+          "controle interno",
+          "controle externo",
+          "fiscal",
+          "fiscalização",
+          "tributo",
+          "fazendário",
+          "fazendária",
+          "fazenda",
+          "fiscal",
+          "rendas",
+          "tributarista",
+          "tributário",
+          "tributação",
+          "imposto",
+          "arrecadação",
+          "arrecadador",
+          "fiscalização",
+          "tributária"
+        ],
+        "orgaos": [
+          844
+        ],
+        "niveis": [
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Fiscal",
+            "id": 84
+          },
+          {
+            "nome": "Fiscal / Municipal (Sefin/ISS)",
+            "id": 12
+          },
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 875,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 50,
+        "qtdComentarios": 11,
+        "slug": "auditor-fiscal-de-renda-municipal",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auxiliar Censitário Administrativo",
+        "palavrasChave": [
+          "Auxiliar"
+        ],
+        "orgaos": [
+          407
+        ],
+        "niveis": [
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Poder Executivo / Autarquias e Fundações",
+            "id": 96
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 912,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 50,
+        "qtdComentarios": 0,
+        "slug": "auxiliar-censitario-administrativo",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auxiliar Contábil Financeiro",
+        "palavrasChave": [
+          "Auxiliar",
+          "Ciências Contábeis",
+          "Contabilidade",
+          "contabilista",
+          "contábil",
+          "contador",
+          "Cálculo",
+          "custos",
+          "controle",
+          "controladoria",
+          "Finanças",
+          "Financeiro",
+          "financeira",
+          "sistema financeiro"
+        ],
+        "orgaos": [
+          850,
+          2237
+        ],
+        "niveis": [
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 913,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 2,
+        "qtdProvas": 2,
+        "qtdQuestoes": 60,
+        "qtdComentarios": 5,
+        "slug": "auxiliar-contabil-financeiro",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auxiliar de Educação",
+        "palavrasChave": [
+          "Auxiliar",
+          "Educação",
+          "ensino",
+          "professor",
+          "diretor",
+          "fundamental",
+          "médio",
+          "superior",
+          "infantil",
+          "escolar",
+          "escolares",
+          "escola",
+          "educacional",
+          "educacionais",
+          "aluno",
+          "disciplina",
+          "licenciado",
+          "magistério"
+        ],
+        "orgaos": [
+          860,
+          2045,
+          5321,
+          2334,
+          6951,
+          6262,
+          5170,
+          4994,
+          4274,
+          3882,
+          7221,
+          619,
+          720,
+          771
+        ],
+        "niveis": [
+          "Médio",
+          "Fundamental",
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Educação / Auxiliar de Educação",
+            "id": 104
+          },
+          {
+            "nome": "Educação (Professores, Especialistas e outros)",
+            "id": 7
+          },
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 931,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 8,
+        "qtdProvas": 9,
+        "qtdQuestoes": 330,
+        "qtdComentarios": 30,
+        "slug": "auxiliar-de-educacao",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auxiliar de Enfermagem",
+        "palavrasChave": [
+          "Auxiliar",
+          "Enfermeiro",
+          "enfermagem",
+          "enfermaria"
+        ],
+        "orgaos": [
+          885,
+          864,
+          860,
+          850,
+          840,
+          816,
+          798,
+          794,
+          746,
+          727,
+          709,
+          708,
+          681,
+          671,
+          651,
+          603,
+          601,
+          530,
+          494,
+          491,
+          469,
+          399,
+          7914,
+          7265,
+          7055,
+          6600,
+          6514,
+          6465,
+          6394,
+          5979,
+          5867,
+          5857,
+          5709,
+          5479,
+          5229,
+          5142,
+          5101,
+          5068,
+          5046,
+          4994,
+          4902,
+          4897,
+          4887,
+          4682,
+          4624,
+          4574,
+          4546,
+          4475,
+          4370,
+          4113,
+          4086,
+          3854,
+          3810,
+          3771,
+          3733,
+          3718,
+          3564,
+          3560,
+          3525,
+          3287,
+          3259,
+          3251,
+          3247,
+          3212,
+          3183,
+          3138,
+          3123,
+          3054,
+          3048,
+          3040,
+          3027,
+          2970,
+          2954,
+          2848,
+          2739,
+          2719,
+          2698,
+          2464,
+          2444,
+          2415,
+          2338,
+          2329,
+          2048,
+          1983,
+          1954,
+          1815,
+          1757,
+          1659,
+          1654,
+          1643,
+          1560,
+          1549,
+          1525,
+          1378,
+          1330,
+          1246,
+          1243,
+          1242,
+          1226,
+          978
+        ],
+        "niveis": [
+          "Médio",
+          "Fundamental",
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Saúde",
+            "id": 99
+          },
+          {
+            "nome": "Saúde (Concursos)",
+            "id": 37
+          },
+          {
+            "nome": "Outras",
+            "id": 28
+          },
+          {
+            "nome": "Funções Essenciais à Justiça",
+            "id": 44
+          },
+          {
+            "nome": "Funções Essenciais à Justiça / MP's (União e Estaduais)",
+            "id": 100
+          },
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Poder Executivo / Ministérios",
+            "id": 93
+          },
+          {
+            "nome": "Poder Executivo / Secretarias Municipais",
+            "id": 95
+          },
+          {
+            "nome": "Legislativa",
+            "id": 27
+          },
+          {
+            "nome": "Legislativa / Assembleias Legislativas e CLDF",
+            "id": 91
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 932,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 79,
+        "qtdProvas": 81,
+        "qtdQuestoes": 3517,
+        "qtdComentarios": 237,
+        "slug": "auxiliar-de-enfermagem",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auxiliar de Escritório e Escriturário",
+        "palavrasChave": [
+          "Auxiliar",
+          "serviços gerais",
+          "encanador",
+          "marceneiro",
+          "mecânico",
+          "manutenção",
+          "conserto",
+          "conservação",
+          "reparos",
+          "Merendeira",
+          "Zelador",
+          "zeladoria",
+          "Elétrico",
+          "Hidráulico",
+          "merendeiro",
+          "Eletricidade",
+          "eletricista",
+          "eletrônica",
+          "eletrotécnica",
+          "serviços auxiliares",
+          "estação",
+          "encanador",
+          "almoxarifado",
+          "carga",
+          "descarga",
+          "lavador",
+          "atendente",
+          "atendimento",
+          "cenotécnica",
+          "cenotécnico",
+          "montador",
+          "operador de luz",
+          "operador de som",
+          "operador de vídeo",
+          "sonoplastia",
+          "assistente",
+          "Auxiliar",
+          "cozinha",
+          "creche",
+          "cozinheiro",
+          "campo",
+          "funerário",
+          "funerária",
+          "funeral",
+          "copeira",
+          "gari",
+          "sepultador",
+          "sepultamento",
+          "fotógrafo",
+          "fotografia",
+          "carpinteiro",
+          "hidráulica",
+          "caldeireiro",
+          "carteiro",
+          "balança",
+          "embarque",
+          "movimentação",
+          "coveiro",
+          "movimentação de cargas",
+          "estoque",
+          "estoquista",
+          "faxina",
+          "faxineiro",
+          "ferramenta",
+          "ferramenteiro",
+          "vigilante",
+          "vigia",
+          "vigilância",
+          "usinador ferramenteiro",
+          "trator",
+          "tratorista",
+          "impressor",
+          "instalador",
+          "corte",
+          "costura",
+          "crochê tricô",
+          "jardineiro",
+          "jardinagem",
+          "Laboratorista",
+          "Lavanderia",
+          "lavagem",
+          "leiturista de hidrante",
+          "locutor",
+          "lubrificador",
+          "ma"
+        ],
+        "orgaos": [
+          187
+        ],
+        "niveis": [
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 934,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 50,
+        "qtdComentarios": 4,
+        "slug": "auxiliar-de-escritorio-e-escriturario",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auxiliar de Fiscalização Financeira",
+        "palavrasChave": [
+          "Auxiliar",
+          "Finanças",
+          "Financeiro",
+          "financeira",
+          "sistema financeiro",
+          "fiscal",
+          "fiscalização",
+          "tributo",
+          "fazendário",
+          "fazendária",
+          "fazenda",
+          "fiscal",
+          "rendas",
+          "tributarista",
+          "tributário",
+          "tributação",
+          "imposto",
+          "arrecadação",
+          "arrecadador",
+          "fiscalização",
+          "tributária"
+        ],
+        "orgaos": [
+          1123
+        ],
+        "niveis": [
+          "Superior",
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Controle e Gestão",
+            "id": 57
+          },
+          {
+            "nome": "Controle e Gestão / Controle (Tribunais de Contas, Controladorias Internas)",
+            "id": 67
+          },
+          {
+            "nome": "Tribunais",
+            "id": 103
+          },
+          {
+            "nome": "Tribunais / Justiça Comum Federal e Estadual (STF, STJ, CNJ, TRFs e TJ’s)",
+            "id": 40
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 937,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 2,
+        "qtdProvas": 3,
+        "qtdQuestoes": 220,
+        "qtdComentarios": 25,
+        "slug": "auxiliar-de-fiscalizacao-financeira",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auxiliar de Laboratório",
+        "palavrasChave": [
+          "Auxiliar"
+        ],
+        "orgaos": [
+          4245,
+          4370,
+          4496,
+          4882,
+          4900,
+          6819,
+          6870,
+          6892,
+          7006,
+          7103,
+          7147,
+          7691,
+          3123,
+          3047,
+          2775,
+          2726,
+          2652,
+          2607,
+          2527,
+          2514,
+          2438,
+          2413,
+          1885,
+          1560,
+          1220,
+          1058,
+          885,
+          841,
+          840,
+          837,
+          794,
+          786,
+          780,
+          761,
+          745,
+          614,
+          603,
+          452,
+          175,
+          132,
+          5902,
+          5885,
+          5772,
+          5622,
+          5033,
+          3193,
+          3212,
+          3525,
+          3687,
+          3735,
+          3808,
+          3872,
+          4046,
+          4170,
+          4250
+        ],
+        "niveis": [
+          "Médio",
+          "Fundamental"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          },
+          {
+            "nome": "Poder Executivo - Secretarias Estaduais",
+            "id": 94
+          },
+          {
+            "nome": "Poder Executivo",
+            "id": 8
+          },
+          {
+            "nome": "Concessionárias de Serviços Públicos / Companhias de Água, Esgoto e Saneamento",
+            "id": 64
+          },
+          {
+            "nome": "Concessionárias de Serviços Públicos",
+            "id": 47
+          },
+          {
+            "nome": "Poder Executivo / Secretarias Municipais",
+            "id": 95
+          },
+          {
+            "nome": "Saúde",
+            "id": 99
+          },
+          {
+            "nome": "Saúde (Concursos)",
+            "id": 37
+          },
+          {
+            "nome": "Poder Executivo / Ministérios",
+            "id": 93
+          },
+          {
+            "nome": "Poder Executivo / Autarquias e Fundações",
+            "id": 96
+          },
+          {
+            "nome": "Consórcios",
+            "id": 48
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 939,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 39,
+        "qtdProvas": 41,
+        "qtdQuestoes": 1645,
+        "qtdComentarios": 75,
+        "slug": "auxiliar-de-laboratorio",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auxiliar de Necropsia",
+        "palavrasChave": [
+          "Auxiliar",
+          "saúde",
+          "medicina",
+          "médico",
+          "Enfermeiro",
+          "enfermagem",
+          "enfermaria",
+          "Higienização",
+          "sanitária",
+          "sanitarismo",
+          "sanitário",
+          "sanitarista",
+          "Saneamento",
+          "patologia",
+          "anatomia",
+          "autópsia",
+          "necropsia",
+          "biomédico",
+          "laboratório"
+        ],
+        "orgaos": [
+          521,
+          516,
+          3347,
+          3073,
+          1029,
+          1024,
+          773,
+          542,
+          537,
+          523
+        ],
+        "niveis": [
+          "Fundamental",
+          "Médio",
+          "Superior"
+        ],
+        "carreiras": [
+          {
+            "nome": "Segurança Pública",
+            "id": 98
+          },
+          {
+            "nome": "Segurança Pública / Peritos, Papiloscopistas e Auxiliares",
+            "id": 32
+          },
+          {
+            "nome": "Outras",
+            "id": 28
+          },
+          {
+            "nome": "Saúde",
+            "id": 99
+          },
+          {
+            "nome": "Saúde (Concursos)",
+            "id": 37
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1,
+          2
+        ],
+        "id": 942,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 9,
+        "qtdProvas": 9,
+        "qtdQuestoes": 565,
+        "qtdComentarios": 101,
+        "slug": "auxiliar-de-necropsia",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auxiliar de Nutrição",
+        "palavrasChave": [
+          "Auxiliar",
+          "Nutrição",
+          "nutricionista"
+        ],
+        "orgaos": [
+          894,
+          2310
+        ],
+        "niveis": [
+          "Médio",
+          "Fundamental"
+        ],
+        "carreiras": [
+          {
+            "nome": "Funções Essenciais à Justiça",
+            "id": 44
+          },
+          {
+            "nome": "Funções Essenciais à Justiça / Procuradorias (AGU, PGE's e PGM's)",
+            "id": 102
+          },
+          {
+            "nome": "Saúde",
+            "id": 99
+          },
+          {
+            "nome": "Saúde (Concursos)",
+            "id": 37
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 943,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 0,
+        "qtdProvas": 1,
+        "qtdQuestoes": 60,
+        "qtdComentarios": 10,
+        "slug": "auxiliar-de-nutricao",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auxiliar de Química",
+        "palavrasChave": [
+          "Auxiliar",
+          "Química",
+          "Químico"
+        ],
+        "orgaos": [
+          894,
+          498
+        ],
+        "niveis": [
+          "Médio"
+        ],
+        "carreiras": [
+          {
+            "nome": "Funções Essenciais à Justiça",
+            "id": 44
+          },
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 957,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 0,
+        "qtdProvas": 2,
+        "qtdQuestoes": 120,
+        "qtdComentarios": 14,
+        "slug": "auxiliar-de-quimica",
+        "index": "cargo-1.11.0-5"
+      },
+      {
+        "descricao": "Auxiliar de Serviços Gerais - Área Deficiente Visual",
+        "palavrasChave": [
+          "Auxiliar",
+          "serviços gerais",
+          "encanador",
+          "marceneiro",
+          "mecânico",
+          "manutenção",
+          "conserto",
+          "conservação",
+          "reparos",
+          "Merendeira",
+          "Zelador",
+          "zeladoria",
+          "Elétrico",
+          "Hidráulico",
+          "merendeiro",
+          "Eletricidade",
+          "eletricista",
+          "eletrônica",
+          "eletrotécnica",
+          "serviços auxiliares",
+          "estação",
+          "encanador",
+          "almoxarifado",
+          "carga",
+          "descarga",
+          "lavador",
+          "atendente",
+          "atendimento",
+          "cenotécnica",
+          "cenotécnico",
+          "montador",
+          "operador de luz",
+          "operador de som",
+          "operador de vídeo",
+          "sonoplastia",
+          "assistente",
+          "Auxiliar",
+          "cozinha",
+          "creche",
+          "cozinheiro",
+          "campo",
+          "funerário",
+          "funerária",
+          "funeral",
+          "copeira",
+          "gari",
+          "sepultador",
+          "sepultamento",
+          "fotógrafo",
+          "fotografia",
+          "carpinteiro",
+          "hidráulica",
+          "caldeireiro",
+          "carteiro",
+          "balança",
+          "embarque",
+          "movimentação",
+          "coveiro",
+          "movimentação de cargas",
+          "estoque",
+          "estoquista",
+          "faxina",
+          "faxineiro",
+          "ferramenta",
+          "ferramenteiro",
+          "vigilante",
+          "vigia",
+          "vigilância",
+          "usinador ferramenteiro",
+          "trator",
+          "tratorista",
+          "impressor",
+          "instalador",
+          "corte",
+          "costura",
+          "crochê tricô",
+          "jardineiro",
+          "jardinagem",
+          "Laboratorista",
+          "Lavanderia",
+          "lavagem",
+          "leiturista de hidrante",
+          "locutor",
+          "lubrificador",
+          "ma"
+        ],
+        "orgaos": [
+          864
+        ],
+        "niveis": [
+          "Fundamental"
+        ],
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28
+          }
+        ],
+        "timestamp": "2025-02-16 23:00:07",
+        "maisBuscado": null,
+        "inedita": false,
+        "tiposProva": [
+          1
+        ],
+        "id": 969,
+        "maisBuscadoPosicao": null,
+        "qtdConcursos": 1,
+        "qtdProvas": 1,
+        "qtdQuestoes": 40,
+        "qtdComentarios": 0,
+        "slug": "auxiliar-de-servicos-gerais-area-deficiente-visual",
+        "index": "cargo-1.11.0-5"
+      }
+    ]
+  }
+}

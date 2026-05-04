@@ -35,10 +35,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Configuração de CORS
+# Configuração de CORS: Em produção, permite que a Vercel acesse a API.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], # Permitindo todas as origens para rodar suavemente na Vercel
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,6 +54,9 @@ app.include_router(relatorios.router)
 app.include_router(aluno.router)
 app.include_router(progresso_router)
 app.include_router(favoritos_router)
+
+from routes.trilhas import router as trilhas_router
+app.include_router(trilhas_router)
 
 @app.get("/")
 def healthcheck():

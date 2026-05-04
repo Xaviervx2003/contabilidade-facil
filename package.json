@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "@types/pg": "^8.20.0",
     "drizzle-orm": "^0.45.2",
     "pg": "^8.20.0",
     "puppeteer": "^24.42.0",
@@ -8,6 +7,9 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.10"
+    "@types/pg": "^8.20.0",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
   }
 }

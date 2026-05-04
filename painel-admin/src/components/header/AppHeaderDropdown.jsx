@@ -96,7 +96,7 @@ const AppHeaderDropdown = () => {
           Minha Conta
         </CDropdownItem>
 
-        <CDropdownItem onClick={() => navigate('/historico')} style={{ cursor: 'pointer' }}>
+        <CDropdownItem onClick={() => navigate('/aluno/historico')} style={{ cursor: 'pointer' }}>
           <CIcon icon={cilHistory} className="me-2" />
           Meu Histórico
         </CDropdownItem>

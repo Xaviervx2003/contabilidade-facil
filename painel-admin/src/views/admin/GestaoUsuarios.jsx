@@ -9,8 +9,9 @@ import {
     CRow, CCol,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPencil, cilTrash, cilUserPlus } from '@coreui/icons'
+import { cilPencil, cilTrash, cilUserPlus, cilChartLine } from '@coreui/icons'
 import { API_URL } from '../../config'
+import { useNavigate } from 'react-router-dom'
 
 // ── helpers ──────────────────────────────────────────────────
 const PAPEL_BADGE = {
@@ -23,6 +24,7 @@ const usuarioVazio = { nome: '', matricula: '', email: '', senha: '', papel: 'al
 
 // ── componente principal ──────────────────────────────────────
 const GestaoUsuarios = () => {
+    const navigate = useNavigate()
     const [usuarios, setUsuarios] = useState([])
     const [materias, setMaterias] = useState([])
     const [loading, setLoading] = useState(true)
@@ -222,8 +224,16 @@ const GestaoUsuarios = () => {
                                             </CTableDataCell>
                                             <CTableDataCell className="text-center">
                                                 <CButton
+                                                    color="info" variant="outline" size="sm"
+                                                    className="me-2" title="Ver Histórico/Progresso"
+                                                    onClick={() => navigate(`/aluno/historico?matricula=${u.matricula}`)}
+                                                >
+                                                    <CIcon icon={cilChartLine} />
+                                                </CButton>
+                                                <CButton
                                                     color="warning" variant="outline" size="sm"
                                                     className="me-2" onClick={() => abrirEditar(u)}
+                                                    title="Editar"
                                                 >
                                                     <CIcon icon={cilPencil} />
                                                 </CButton>

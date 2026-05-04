@@ -21,9 +21,8 @@ def fazer_login(credenciais: LoginRequest):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
-            # CORREÇÃO: matricula::VARCHAR adicionado
             cursor.execute(
-                "SELECT id, nome, matricula, papel FROM usuarios WHERE matricula::VARCHAR = %s AND senha = %s;",
+                "SELECT id, nome, matricula, papel FROM usuarios WHERE matricula = %s AND senha = %s;",
                 (credenciais.matricula, credenciais.senha),
             )
             usuario = cursor.fetchone()
@@ -50,8 +49,7 @@ def registrar_usuario(dados: RegistroRequest):
         with get_conexao() as conn:
             cursor = conn.cursor()
             
-            # CORREÇÃO: matricula::VARCHAR adicionado
-            cursor.execute("SELECT id FROM usuarios WHERE matricula::VARCHAR = %s;", (dados.matricula,))
+            cursor.execute("SELECT id FROM usuarios WHERE matricula = %s;", (dados.matricula,))
             if cursor.fetchone():
                 return {"sucesso": False, "mensagem": "Esta matrícula já está cadastrada."}
 
@@ -71,9 +69,8 @@ def verificar_identidade(dados: VerificaIdentidadeRequest):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
-            # CORREÇÃO: matricula::VARCHAR adicionado
             cursor.execute(
-                "SELECT id FROM usuarios WHERE matricula::VARCHAR = %s AND LOWER(nome) = LOWER(%s);",
+                "SELECT id FROM usuarios WHERE matricula = %s AND LOWER(nome) = LOWER(%s);",
                 (dados.matricula, dados.nome),
             )
             usuario = cursor.fetchone()
@@ -98,9 +95,8 @@ def redefinir_senha(dados: RedefineSenhaRequest):
 
         with get_conexao() as conn:
             cursor = conn.cursor()
-            # CORREÇÃO: matricula::VARCHAR adicionado
             cursor.execute(
-                "UPDATE usuarios SET senha = %s WHERE matricula::VARCHAR = %s;",
+                "UPDATE usuarios SET senha = %s WHERE matricula = %s;",
                 (dados.nova_senha, dados.matricula),
             )
             conn.commit()
@@ -124,17 +120,16 @@ def alterar_senha(dados: AlteraSenhaRequest):
         with get_conexao() as conn:
             cursor = conn.cursor()
 
-            # Verifica se a senha atual bate (CORREÇÃO: matricula::VARCHAR adicionado)
+            # Verifica se a senha atual bate
             cursor.execute(
-                "SELECT id FROM usuarios WHERE matricula::VARCHAR = %s AND senha = %s;",
+                "SELECT id FROM usuarios WHERE matricula = %s AND senha = %s;",
                 (dados.matricula, dados.senha_atual),
             )
             if not cursor.fetchone():
                 return {"sucesso": False, "mensagem": "Senha atual incorreta."}
 
-            # Atualiza (CORREÇÃO: matricula::VARCHAR adicionado)
             cursor.execute(
-                "UPDATE usuarios SET senha = %s WHERE matricula::VARCHAR = %s;",
+                "UPDATE usuarios SET senha = %s WHERE matricula = %s;",
                 (dados.nova_senha, dados.matricula),
             )
             conn.commit()
@@ -149,9 +144,8 @@ def obter_perfil(matricula: str):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
-            # CORREÇÃO: matricula::VARCHAR adicionado
             cursor.execute(
-                "SELECT id, nome, matricula, papel FROM usuarios WHERE matricula::VARCHAR = %s;",
+                "SELECT id, nome, matricula, papel FROM usuarios WHERE matricula = %s;",
                 (matricula,),
             )
             usuario = cursor.fetchone()

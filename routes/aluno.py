@@ -407,7 +407,7 @@ def ranking_aluno(matricula: str):
                         u.matricula,
                         ROUND(AVG(s.taxa_acerto)::numeric, 1) AS media_geral
                     FROM sessoes_estudo s
-                    JOIN usuarios u ON u.id = s.usuario_id AND u.papel = 'aluno'
+                    JOIN usuarios u ON u.matricula = s.nome_aluno AND u.papel = 'aluno'
                     WHERE s.eh_teste_professor IS NOT TRUE
                     GROUP BY u.matricula
                 ),
@@ -443,42 +443,6 @@ def ranking_aluno(matricula: str):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar ranking: {str(e)}")
-# ==========================================
-# ROTAS FALTANTES PARA O FRONTEND FUNCIONAR
-# ==========================================
-
-@router.get("/progresso/{matricula}")
-def progresso_aluno(matricula: str):
-    """
-    Retorna o total de questões únicas que o aluno já respondeu 
-    versus o total de questões disponíveis no banco (Edital).
-    """
-    try:
-        with get_conexao() as conn:
-            cursor = conn.cursor()
-            
-            # Conta quantas questões únicas o aluno já fez
-            cursor.execute("""
-                SELECT COUNT(DISTINCT sq.questao_id)
-                FROM sessoes_questoes sq
-                JOIN sessoes_estudo s ON s.id = sq.sessao_id
-                WHERE s.nome_aluno = %s
-            """, (matricula,))
-            respondidas = cursor.fetchone()[0] or 0
-
-            # Conta o total de questões cadastradas na plataforma
-            cursor.execute("SELECT COUNT(id) FROM questoes")
-            total = cursor.fetchone()[0] or 1 # Evita divisão por zero
-
-            percentual = min(round((respondidas / total) * 100, 1), 100.0)
-
-            return {
-                "respondidas": respondidas,
-                "total": total,
-                "percentual": percentual
-            }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar progresso: {str(e)}")
 
 
 @router.get("/sessoes/{matricula}")

@@ -36,27 +36,33 @@ def salvar_sessao(sessao: SessaoEstudo):
 
             # 2. Salvar detalhes e atualizar contadores das questões
             if sessao.lista_detalhes:
+                update_params = []
+                insert_params = []
+
                 for detalhe in sessao.lista_detalhes:
                     acertou = bool(detalhe.acertou)
                     incremento_acerto = 1 if acertou else 0
-                    
-                    # Atualiza estatísticas globais da questão
-                    cursor.execute(
+                    update_params.append((incremento_acerto, detalhe.id))
+                    insert_params.append((sessao_id, detalhe.id, acertou))
+
+                # Executa atualizações e inserções em lote (bulk)
+                if update_params:
+                    cursor.executemany(
                         """
                         UPDATE questoes 
                         SET tentativas = tentativas + 1, acertos = acertos + %s 
                         WHERE id = %s
                         """,
-                        (incremento_acerto, detalhe.id)
+                        update_params
                     )
-                    
-                    # Vínculo real para o dashboard do professor (FIX #5)
-                    cursor.execute(
+
+                if insert_params:
+                    cursor.executemany(
                         """
                         INSERT INTO sessoes_questoes (sessao_id, questao_id, acertou)
                         VALUES (%s, %s, %s);
                         """,
-                        (sessao_id, detalhe.id, acertou)
+                        insert_params
                     )
 
             conn.commit()
@@ -77,7 +83,8 @@ def obter_historico_aluno(matricula: str):
                        tempo_gasto_segundos, criado_em
                 FROM sessoes_estudo 
                 WHERE nome_aluno = %s
-                ORDER BY criado_em DESC;
+                ORDER BY criado_em DESC
+                LIMIT 200;
             """,
                 (matricula,),
             )

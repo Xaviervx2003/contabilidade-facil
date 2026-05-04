@@ -31,6 +31,9 @@ Tudo funciona no navegador, com backend em Python (FastAPI) e frontend em React 
 | `routes/questoes.py`              | CRUD de questões.                                                       |
 | `routes/sessoes.py`               | Submissão e histórico de quizzes.                                       |
 | `routes/admin.py`                 | Gestão de usuários e matérias.                                          |
+| `routes/aluno.py`                 | Dados do aluno: gráficos, histórico, ranking, sessões.                  |
+| `routes/progresso.py`             | Progresso do aluno no edital (% de questões respondidas).               |
+| `routes/favoritos.py`             | Gestão de questões favoritas do aluno (marcar/desmarcar).               |
 | `init.sql`                        | Script de criação do banco (tabelas, índices, dados iniciais).          |
 | `painel-admin/`                   | Frontend React + Vite.                                                  |
 | `painel-admin/src/`               | Código-fonte do React.                                                  |
@@ -57,7 +60,7 @@ Tudo funciona no navegador, com backend em Python (FastAPI) e frontend em React 
 ### 3.2 Aluno fazendo um quiz
 
 1. Escolhe matéria e número de questões.
-2. O frontend busca `GET /api/questoes?materia_id=X`.
+2. O frontend busca `GET /api/questoes?materia_id=X&limit=N` (filtragem e limite server-side).
 3. O aluno responde e o frontend monta o payload com `sessao` + `detalhes`.
 4. Envia `POST /api/sessoes` para gravar tudo.
 5. O backend atualiza `sessoes_estudo` e `sessoes_questoes`, além dos contadores de `questoes`.
@@ -67,6 +70,13 @@ Tudo funciona no navegador, com backend em Python (FastAPI) e frontend em React 
 1. Acessa `/dashboard` ou `/alunos/desempenho?usuario_id=X`.
 2. O backend (`routes/dashboard.py`) injeta `EXISTS` para filtrar só alunos que responderam questões **criadas por ele**.
 3. Sempre descarta sessões de teste (`eh_teste_professor IS NOT TRUE`).
+
+### 3.4 Favoritos do aluno
+
+1. No quiz, o aluno clica na ⭐ ao lado do enunciado.
+2. Frontend chama `POST /api/favoritos/adicionar` com body JSON `{ matricula, questao_id }`.
+3. Para remover: `DELETE /api/favoritos/remover/{questao_id}?matricula=XXX`.
+4. **Tabela:** `favoritos_aluno` com coluna `matricula_aluno` (FK para `usuarios.matricula`).
 
 ---
 
@@ -82,6 +92,7 @@ Tudo funciona no navegador, com backend em Python (FastAPI) e frontend em React 
 | `sessoes_estudo`       | Cada sessão de quiz (aluno, matéria, tempo, taxa de acerto).         |
 | `sessoes_questoes`     | Detalhes por questão em cada sessão (acertou ou não).                |
 | `feedbacks_questoes`   | Feedback do aluno (dúvida, confusa) e resposta do professor.         |
+| `favoritos_aluno`      | Questões marcadas como favoritas pelo aluno para revisão.            |
 
 **Admin padrão:** `matricula = admin`, `senha = admin123` (id=1, não pode ser deletado).
 
@@ -89,20 +100,36 @@ Tudo funciona no navegador, com backend em Python (FastAPI) e frontend em React 
 
 ## 5. 🌐 ROTAS DA API
 
-| Rota                             | Método       | Descrição                                         |
-| -------------------------------- | ------------ | ------------------------------------------------- |
-| `/api/login`                     | POST         | Autentica o usuário.                              |
-| `/api/dashboard`                 | GET          | Estatísticas gerais (admin/professor).            |
-| `/api/dashboard/sessoes-por-mes` | GET          | Dados para gráficos mensais.                      |
-| `/api/alunos/desempenho`         | GET          | Desempenho detalhado de cada aluno.               |
-| `/api/relatorios/estudo`         | GET          | Relatório mensal de estudo.                       |
-| `/api/questoes`                  | GET / POST   | Lista e cria questões.                            |
-| `/api/questoes/{id}`             | PUT / DELETE | Atualiza ou remove questão.                       |
-| `/api/sessoes`                   | POST         | Submete uma sessão de quiz.                       |
-| `/api/historico`                 | GET          | Histórico de sessões do aluno.                    |
-| `/api/usuarios`                  | GET / POST   | Lista e cria usuários.                            |
-| `/api/usuarios/{id}`             | PUT / DELETE | Atualiza ou remove usuário (admin id=1 não pode). |
-| `/api/materias`                  | GET / POST   | Lista e cria matérias.                            |
+| Rota                                  | Método       | Descrição                                         |
+| ------------------------------------- | ------------ | ------------------------------------------------- |
+| `/api/login`                          | POST         | Autentica o usuário.                              |
+| `/api/dashboard`                      | GET          | Estatísticas gerais (admin/professor).            |
+| `/api/dashboard/sessoes-por-mes`      | GET          | Dados para gráficos mensais.                      |
+| `/api/dashboard/visao-geral`          | GET          | Últimas atividades e progresso da turma.          |
+| `/api/alunos/desempenho`              | GET          | Desempenho detalhado de cada aluno.               |
+| `/api/relatorios/estudo`              | GET          | Relatório mensal de estudo.                       |
+| `/api/questoes`                       | GET / POST   | Lista (com `limit` e `materia_id`) e cria questões. |
+| `/api/questoes/{id}`                  | PUT / DELETE | Atualiza ou remove questão.                       |
+| `/api/questoes/importar-csv`          | POST         | Importação em massa via CSV.                      |
+| `/api/sessoes`                        | POST / GET   | Submete sessão / histórico do aluno (LIMIT 200).  |
+| `/api/feedbacks_questoes`             | GET / POST   | Lista e cria feedbacks de questões.               |
+| `/api/feedbacks_questoes/contagem`    | GET          | Contagem de feedbacks pendentes (badge sidebar).  |
+| `/api/feedbacks_questoes/{id}/...`    | PATCH        | Resolver, responder, publicar feedback.           |
+| `/api/admin/usuarios`                 | GET / POST   | Lista e cria usuários.                            |
+| `/api/admin/usuarios/{id}`            | PUT / DELETE | Atualiza ou remove usuário (admin id=1 protegido).|
+| `/api/admin/materias`                 | GET / POST   | Lista e cria matérias.                            |
+| `/api/admin/materias/{id}`            | PUT / DELETE | Atualiza ou remove matéria.                       |
+| `/api/aluno/progresso/{matricula}`    | GET          | Progresso do aluno no edital.                     |
+| `/api/aluno/historico-grafico/...`    | GET          | Dados agregados por mês para gráficos.            |
+| `/api/aluno/historico-diario/...`     | GET          | Série diária de questões respondidas.             |
+| `/api/aluno/historico-filtrado/...`   | GET          | Dados filtrados por período/matéria/acerto.       |
+| `/api/aluno/questoes-respondidas`     | GET          | Histórico detalhado com paginação.                |
+| `/api/aluno/meus-feedbacks/{nome}`    | GET          | Feedbacks do aluno com paginação.                 |
+| `/api/aluno/ranking/{matricula}`      | GET          | Posição do aluno no ranking geral.                |
+| `/api/aluno/sessoes/{matricula}`      | GET          | Histórico de sessões (LIMIT 100).                 |
+| `/api/favoritos/{matricula}`          | GET          | Lista questões favoritadas pelo aluno.            |
+| `/api/favoritos/adicionar`            | POST         | Adiciona favorito (body JSON com Pydantic).       |
+| `/api/favoritos/remover/{questao_id}` | DELETE       | Remove favorito (query param `matricula`).        |
 
 Para testar: acesse `http://localhost:8000/docs` (Swagger).
 
@@ -139,7 +166,7 @@ Para testar: acesse `http://localhost:8000/docs` (Swagger).
 
 ### Criar um novo usuário professor
 
-- `POST /api/usuarios` com `papel: "professor"`.
+- `POST /api/admin/usuarios` com `papel: "professor"`.
 - Associe matérias a ele via `professores_materias`.
 
 ### Mudar a sidebar
@@ -150,6 +177,7 @@ Para testar: acesse `http://localhost:8000/docs` (Swagger).
 
 1. Crie o arquivo em `routes/`.
 2. Adicione `app.include_router(...)` no `main.py` **após** `app = FastAPI(...)`.
+3. Se a rota usa dados de body (POST/PUT), crie um **modelo Pydantic** em `models.py`.
 
 ### Exportar / importar banco
 
@@ -158,3 +186,38 @@ Para testar: acesse `http://localhost:8000/docs` (Swagger).
   docker exec postgres_joao pg_dump -U joao_xavier plataforma_questoes > backup.sql
   docker exec -i postgres_joao psql -U joao_xavier plataforma_questoes < backup.sql
   ```
+
+---
+
+## 8. 🛡️ PROTEÇÕES E ESCALABILIDADE
+
+### 8.1 Pool de Conexões
+
+- **Max size = 20**, min size = 2. Configurado em `database.py`.
+- Credenciais vêm **exclusivamente** do `.env` — sem fallback hardcoded.
+- Sempre use `with get_conexao() as conn:` — nunca abra conexão avulsa.
+
+### 8.2 CORS
+
+- Origens permitidas definidas explicitamente em `main.py` (localhost:5173, 3000, 8000).
+- **Nunca use `allow_origins=["*"]`** em produção.
+
+### 8.3 Limites nas Queries
+
+- `GET /api/questoes` aceita `?limit=N` (max 500) para evitar transferir todo o banco.
+- `GET /api/sessoes/{matricula}` tem **LIMIT 200** para evitar respostas gigantes.
+- `GET /api/aluno/sessoes/{matricula}` tem **LIMIT 100**.
+- Rotas de aluno com paginação usam `por_pagina` com teto (le=100).
+
+### 8.4 Regras de Integridade
+
+- **Não use `::VARCHAR`** em colunas que já são VARCHAR — impede uso de índices.
+- **Nunca duplique rotas** — se um path já existe em outro módulo, remova a cópia.
+- Use `except Exception as e:` com tipo, **nunca** `except:` genérico (engole MemoryError, etc).
+- Em rotas POST com body JSON, use **modelos Pydantic** (não `Query(...)`).
+
+### 8.5 Tabela `favoritos_aluno`
+
+- Coluna chave: `matricula_aluno` (VARCHAR 20, FK para `usuarios.matricula`).
+- UNIQUE em `(matricula_aluno, questao_id)` — impede duplicatas.
+- Índice `idx_fav_matricula` para busca rápida por aluno.

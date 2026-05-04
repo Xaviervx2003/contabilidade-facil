@@ -18,8 +18,8 @@ DB_CONFIG = {
     "host":     os.getenv("DB_HOST", "localhost"),
     "port":     int(os.getenv("DB_PORT", 5432)),
     "dbname":   os.getenv("DB_NAME", "plataforma_questoes"),
-    "user":     os.getenv("DB_USER", "joao_xavier"),
-    "password": os.getenv("DB_PASSWORD", "sua_senha_segura12"),
+    "user":     os.getenv("DB_USER", ""),
+    "password": os.getenv("DB_PASSWORD", ""),
 }
 
 # String de conexão formatada para o psycopg v3
@@ -42,7 +42,9 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
             _pool = ConnectionPool(
                 conninfo=CONN_STR,
                 min_size=2,
-                max_size=10,
+                max_size=20,
+                max_idle=5, # Ajuda a não manter conexões abertas "zumbis" no Supabase/Neon
+                timeout=30.0, # Timeout para evitar que a API trave
                 open=True,
             )
 

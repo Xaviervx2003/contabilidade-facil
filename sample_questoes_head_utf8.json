@@ -1,0 +1,300 @@
+﻿{
+  "message": {
+    "text": "OK",
+    "type": "info",
+    "slug": "OK"
+  },
+  "pagination": true,
+  "data": {
+    "total": 16641,
+    "perPage": 100,
+    "pages": 167,
+    "page": 1,
+    "rows": [
+      {
+        "dificuldade": 1,
+        "bancas": [
+          {
+            "oab": false,
+            "sigla": "ACCESS",
+            "nome": "Instituto ACCESS",
+            "id": 5,
+            "slug": "access",
+            "descricao": "Instituto ACCESS - ACCESS"
+          }
+        ],
+        "cargos": [
+          {
+            "id": 6708,
+            "slug": "assistente-em-administracao",
+            "descricao": "Assistente em AdministraÃ§Ã£o"
+          }
+        ],
+        "orgaos": [
+          {
+            "esfera": "Estadual",
+            "uf": "RS",
+            "sigla": "UNIPAMPA",
+            "nome": "Universidade Federal do Pampa",
+            "id": 3093,
+            "slug": "unipampa-rs"
+          }
+        ],
+        "anos": [
+          2026
+        ],
+        "tiposProva": [
+          1
+        ],
+        "ultimoAno": {
+          "rank": 2026,
+          "stamp": "2026-01-01 00:00:00"
+        },
+        "tipo": "multipla escolha",
+        "enunciado_clean": "No contexto de uma organizaÃ§Ã£o pÃºblica submetida a pressÃµes simultÃ¢neas por legalidade, eficiÃªncia e entrega de valor pÃºblico, a alta administraÃ§Ã£o instituiu um ciclo contÃ­nuo de gestÃ£o baseado na definiÃ§Ã£o de objetivos estratÃ©gicos, na reconfiguraÃ§Ã£o das estruturas internas, no alinhamento das pessoas Ã s diretrizes institucionais e na mensuraÃ§Ã£o sistemÃ¡tica dos resultados. Ao longo do processo, ajustes sucessivos foram realizados, tanto nos meios utilizados quanto nos prÃ³prios objetivos inicialmente estabelecidos, em resposta a mudanÃ§as no ambiente organizacional e Ã s avaliaÃ§Ãµes de desempenho. Ã€ luz das funÃ§Ãµes administrativas clÃ¡ssicas e de sua abordagem contemporÃ¢nea, assinale a alternativa CORRETA.",
+        "hash": "addd757b0b3340e2ab974885eaa53717",
+        "hasImage": false,
+        "hasImageItens": false,
+        "provas": [
+          {
+            "tipo": 1,
+            "orgao": {
+              "esfera": "Estadual",
+              "uf": "RS",
+              "sigla": "UNIPAMPA",
+              "nome": "Universidade Federal do Pampa",
+              "id": 3093,
+              "slug": "unipampa-rs"
+            },
+            "ano": 2026,
+            "index": "prova-1.17.0-5",
+            "nome": "ACCESS - UNIPAMPA - Assistente em AdministraÃ§Ã£o - 2026",
+            "id": 256747,
+            "cargo": {
+              "id": 6708,
+              "slug": "assistente-em-administracao",
+              "descricao": "Assistente em AdministraÃ§Ã£o"
+            },
+            "nivel": "MÃ©dio",
+            "slug": "unipampa-rs-2026-access-assistente-em-administracao",
+            "banca": {
+              "oab": false,
+              "sigla": "ACCESS",
+              "nome": "Instituto ACCESS",
+              "id": 5,
+              "slug": "access",
+              "descricao": "Instituto ACCESS - ACCESS"
+            }
+          }
+        ],
+        "comentarios": {
+          "ia": true,
+          "professor": true,
+          "professorVideo": false,
+          "aluno": true,
+          "totalAlunos": 1,
+          "totalProfessores": 1
+        },
+        "timestamp": "2026-03-20 11:11:45",
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28,
+            "descricao": "Cargos diversos que nÃ£o se enquadrem em nenhuma outra categoria"
+          }
+        ],
+        "areas": [],
+        "dadosQuestaoDiscursiva": [],
+        "id": 4309610,
+        "hashId": "71593751da322053988973fd9dc3f470a8c91aec7ebb8246b123fdbe44810337",
+        "enunciado": "<p style=\"text-align: justify;\">No contexto de uma organizaÃ§Ã£o pÃºblica submetida a pressÃµes simultÃ¢neas por legalidade, eficiÃªncia e entrega de valor pÃºblico, a alta administraÃ§Ã£o instituiu um ciclo contÃ­nuo de gestÃ£o baseado na definiÃ§Ã£o de objetivos estratÃ©gicos, na reconfiguraÃ§Ã£o das estruturas internas, no alinhamento das pessoas Ã s diretrizes institucionais e na mensuraÃ§Ã£o sistemÃ¡tica dos resultados. Ao longo do processo, ajustes sucessivos foram realizados, tanto nos meios utilizados quanto nos prÃ³prios objetivos inicialmente estabelecidos, em resposta a mudanÃ§as no ambiente organizacional e Ã s avaliaÃ§Ãµes de desempenho. Ã€ luz das funÃ§Ãµes administrativas clÃ¡ssicas e de sua abordagem contemporÃ¢nea, assinale a alternativa CORRETA.</p>",
+        "resposta": 17670258,
+        "anulada": false,
+        "rotulo": 31,
+        "desatualizada": false,
+        "itens": [
+          {
+            "corpo": "<p style=\"text-align: justify;\">A organizaÃ§Ã£o, por definir a estrutura formal e a distribuiÃ§Ã£o de competÃªncias, constitui etapa estanque do processo administrativo, nÃ£o sofrendo influÃªncia da direÃ§Ã£o nem dos mecanismos de controle.</p>",
+            "corpo_clean": "A organizaÃ§Ã£o, por definir a estrutura formal e a distribuiÃ§Ã£o de competÃªncias, constitui etapa estanque do processo administrativo, nÃ£o sofrendo influÃªncia da direÃ§Ã£o nem dos mecanismos de controle.",
+            "ordem": 1,
+            "rotulo": "A    ",
+            "id": 17670256
+          },
+          {
+            "corpo": "<p style=\"text-align: justify;\">O controle, por envolver mensuraÃ§Ã£o e avaliaÃ§Ã£o de resultados, deve incidir exclusivamente sobre a execuÃ§Ã£o das atividades, nÃ£o podendo retroalimentar o planejamento sem comprometer a estabilidade administrativa.</p>",
+            "corpo_clean": "O controle, por envolver mensuraÃ§Ã£o e avaliaÃ§Ã£o de resultados, deve incidir exclusivamente sobre a execuÃ§Ã£o das atividades, nÃ£o podendo retroalimentar o planejamento sem comprometer a estabilidade administrativa.",
+            "ordem": 2,
+            "rotulo": "B    ",
+            "id": 17670257
+          },
+          {
+            "corpo": "<p style=\"text-align: justify;\">As funÃ§Ãµes administrativas compÃµem um sistema integrado e dinÃ¢mico, no qual o controle retroalimenta o planejamento, a organizaÃ§Ã£o fornece os meios estruturais para a execuÃ§Ã£o das estratÃ©gias e a direÃ§Ã£o promove o alinhamento das pessoas aos objetivos institucionais, permitindo ajustes contÃ­nuos orientados aos resultados.</p>",
+            "corpo_clean": "As funÃ§Ãµes administrativas compÃµem um sistema integrado e dinÃ¢mico, no qual o controle retroalimenta o planejamento, a organizaÃ§Ã£o fornece os meios estruturais para a execuÃ§Ã£o das estratÃ©gias e a direÃ§Ã£o promove o alinhamento das pessoas aos objetivos institucionais, permitindo ajustes contÃ­nuos orientados aos resultados.",
+            "ordem": 3,
+            "rotulo": "C    ",
+            "id": 17670258
+          },
+          {
+            "corpo": "<p style=\"text-align: justify;\">O planejamento possui natureza estritamente normativa e antecedente, razÃ£o pela qual nÃ£o admite revisÃµes durante a execuÃ§Ã£o, sob pena de descaracterizar a previsibilidade e a racionalidade da aÃ§Ã£o administrativa.</p>",
+            "corpo_clean": "O planejamento possui natureza estritamente normativa e antecedente, razÃ£o pela qual nÃ£o admite revisÃµes durante a execuÃ§Ã£o, sob pena de descaracterizar a previsibilidade e a racionalidade da aÃ§Ã£o administrativa.",
+            "ordem": 4,
+            "rotulo": "D    ",
+            "id": 17670259
+          }
+        ],
+        "grupoQuestao": {
+          "enunciado_clean": "",
+          "id": 838385,
+          "enunciado": "",
+          "rotulo": null,
+          "texto": null,
+          "descricao": "31 a 50",
+          "ordem": 31
+        },
+        "assuntos": [
+          {
+            "nome_clean": "AdministraÃ§Ã£o Geral",
+            "oab": false,
+            "assunto_raiz": 404571,
+            "pai": null,
+            "palavrasChave": [
+              "NoÃ§Ãµes de administraÃ§Ã£o pÃºblica",
+              "GestÃ£o de pessoas",
+              "CONTEÃšDO ESPECÃFICO",
+              "PolÃ­ticas PÃºblicas",
+              "GestÃ£o PÃºblica; NoÃ§Ãµes de AdministraÃ§Ã£o PÃºblcia",
+              "Direito Civil",
+              "Direito Civil e Empresarial",
+              "Vendas e negociaÃ§Ã£o",
+              "LegislaÃ§Ã£o Esparsa",
+              "Conhecimentos especÃ­ficos da Ã¡rea",
+              "Controles Internos, GovernanÃ§a e GestÃ£o de Risco",
+              "MÃ³dulo II",
+              "Conhecimentos especÃ­ficos",
+              "NoÃ§Ãµes de administraÃ§Ã£o",
+              "NoÃ§Ãµes Gerais de Direito e FormaÃ§Ã£o HumanÃ­stica",
+              "Controladoria",
+              "Sociologia do Direito",
+              "Direito Administrativo",
+              "AdministraÃ§Ã£o PÃºblica",
+              "Direito Empresarial"
+            ],
+            "nome": "AdministraÃ§Ã£o Geral",
+            "materia": true,
+            "id": 404571,
+            "slug": "administracao-geral-404571"
+          },
+          {
+            "nome_clean": "Processo organizacional (PODC)",
+            "oab": false,
+            "assunto_raiz": 404571,
+            "pai": 404572,
+            "palavrasChave": [],
+            "nome": "Processo organizacional (PODC)",
+            "materia": false,
+            "id": 404674,
+            "slug": "administracao-geral-processo-organizacional-podc-404674"
+          }
+        ],
+        "slug": "administracao-geral-404571/4309610",
+        "nivel": {
+          "acertos": null,
+          "erros": null,
+          "total": null,
+          "total10dias": null,
+          "nivel": 1,
+          "dataAlteracao": null
+        },
+        "questaoDiscursiva": null,
+        "index": "questao-1.14.1-5",
+        "resolvida": false
+      },
+      {
+        "dificuldade": 1,
+        "bancas": [
+          {
+            "oab": false,
+            "sigla": "Instituto CONSULPAM",
+            "nome": "Consultoria PÃºblico-Privada",
+            "id": 916,
+            "slug": "instituto-consulpam-916",
+            "descricao": "Consultoria PÃºblico-Privada - Instituto CONSULPAM"
+          }
+        ],
+        "cargos": [
+          {
+            "id": 290,
+            "slug": "analista-area-administracao",
+            "descricao": "Analista - Ãrea: AdministraÃ§Ã£o"
+          }
+        ],
+        "orgaos": [
+          {
+            "esfera": "Municipal",
+            "uf": "CE",
+            "sigla": "",
+            "nome": "Prefeitura de EusÃ©bio",
+            "id": 2994,
+            "slug": "prefeitura-de-eusebio-ce"
+          }
+        ],
+        "anos": [
+          2026
+        ],
+        "tiposProva": [
+          1
+        ],
+        "ultimoAno": {
+          "rank": 2026,
+          "stamp": "2026-01-01 00:00:00"
+        },
+        "tipo": "multipla escolha",
+        "enunciado_clean": "Acerca da evoluÃ§Ã£o da Teoria Geral da AdministraÃ§Ã£o, abrangendo as abordagens clÃ¡ssica, cientÃ­fica e moderna, assinale a alternativa CORRETA:",
+        "hash": "c9be674d9c994a08b5e76781cbcbc0d1",
+        "hasImage": false,
+        "hasImageItens": false,
+        "provas": [
+          {
+            "tipo": 1,
+            "orgao": {
+              "esfera": "Municipal",
+              "uf": "CE",
+              "sigla": "",
+              "nome": "Prefeitura de EusÃ©bio",
+              "id": 2994,
+              "slug": "prefeitura-de-eusebio-ce"
+            },
+            "ano": 2026,
+            "index": "prova-1.17.0-5",
+            "nome": "Instituto CONSULPAM - Prefeitura de EusÃ©bio - Analista - Ãrea: AdministraÃ§Ã£o - 2026",
+            "id": 263246,
+            "cargo": {
+              "id": 290,
+              "slug": "analista-area-administracao",
+              "descricao": "Analista - Ãrea: AdministraÃ§Ã£o"
+            },
+            "nivel": "Superior",
+            "slug": "prefeitura-de-eusebio-ce-2026-instituto-consulpam-916-analista-area-administracao",
+            "banca": {
+              "oab": false,
+              "sigla": "Instituto CONSULPAM",
+              "nome": "Consultoria PÃºblico-Privada",
+              "id": 916,
+              "slug": "instituto-consulpam-916",
+              "descricao": "Consultoria PÃºblico-Privada - Instituto CONSULPAM"
+            }
+          }
+        ],
+        "comentarios": {
+          "ia": true,
+          "professor": false,
+          "professorVideo": false,
+          "aluno": false,
+          "totalAlunos": 0,
+          "totalProfessores": 0
+        },
+        "timestamp": "2026-03-20 08:02:57",
+        "carreiras": [
+          {
+            "nome": "Outras",
+            "id": 28,

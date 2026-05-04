@@ -7,7 +7,9 @@ import {
   char,
   integer,
   primaryKey,
-  AnyPgColumn, // ✅ Adicionado para permitir a auto-referência na árvore
+  AnyPgColumn,
+  boolean,
+  timestamp,
 } from "drizzle-orm/pg-core";
 
 export const questoes = pgTable("questoes", {
@@ -24,10 +26,7 @@ export const questoes = pgTable("questoes", {
   tentativas: integer("tentativas").default(0),
   acertos: integer("acertos").default(0),
   link_video: text("link_video"),
-  // ✅ Unique constraint — já cria índice interno automaticamente
   id_externo: integer("id_externo").unique(),
-  
-  // ✅ Novos Metadados de Concursos
   banca: varchar("banca", { length: 255 }),
   orgao: varchar("orgao", { length: 255 }),
   cargo: varchar("cargo", { length: 255 }),
@@ -39,12 +38,12 @@ export const questoes = pgTable("questoes", {
 export const materias = pgTable("materias", {
   id: serial("id").primaryKey(),
   nome: varchar("nome", { length: 255 }).notNull(),
-  // ✅ Novo: Ordem hierárquica oficial do edital (ex: 1.1.2)
   indice: varchar("indice", { length: 50 }),
-  // ✅ Novo: ID da API do Gran Cursos para não duplicar e cruzar os dados
   id_externo: integer("id_externo").unique(),
-  // ✅ Novo: Auto-referência para criar a árvore (disciplina -> assunto -> subassunto)
-  parent_id: integer("parent_id").references((): AnyPgColumn => materias.id, { onDelete: "cascade" }),
+  parent_id: integer("parent_id").references(
+    (): AnyPgColumn => materias.id,
+    { onDelete: "cascade" }
+  ),
 });
 
 export const questoesMaterias = pgTable(
@@ -59,5 +58,20 @@ export const questoesMaterias = pgTable(
   },
   (t) => ({
     pk: primaryKey({ columns: [t.questao_id, t.materia_id] }),
-  }),
+  })
 );
+
+export const comentarios = pgTable("comentarios", {
+  id: serial("id").primaryKey(),
+  questao_id: integer("questao_id")
+    .notNull()
+    .references(() => questoes.id, { onDelete: "cascade" }),
+  id_externo_comentario: integer("id_externo_comentario").unique(),
+  autor_nome: varchar("autor_nome", { length: 255 }),
+  autor_foto: text("autor_foto"),
+  texto: text("texto").notNull(),
+  is_professor: boolean("is_professor").default(false),
+  curtidas: integer("curtidas").default(0),
+  criado_em: timestamp("criado_em"),
+  coletado_em: timestamp("coletado_em").defaultNow(),
+});

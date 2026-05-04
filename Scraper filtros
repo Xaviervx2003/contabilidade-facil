@@ -1,0 +1,299 @@
+// scraper-filtros.ts
+// Lê todos os filtros disponíveis em questoes.grancursosonline.com.br
+// e salva em filtros.json
+
+import puppeteer from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import fs from "fs";
+import path from "path";
+
+puppeteer.use(StealthPlugin());
+
+/* ─── Configuração ───────────────────────────────────────────────────────── */
+
+const URL_FILTROS =
+  "https://questoes.grancursosonline.com.br/aluno/filtro/concursos";
+
+const OUTPUT_FILE = path.resolve("filtros.json");
+
+const USER_DATA_DIR =
+  "C:\\projetos\\contabilidade facil\\chrome-perfil";
+
+/* ─── Tipos ──────────────────────────────────────────────────────────────── */
+
+interface OpcaoFiltro {
+  label: string;
+  value?: string | number;
+  count?: number;
+}
+
+interface Filtro {
+  nome: string;
+  seletor: string;
+  opcoes: OpcaoFiltro[];
+}
+
+/* ─── Helpers ────────────────────────────────────────────────────────────── */
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Aguarda até um elemento aparecer (ou timeout) */
+async function waitForEl(page: any, sel: string, timeout = 5000) {
+  try {
+    await page.waitForSelector(sel, { visible: true, timeout });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/* ─── Interceptação de API ───────────────────────────────────────────────── */
+
+/**
+ * O Gran Cursos carrega as opções de filtro via API REST.
+ * Interceptamos as respostas para pegar os dados brutos antes
+ * de tentar clicar em cada dropdown (mais confiável que scraping de DOM).
+ */
+async function capturarViaApi(page: any): Promise<Record<string, any[]>> {
+  const capturado: Record<string, any[]> = {};
+
+  page.on("response", async (response: any) => {
+    const url = response.url();
+    // Endpoints conhecidos de filtros do Gran Cursos
+    const endpoints = [
+      "disciplinas",
+      "assuntos",
+      "bancas",
+      "instituicoes",
+      "cargos",
+      "anos",
+      "carreiras",
+      "areas-formacao",
+      "escolaridades",
+      "dificuldades",
+    ];
+
+    const match = endpoints.find((e) => url.includes(e));
+    if (!match) return;
+
+    try {
+      const json = await response.json();
+      const lista = json?.data || json?.items || json?.result || json || [];
+      if (Array.isArray(lista) && lista.length > 0) {
+        capturado[match] = lista;
+        console.log(`  📥 API [${match}]: ${lista.length} itens capturados`);
+      }
+    } catch {}
+  });
+
+  return capturado;
+}
+
+/* ─── Scraping de DOM (fallback) ─────────────────────────────────────────── */
+
+/**
+ * Clica em cada dropdown e lê as opções visíveis no DOM.
+ * Usado como fallback se a interceptação de API não pegar tudo.
+ */
+async function lerDropdowns(page: any): Promise<Filtro[]> {
+  const resultados: Filtro[] = [];
+
+  // Seletores comuns de dropdowns no Gran Cursos
+  // Ajuste conforme o HTML real da página
+  const dropdowns = [
+    { nome: "Disciplina",       seletor: '[data-testid="filter-disciplina"], button:has-text("Disciplina")'      },
+    { nome: "Assunto",          seletor: '[data-testid="filter-assunto"], button:has-text("Assunto")'            },
+    { nome: "Banca",            seletor: '[data-testid="filter-banca"], button:has-text("Banca")'                },
+    { nome: "Instituição",      seletor: '[data-testid="filter-instituicao"], button:has-text("Instituição")'    },
+    { nome: "Cargo",            seletor: '[data-testid="filter-cargo"], button:has-text("Cargo")'                },
+    { nome: "Ano",              seletor: '[data-testid="filter-ano"], button:has-text("Ano")'                    },
+    { nome: "Carreira",         seletor: '[data-testid="filter-carreira"], button:has-text("Carreira")'          },
+    { nome: "Área de formação", seletor: '[data-testid="filter-area"], button:has-text("Área")'                  },
+    { nome: "Escolaridade",     seletor: '[data-testid="filter-escolaridade"], button:has-text("Escolaridade")'  },
+    { nome: "Dificuldade",      seletor: '[data-testid="filter-dificuldade"], button:has-text("Dificuldade")'    },
+  ];
+
+  for (const drop of dropdowns) {
+    console.log(`  🖱️  Tentando abrir: ${drop.nome}...`);
+
+    try {
+      // Tenta cada seletor separado por vírgula
+      const seletores = drop.seletor.split(",").map((s) => s.trim());
+      let clicou = false;
+
+      for (const sel of seletores) {
+        const existe = await waitForEl(page, sel, 3000);
+        if (existe) {
+          await page.click(sel);
+          clicou = true;
+          break;
+        }
+      }
+
+      if (!clicou) {
+        console.log(`    ⚠️  Dropdown "${drop.nome}" não encontrado — pulando`);
+        continue;
+      }
+
+      await sleep(1200); // aguarda animação do dropdown
+
+      // Lê as opções abertas (lista ou checkboxes)
+      const opcoes: OpcaoFiltro[] = await page.evaluate(() => {
+        const itens: OpcaoFiltro[] = [];
+
+        // Padrão 1: <li> ou <option>
+        document.querySelectorAll(
+          ".dropdown-menu li, .filter-options li, [role='listbox'] [role='option'], select option"
+        ).forEach((el: any) => {
+          const label = el.innerText?.trim() || el.textContent?.trim();
+          const value = el.dataset?.value || el.value;
+          const count = parseInt(el.querySelector?.(".count")?.innerText || "0") || undefined;
+          if (label) itens.push({ label, value, count });
+        });
+
+        // Padrão 2: checkboxes com label
+        if (itens.length === 0) {
+          document.querySelectorAll(
+            ".filter-list input[type='checkbox'], [class*='filter'] input[type='checkbox']"
+          ).forEach((el: any) => {
+            const label =
+              el.closest("label")?.innerText?.trim() ||
+              document.querySelector(`label[for="${el.id}"]`)?.innerText?.trim();
+            const value = el.value;
+            if (label) itens.push({ label, value });
+          });
+        }
+
+        return itens;
+      });
+
+      if (opcoes.length > 0) {
+        resultados.push({ nome: drop.nome, seletor: drop.seletor, opcoes });
+        console.log(`    ✅ ${opcoes.length} opções encontradas`);
+      } else {
+        console.log(`    ⚠️  Dropdown aberto mas sem opções reconhecíveis`);
+        resultados.push({ nome: drop.nome, seletor: drop.seletor, opcoes: [] });
+      }
+
+      // Fecha o dropdown clicando fora
+      await page.keyboard.press("Escape");
+      await sleep(600);
+    } catch (err: any) {
+      console.warn(`    ❌ Erro em "${drop.nome}": ${err.message}`);
+    }
+  }
+
+  return resultados;
+}
+
+/* ─── Fluxo principal ────────────────────────────────────────────────────── */
+
+async function rodar() {
+  console.log("🚀 Iniciando scraper de filtros...\n");
+
+  const browser = await puppeteer.launch({
+    headless: false,
+    userDataDir: USER_DATA_DIR,
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--start-maximized"],
+    defaultViewport: null,
+  });
+
+  const pages = await browser.pages();
+  const page  = pages[0] || (await browser.newPage());
+
+  /* Intercepta respostas da API */
+  const dadosApi = await capturarViaApi(page);
+
+  console.log(`📄 Abrindo ${URL_FILTROS}...`);
+  await page.goto(URL_FILTROS, { waitUntil: "networkidle2", timeout: 30000 });
+  console.log("✅ Página carregada.\n");
+
+  /* Aguarda carregamento inicial dos filtros */
+  await sleep(2000);
+
+  /* ── Passo 1: tentar pegar via API interceptada ── */
+  console.log("─── Fase 1: Dados capturados via API ───────────────────────");
+  console.log(`   ${Object.keys(dadosApi).length} endpoints capturados até agora.`);
+
+  /* ── Passo 2: scraping de DOM como complemento ── */
+  console.log("\n─── Fase 2: Scraping de DOM (dropdowns) ────────────────────");
+  const filtrosDom = await lerDropdowns(page);
+
+  /* ── Fase 3: Captura do HTML completo para análise manual ── */
+  console.log("\n─── Fase 3: Salvando HTML da página para análise ───────────");
+  const html = await page.content();
+  fs.writeFileSync("pagina-filtros.html", html, "utf-8");
+  console.log("   📄 pagina-filtros.html salvo.");
+
+  /* ── Fase 4: Print de toda a estrutura de filtros via JS ── */
+  console.log("\n─── Fase 4: Lendo todos os elementos de filtro via JS ──────");
+  const estruturaCompleta = await page.evaluate(() => {
+    const resultado: any = {
+      selects:    [] as any[],
+      checkboxes: [] as any[],
+      buttons:    [] as any[],
+      roles:      [] as any[],
+    };
+
+    // Todos os <select>
+    document.querySelectorAll("select").forEach((el) => {
+      resultado.selects.push({
+        id: el.id, name: el.name,
+        opcoes: Array.from(el.options).map((o) => ({ label: o.text, value: o.value })),
+      });
+    });
+
+    // Todos os checkboxes com label
+    document.querySelectorAll("input[type='checkbox']").forEach((el: any) => {
+      const label =
+        el.closest("label")?.innerText?.trim() ||
+        document.querySelector(`label[for="${el.id}"]`)?.innerText?.trim() || "";
+      resultado.checkboxes.push({ id: el.id, value: el.value, label });
+    });
+
+    // Botões que parecem filtros
+    document.querySelectorAll("button").forEach((el: any) => {
+      const txt = el.innerText?.trim();
+      if (txt && txt.length > 1 && txt.length < 50) {
+        resultado.buttons.push({ texto: txt, classes: el.className });
+      }
+    });
+
+    // Elementos com role="option" ou role="listbox"
+    document.querySelectorAll("[role='option'], [role='listbox'] *").forEach((el: any) => {
+      const txt = el.innerText?.trim();
+      if (txt) resultado.roles.push({ tag: el.tagName, role: el.getAttribute("role"), texto: txt });
+    });
+
+    return resultado;
+  });
+
+  /* ── Consolida resultado final ── */
+  const saida = {
+    coletadoEm:    new Date().toISOString(),
+    url:           URL_FILTROS,
+    viaApi:        dadosApi,
+    viaDom:        filtrosDom,
+    estruturaBruta: estruturaCompleta,
+  };
+
+  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(saida, null, 2), "utf-8");
+
+  console.log(`\n✅ Arquivo salvo: ${OUTPUT_FILE}`);
+  console.log(`   API capturada: ${Object.keys(dadosApi).length} endpoints`);
+  console.log(`   DOM dropdowns: ${filtrosDom.length} filtros lidos`);
+  console.log(`   Botões encontrados: ${estruturaCompleta.buttons.length}`);
+  console.log(`   Checkboxes encontrados: ${estruturaCompleta.checkboxes.length}`);
+
+  /* Mantém o browser aberto por 5s para ver o resultado */
+  await sleep(5000);
+  await browser.close();
+
+  console.log("\n🎉 Concluído! Analise filtros.json e pagina-filtros.html.");
+  console.log(
+    "   Se os dropdowns vieram vazios, abra pagina-filtros.html e\n" +
+    "   procure os seletores CSS reais dos itens de filtro."
+  );
+}
+
+rodar().catch(console.error);

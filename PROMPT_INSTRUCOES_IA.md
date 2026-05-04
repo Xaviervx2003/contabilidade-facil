@@ -108,3 +108,20 @@ Campo `papel` na tabela `usuarios`:
       SELECT jsonb_object_agg(...) FROM dados_base GROUP BY ...  -- segunda agregação
   )
   SELECT ... FROM agregado_final;
+  ```
+
+### I. Favoritos do Aluno (`routes/favoritos.py`) — NOVO
+
+- A rota `POST /api/favoritos/adicionar` recebe **body JSON** via **modelo Pydantic** (`FavoritoRequest`), NÃO `Query(...)`.
+- A tabela `favoritos_aluno` usa coluna `matricula_aluno` (VARCHAR 20, FK para `usuarios.matricula`) — **não** `matricula`.
+- UNIQUE em `(matricula_aluno, questao_id)` impede duplicatas.
+- A rota `DELETE /api/favoritos/remover/{questao_id}` recebe `matricula` como **query param**.
+- **Nunca use `except:` genérico** — sempre `except Exception as e:` para não engolir `MemoryError` e afins.
+
+### J. Proteção e Escalabilidade — NOVO
+
+- **CORS:** Origens reais definidas em `main.py` (localhost:5173, 3000, 8000). **Nunca use `"*"` em produção.**
+- **Pool:** `max_size=20` em `database.py`. Credenciais vêm exclusivamente do `.env` — fallback é string vazia para forçar erro claro.
+- **Limites de query:** `GET /api/questoes` aceita `?limit=N` (max 500). `GET /api/sessoes/{m}` tem LIMIT 200. O frontend Quiz usa `limit` e `materia_id` como query params para não baixar todo o banco.
+- **Não use `::VARCHAR`** em colunas que já são VARCHAR — impede o PostgreSQL de usar índices UNIQUE, causando full scan.
+- **Rota duplicada:** A rota `GET /api/aluno/progresso/{matricula}` existe APENAS em `routes/progresso.py`. A cópia que existia em `routes/aluno.py` foi removida — nunca recrie.

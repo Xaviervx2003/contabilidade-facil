@@ -248,7 +248,7 @@ const Dashboard = () => {
       <CRow className="g-3 mb-4">
         <CCol xs={12} sm={6} xl={3}>
           <StatCard
-            titulo="Alunos Ativos"
+            titulo="Alunos Engajados (Total)"
             valor={stats?.alunos_ativos ?? '—'}
             cor="info"
             icone={cilPeople}

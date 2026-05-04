@@ -23,6 +23,7 @@ def relatorio_estudo(
     mes: Optional[int] = Query(None),
     ano: Optional[int] = Query(None),
     materia_id: Optional[int] = Query(None),
+    aluno_matricula: Optional[str] = Query(None),
 ):
     """
     Retorna resumo mensal, série diária e métricas de engajamento.
@@ -69,6 +70,10 @@ def relatorio_estudo(
                     )
                 """
                 params["materia_id"] = materia_id
+
+            if aluno_matricula:
+                filtros += " AND s.nome_aluno = %(aluno_matricula)s "
+                params["aluno_matricula"] = aluno_matricula
 
             # Série diária
             cursor.execute(f"""
