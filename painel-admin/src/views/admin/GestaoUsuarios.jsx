@@ -36,6 +36,7 @@ const GestaoUsuarios = () => {
     const [modoEdicao, setModoEdicao] = useState(false)
     const [usuarioAtual, setUsuarioAtual] = useState(usuarioVazio)
     const [salvando, setSalvando] = useState(false) // Trava o botão enquanto salva
+    const [busca, setBusca] = useState('') // Estado para a barra de busca
 
     // ── fetch ───────────────────────────────────────────────────
     const carregarUsuarios = async () => {
@@ -168,6 +169,12 @@ const GestaoUsuarios = () => {
         })
     }
 
+    // ── filtragem ───────────────────────────────────────────────
+    const usuariosFiltrados = usuarios.filter(u => 
+        u.nome.toLowerCase().includes(busca.toLowerCase()) || 
+        u.matricula.includes(busca)
+    )
+
     // ── render ──────────────────────────────────────────────────
     return (
         <>
@@ -175,11 +182,24 @@ const GestaoUsuarios = () => {
             {erro && <CAlert color="danger" dismissible onClose={() => setErro(null)}>{erro}</CAlert>}
 
             <CCard className="mb-4">
-                <CCardHeader className="d-flex justify-content-between align-items-center">
-                    <strong>Gestão de Usuários</strong>
-                    <CButton color="primary" size="sm" onClick={abrirCriar}>
-                        <CIcon icon={cilUserPlus} className="me-1" /> Novo Usuário
-                    </CButton>
+                <CCardHeader className="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div className="d-flex align-items-center gap-2">
+                        <strong>Gestão de Usuários</strong>
+                        <CBadge color="secondary">{usuariosFiltrados.length}</CBadge>
+                    </div>
+                    
+                    <div className="d-flex flex-grow-1 flex-md-grow-0 gap-2">
+                        <CFormInput 
+                            placeholder="Buscar nome ou matrícula..." 
+                            size="sm"
+                            value={busca}
+                            onChange={(e) => setBusca(e.target.value)}
+                            style={{ maxWidth: '250px' }}
+                        />
+                        <CButton color="primary" size="sm" onClick={abrirCriar} className="text-nowrap">
+                            <CIcon icon={cilUserPlus} className="me-1" /> Novo
+                        </CButton>
+                    </div>
                 </CCardHeader>
 
                 <CCardBody>
@@ -200,13 +220,13 @@ const GestaoUsuarios = () => {
                             </CTableHead>
 
                             <CTableBody>
-                                {usuarios.length === 0 ? (
+                                {usuariosFiltrados.length === 0 ? (
                                     <CTableRow>
                                         <CTableDataCell colSpan={7} className="text-center py-4 text-muted">
-                                            Nenhum usuário encontrado.
+                                            {busca ? 'Nenhum usuário corresponde à busca.' : 'Nenhum usuário encontrado.'}
                                         </CTableDataCell>
                                     </CTableRow>
-                                ) : usuarios.map((u, idx) => {
+                                ) : usuariosFiltrados.map((u, idx) => {
                                     const badge = PAPEL_BADGE[u.papel] || { color: 'secondary', label: u.papel }
                                     return (
                                         <CTableRow key={u.id}>
@@ -222,29 +242,31 @@ const GestaoUsuarios = () => {
                                                     ? u.materias_ensinadas
                                                     : <span className="text-muted">—</span>}
                                             </CTableDataCell>
-                                            <CTableDataCell className="text-center">
-                                                <CButton
-                                                    color="info" variant="outline" size="sm"
-                                                    className="me-2" title="Ver Histórico/Progresso"
-                                                    onClick={() => navigate(`/aluno/historico?matricula=${u.matricula}`)}
-                                                >
-                                                    <CIcon icon={cilChartLine} />
-                                                </CButton>
-                                                <CButton
-                                                    color="warning" variant="outline" size="sm"
-                                                    className="me-2" onClick={() => abrirEditar(u)}
-                                                    title="Editar"
-                                                >
-                                                    <CIcon icon={cilPencil} />
-                                                </CButton>
-                                                <CButton
-                                                    color="danger" variant="outline" size="sm"
-                                                    onClick={() => deletar(u.id, u.nome)}
-                                                    disabled={u.id === 1}
-                                                    title={u.id === 1 ? 'Admin principal não pode ser removido' : ''}
-                                                >
-                                                    <CIcon icon={cilTrash} />
-                                                </CButton>
+                                            <CTableDataCell>
+                                                <div className="d-flex flex-wrap justify-content-center gap-1">
+                                                    <CButton
+                                                        color="info" variant="outline" size="sm"
+                                                        title="Ver Histórico/Progresso"
+                                                        onClick={() => navigate(`/aluno/historico?matricula=${u.matricula}`)}
+                                                    >
+                                                        <CIcon icon={cilChartLine} />
+                                                    </CButton>
+                                                    <CButton
+                                                        color="warning" variant="outline" size="sm"
+                                                        onClick={() => abrirEditar(u)}
+                                                        title="Editar"
+                                                    >
+                                                        <CIcon icon={cilPencil} />
+                                                    </CButton>
+                                                    <CButton
+                                                        color="danger" variant="outline" size="sm"
+                                                        onClick={() => deletar(u.id, u.nome)}
+                                                        disabled={u.id === 1}
+                                                        title={u.id === 1 ? 'Admin principal não pode ser removido' : ''}
+                                                    >
+                                                        <CIcon icon={cilTrash} />
+                                                    </CButton>
+                                                </div>
                                             </CTableDataCell>
                                         </CTableRow>
                                     )

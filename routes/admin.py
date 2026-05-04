@@ -308,14 +308,25 @@ def editar_usuario(usuario_id: int, dados: dict):
             if email == "":
                 email = None
 
-            # Atualiza campos básicos
-            cursor.execute("""
-                UPDATE usuarios
-                SET nome  = COALESCE(%s, nome),
-                    email = %s,
-                    papel = COALESCE(%s, papel)
-                WHERE id = %s;
-            """, (dados.get("nome"), email, papel, usuario_id))
+            # Atualiza campos básicos (incluindo senha se fornecida)
+            senha = dados.get("senha")
+            if senha and senha.strip():
+                cursor.execute("""
+                    UPDATE usuarios
+                    SET nome  = COALESCE(%s, nome),
+                        email = %s,
+                        papel = COALESCE(%s, papel),
+                        senha = %s
+                    WHERE id = %s;
+                """, (dados.get("nome"), email, papel, senha, usuario_id))
+            else:
+                cursor.execute("""
+                    UPDATE usuarios
+                    SET nome  = COALESCE(%s, nome),
+                        email = %s,
+                        papel = COALESCE(%s, papel)
+                    WHERE id = %s;
+                """, (dados.get("nome"), email, papel, usuario_id))
 
             # Se for professor, atualiza matérias
             if papel == "professor":
