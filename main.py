@@ -23,6 +23,7 @@ from routes.relatorios import router as relatorios_router
 from routes.aluno import router as aluno_router  # ✅ Corrigido
 from routes.metricas_estudantes import router as metricas_estudantes_router  # ✅ Corrigido (antes estava "desempenho")
 from routes.trilhas import router as trilhas_router
+from routes.gamificacao import router as gamificacao_router
 
 
 @asynccontextmanager
@@ -63,6 +64,7 @@ app.include_router(relatorios_router)
 app.include_router(aluno_router)  # ✅ Agora existe
 app.include_router(metricas_estudantes_router)  # ✅ Agora aponta para o nome correto do arquivo
 app.include_router(trilhas_router)
+app.include_router(gamificacao_router)
 
 
 @app.get("/")

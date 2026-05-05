@@ -11,6 +11,7 @@ import {
   cilVideo,
   cilChartLine,
   cilListRich,
+  cilStar,
 } from '@coreui/icons'
 import { CNavItem, CNavTitle } from '@coreui/react'
 
@@ -58,6 +59,18 @@ const getNavItens = () => {
       name: 'Meus Feedbacks',
       to: '/aluno/feedbacks',
       icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" />,
+    },
+    {
+      component: CNavItem,
+      name: 'Minhas Conquistas',
+      to: '/conquistas',
+      icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
+      badge: {
+        color: 'warning',
+        textColor: 'white',
+        shape: 'rounded-pill',
+        children: '🏆',
+      },
     },
   ]
 
