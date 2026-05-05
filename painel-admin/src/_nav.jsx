@@ -26,6 +26,12 @@ const getNavItens = () => {
     },
     {
       component: CNavItem,
+      name: 'Meu Painel',
+      to: '/aluno/dashboard',
+      icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
+    },
+    {
+      component: CNavItem,
       name: 'Quiz',
       to: '/quiz',
       icon: <CIcon icon={cilPuzzle} customClassName="nav-icon" />,

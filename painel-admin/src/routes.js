@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Application Routes Configuration — Contabilidade Fácil
  * @module routes
  *
@@ -24,6 +24,7 @@ const MeusFeedbacks = React.lazy(() => import('./views/aluno/MeusFeedbacks'))
 const GestaoTrilhas = React.lazy(() => import('./views/admin/GestaoTrilhas'))
 const MinhasTrilhas = React.lazy(() => import('./views/aluno/MinhasTrilhas'))
 const Conquistas = React.lazy(() => import('./views/gamificacao/Conquistas'))
+const DashboardAluno = React.lazy(() => import('./views/aluno/DashboardAluno'))
 
 export const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -33,6 +34,7 @@ export const routes = [
     element: Dashboard,
     allowedRoles: ['admin', 'professor'],
   },
+  { path: '/aluno/dashboard', name: 'Meu Painel', element: DashboardAluno },
   { path: '/quiz', name: 'Quiz', element: Quiz },
   { path: '/videos', name: 'Vídeo-Aulas', element: VideoGallery },
 
