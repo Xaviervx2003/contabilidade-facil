@@ -1,59 +1,24 @@
 """
-Routes para sistema de gamificação (Streaks e Medalhas)
-Versão corrigida para evitar erros 500
+routes/gamificacao.py — Sistema de gamificação com dados REAIS do banco.
+
+Calcula streaks, medalhas e leaderboard a partir de sessoes_estudo.
 
 Endpoints:
   GET /api/aluno/streak/{matricula}
   GET /api/aluno/conquistas/{matricula}
-  GET /api/aluno/leaderboard?tipo=streak&limite=5
+  GET /api/aluno/leaderboard?tipo=streak&limite=10
 """
 
 from fastapi import APIRouter, HTTPException, Query
-from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Any
-import traceback
+from database import get_conexao
+from datetime import datetime, timedelta, date
 import logging
 
 router = APIRouter(tags=["Gamificação"])
-
-# Configurar logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ==================== DADOS SIMULADOS ====================
-# Em produção, conectar ao banco de dados real
-ALUNOS_DB = {
-    "2024001": {
-        "nome": "João Silva",
-        "matricula": "2024001",
-        "streak_atual": 5,
-        "streak_maximo": 12,
-        "ultima_data_estudo": "2025-01-15",
-        "total_questoes": 543,
-        "total_sessoes": 18,
-        "tempo_minutos": 2340,
-    },
-    "2024002": {
-        "nome": "Maria Santos",
-        "matricula": "2024002",
-        "streak_atual": 8,
-        "streak_maximo": 15,
-        "ultima_data_estudo": "2025-01-15",
-        "total_questoes": 789,
-        "total_sessoes": 25,
-        "tempo_minutos": 3200,
-    },
-    "admin": {
-        "nome": "Administrador",
-        "matricula": "admin",
-        "streak_atual": 0,
-        "streak_maximo": 0,
-        "ultima_data_estudo": "2025-01-01",
-        "total_questoes": 0,
-        "total_sessoes": 0,
-        "tempo_minutos": 0,
-    },
-}
+
+# ==================== DEFINIÇÃO DE MEDALHAS ====================
 
 MEDALHAS_TIPOS = [
     {
@@ -61,361 +26,409 @@ MEDALHAS_TIPOS = [
         "nome": "Iniciante",
         "tipo": "bronze",
         "descricao": "Responda 100 questões",
-        "requisito_questoes": 100,
+        "campo": "questoes",
+        "meta": 100,
     },
     {
         "id": "aprendiz",
         "nome": "Aprendiz",
         "tipo": "prata",
         "descricao": "Responda 500 questões",
-        "requisito_questoes": 500,
+        "campo": "questoes",
+        "meta": 500,
     },
     {
         "id": "especialista",
         "nome": "Especialista",
         "tipo": "ouro",
         "descricao": "Responda 1000 questões",
-        "requisito_questoes": 1000,
+        "campo": "questoes",
+        "meta": 1000,
     },
     {
         "id": "mestre",
         "nome": "Mestre",
         "tipo": "platina",
         "descricao": "Responda 2000 questões",
-        "requisito_questoes": 2000,
+        "campo": "questoes",
+        "meta": 2000,
     },
     {
         "id": "streak_7",
         "nome": "Primeira Semana",
         "tipo": "bronze",
-        "descricao": "7 dias de streak",
-        "requisito_streak": 7,
+        "descricao": "7 dias de streak consecutivo",
+        "campo": "streak",
+        "meta": 7,
     },
     {
         "id": "streak_30",
         "nome": "Um Mês",
         "tipo": "ouro",
         "descricao": "30 dias de streak consecutivo",
-        "requisito_streak": 30,
+        "campo": "streak",
+        "meta": 30,
+    },
+    {
+        "id": "sessoes_10",
+        "nome": "Dedicado",
+        "tipo": "bronze",
+        "descricao": "Complete 10 sessões de estudo",
+        "campo": "sessoes",
+        "meta": 10,
+    },
+    {
+        "id": "sessoes_50",
+        "nome": "Persistente",
+        "tipo": "prata",
+        "descricao": "Complete 50 sessões de estudo",
+        "campo": "sessoes",
+        "meta": 50,
     },
 ]
 
 
 # ==================== FUNÇÕES AUXILIARES ====================
-def calcular_progresso_medalha(aluno_data: dict, medalha: dict) -> int:
-    """Calcula a porcentagem de progresso para uma medalha"""
-    try:
-        total_questoes = int(aluno_data.get("total_questoes", 0) or 0)
-        streak = int(aluno_data.get("streak_atual", 0) or 0)
-
-        # Medalhas baseadas em questões
-        if "requisito_questoes" in medalha:
-            meta = medalha.get("requisito_questoes", 100)
-            if meta <= 0:
-                return 0
-            progresso = min(int((total_questoes / meta) * 100), 100)
-            return progresso
-
-        # Medalhas baseadas em streak
-        if "requisito_streak" in medalha:
-            meta = medalha.get("requisito_streak", 7)
-            if meta <= 0:
-                return 0
-            progresso = min(int((streak / meta) * 100), 100)
-            return progresso
-
-        return 0
-    except Exception as e:
-        logger.error(f"Erro ao calcular progresso: {e}")
-        return 0
 
 
-def obter_aluno(matricula: str) -> Optional[dict]:
-    """Busca dados do aluno (simulado ou banco de dados)"""
-    try:
-        if not matricula:
-            return None
+def _calcular_streak(datas_estudo: list[date]) -> tuple[int, int]:
+    """
+    Calcula streak atual e streak máximo a partir de uma lista de datas
+    DISTINTAS em que o aluno estudou, ordenadas DESC.
 
-        # Normalizar matrícula
-        matricula = str(matricula).strip().lower()
+    Retorna (streak_atual, streak_maximo).
+    """
+    if not datas_estudo:
+        return 0, 0
 
-        # Procurar no banco
-        if matricula in ALUNOS_DB:
-            return ALUNOS_DB[matricula].copy()
+    hoje = date.today()
+    streak_atual = 0
+    streak_maximo = 0
+    streak_corrente = 1
 
-        # Se não encontrar exatamente, tentar buscar como email
-        for mat, aluno in ALUNOS_DB.items():
-            if str(mat).lower() == matricula:
-                return aluno.copy()
+    # As datas já vêm ordenadas DESC do banco
+    # Verificar se o aluno estudou hoje ou ontem (streak ativo)
+    primeira_data = datas_estudo[0]
+    diff_hoje = (hoje - primeira_data).days
 
-        # Se não encontrar no banco, criar um registro padrão com dados vazios
-        logger.warning(f"Matrícula '{matricula}' não encontrada no banco, usando dados padrão")
-        return {
-            "nome": f"Aluno",
-            "matricula": matricula,
-            "streak_atual": 0,
-            "streak_maximo": 0,
-            "ultima_data_estudo": "2025-01-01",
-            "total_questoes": 0,
-            "total_sessoes": 0,
-            "tempo_minutos": 0,
-        }
+    if diff_hoje > 1:
+        # Não estudou hoje nem ontem — streak atual = 0
+        # Mas ainda calculamos o streak máximo
+        streak_atual = 0
+    else:
+        streak_atual = 1  # pelo menos 1 dia (hoje ou ontem)
 
-    except Exception as e:
-        logger.error(f"Erro ao obter aluno: {e}")
-        return None
+    # Percorrer as datas para calcular streaks
+    for i in range(1, len(datas_estudo)):
+        diff = (datas_estudo[i - 1] - datas_estudo[i]).days
+
+        if diff == 1:
+            # Dias consecutivos
+            streak_corrente += 1
+        elif diff == 0:
+            # Mesmo dia (não deveria acontecer com DISTINCT)
+            continue
+        else:
+            # Gap encontrado — finaliza streak corrente
+            streak_maximo = max(streak_maximo, streak_corrente)
+            streak_corrente = 1
+
+    # Finalizar último streak
+    streak_maximo = max(streak_maximo, streak_corrente)
+
+    # O streak atual só conta se o aluno estudou hoje/ontem
+    if diff_hoje <= 1:
+        # streak_atual = streak consecutivo a partir de hoje/ontem
+        streak_atual = 1
+        for i in range(1, len(datas_estudo)):
+            diff = (datas_estudo[i - 1] - datas_estudo[i]).days
+            if diff == 1:
+                streak_atual += 1
+            else:
+                break
+
+    return streak_atual, streak_maximo
+
+
+def _buscar_metricas_aluno(matricula: str) -> dict:
+    """
+    Busca todas as métricas do aluno diretamente do banco.
+    Retorna dict com: nome, datas_estudo, total_questoes, total_sessoes, tempo_total_seg, ultima_sessao.
+    """
+    with get_conexao() as conn:
+        cursor = conn.cursor()
+
+        # 1. Buscar nome do aluno
+        cursor.execute(
+            "SELECT nome FROM usuarios WHERE matricula = %s",
+            (matricula,)
+        )
+        row_usuario = cursor.fetchone()
+        nome = row_usuario[0] if row_usuario else matricula
+
+        # 2. Métricas agregadas
+        cursor.execute("""
+            SELECT
+                COUNT(id) AS total_sessoes,
+                COALESCE(SUM(questoes_respondidas), 0) AS total_questoes,
+                COALESCE(SUM(tempo_gasto_segundos), 0) AS tempo_total_seg,
+                MAX(criado_em) AS ultima_sessao
+            FROM sessoes_estudo
+            WHERE nome_aluno = %s
+              AND eh_teste_professor IS NOT TRUE;
+        """, (matricula,))
+        metricas = cursor.fetchone()
+
+        # 3. Datas DISTINTAS de estudo (para cálculo de streak)
+        cursor.execute("""
+            SELECT DISTINCT DATE(criado_em) AS dia
+            FROM sessoes_estudo
+            WHERE nome_aluno = %s
+              AND eh_teste_professor IS NOT TRUE
+            ORDER BY dia DESC;
+        """, (matricula,))
+        datas_rows = cursor.fetchall()
+
+    total_sessoes = int(metricas[0] or 0)
+    total_questoes = int(metricas[1] or 0)
+    tempo_total_seg = int(metricas[2] or 0)
+    ultima_sessao = metricas[3]  # datetime ou None
+    datas_estudo = [row[0] for row in datas_rows]  # list[date]
+
+    return {
+        "nome": nome,
+        "matricula": matricula,
+        "datas_estudo": datas_estudo,
+        "total_questoes": total_questoes,
+        "total_sessoes": total_sessoes,
+        "tempo_total_seg": tempo_total_seg,
+        "ultima_sessao": ultima_sessao,
+    }
+
+
+def _avaliar_medalhas(total_questoes: int, total_sessoes: int, streak_atual: int, streak_maximo: int) -> list[dict]:
+    """Avalia quais medalhas o aluno desbloqueou e calcula progresso."""
+    medalhas = []
+
+    for m in MEDALHAS_TIPOS:
+        campo = m["campo"]
+        meta = m["meta"]
+
+        if campo == "questoes":
+            valor_atual = total_questoes
+        elif campo == "sessoes":
+            valor_atual = total_sessoes
+        elif campo == "streak":
+            valor_atual = streak_maximo  # Usa máximo para medalhas de streak
+        else:
+            valor_atual = 0
+
+        desbloqueada = valor_atual >= meta
+        progresso = min(round((valor_atual / meta) * 100, 1), 100) if meta > 0 else 0
+
+        medalhas.append({
+            "nome": m["nome"],
+            "tipo": m["tipo"],
+            "descricao": m["descricao"],
+            "desbloqueada": desbloqueada,
+            "data_desbloqueio": None,  # Futuro: persistir data no banco
+            "progresso": progresso,
+        })
+
+    return medalhas
 
 
 # ==================== ENDPOINTS ====================
 
 
 @router.get("/api/aluno/streak/{matricula}")
-async def get_streak(matricula: str):
+def get_streak(matricula: str):
     """
-    Retorna informações do streak do aluno
-    
-    Exemplo:
-      GET /api/aluno/streak/2024001
-      
-    Response:
-      {
-        "dias_atuais": 5,
-        "dias_maximo": 12,
-        "ultima_atividade": "2025-01-15T14:30:00",
-        "proxima_data_para_manter": "2025-01-17T00:00:00",
-        "emoji": "🔥"
-      }
+    Retorna informações do streak do aluno calculado a partir do banco.
+
+    O streak conta dias CONSECUTIVOS com pelo menos 1 sessão de estudo.
     """
     try:
-        # Validar formato da matrícula
-        if not matricula or len(str(matricula).strip()) == 0:
-            raise ValueError("Matrícula inválida ou vazia")
+        if not matricula or not matricula.strip():
+            raise HTTPException(status_code=422, detail="Matricula invalida ou vazia")
 
-        logger.info(f"📍 Buscando streak para: {matricula}")
+        metricas = _buscar_metricas_aluno(matricula.strip())
+        streak_atual, streak_maximo = _calcular_streak(metricas["datas_estudo"])
 
-        aluno = obter_aluno(matricula)
+        # Calcular próxima data para manter
+        ultima = metricas["ultima_sessao"]
+        if ultima:
+            proxima = ultima + timedelta(days=1)
+            ultima_iso = ultima.isoformat()
+            proxima_iso = proxima.isoformat()
+        else:
+            ultima_iso = None
+            proxima_iso = None
 
-        if not aluno:
-            logger.error(f"Aluno não encontrado: {matricula}")
-            raise HTTPException(status_code=404, detail="Aluno não encontrado")
-
-        # Calcular próxima data para manter streak
-        try:
-            ultima_data_str = aluno.get("ultima_data_estudo", "2025-01-01")
-            ultima_data = datetime.fromisoformat(str(ultima_data_str))
-        except (ValueError, TypeError):
-            ultima_data = datetime(2025, 1, 1)
-
-        proxima_data = ultima_data + timedelta(days=1)
-
-        resposta = {
-            "dias_atuais": int(aluno.get("streak_atual", 0) or 0),
-            "dias_maximo": int(aluno.get("streak_maximo", 0) or 0),
-            "ultima_atividade": ultima_data.isoformat(),
-            "proxima_data_para_manter": proxima_data.isoformat(),
-            "emoji": "🔥" if int(aluno.get("streak_atual", 0) or 0) > 0 else "❄️",
+        return {
+            "dias_atuais": streak_atual,
+            "dias_maximo": streak_maximo,
+            "ultima_atividade": ultima_iso,
+            "proxima_data_para_manter": proxima_iso,
+            "emoji": "\U0001f525" if streak_atual > 0 else "\u2744\ufe0f",
         }
 
-        logger.info(f"✅ Streak encontrado: {resposta}")
-        return resposta
-
-    except ValueError as e:
-        logger.error(f"❌ Erro de validação: {e}")
-        raise HTTPException(status_code=422, detail=f"Matrícula inválida: {str(e)}")
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Erro em streak: {e}\n{traceback.format_exc()}")
+        logger.error(f"Erro em streak para {matricula}: {e}")
         raise HTTPException(status_code=500, detail=f"Erro ao buscar streak: {str(e)}")
 
 
 @router.get("/api/aluno/conquistas/{matricula}")
-async def get_conquistas(matricula: str):
+def get_conquistas(matricula: str):
     """
-    Retorna todas as conquistas do aluno: streak, medalhas e estatísticas
-    
-    Exemplo:
-      GET /api/aluno/conquistas/2024001
-      
-    Response:
-      {
-        "streak": {...},
-        "medalhas": [...],
-        "total_questoes_respondidas": 543,
-        "total_sessoes": 18,
-        "tempo_estudo_total_minutos": 2340
-      }
+    Retorna todas as conquistas do aluno: streak, medalhas e estatísticas.
+    Todos os dados são calculados a partir de sessoes_estudo.
     """
     try:
-        # Validar matrícula
-        if not matricula or len(str(matricula).strip()) == 0:
-            raise ValueError("Matrícula inválida ou vazia")
+        if not matricula or not matricula.strip():
+            raise HTTPException(status_code=422, detail="Matricula invalida ou vazia")
 
-        logger.info(f"📍 Carregando conquistas para: {matricula}")
+        metricas = _buscar_metricas_aluno(matricula.strip())
+        streak_atual, streak_maximo = _calcular_streak(metricas["datas_estudo"])
 
-        aluno = obter_aluno(matricula)
+        # Streak info
+        ultima = metricas["ultima_sessao"]
+        if ultima:
+            proxima = ultima + timedelta(days=1)
+            ultima_iso = ultima.isoformat()
+            proxima_iso = proxima.isoformat()
+        else:
+            ultima_iso = None
+            proxima_iso = None
 
-        if not aluno:
-            logger.error(f"Aluno não encontrado: {matricula}")
-            raise HTTPException(status_code=404, detail="Aluno não encontrado")
-
-        # Processar datas com segurança
-        try:
-            ultima_data_str = aluno.get("ultima_data_estudo", "2025-01-01")
-            ultima_data = datetime.fromisoformat(str(ultima_data_str))
-        except (ValueError, TypeError):
-            ultima_data = datetime(2025, 1, 1)
-
-        proxima_data = ultima_data + timedelta(days=1)
-
-        # Extrair valores numéricos com segurança
-        streak_atual = int(aluno.get("streak_atual", 0) or 0)
-        streak_maximo = int(aluno.get("streak_maximo", 0) or 0)
-        total_questoes = int(aluno.get("total_questoes", 0) or 0)
-        total_sessoes = int(aluno.get("total_sessoes", 0) or 0)
-        tempo_minutos = int(aluno.get("tempo_minutos", 0) or 0)
-
-        # Montar resposta
         streak_data = {
             "dias_atuais": streak_atual,
             "dias_maximo": streak_maximo,
-            "ultima_atividade": ultima_data.isoformat(),
-            "proxima_data_para_manter": proxima_data.isoformat(),
+            "ultima_atividade": ultima_iso,
+            "proxima_data_para_manter": proxima_iso,
         }
 
-        # Calcular medalhas
-        medalhas_list = []
-        for medalha_tipo in MEDALHAS_TIPOS:
-            try:
-                # Verificar se medalha foi desbloqueada
-                desbloqueada = False
+        # Medalhas
+        medalhas = _avaliar_medalhas(
+            metricas["total_questoes"],
+            metricas["total_sessoes"],
+            streak_atual,
+            streak_maximo,
+        )
 
-                if "requisito_questoes" in medalha_tipo:
-                    desbloqueada = total_questoes >= medalha_tipo["requisito_questoes"]
-                elif "requisito_streak" in medalha_tipo:
-                    desbloqueada = streak_atual >= medalha_tipo["requisito_streak"]
+        # Tempo em minutos
+        tempo_minutos = metricas["tempo_total_seg"] // 60
 
-                progresso = calcular_progresso_medalha(aluno, medalha_tipo)
-
-                medalha_obj = {
-                    "nome": medalha_tipo.get("nome", "Medalha"),
-                    "tipo": medalha_tipo.get("tipo", "bronze"),
-                    "descricao": medalha_tipo.get("descricao", ""),
-                    "desbloqueada": desbloqueada,
-                    "data_desbloqueio": None,
-                    "progresso": progresso,
-                }
-                medalhas_list.append(medalha_obj)
-
-            except Exception as e:
-                logger.warning(f"Erro ao processar medalha {medalha_tipo.get('id')}: {e}")
-                continue
-
-        resposta = {
+        return {
             "streak": streak_data,
-            "medalhas": medalhas_list,
-            "total_questoes_respondidas": total_questoes,
-            "total_sessoes": total_sessoes,
+            "medalhas": medalhas,
+            "total_questoes_respondidas": metricas["total_questoes"],
+            "total_sessoes": metricas["total_sessoes"],
             "tempo_estudo_total_minutos": tempo_minutos,
         }
 
-        logger.info(f"✅ Conquistas carregadas para: {matricula}")
-        return resposta
-
-    except ValueError as e:
-        logger.error(f"❌ Erro de validação: {e}")
-        raise HTTPException(status_code=422, detail=f"Matrícula inválida: {str(e)}")
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Erro em conquistas: {e}\n{traceback.format_exc()}")
+        logger.error(f"Erro em conquistas para {matricula}: {e}")
         raise HTTPException(status_code=500, detail=f"Erro ao buscar conquistas: {str(e)}")
 
 
 @router.get("/api/aluno/leaderboard")
-async def get_leaderboard(
+def get_leaderboard(
     tipo: str = Query("streak", description="streak ou questoes"),
     limite: int = Query(10, ge=1, le=100, description="Limite de resultados"),
 ):
     """
-    Retorna ranking dos alunos por streak ou questões
-    
-    Exemplo:
-      GET /api/aluno/leaderboard?tipo=streak&limite=5
-      
-    Response:
-      [
-        {
-          "posicao": 1,
-          "nome": "Maria Santos",
-          "matricula": "2024002",
-          "valor": 8,
-          "emoji": "🔥"
-        },
-        ...
-      ]
+    Retorna ranking dos alunos por streak ou questões.
+    Dados calculados diretamente do banco.
     """
     try:
-        lista = []
-        
-        for mat, aluno in ALUNOS_DB.items():
-            try:
-                item = {
-                    "nome": aluno.get("nome", "Desconhecido"),
-                    "matricula": str(mat),
-                    "streak": int(aluno.get("streak_atual", 0) or 0),
-                    "questoes": int(aluno.get("total_questoes", 0) or 0),
-                }
-                lista.append(item)
-            except Exception as e:
-                logger.warning(f"Erro ao processar aluno {mat}: {e}")
-                continue
+        with get_conexao() as conn:
+            cursor = conn.cursor()
 
-        if tipo == "streak":
-            lista.sort(key=lambda x: x.get("streak", 0), reverse=True)
-            chave = "streak"
-            emoji = "🔥"
-        elif tipo == "questoes":
-            lista.sort(key=lambda x: x.get("questoes", 0), reverse=True)
-            chave = "questoes"
-            emoji = "❓"
-        else:
-            raise ValueError(f"Tipo de ranking inválido: {tipo}")
+            if tipo == "questoes":
+                cursor.execute("""
+                    SELECT
+                        u.nome,
+                        u.matricula,
+                        COALESCE(SUM(s.questoes_respondidas), 0) AS total_q
+                    FROM usuarios u
+                    JOIN sessoes_estudo s ON s.nome_aluno = u.matricula
+                    WHERE u.papel = 'aluno'
+                      AND s.eh_teste_professor IS NOT TRUE
+                    GROUP BY u.nome, u.matricula
+                    ORDER BY total_q DESC
+                    LIMIT %s;
+                """, (limite,))
 
-        resultado = []
-        for idx, aluno in enumerate(lista[:limite], 1):
-            resultado.append(
-                {
-                    "posicao": idx,
-                    "nome": aluno.get("nome", "Desconhecido"),
-                    "matricula": aluno.get("matricula"),
-                    "valor": aluno.get(chave, 0),
-                    "emoji": emoji,
-                }
-            )
+                rows = cursor.fetchall()
+                return [
+                    {
+                        "posicao": idx,
+                        "nome": r[0],
+                        "matricula": r[1],
+                        "valor": int(r[2]),
+                        "emoji": "\u2753",
+                    }
+                    for idx, r in enumerate(rows, 1)
+                ]
 
-        logger.info(f"✅ Leaderboard '{tipo}' retornado")
-        return resultado
+            elif tipo == "streak":
+                # Para streak, precisamos buscar datas de cada aluno
+                cursor.execute("""
+                    SELECT
+                        u.nome,
+                        u.matricula,
+                        ARRAY_AGG(DISTINCT DATE(s.criado_em) ORDER BY DATE(s.criado_em) DESC) AS datas
+                    FROM usuarios u
+                    JOIN sessoes_estudo s ON s.nome_aluno = u.matricula
+                    WHERE u.papel = 'aluno'
+                      AND s.eh_teste_professor IS NOT TRUE
+                    GROUP BY u.nome, u.matricula;
+                """)
 
+                rows = cursor.fetchall()
+                alunos_streaks = []
+
+                for r in rows:
+                    nome, mat, datas = r[0], r[1], r[2]
+                    if datas:
+                        streak_at, streak_max = _calcular_streak(datas)
+                    else:
+                        streak_at, streak_max = 0, 0
+
+                    alunos_streaks.append({
+                        "nome": nome,
+                        "matricula": mat,
+                        "streak_atual": streak_at,
+                        "streak_maximo": streak_max,
+                    })
+
+                # Ordenar por streak atual (DESC), depois máximo
+                alunos_streaks.sort(
+                    key=lambda x: (x["streak_atual"], x["streak_maximo"]),
+                    reverse=True,
+                )
+
+                return [
+                    {
+                        "posicao": idx,
+                        "nome": a["nome"],
+                        "matricula": a["matricula"],
+                        "valor": a["streak_atual"],
+                        "emoji": "\U0001f525",
+                    }
+                    for idx, a in enumerate(alunos_streaks[:limite], 1)
+                ]
+
+            else:
+                raise HTTPException(status_code=400, detail=f"Tipo invalido: {tipo}. Use 'streak' ou 'questoes'.")
+
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"❌ Erro em leaderboard: {e}\n{traceback.format_exc()}")
+        logger.error(f"Erro em leaderboard: {e}")
         raise HTTPException(status_code=500, detail=f"Erro ao buscar leaderboard: {str(e)}")
-
-
-# Health check para gamificação
-@router.get("/api/aluno/health")
-async def health_check():
-    """Verificar se o sistema de gamificação está funcionando"""
-    try:
-        return {
-            "status": "ok",
-            "message": "Sistema de gamificação ativo",
-            "endpoints": [
-                "/api/aluno/streak/{matricula}",
-                "/api/aluno/conquistas/{matricula}",
-                "/api/aluno/leaderboard",
-            ],
-        }
-    except Exception as e:
-        logger.error(f"Erro em health check: {e}")
-        raise HTTPException(status_code=500, detail="Sistema indisponível")
