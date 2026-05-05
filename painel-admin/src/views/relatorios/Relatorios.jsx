@@ -227,13 +227,16 @@ const Relatorios = () => {
     fetch(`${API_URL}/api/admin/materias`)
       .then((res) => res.json())
       .then((data) => setMaterias(Array.isArray(data) ? data : []))
-      .catch(() => {})
+      .catch(() => { })
 
     if (papelUsuario === 'admin' || papelUsuario === 'professor') {
-      fetch(`${API_URL}/api/alunos/desempenho?por_pagina=1000`)
+      fetch(`${API_URL}/api/metricas-estudantes/desempenho?por_pagina=100&pagina=1`)
         .then((res) => res.json())
-        .then((data) => setAlunos(Array.isArray(data.alunos) ? data.alunos : (Array.isArray(data) ? data : [])))
-        .catch(() => {})
+        .then((data) => {
+          const lista = data.estudantes || data.alunos || []
+          setAlunos(Array.isArray(lista) ? lista : [])
+        })
+        .catch(() => { })
     }
   }, [papelUsuario])
 
@@ -328,12 +331,12 @@ const Relatorios = () => {
 
   const inputStyle = isDark
     ? {
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        color: '#e2e8f0',
-        borderColor: 'rgba(255,255,255,0.12)',
-        borderRadius: 10,
-        height: 38,
-      }
+      backgroundColor: 'rgba(255,255,255,0.05)',
+      color: '#e2e8f0',
+      borderColor: 'rgba(255,255,255,0.12)',
+      borderRadius: 10,
+      height: 38,
+    }
     : { borderRadius: 10, height: 38 }
 
   const labelStyle = {

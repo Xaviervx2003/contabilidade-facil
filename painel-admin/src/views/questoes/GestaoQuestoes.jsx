@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
   CAlert,
   CButton,
@@ -39,6 +39,26 @@ import MateriaMultiSelect from '../../components/MateriaMultiSelect'
 
 const PER_PAGE = 20
 
+const INITIAL_FORM_STATE = {
+  id: null,
+  materia_ids: [],
+  enunciado: '',
+  opcao_a: '',
+  opcao_b: '',
+  opcao_c: '',
+  opcao_d: '',
+  opcao_e: '',
+  resposta_correta: 'A',
+  explicacao: '',
+  link_video: '',
+  banca: '',
+  orgao: '',
+  cargo: '',
+  ano: '',
+  escolaridade: '',
+  modalidade: '',
+}
+
 const GestaoQuestoes = () => {
   const [searchParams] = useSearchParams()
   const buscaInicial = searchParams.get('busca') || ''
@@ -66,62 +86,29 @@ const GestaoQuestoes = () => {
 
   const [modalVisible, setModalVisible] = useState(false)
   const [modoEdicao, setModoEdicao] = useState(false)
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE)
 
-  const [formData, setFormData] = useState({
-    id: null,
-    materia_ids: [],
-    enunciado: '',
-    opcao_a: '',
-    opcao_b: '',
-    opcao_c: '',
-    opcao_d: '',
-    opcao_e: '',
-    resposta_correta: 'A',
-    explicacao: '',
-    link_video: '',        // ← FASE 1: Link de vídeo opcional
-    banca: '',
-    orgao: '',
-    cargo: '',
-    ano: '',
-    escolaridade: '',
-    modalidade: '',
-  })
-
-  const carregarMaterias = async () => {
+  const carregarMaterias = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/api/admin/materias`)
       const data = await res.json()
       setMateriasDisponiveis(data)
     } catch (err) {
-      console.error("Erro ao carregar matérias", err)
+      console.error('Erro ao carregar matérias', err)
     }
-  }
+  }, [])
 
-  const carregarFiltrosOpcoes = async () => {
+  const carregarFiltrosOpcoes = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/api/filtros/questoes`)
       const data = await res.json()
       setFiltrosOpcoes(data)
     } catch (err) {
-      console.error("Erro ao carregar opções de filtros", err)
+      console.error('Erro ao carregar opções de filtros', err)
     }
-  }
+  }, [])
 
-  // Debounce de busca (400ms) para não sobrecarregar a API
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm)
-      setCurrentPage(1)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [searchTerm])
-
-  // Resetar página ao mudar filtros
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [filtroBanca, filtroOrgao, filtroCargo, filtroAno])
-
-  const carregarQuestoes = async () => {
+  const carregarQuestoes = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
@@ -138,54 +125,47 @@ const GestaoQuestoes = () => {
       if (filtroAno) params.set('ano', filtroAno)
 
       const res = await fetch(`${API_URL}/api/questoes?${params.toString()}`)
-      const data = await res.json()
+      const { data, total, total_pages } = await res.json()
 
-      // Resposta paginada: { data: [...], total, page, per_page, total_pages }
-      setQuestoes(data.data || [])
-      setTotalQuestoes(data.total || 0)
-      setTotalPages(data.total_pages || 1)
+      setQuestoes(data || [])
+      setTotalQuestoes(total || 0)
+      setTotalPages(total_pages || 1)
     } catch (err) {
       setError('Erro ao carregar questões da API.')
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, debouncedSearch, filtroBanca, filtroOrgao, filtroCargo, filtroAno])
 
   useEffect(() => {
     carregarMaterias()
     carregarFiltrosOpcoes()
-  }, [])
+  }, [carregarMaterias, carregarFiltrosOpcoes])
 
-  // Recarrega sempre que a página ou a busca muda
   useEffect(() => {
     carregarQuestoes()
-  }, [currentPage, debouncedSearch, filtroBanca, filtroOrgao, filtroCargo, filtroAno])
+  }, [carregarQuestoes])
+
+  // Debounce de busca
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  // Resetar página ao mudar filtros ou busca
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [debouncedSearch, filtroBanca, filtroOrgao, filtroCargo, filtroAno])
 
   const abrirParaNovo = () => {
-    setFormData({
-      id: null,
-      materia_ids: [],
-      enunciado: '',
-      opcao_a: '',
-      opcao_b: '',
-      opcao_c: '',
-      opcao_d: '',
-      opcao_e: '',
-      resposta_correta: 'A',
-      explicacao: '',
-      link_video: '',      // ← FASE 1
-      banca: '',
-      orgao: '',
-      cargo: '',
-      ano: '',
-      escolaridade: '',
-      modalidade: '',
-    })
+    setFormData(INITIAL_FORM_STATE)
     setModoEdicao(false)
     setModalVisible(true)
   }
 
-  const abrirParaEdicao = (q) => {
+  const abrirParaEdicao = useCallback((q) => {
     setFormData({
       id: q.id,
       materia_ids: q.materia_ids || [],
@@ -197,7 +177,7 @@ const GestaoQuestoes = () => {
       opcao_e: q.options[4] || '',
       resposta_correta: q.answer,
       explicacao: q.explicacao || '',
-      link_video: q.link_video || '',   // ← FASE 1: Carrega o link existente
+      link_video: q.link_video || '',
       banca: q.banca || '',
       orgao: q.orgao || '',
       cargo: q.cargo || '',
@@ -207,53 +187,43 @@ const GestaoQuestoes = () => {
     })
     setModoEdicao(true)
     setModalVisible(true)
-  }
-
-  const toggleMateria = (materiaId) => {
-    setFormData((prev) => {
-      const jaSelecionada = prev.materia_ids.includes(materiaId)
-      return {
-        ...prev,
-        materia_ids: jaSelecionada
-          ? prev.materia_ids.filter(id => id !== materiaId)
-          : [...prev.materia_ids, materiaId]
-      }
-    })
-  }
+  }, [])
 
   const salvarQuestao = async () => {
     setError('')
     setSuccess('')
 
-    if (formData.materia_ids.length === 0) {
+    const { materia_ids, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, opcao_e, resposta_correta, explicacao, link_video, banca, orgao, cargo, ano, escolaridade, modalidade, id } = formData
+
+    if (materia_ids.length === 0) {
       setError('Por favor, selecione pelo menos uma matéria.')
       return
     }
 
     try {
-      const endpoint = modoEdicao ? `${API_URL}/api/questoes/${formData.id}` : `${API_URL}/api/questoes`
+      const endpoint = modoEdicao ? `${API_URL}/api/questoes/${id}` : `${API_URL}/api/questoes`
       const method = modoEdicao ? 'PUT' : 'POST'
 
       const r = await fetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          materia_ids: formData.materia_ids,
-          enunciado: formData.enunciado,
-          opcao_a: formData.opcao_a,
-          opcao_b: formData.opcao_b,
-          opcao_c: formData.opcao_c,
-          opcao_d: formData.opcao_d,
-          opcao_e: formData.opcao_e || null,
-          resposta_correta: formData.resposta_correta,
-          explicacao: formData.explicacao,
-          link_video: formData.link_video || null,  // ← FASE 1: Envia null se vazio
-          banca: formData.banca || null,
-          orgao: formData.orgao || null,
-          cargo: formData.cargo || null,
-          ano: formData.ano ? parseInt(formData.ano) : null,
-          escolaridade: formData.escolaridade || null,
-          modalidade: formData.modalidade || null,
+          materia_ids,
+          enunciado,
+          opcao_a,
+          opcao_b,
+          opcao_c,
+          opcao_d,
+          opcao_e: opcao_e || null,
+          resposta_correta,
+          explicacao,
+          link_video: link_video || null,
+          banca: banca || null,
+          orgao: orgao || null,
+          cargo: cargo || null,
+          ano: ano ? parseInt(ano, 10) : null,
+          escolaridade: escolaridade || null,
+          modalidade: modalidade || null,
         }),
       })
 
@@ -270,8 +240,8 @@ const GestaoQuestoes = () => {
     }
   }
 
-  const deletarQuestao = async (id) => {
-    if (!window.confirm("Certeza que deseja deletar permanentemente esta questão?")) return
+  const deletarQuestao = useCallback(async (id) => {
+    if (!window.confirm('Certeza que deseja deletar permanentemente esta questão?')) return
 
     setError('')
     setSuccess('')
@@ -287,7 +257,7 @@ const GestaoQuestoes = () => {
     } catch (err) {
       setError('Erro na exclusão.')
     }
-  }
+  }, [carregarQuestoes])
 
   const handleCsvImport = async (e) => {
     const file = e.target.files?.[0]
@@ -506,13 +476,12 @@ const GestaoQuestoes = () => {
         </CModalHeader>
         <CModalBody>
           <CForm>
-
             {/* CHECKBOXES DE MATÉRIAS */}
             <div className="mb-4 p-3 border rounded bg-light">
               <label className="fw-bold mb-2">Vincular a quais matérias?</label>
-              <MateriaMultiSelect 
-                materias={materiasDisponiveis} 
-                selected={formData.materia_ids.map(String)} 
+              <MateriaMultiSelect
+                materias={materiasDisponiveis}
+                selected={formData.materia_ids.map(String)}
                 onChange={(selected) => setFormData({ ...formData, materia_ids: selected.map(Number) })}
               />
             </div>
@@ -522,27 +491,27 @@ const GestaoQuestoes = () => {
               <CRow className="g-3">
                 <CCol md={4}>
                   <label className="form-label fw-bold">Banca</label>
-                  <CFormInput value={formData.banca} onChange={e => setFormData({ ...formData, banca: e.target.value })} placeholder="Ex: FGV, CESPE" />
+                  <CFormInput value={formData.banca} onChange={(e) => setFormData({ ...formData, banca: e.target.value })} placeholder="Ex: FGV, CESPE" />
                 </CCol>
                 <CCol md={4}>
                   <label className="form-label fw-bold">Órgão</label>
-                  <CFormInput value={formData.orgao} onChange={e => setFormData({ ...formData, orgao: e.target.value })} placeholder="Ex: Receita Federal" />
+                  <CFormInput value={formData.orgao} onChange={(e) => setFormData({ ...formData, orgao: e.target.value })} placeholder="Ex: Receita Federal" />
                 </CCol>
                 <CCol md={4}>
                   <label className="form-label fw-bold">Cargo</label>
-                  <CFormInput value={formData.cargo} onChange={e => setFormData({ ...formData, cargo: e.target.value })} placeholder="Ex: Auditor" />
+                  <CFormInput value={formData.cargo} onChange={(e) => setFormData({ ...formData, cargo: e.target.value })} placeholder="Ex: Auditor" />
                 </CCol>
                 <CCol md={4}>
                   <label className="form-label fw-bold">Ano</label>
-                  <CFormInput type="number" value={formData.ano} onChange={e => setFormData({ ...formData, ano: e.target.value })} placeholder="Ex: 2024" />
+                  <CFormInput type="number" value={formData.ano} onChange={(e) => setFormData({ ...formData, ano: e.target.value })} placeholder="Ex: 2024" />
                 </CCol>
                 <CCol md={4}>
                   <label className="form-label fw-bold">Escolaridade</label>
-                  <CFormInput value={formData.escolaridade} onChange={e => setFormData({ ...formData, escolaridade: e.target.value })} placeholder="Ex: Nível Superior" />
+                  <CFormInput value={formData.escolaridade} onChange={(e) => setFormData({ ...formData, escolaridade: e.target.value })} placeholder="Ex: Nível Superior" />
                 </CCol>
                 <CCol md={4}>
                   <label className="form-label fw-bold">Modalidade</label>
-                  <CFormInput value={formData.modalidade} onChange={e => setFormData({ ...formData, modalidade: e.target.value })} placeholder="Ex: Múltipla Escolha" />
+                  <CFormInput value={formData.modalidade} onChange={(e) => setFormData({ ...formData, modalidade: e.target.value })} placeholder="Ex: Múltipla Escolha" />
                 </CCol>
               </CRow>
             </div>
@@ -552,7 +521,7 @@ const GestaoQuestoes = () => {
               <CFormTextarea
                 rows={3}
                 value={formData.enunciado}
-                onChange={e => setFormData({ ...formData, enunciado: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, enunciado: e.target.value })}
                 placeholder="Digite a pergunta completa aqui..."
               />
             </div>
@@ -560,21 +529,21 @@ const GestaoQuestoes = () => {
             <CRow className="mb-3">
               <CCol md={6}>
                 <label className="fw-bold form-label">Opção A</label>
-                <CFormInput value={formData.opcao_a} onChange={e => setFormData({ ...formData, opcao_a: e.target.value })} />
+                <CFormInput value={formData.opcao_a} onChange={(e) => setFormData({ ...formData, opcao_a: e.target.value })} />
               </CCol>
               <CCol md={6}>
                 <label className="fw-bold form-label">Opção B</label>
-                <CFormInput value={formData.opcao_b} onChange={e => setFormData({ ...formData, opcao_b: e.target.value })} />
+                <CFormInput value={formData.opcao_b} onChange={(e) => setFormData({ ...formData, opcao_b: e.target.value })} />
               </CCol>
             </CRow>
             <CRow className="mb-3">
               <CCol md={6}>
                 <label className="fw-bold form-label">Opção C</label>
-                <CFormInput value={formData.opcao_c} onChange={e => setFormData({ ...formData, opcao_c: e.target.value })} />
+                <CFormInput value={formData.opcao_c} onChange={(e) => setFormData({ ...formData, opcao_c: e.target.value })} />
               </CCol>
               <CCol md={6}>
                 <label className="fw-bold form-label">Opção D</label>
-                <CFormInput value={formData.opcao_d} onChange={e => setFormData({ ...formData, opcao_d: e.target.value })} />
+                <CFormInput value={formData.opcao_d} onChange={(e) => setFormData({ ...formData, opcao_d: e.target.value })} />
               </CCol>
             </CRow>
 
@@ -584,7 +553,7 @@ const GestaoQuestoes = () => {
               </label>
               <CFormInput
                 value={formData.opcao_e}
-                onChange={e => setFormData({ ...formData, opcao_e: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, opcao_e: e.target.value })}
                 placeholder="Preencha apenas se a questão tiver 5 alternativas"
               />
             </div>
@@ -594,7 +563,8 @@ const GestaoQuestoes = () => {
                 <label className="form-label font-bold text-primary">Qual é a resposta correta?</label>
                 <CFormSelect
                   value={formData.resposta_correta}
-                  onChange={e => setFormData({ ...formData, resposta_correta: e.target.value })}>
+                  onChange={(e) => setFormData({ ...formData, resposta_correta: e.target.value })}
+                >
                   <option value="A">Alternativa A</option>
                   <option value="B">Alternativa B</option>
                   <option value="C">Alternativa C</option>
@@ -608,7 +578,7 @@ const GestaoQuestoes = () => {
                 <CFormTextarea
                   rows={2}
                   value={formData.explicacao}
-                  onChange={e => setFormData({ ...formData, explicacao: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, explicacao: e.target.value })}
                   placeholder="Opcional. Por que essa é a resposta certa?"
                 />
               </CCol>
@@ -624,14 +594,13 @@ const GestaoQuestoes = () => {
               </label>
               <CFormInput
                 value={formData.link_video}
-                onChange={e => setFormData({ ...formData, link_video: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, link_video: e.target.value })}
                 placeholder="Ex: https://www.youtube.com/watch?v=XXXXXXXXXXX"
               />
               <small className="text-muted mt-1 d-block">
                 Cole o link normal do YouTube ou Vimeo. O sistema converte automaticamente para o player embutido.
               </small>
             </div>
-
           </CForm>
         </CModalBody>
         <CModalFooter>

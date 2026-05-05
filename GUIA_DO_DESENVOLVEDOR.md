@@ -221,3 +221,27 @@ Para testar: acesse `http://localhost:8000/docs` (Swagger).
 - Coluna chave: `matricula_aluno` (VARCHAR 20, FK para `usuarios.matricula`).
 - UNIQUE em `(matricula_aluno, questao_id)` — impede duplicatas.
 - Índice `idx_fav_matricula` para busca rápida por aluno.
+
+---
+
+## 9. ☁️ INFRAESTRUTURA EM NUVEM (PRODUÇÃO)
+
+O sistema foi migrado para uma arquitetura totalmente em nuvem para garantir disponibilidade e escalabilidade.
+
+| Componente | Plataforma | URL Oficial / Detalhes |
+|------------|------------|------------------------|
+| **Banco de Dados** | [Neon.tech](https://neon.tech) | PostgreSQL Serverless (AWS sa-east-1). |
+| **Backend (API)** | [Render](https://render.com) | `https://contabilidade-facil.onrender.com` |
+| **Frontend (Site)**| [Vercel](https://vercel.com) | `https://contabilidade-facil-chi.vercel.app` |
+
+### 9.1 Sincronização Local vs Produção
+
+Para que as alterações feitas no seu computador (localhost) apareçam no site ao vivo:
+1. O arquivo `.env` local deve conter a `DATABASE_URL` do Neon.
+2. Ao fazer `git push`, a Vercel e o Render detectam a mudança e fazem o redeploy automático.
+
+### 9.2 Monitoramento
+- **API Logs**: Verifique no painel do Render se o serviço está "Live".
+- **Frontend Logs**: Verifique no painel da Vercel se o "Build" passou com sucesso.
+- **Database**: Use o console da Neon para rodar queries SQL rápidas.
+

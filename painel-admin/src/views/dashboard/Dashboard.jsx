@@ -99,20 +99,26 @@ export const useChartData = (userId) => {
 }
 
 const useAlunos = (userId, pagina, porPagina = 10) => {
-  const [data, setData] = useState({ alunos: [], total: 0, total_paginas: 1 })
+  const [data, setData] = useState({ estudantes: [], total: 0, total_paginas: 1 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     setLoading(true)
     setError(null)
-    fetch(buildUrl('/api/alunos/desempenho', userId, { pagina, por_pagina: porPagina }))
+    fetch(buildUrl('/api/metricas-estudantes/desempenho', userId, { pagina, por_pagina: porPagina }))
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json()
       })
       .then(data => {
-        setData(data)
+        // Suporta tanto o formato antigo 'alunos' quanto o novo 'estudantes'
+        const normalizedData = {
+          estudantes: data.estudantes || data.alunos || [],
+          total: data.total || 0,
+          total_paginas: data.total_paginas || 1
+        }
+        setData(normalizedData)
         setLoading(false)
       })
       .catch(err => {
@@ -207,12 +213,12 @@ const Dashboard = () => {
   const { chartData, loading: loadingChart, error: errorChart } = useChartData(userId)
   const { visao, loading: loadingVisao, error: errorVisao } = useVisaoGeral(userId)
 
-  const { alunos, total_paginas } = data
+  const { estudantes, total_paginas } = data
 
   const exportarCSV = useCallback(() => {
-    if (alunos.length === 0) return
+    if (estudantes.length === 0) return
     const header = 'Nome,Matrícula,Média (%),Questões,Sessões\n'
-    const rows = alunos
+    const rows = estudantes
       .map(a => `"${a.nome.replace(/"/g, '""')}",${a.matricula},${(a.media_numero || 0).toFixed(1)},${a.questoes},${a.sessoes}`)
       .join('\n')
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' })
@@ -222,7 +228,7 @@ const Dashboard = () => {
     link.download = `relatorio_desempenho_${new Date().toISOString().slice(0, 10)}.csv`
     link.click()
     URL.revokeObjectURL(url)
-  }, [alunos])
+  }, [estudantes])
 
   // Cálculo do progresso da turma
   const percentualTurma = stats?.total_questoes_banco && visao?.media_questoes_por_aluno
@@ -405,7 +411,7 @@ const Dashboard = () => {
                   variant="outline"
                   size="sm"
                   onClick={exportarCSV}
-                  disabled={alunos.length === 0 || loadingAlunos}
+                  disabled={estudantes.length === 0 || loadingAlunos}
                 >
                   <CIcon icon={cilCloudDownload} className="me-1" /> Exportar CSV
                 </CButton>
@@ -429,7 +435,7 @@ const Dashboard = () => {
                   <CTableBody>
                     {loadingAlunos
                       ? [...Array(porPagina)].map((_, i) => <SkeletonRow key={i} />)
-                      : alunos.length === 0
+                      : estudantes.length === 0
                         ? (
                           <CTableRow>
                             <CTableDataCell colSpan={5} className="text-center py-4 text-body-secondary">
@@ -437,7 +443,7 @@ const Dashboard = () => {
                             </CTableDataCell>
                           </CTableRow>
                         )
-                        : alunos.map((item, index) => {
+                        : estudantes.map((item, index) => {
                           const rank = (pagina - 1) * porPagina + index + 1
                           const media = item.media_numero || 0
                           const gradeColor = media >= 80 ? 'success' : media >= 60 ? 'warning' : 'danger'

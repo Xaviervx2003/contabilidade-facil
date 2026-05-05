@@ -143,6 +143,39 @@ def deletar_materia(materia_id: int):
         raise HTTPException(status_code=500, detail=f"Erro ao deletar: {str(e)}")
 
 
+@router.delete("/materias/limpar-vazias")
+def limpar_materias_vazias():
+    """
+    Remove matérias que não possuem questões vinculadas E não possuem filhos.
+    Executa em loop até que não haja mais nada para limpar (limpa galhos vazios).
+    """
+    try:
+        total_removido = 0
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            
+            while True:
+                # Query: Deleta matérias que:
+                # 1. Não estão na tabela questoes_materias
+                # 2. Não são parent_id de ninguém na tabela materias
+                cursor.execute("""
+                    DELETE FROM materias 
+                    WHERE id NOT IN (SELECT DISTINCT materia_id FROM questoes_materias)
+                      AND id NOT IN (SELECT DISTINCT parent_id FROM materias WHERE parent_id IS NOT NULL)
+                    RETURNING id;
+                """)
+                removidos = cursor.fetchall()
+                if not removidos:
+                    break
+                total_removido += len(removidos)
+            
+            conn.commit()
+            
+        return {"sucesso": True, "mensagem": f"Faxina concluída! {total_removido} matérias vazias removidas."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro na faxina: {str(e)}")
+
+
 # ══════════════════════════════════════════════════════════════
 # 2. GESTÃO DE USUÁRIOS (Admin, Professor e Aluno — tudo aqui)
 # ══════════════════════════════════════════════════════════════

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Application Routes Configuration — Contabilidade Fácil
  * @module routes
  *
@@ -14,7 +14,7 @@ const GestaoQuestoes = React.lazy(() => import('./views/questoes/GestaoQuestoes'
 const Alunos = React.lazy(() => import('./views/aluno/Alunos'))
 const Perfil = React.lazy(() => import('./views/perfil/Perfil'))
 const FeedbacksQuestoes = React.lazy(() => import('./views/feedbacks/FeedbacksQuestoes'))
-const GestaoUsuarios = React.lazy(() => import('./views/admin/GestaoUsuarios'))
+const GestaoUsuarios = React.lazy(() => import('./views/admin/GestaoUsuarios.tsx'))
 const GestaoMaterias = React.lazy(() => import('./views/admin/GestaoMaterias'))
 const VideoGallery = React.lazy(() => import('./views/videos/VideoGallery'))
 const Relatorios = React.lazy(() => import('./views/relatorios/Relatorios'))

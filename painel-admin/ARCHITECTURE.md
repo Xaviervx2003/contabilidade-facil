@@ -709,22 +709,27 @@ not IE 11
 
 ## Deployment
 
-### Static Hosting
+### Official Production URL
 
-The application builds to static files suitable for:
-- Netlify
-- Vercel
-- GitHub Pages
-- AWS S3 + CloudFront
-- Any static file server
+The application is officially hosted on **Vercel**:
+- **URL**: `https://contabilidade-facil-chi.vercel.app`
+- **Backend API**: `https://contabilidade-facil.onrender.com`
 
-### Build for Production
+### Static Hosting on Vercel
 
-```bash
-npm run build
-```
+Vercel provides the ideal environment for this React SPA:
+- **Build Command**: `npm run build`
+- **Output Directory**: `build`
+- **Framework Preset**: Vite
+- **Environment Variables**: `VITE_API_URL` must point to the Render backend.
 
-Output in `build/` directory ready for deployment.
+### CI/CD Pipeline
+
+The deployment is automated via GitHub integration:
+1. **Push to `main`**: Triggers an automatic build on Vercel.
+2. **Atomic Deploys**: Ensures the site stays up during builds.
+3. **Rollbacks**: Allows instant rollback to previous versions if needed.
+
 
 ### HashRouter for Static Hosts
 

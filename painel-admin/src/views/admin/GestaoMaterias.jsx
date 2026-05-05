@@ -18,6 +18,8 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CPagination,
+  CPaginationItem,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilPencil, cilTrash, cilPlus, cilCheckAlt, cilX, cilChevronRight } from '@coreui/icons'
@@ -31,10 +33,14 @@ const GestaoMaterias = () => {
 
   const [novaMateria, setNovaMateria] = useState('')
   const [parentID, setParentID] = useState('')
-  
+
   const [editandoId, setEditandoId] = useState(null)
   const [editandoNome, setEditandoNome] = useState('')
   const [editandoParentId, setEditandoParentId] = useState('')
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
+  const [limpando, setLimpando] = useState(false)
 
   const carregar = async () => {
     setLoading(true)
@@ -42,6 +48,7 @@ const GestaoMaterias = () => {
       const res = await fetch(`${API_URL}/api/admin/materias`)
       const data = await res.json()
       setMaterias(Array.isArray(data) ? data : [])
+      setCurrentPage(1) // Reseta para a primeira página ao recarregar
     } catch {
       setError('Erro ao carregar matérias.')
     } finally {
@@ -51,8 +58,6 @@ const GestaoMaterias = () => {
 
   useEffect(() => { carregar() }, [])
 
-  // ── Lógica de Árvore ───────────────────────────────────────────
-  
   const tree = useMemo(() => {
     const map = {}
     materias.forEach(m => map[m.id] = { ...m, children: [] })
@@ -67,7 +72,6 @@ const GestaoMaterias = () => {
     return roots
   }, [materias])
 
-  // Achatar a árvore para exibição na tabela com indentação
   const flattenedList = useMemo(() => {
     const list = []
     const recurse = (node, depth = 0) => {
@@ -78,8 +82,6 @@ const GestaoMaterias = () => {
     return list
   }, [tree])
 
-  // ──────────────────────────────────────────────────────────────
-
   const criar = async () => {
     if (!novaMateria.trim()) return
     setError('')
@@ -87,7 +89,7 @@ const GestaoMaterias = () => {
       const res = await fetch(`${API_URL}/api/admin/materias`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           nome: novaMateria.trim(),
           parent_id: parentID === '' ? null : parseInt(parentID)
         }),
@@ -110,7 +112,7 @@ const GestaoMaterias = () => {
       const res = await fetch(`${API_URL}/api/admin/materias/${editandoId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           nome: editandoNome.trim(),
           parent_id: editandoParentId === '' ? null : parseInt(editandoParentId)
         }),
@@ -138,14 +140,92 @@ const GestaoMaterias = () => {
     }
   }
 
+  const limparVazias = async () => {
+    if (!window.confirm("Isso removerá todas as matérias que não possuem questões nem subcategorias. Continuar?")) return
+    setLimpando(true)
+    setError('')
+    try {
+      const res = await fetch(`${API_URL}/api/admin/materias/limpar-vazias`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.detail)
+      setSuccess(data.mensagem)
+      carregar()
+      setTimeout(() => setSuccess(''), 4000)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setLimpando(false)
+    }
+  }
+
+  const totalPages = Math.ceil(flattenedList.length / itemsPerPage)
+  const currentItems = flattenedList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  // ── Paginação Inteligente (Evita overflow) ───────────────────
+  const renderPagination = () => {
+    if (totalPages <= 1) return null
+
+    const pages = []
+    const maxVisible = 5
+    const start = Math.max(1, currentPage - Math.floor(maxVisible / 2))
+    const end = Math.min(totalPages, start + maxVisible - 1)
+    const adjustedStart = Math.max(1, end - maxVisible + 1)
+
+    // Botão Anterior
+    pages.push(
+      <CPaginationItem key="prev" disabled={currentPage === 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))}>
+        Anterior
+      </CPaginationItem>
+    )
+
+    // Primeiro número
+    if (adjustedStart > 1) {
+      pages.push(<CPaginationItem key={1} onClick={() => setCurrentPage(1)}>1</CPaginationItem>)
+      if (adjustedStart > 2) pages.push(<CPaginationItem key="start-dot" disabled>...</CPaginationItem>)
+    }
+
+    // Números visíveis
+    for (let i = adjustedStart; i <= end; i++) {
+      pages.push(
+        <CPaginationItem key={i} active={i === currentPage} onClick={() => setCurrentPage(i)}>
+          {i}
+        </CPaginationItem>
+      )
+    }
+
+    // Último número
+    if (end < totalPages) {
+      if (end < totalPages - 1) pages.push(<CPaginationItem key="end-dot" disabled>...</CPaginationItem>)
+      pages.push(<CPaginationItem key={totalPages} onClick={() => setCurrentPage(totalPages)}>{totalPages}</CPaginationItem>)
+    }
+
+    // Botão Próximo
+    pages.push(
+      <CPaginationItem key="next" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>
+        Próximo
+      </CPaginationItem>
+    )
+
+    return <>{pages}</>
+  }
+
   return (
     <>
       {error && <CAlert color="danger" dismissible onClose={() => setError('')}>{error}</CAlert>}
       {success && <CAlert color="success" dismissible onClose={() => setSuccess('')}>{success}</CAlert>}
 
       <CCard className="mb-4">
-        <CCardHeader>
+        <CCardHeader className="d-flex justify-content-between align-items-center">
           <strong>Gestão Hierárquica de Matérias (Categorias)</strong>
+          <CButton
+            color="danger"
+            variant="outline"
+            size="sm"
+            onClick={limparVazias}
+            disabled={limpando || loading}
+          >
+            {limpando ? <CSpinner size="sm" /> : 'Limpar Matérias Vazias'}
+          </CButton>
         </CCardHeader>
         <CCardBody>
           <div className="bg-light p-3 rounded mb-4 border">
@@ -181,30 +261,31 @@ const GestaoMaterias = () => {
           {loading ? (
             <div className="text-center py-5"><CSpinner /></div>
           ) : (
-            <CTable align="middle" hover responsive bordered className="mb-0">
-              <CTableHead className="table-light">
-                <CTableRow>
-                  <CTableHeaderCell style={{ width: '60%' }}>Hierarquia</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Questões</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Ações</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody>
-                {flattenedList.length === 0 ? (
+            <div className="table-responsive">
+              <CTable align="middle" hover bordered className="mb-0">
+                <CTableHead className="table-light">
                   <CTableRow>
-                    <CTableDataCell colSpan={3} className="text-center py-4 text-muted">
-                      Nenhuma categoria cadastrada.
-                    </CTableDataCell>
+                    <CTableHeaderCell style={{ width: '60%' }}>Hierarquia</CTableHeaderCell>
+                    <CTableHeaderCell className="text-center">Questões</CTableHeaderCell>
+                    <CTableHeaderCell className="text-center">Ações</CTableHeaderCell>
                   </CTableRow>
-                ) : flattenedList.map((m) => (
-                  <CTableRow key={m.id} className={m.depth === 0 ? 'fw-bold' : ''}>
-                    <CTableDataCell>
-                      <div style={{ paddingLeft: m.depth * 30, display: 'flex', alignItems: 'center' }}>
-                        {m.depth > 0 && <CIcon icon={cilChevronRight} className="text-muted me-2" style={{ width: 12 }} />}
-                        
-                        {editandoId === m.id ? (
-                          <div className="d-flex flex-column gap-2 w-100">
-                             <CInputGroup size="sm">
+                </CTableHead>
+                <CTableBody>
+                  {currentItems.length === 0 ? (
+                    <CTableRow>
+                      <CTableDataCell colSpan={3} className="text-center py-4 text-muted">
+                        Nenhuma categoria encontrada nesta página.
+                      </CTableDataCell>
+                    </CTableRow>
+                  ) : currentItems.map((m) => (
+                    <CTableRow key={m.id} className={m.depth === 0 ? 'fw-bold' : ''}>
+                      <CTableDataCell className="text-nowrap">
+                        <div style={{ paddingLeft: m.depth * 30, display: 'flex', alignItems: 'center' }}>
+                          {m.depth > 0 && <CIcon icon={cilChevronRight} className="text-muted me-2" style={{ width: 12 }} />}
+
+                          {editandoId === m.id ? (
+                            <div className="d-flex flex-column gap-2 w-100">
+                              <CInputGroup size="sm">
                                 <CFormInput
                                   value={editandoNome}
                                   onChange={(e) => setEditandoNome(e.target.value)}
@@ -212,52 +293,62 @@ const GestaoMaterias = () => {
                                 />
                                 <CButton color="success" variant="outline" onClick={salvarEdicao}><CIcon icon={cilCheckAlt} /></CButton>
                                 <CButton color="secondary" variant="outline" onClick={() => setEditandoId(null)}><CIcon icon={cilX} /></CButton>
-                             </CInputGroup>
-                             <CFormSelect size="sm" value={editandoParentId} onChange={e => setEditandoParentId(e.target.value)}>
+                              </CInputGroup>
+                              <CFormSelect size="sm" value={editandoParentId} onChange={e => setEditandoParentId(e.target.value)}>
                                 <option value="">Mudar para Raiz</option>
                                 {flattenedList.filter(f => f.id !== m.id).map(f => (
                                   <option key={f.id} value={f.id}>{'. . '.repeat(f.depth)} {f.nome}</option>
                                 ))}
-                             </CFormSelect>
-                          </div>
-                        ) : (
-                          <span>{m.nome}</span>
-                        )}
-                      </div>
-                    </CTableDataCell>
-                    <CTableDataCell className="text-center">
-                      <CBadge color="info" shape="rounded-pill" className="px-3">
-                        {m.total_questoes || 0}
-                      </CBadge>
-                    </CTableDataCell>
-                    <CTableDataCell className="text-center">
-                      <CButton
-                        color="warning"
-                        variant="outline"
-                        size="sm"
-                        className="me-2"
-                        onClick={() => { 
-                          setEditandoId(m.id); 
-                          setEditandoNome(m.nome);
-                          setEditandoParentId(m.parent_id || '')
-                        }}
-                        disabled={editandoId === m.id}
-                      >
-                        <CIcon icon={cilPencil} />
-                      </CButton>
-                      <CButton
-                        color="danger"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deletar(m.id, m.nome)}
-                      >
-                        <CIcon icon={cilTrash} />
-                      </CButton>
-                    </CTableDataCell>
-                  </CTableRow>
-                ))}
-              </CTableBody>
-            </CTable>
+                              </CFormSelect>
+                            </div>
+                          ) : (
+                            <span>{m.nome}</span>
+                          )}
+                        </div>
+                      </CTableDataCell>
+                      <CTableDataCell className="text-center">
+                        <CBadge color="info" shape="rounded-pill" className="px-3">
+                          {m.total_questoes || 0}
+                        </CBadge>
+                      </CTableDataCell>
+                      <CTableDataCell className="text-center">
+                        <CButton
+                          color="warning"
+                          variant="outline"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => {
+                            setEditandoId(m.id);
+                            setEditandoNome(m.nome);
+                            setEditandoParentId(m.parent_id || '')
+                          }}
+                          disabled={editandoId === m.id}
+                        >
+                          <CIcon icon={cilPencil} />
+                        </CButton>
+                        <CButton
+                          color="danger"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deletar(m.id, m.nome)}
+                        >
+                          <CIcon icon={cilTrash} />
+                        </CButton>
+                      </CTableDataCell>
+                    </CTableRow>
+                  ))}
+                </CTableBody>
+              </CTable>
+            </div>
+          )}
+
+          {/* Paginação Inteligente */}
+          {!loading && totalPages > 1 && (
+            <div className="d-flex justify-content-center mt-4 overflow-x-auto pb-2">
+              <CPagination align="center" aria-label="Navegação de páginas" className="flex-nowrap">
+                {renderPagination()}
+              </CPagination>
+            </div>
           )}
         </CCardBody>
       </CCard>

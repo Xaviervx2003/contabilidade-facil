@@ -325,7 +325,7 @@ const QuizRunning = ({
 
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 sticky-bottom bg-body py-2" style={{ zIndex: 1 }}>
         <div className="d-flex gap-2">
-          <CButton color="danger" variant="outline" size="sm" onClick={handleFinishEarly} disabled={totalAnswered === 0}>⛔ Encerrar</CButton>
+          <CButton color="danger" variant="outline" size="sm" onClick={onFinishEarly} disabled={totalAnswered === 0}>⛔ Encerrar</CButton>
           {!isAnswerConfirmed && queue.length > 1 && (
             <CButton color="secondary" variant="outline" size="sm" onClick={onSkip}>⏭ Pular</CButton>
           )}
