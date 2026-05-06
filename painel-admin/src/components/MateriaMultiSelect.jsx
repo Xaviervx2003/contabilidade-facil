@@ -192,12 +192,26 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
           )}
         </div>
 
-        <span style={{ fontSize: 12, color: 'var(--cui-secondary-color)', flexShrink: 0 }}>
+        <span style={{ fontSize: 12, color: 'var(--cui-secondary-color)', flexShrink: 0, transform: isActive ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>
           {isLoading ? '⏳' : '›'}
         </span>
       </div>
-    )
-  }
+
+      {/* Renderização dos filhos aninhados */}
+      {isActive && (
+        <div style={{ background: 'rgba(0,0,0,0.015)' }}>
+          {isLoading ? (
+            <div style={{ padding: 16, textAlign: 'center', fontSize: 13, color: 'var(--cui-secondary-color)' }}>Carregando...</div>
+          ) : filhosAtivos.length === 0 ? (
+            <div style={{ padding: 16, textAlign: 'center', fontSize: 13, color: 'var(--cui-secondary-color)' }}>Nenhum assunto encontrado.</div>
+          ) : (
+            filhosAtivos.map(node => <TreeNode key={node.id} node={node} level={0} />)
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
   // ── Render item recursivo (TreeNode) ───────────────────────────────────────
   const TreeNode = ({ node, level = 0 }) => {
@@ -356,79 +370,13 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
             />
           </div>
 
-          {/* Colunas */}
-          <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-
-            {/* Coluna 1: Disciplinas */}
-            <div style={{
-              width: '42%',
-              borderRight: '1px solid var(--cui-border-color)',
-              display: 'flex',
-              flexDirection: 'column',
-              background: 'var(--cui-tertiary-bg)',
-            }}>
-              <div style={{
-                padding: '6px 12px',
-                borderBottom: '1px solid var(--cui-border-color)',
-                fontSize: 11,
-                fontWeight: 700,
-                textAlign: 'center',
-                background: 'var(--cui-light)',
-                color: 'var(--cui-secondary-color)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-              }}>
-                Disciplinas
-              </div>
-              <div style={{ overflowY: 'auto', flex: 1 }}>
-                {raizes.length === 0
-                  ? <div style={{ padding: 16, fontSize: 13, color: 'var(--cui-secondary-color)', textAlign: 'center' }}>Nenhuma disciplina encontrada.</div>
-                  : raizes.map(renderRaiz)
-                }
-              </div>
-            </div>
-
-            {/* Coluna 2: Assuntos */}
-            <div style={{ width: '58%', display: 'flex', flexDirection: 'column' }}>
-              <div style={{
-                padding: '6px 12px',
-                borderBottom: '1px solid var(--cui-border-color)',
-                fontSize: 11,
-                fontWeight: 700,
-                textAlign: 'center',
-                background: 'var(--cui-light)',
-                color: 'var(--cui-secondary-color)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-              }}>
-                Assuntos
-              </div>
-              <div style={{ overflowY: 'auto', flex: 1 }}>
-                {!activeRootId ? (
-                  <div style={{
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: 24,
-                    fontSize: 13,
-                    color: 'var(--cui-secondary-color)',
-                    textAlign: 'center',
-                  }}>
-                    Selecione uma disciplina ao lado para ver os assuntos.
-                  </div>
-                ) : loadingId === activeRootId ? (
-                  <div style={{ padding: 24, textAlign: 'center', fontSize: 13, color: 'var(--cui-secondary-color)' }}>
-                    Carregando...
-                  </div>
-                ) : filhosAtivos.length === 0 ? (
-                  <div style={{ padding: 24, textAlign: 'center', fontSize: 13, color: 'var(--cui-secondary-color)' }}>
-                    Nenhum assunto encontrado.
-                  </div>
-                ) : (
-                  filhosAtivos.map(node => <TreeNode key={node.id} node={node} level={0} />)
-                )}
-              </div>
+          {/* Corpo do Menu (Coluna Única) */}
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+            <div style={{ overflowY: 'auto', flex: 1 }}>
+              {raizes.length === 0
+                ? <div style={{ padding: 16, fontSize: 13, color: 'var(--cui-secondary-color)', textAlign: 'center' }}>Nenhuma disciplina encontrada.</div>
+                : raizes.map(renderRaiz)
+              }
             </div>
           </div>
 
