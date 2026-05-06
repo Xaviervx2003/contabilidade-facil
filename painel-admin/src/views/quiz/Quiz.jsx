@@ -713,6 +713,8 @@ const Quiz = () => {
   const [modoEstudo, setModoEstudo] = useState('todas')
   const [bancaSelecionada, setBancaSelecionada] = useState('')
   const [orgaoSelecionado, setOrgaoSelecionado] = useState('')
+  const [cargoSelecionado, setCargoSelecionado] = useState('')
+  const [anoSelecionado, setAnoSelecionado] = useState('')
   const [favoritos, setFavoritos] = useState([])
   const [disciplinaPai, setDisciplinaPai] = useState(null) // ID da disciplina raiz selecionada
   const [filtrosDisponiveis, setFiltrosDisponiveis] = useState({ bancas: [], orgaos: [], cargos: [], anos: [] })
