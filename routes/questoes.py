@@ -4,7 +4,7 @@ FASE 1: Suporte a link_video em todas as rotas.
 """
 
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File
-from typing import Optional
+from typing import Optional, List
 from database import get_conexao
 from models import QuestaoRequest, FeedbackRequest
 import csv
@@ -56,7 +56,7 @@ def obter_valores_unicos():
 @router.get("/questoes")
 def obter_questoes(
     usuario_id: Optional[int] = Query(None),
-    materia_id: Optional[int] = Query(None),
+    materia_id: Optional[List[int]] = Query(None),
     limit: Optional[int] = Query(None, ge=1, le=500, description="Limita o número de questões retornadas"),
     matricula: Optional[str] = Query(None, description="Matrícula do aluno para filtros de histórico"),
     modo_estudo: Optional[str] = Query("todas", description="Modo de estudo: todas, nao_respondidas, erros"),
@@ -96,7 +96,7 @@ def obter_questoes(
                 conditions.append("""
                     q.id IN (
                         WITH RECURSIVE sub_materias AS (
-                            SELECT id FROM materias WHERE id = %s
+                            SELECT id FROM materias WHERE id = ANY(%s)
                             UNION ALL
                             SELECT m.id FROM materias m
                             JOIN sub_materias sm ON m.parent_id = sm.id

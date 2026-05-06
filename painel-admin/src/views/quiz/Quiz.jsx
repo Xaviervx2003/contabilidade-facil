@@ -347,9 +347,28 @@ const ReadyScreen = ({
         <CRow className="g-3">
           <CCol xs={6}>
             <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>Quantidade</label>
-            <CFormSelect size="sm" className="rounded-3" value={quantidade} onChange={e => setQuantidade(Number(e.target.value))}>
-              {QTD_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            <CFormSelect size="sm" className="rounded-3" value={quantidade > 0 && [10,20,50,100].includes(quantidade) ? quantidade : 'custom'} onChange={e => {
+              const val = e.target.value
+              if (val === 'custom') setQuantidade(1)
+              else setQuantidade(Number(val))
+            }}>
+              <option value="0">Todas</option>
+              <option value="10">10 questões</option>
+              <option value="20">20 questões</option>
+              <option value="50">50 questões</option>
+              <option value="100">100 questões</option>
+              <option value="custom">Personalizado...</option>
             </CFormSelect>
+            {![0, 10, 20, 50, 100].includes(quantidade) && (
+              <CFormInput 
+                type="number" 
+                size="sm" 
+                className="mt-2 rounded-3" 
+                placeholder="Digite a qtd..." 
+                value={quantidade} 
+                onChange={e => setQuantidade(Math.max(1, Number(e.target.value)))}
+              />
+            )}
           </CCol>
           <CCol xs={6}>
             <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>Tempo</label>
@@ -858,7 +877,11 @@ const Quiz = () => {
     setError(''); setFeedback(''); setStatus('loading')
     try {
       const params = new URLSearchParams()
-      if (materiasSelected.length > 0) materiasSelected.forEach(id => params.append('materia_id', id))
+      if (materiasSelected.length > 0) {
+        materiasSelected.forEach(id => params.append('materia_id', id))
+      } else if (disciplinaPai) {
+        params.append('materia_id', disciplinaPai)
+      }
       if (matricula) {
         params.set('matricula', matricula)
         params.set('modo_estudo', modoEstudo)
