@@ -14,14 +14,14 @@ async function importarArvore() {
   await client.connect();
   const db = drizzle(client);
 
-  const arquivoPath = path.resolve("materias-arvore.json");
+  const arquivoPath = path.resolve("scrapers/materias-arvore.json");
   if (!fs.existsSync(arquivoPath)) {
-    console.error("❌ Arquivo materias-arvore.json não encontrado!");
-    console.log("➡️  Rode o 'npx tsx scraper-materias.ts' primeiro.");
+    console.error("❌ Arquivo scrapers/materias-arvore.json não encontrado!");
+    console.log("➡️  Rode o 'npx tsx scrapers/extrair-lista-gran.ts' primeiro.");
     process.exit(1);
   }
 
-  console.log("📖 Lendo arquivo materias-arvore.json...");
+  console.log("📖 Lendo arquivo scrapers/materias-arvore.json...");
   const dados = JSON.parse(fs.readFileSync(arquivoPath, "utf-8"));
   const listaMaterias: any[] = dados.materias;
 

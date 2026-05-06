@@ -1,0 +1,437 @@
+{
+  "total": 54,
+  "materias": [
+    {
+      "id": 405627,
+      "nome": "Introdução à Administração Financeira e Orçamentária",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405630,
+      "nome": "Orçamento Público",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405637,
+      "nome": "Ciclo ou Processo Orçamentário",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405635,
+      "nome": "Orçamento Público no Brasil",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405640,
+      "nome": "Princípios Orçamentários",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405642,
+      "nome": "Receita Pública",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405648,
+      "nome": "Despesa Pública",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.7.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405656,
+      "nome": "Programação e Execução Orçamentária e Financeira",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.8.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411898,
+      "nome": "Descentralização Orçamentária e Financeira",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.9.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411899,
+      "nome": "Transferências",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.10.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405658,
+      "nome": "Sistemas de Informações: SIOP (antigo SIDOR), SIAFI e SIAFEM",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.11.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411917,
+      "nome": "Lei 10.180 de 2001 - Sistemas Estruturais",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.12.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412033,
+      "nome": "Lei nº 4.320/64 - Normas Gerais de Direito Financeiro",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.13.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 432622,
+      "nome": "Decreto nº 10.540/2020 - \t Dispõe sobre o padrão mínimo de qualidade do Sistema Único e Integrado de Execução Orçamentária, Administração Financeira e Controle.",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.14.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424764,
+      "nome": "Orçamento na Constituição Federal de 1988",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.15.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424765,
+      "nome": "Precatórios - Disciplina Constitucional",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.16.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412038,
+      "nome": "Manual Técnico do Orçamento (MTO)",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.17.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424766,
+      "nome": "Manual de Contabilidade Aplicada ao Setor Público (MCASP)",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.18.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424767,
+      "nome": "Decreto nº 93.872/1986.",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.19.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424768,
+      "nome": "Leis Orçamentárias sem vigência",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.20.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405659,
+      "nome": "Lei Complementar nº 101/2000 e suas alterac?o?es (Lei de Responsabilidade Fiscal - LRF).",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.21.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 404572,
+      "nome": "Introdução à Administração",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417276,
+      "nome": "Teorias da Administração",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404608,
+      "nome": "Planejamento e estratégia ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404625,
+      "nome": "Estrutura Organizacional",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 432519,
+      "nome": "Competências Organizacionais",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404670,
+      "nome": "Motivação",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404664,
+      "nome": "Liderança",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425506,
+      "nome": "Comunicação",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404617,
+      "nome": "Cultura organizacional",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425538,
+      "nome": "Controle e Avaliação",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.10.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425568,
+      "nome": "Gestão de Mudanças",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.11.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404663,
+      "nome": "Gestão de Conflitos",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.12.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404626,
+      "nome": "Gestão de processos",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.13.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417247,
+      "nome": "Gestão da Qualidade",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.14.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417254,
+      "nome": "Gestão do Conhecimento",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.15.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404631,
+      "nome": "Processo Decisório",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.16.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404669,
+      "nome": "Trabalho em Equipe ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.17.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404659,
+      "nome": "Gestão de Pessoas",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.18.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404636,
+      "nome": "Gestão de Projetos",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.19.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425733,
+      "nome": "Negociação",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.20.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425737,
+      "nome": "Qualidade no Atendimento ao Público",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.21.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417265,
+      "nome": "Administração Financeira ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.22.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425809,
+      "nome": "Análise de Negócios ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.23.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425811,
+      "nome": "Gestão por Resultados",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.24.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425812,
+      "nome": "Sistemas de Gestão e de Informação ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.25.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425813,
+      "nome": "Governança corporativa e Gestão de Riscos",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.26.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417324,
+      "nome": "Gestão da Inovação e Empreendedorismo",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.27.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404976,
+      "nome": "Administração Hospitalar",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.28.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417267,
+      "nome": "Administração de Marketing",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.29.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 430282,
+      "nome": "Código de Ética do Administrador ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.30.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 432510,
+      "nome": "Ética Organizacional",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.31.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 432523,
+      "nome": "Identidade Corporativa",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.32.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 433478,
+      "nome": "Governança ambiental, social e corporativa  - ESG - Environmental, Social and Governance ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.33.",
+      "assunto_raiz": 404571
+    }
+  ]
+}

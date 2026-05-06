@@ -9,6 +9,12 @@ from database import get_conexao
 from models import QuestaoRequest, FeedbackRequest
 import csv
 import io
+from utils.logger import setup_logger
+from utils.responses import api_response
+from utils.cache import cache
+
+# Configuração de Logs (Fator XI - Doze Fatores)
+logger = setup_logger(__name__)
 
 router = APIRouter(prefix="/api", tags=["Questões"])
 
@@ -228,18 +234,18 @@ def obter_questoes(
             })
 
         # Retorno paginado (admin) vs array simples (legado/quiz)
-        if use_pagination:
-            return {
-                "data": resultado,
-                "total": total,
-                "page": pg,
-                "per_page": pp,
-                "total_pages": -(-total // pp),  # ceil division
-            }
-        return resultado
+        logger.info(f"Busca de questões realizada. Total: {total if use_pagination else len(resultado)}")
+        return api_response(sucesso=True, dados={
+            "data": resultado,
+            "total": total,
+            "page": pg,
+            "per_page": pp,
+            "total_pages": -(-total // pp)
+        } if use_pagination else resultado)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar questões: {str(e)}")
+        logger.exception("Erro crítico ao obter questões")
+        return api_response(sucesso=False, mensagem="Erro ao carregar questões.", status_code=500)
 
 
 @router.get("/filtros/questoes")
@@ -271,9 +277,11 @@ def obter_filtros_questoes():
             cursor.execute("SELECT DISTINCT escolaridade FROM questoes WHERE escolaridade IS NOT NULL ORDER BY escolaridade;")
             filtros['escolaridades'] = [row[0] for row in cursor.fetchall()]
             
-            return filtros
+            logger.info("Filtros carregados com sucesso.")
+            return api_response(sucesso=True, dados=filtros)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao carregar filtros: {str(e)}")
+        logger.exception("Erro ao carregar filtros")
+        return api_response(sucesso=False, mensagem="Erro ao carregar filtros.", status_code=500)
 
 
 @router.post("/questoes")
@@ -322,6 +330,7 @@ def criar_questao(questao: QuestaoRequest):
         return {"sucesso": True, "mensagem": "Questão adicionada!", "id": nova_id}
 
     except Exception as e:
+        logger.exception("Erro ao criar questão (POST /questoes)")
         raise HTTPException(status_code=500, detail=f"Erro ao salvar: {str(e)}")
 
 
@@ -392,6 +401,7 @@ def atualizar_questao(questao_id: int, questao: QuestaoRequest):
             return {"sucesso": False, "mensagem": "Questão não encontrada."}
 
     except Exception as e:
+        logger.exception(f"Erro ao atualizar questão {questao_id} (PUT /questoes)")
         raise HTTPException(status_code=500, detail=f"Erro ao atualizar questão: {str(e)}")
 
 
@@ -410,6 +420,7 @@ def deletar_questao(questao_id: int):
             return {"sucesso": False, "mensagem": "Questão não encontrada."}
 
     except Exception as e:
+        logger.exception(f"Erro ao excluir questão {questao_id} (DELETE /questoes)")
         raise HTTPException(status_code=500, detail=f"Erro ao excluir questão: {str(e)}")
 
 
@@ -675,4 +686,5 @@ async def importar_csv(arquivo: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
+        logger.exception("Erro ao importar CSV (POST /questoes/importar-csv)")
         raise HTTPException(status_code=500, detail=f"Erro ao processar CSV: {str(e)}")

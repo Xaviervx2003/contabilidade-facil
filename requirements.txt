@@ -6,3 +6,6 @@ python-dotenv
 pytest
 httpx
 python-multipart
+passlib[bcrypt]
+argon2-cffi
+redis

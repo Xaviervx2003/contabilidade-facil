@@ -1,0 +1,6725 @@
+{
+  "total": 840,
+  "materias": [
+    {
+      "id": 405627,
+      "nome": "Introdução à Administração Financeira e Orçamentária",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405628,
+      "nome": "Considerações Iniciais",
+      "pai": 405627,
+      "nivel": 3,
+      "indice": "3.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405629,
+      "nome": "Atividade Financeira do Estado",
+      "pai": 405627,
+      "nivel": 3,
+      "indice": "3.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411783,
+      "nome": "Conceito",
+      "pai": 405629,
+      "nivel": 4,
+      "indice": "3.1.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411784,
+      "nome": "Características",
+      "pai": 405629,
+      "nivel": 4,
+      "indice": "3.1.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411785,
+      "nome": "Finalidades",
+      "pai": 405629,
+      "nivel": 4,
+      "indice": "3.1.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405630,
+      "nome": "Orçamento Público",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411838,
+      "nome": "Aspectos Gerais do Orçamento Público",
+      "pai": 405630,
+      "nivel": 3,
+      "indice": "3.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411786,
+      "nome": "Conceitos de Orçamento Público",
+      "pai": 405630,
+      "nivel": 3,
+      "indice": "3.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424673,
+      "nome": "Conceito no sentido amplo",
+      "pai": 411786,
+      "nivel": 4,
+      "indice": "3.2.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424674,
+      "nome": "Conceito no sentido estrito",
+      "pai": 411786,
+      "nivel": 4,
+      "indice": "3.2.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424675,
+      "nome": "Conceito no sentido técnico",
+      "pai": 411786,
+      "nivel": 4,
+      "indice": "3.2.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411788,
+      "nome": "Natureza Jurídica do Orçamento Brasileiro",
+      "pai": 405630,
+      "nivel": 3,
+      "indice": "3.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411787,
+      "nome": "Histórico do Orçamento Público",
+      "pai": 405630,
+      "nivel": 3,
+      "indice": "3.2.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411844,
+      "nome": "Espécies ou Técnicas Orçamentárias",
+      "pai": 411787,
+      "nivel": 4,
+      "indice": "3.2.4.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411845,
+      "nome": "Orçamentos Tradicional ou Clássico",
+      "pai": 411844,
+      "nivel": 5,
+      "indice": "3.2.4.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411846,
+      "nome": "Orçamento de Desempenho ou Funcional",
+      "pai": 411844,
+      "nivel": 5,
+      "indice": "3.2.4.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411848,
+      "nome": "Orçamento-Programa ou Moderno",
+      "pai": 411844,
+      "nivel": 5,
+      "indice": "3.2.4.1.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411847,
+      "nome": "Orçamento de Base Zero ou por Estratégia",
+      "pai": 411844,
+      "nivel": 5,
+      "indice": "3.2.4.1.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411849,
+      "nome": "Orçamento Participativo",
+      "pai": 411844,
+      "nivel": 5,
+      "indice": "3.2.4.1.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424676,
+      "nome": "Orçamento por Resultados",
+      "pai": 411844,
+      "nivel": 5,
+      "indice": "3.2.4.1.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411850,
+      "nome": "Outras Técnicas",
+      "pai": 411844,
+      "nivel": 5,
+      "indice": "3.2.4.1.7.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411851,
+      "nome": "Características Gerais",
+      "pai": 411844,
+      "nivel": 5,
+      "indice": "3.2.4.1.8.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411839,
+      "nome": "Funções Econômicas Clássicas aplicadas ao Orçamento Público",
+      "pai": 411787,
+      "nivel": 4,
+      "indice": "3.2.4.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411840,
+      "nome": "Função Alocativa",
+      "pai": 411839,
+      "nivel": 5,
+      "indice": "3.2.4.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411841,
+      "nome": "Função Distributiva",
+      "pai": 411839,
+      "nivel": 5,
+      "indice": "3.2.4.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411842,
+      "nome": "Função Estabilizadora",
+      "pai": 411839,
+      "nivel": 5,
+      "indice": "3.2.4.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405637,
+      "nome": "Ciclo ou Processo Orçamentário",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411789,
+      "nome": "Considerações Gerais",
+      "pai": 405637,
+      "nivel": 3,
+      "indice": "3.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411790,
+      "nome": "Elaboração/Iniciativa (Planejamento)",
+      "pai": 405637,
+      "nivel": 3,
+      "indice": "3.3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411794,
+      "nome": "Alocação de Recursos e o Papel dos Agentes no Processo",
+      "pai": 411790,
+      "nivel": 4,
+      "indice": "3.3.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411795,
+      "nome": "Competência da iniciativa e demais participações",
+      "pai": 411790,
+      "nivel": 4,
+      "indice": "3.3.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411796,
+      "nome": "A Iniciativa Do Poder Executivo",
+      "pai": 411795,
+      "nivel": 5,
+      "indice": "3.3.2.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411797,
+      "nome": "Participação dos demais Poderes, MPs e DPs",
+      "pai": 411795,
+      "nivel": 5,
+      "indice": "3.3.2.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411798,
+      "nome": "Prazos",
+      "pai": 411790,
+      "nivel": 4,
+      "indice": "3.3.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411799,
+      "nome": "Lei Complementar - Art. 165, § 9.º da CF/88",
+      "pai": 411790,
+      "nivel": 4,
+      "indice": "3.3.2.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411800,
+      "nome": "Conteúdo Da Proposta Orçamentária",
+      "pai": 411790,
+      "nivel": 4,
+      "indice": "3.3.2.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411791,
+      "nome": "Discussão, Votação e Aprovação (Autorização)",
+      "pai": 405637,
+      "nivel": 3,
+      "indice": "3.3.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411802,
+      "nome": "Recebimento das propostas",
+      "pai": 411791,
+      "nivel": 4,
+      "indice": "3.3.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411801,
+      "nome": "Comissão Mista de Planos, Orçamentos Públicos e Fiscalização - CMO",
+      "pai": 411791,
+      "nivel": 4,
+      "indice": "3.3.3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411803,
+      "nome": "Emendas Parlamentares",
+      "pai": 411791,
+      "nivel": 4,
+      "indice": "3.3.3.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 414393,
+      "nome": "Orçamento Impositivo Individual e de bancada",
+      "pai": 411803,
+      "nivel": 5,
+      "indice": "3.3.3.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405639,
+      "nome": "Aprovação",
+      "pai": 411791,
+      "nivel": 4,
+      "indice": "3.3.3.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411804,
+      "nome": "Vetos, Sanção e Publicação",
+      "pai": 411791,
+      "nivel": 4,
+      "indice": "3.3.3.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411792,
+      "nome": "Execução Orçamentária e Financeira",
+      "pai": 405637,
+      "nivel": 3,
+      "indice": "3.3.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411805,
+      "nome": "Execução Orçamentária e Cumprimento das Metas",
+      "pai": 411792,
+      "nivel": 4,
+      "indice": "3.3.4.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411806,
+      "nome": "Emendas Parlamentares de Execução Obrigatória",
+      "pai": 411792,
+      "nivel": 4,
+      "indice": "3.3.4.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411793,
+      "nome": "Controle e Avaliação",
+      "pai": 405637,
+      "nivel": 3,
+      "indice": "3.3.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411809,
+      "nome": "Considerações Iniciais",
+      "pai": 411793,
+      "nivel": 4,
+      "indice": "3.3.5.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411810,
+      "nome": "Controle Interno",
+      "pai": 411793,
+      "nivel": 4,
+      "indice": "3.3.5.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411811,
+      "nome": "Controle Externo",
+      "pai": 411793,
+      "nivel": 4,
+      "indice": "3.3.5.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411843,
+      "nome": "Visão ampliada do ciclo orçamentário",
+      "pai": 405637,
+      "nivel": 3,
+      "indice": "3.3.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405635,
+      "nome": "Orçamento Público no Brasil",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405632,
+      "nome": "Plano Plurianual - PPA",
+      "pai": 405635,
+      "nivel": 3,
+      "indice": "3.4.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411807,
+      "nome": "Conceitos Básicos",
+      "pai": 405632,
+      "nivel": 4,
+      "indice": "3.4.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405638,
+      "nome": "Plano Plurianual na CF/88",
+      "pai": 405632,
+      "nivel": 4,
+      "indice": "3.4.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405636,
+      "nome": "Plano Plurianual na LRF (art. 3º revogado)",
+      "pai": 405632,
+      "nivel": 4,
+      "indice": "3.4.1.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424677,
+      "nome": "Outros Planos e Programas Nacionais, Regionais e Setoriais e o PPA",
+      "pai": 405632,
+      "nivel": 4,
+      "indice": "3.4.1.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424678,
+      "nome": "PPA do Governo Federal - Últimas Normas",
+      "pai": 405632,
+      "nivel": 4,
+      "indice": "3.4.1.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405631,
+      "nome": "PPA 2020-2023",
+      "pai": 424678,
+      "nivel": 5,
+      "indice": "3.4.1.5.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424679,
+      "nome": "Lei 13.971 de 2019 (Lei do PPA 2020 a 2023 da União)",
+      "pai": 405631,
+      "nivel": 6,
+      "indice": "3.4.1.5.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424680,
+      "nome": "Conceitos Básicos",
+      "pai": 424679,
+      "nivel": 7,
+      "indice": "3.4.1.5.1.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424681,
+      "nome": "Estrutura e Organização do PPA da União",
+      "pai": 424679,
+      "nivel": 7,
+      "indice": "3.4.1.5.1.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424682,
+      "nome": "Integração com as LOAs da União",
+      "pai": 424679,
+      "nivel": 7,
+      "indice": "3.4.1.5.1.1.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424683,
+      "nome": "Governança do PPA da União",
+      "pai": 424679,
+      "nivel": 7,
+      "indice": "3.4.1.5.1.1.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424684,
+      "nome": "Disposições Gerais",
+      "pai": 424679,
+      "nivel": 7,
+      "indice": "3.4.1.5.1.1.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424685,
+      "nome": "Decreto 10.321 de 2020 (Regulamenta a Lei do PPA 2020 a 2023 da União)",
+      "pai": 405631,
+      "nivel": 6,
+      "indice": "3.4.1.5.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424687,
+      "nome": "Monitoramento e Avaliação do PPA",
+      "pai": 424685,
+      "nivel": 7,
+      "indice": "3.4.1.5.1.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424688,
+      "nome": "Objetivos e Metas",
+      "pai": 424687,
+      "nivel": 8,
+      "indice": "3.4.1.5.1.2.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424689,
+      "nome": "Monitoramento",
+      "pai": 424687,
+      "nivel": 8,
+      "indice": "3.4.1.5.1.2.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424690,
+      "nome": "Competências",
+      "pai": 424685,
+      "nivel": 7,
+      "indice": "3.4.1.5.1.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424691,
+      "nome": "Revisão",
+      "pai": 424685,
+      "nivel": 7,
+      "indice": "3.4.1.5.1.2.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424692,
+      "nome": "PPA 2016-2019",
+      "pai": 424678,
+      "nivel": 5,
+      "indice": "3.4.1.5.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424693,
+      "nome": "Lei 13.249 de 2016 (Lei do PPA 2016 a 2019 da União)",
+      "pai": 424692,
+      "nivel": 6,
+      "indice": "3.4.1.5.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424694,
+      "nome": "Conceitos Básicos",
+      "pai": 424693,
+      "nivel": 7,
+      "indice": "3.4.1.5.2.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424695,
+      "nome": "Estrutura e Organização do Plano",
+      "pai": 424693,
+      "nivel": 7,
+      "indice": "3.4.1.5.2.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424696,
+      "nome": "Integração com as LOAs",
+      "pai": 424693,
+      "nivel": 7,
+      "indice": "3.4.1.5.2.1.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424698,
+      "nome": "Disposições Gerais",
+      "pai": 424693,
+      "nivel": 7,
+      "indice": "3.4.1.5.2.1.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424699,
+      "nome": "Decreto 8.759 de 2016 (Regulamenta a Lei do PPA 2016 a 2019 da União)",
+      "pai": 424692,
+      "nivel": 6,
+      "indice": "3.4.1.5.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424700,
+      "nome": "Considerações Iniciais",
+      "pai": 424699,
+      "nivel": 7,
+      "indice": "3.4.1.5.2.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424701,
+      "nome": "Conceitos e Princípios da Gestão do PPA",
+      "pai": 424699,
+      "nivel": 7,
+      "indice": "3.4.1.5.2.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424702,
+      "nome": "Monitoramento e Avaliação do PPA",
+      "pai": 424699,
+      "nivel": 7,
+      "indice": "3.4.1.5.2.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424703,
+      "nome": "Objetivos e Metas",
+      "pai": 424702,
+      "nivel": 8,
+      "indice": "3.4.1.5.2.2.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424704,
+      "nome": "Monitoramento",
+      "pai": 424702,
+      "nivel": 8,
+      "indice": "3.4.1.5.2.2.3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424705,
+      "nome": "Competências",
+      "pai": 424699,
+      "nivel": 7,
+      "indice": "3.4.1.5.2.2.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424706,
+      "nome": "Revisão",
+      "pai": 424699,
+      "nivel": 7,
+      "indice": "3.4.1.5.2.2.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424707,
+      "nome": "Decreto 2.829/1998: Normas para Elaboração e Execução do PPA e da LOA",
+      "pai": 405632,
+      "nivel": 4,
+      "indice": "3.4.1.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424708,
+      "nome": "Normativos de PPAs da União anteriores ao ano de 2016",
+      "pai": 405632,
+      "nivel": 4,
+      "indice": "3.4.1.7.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424709,
+      "nome": "Normas Específicas de PPAs dos Estados, DF e Municípios",
+      "pai": 405632,
+      "nivel": 4,
+      "indice": "3.4.1.8.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424710,
+      "nome": "PPAs Estaduais",
+      "pai": 424709,
+      "nivel": 5,
+      "indice": "3.4.1.8.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424711,
+      "nome": "PPAs do DF",
+      "pai": 424709,
+      "nivel": 5,
+      "indice": "3.4.1.8.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424712,
+      "nome": "PPAs Municipais",
+      "pai": 424709,
+      "nivel": 5,
+      "indice": "3.4.1.8.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405633,
+      "nome": "Lei de Diretrizes Orçamentárias - LDO",
+      "pai": 405635,
+      "nivel": 3,
+      "indice": "3.4.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424713,
+      "nome": "Conceitos Básicos",
+      "pai": 405633,
+      "nivel": 4,
+      "indice": "3.4.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424714,
+      "nome": "Lei de Diretrizes Orçamentárias na CF/88",
+      "pai": 405633,
+      "nivel": 4,
+      "indice": "3.4.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424715,
+      "nome": "Lei de Diretrizes Orçamentárias na LRF (art. 4º)",
+      "pai": 405633,
+      "nivel": 4,
+      "indice": "3.4.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424716,
+      "nome": "LDOs Específicas dos Estados, DF e Municípios",
+      "pai": 405633,
+      "nivel": 4,
+      "indice": "3.4.2.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405634,
+      "nome": "Lei Orçamentária Anual - LOA",
+      "pai": 405635,
+      "nivel": 3,
+      "indice": "3.4.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424717,
+      "nome": "Conceitos Básicos",
+      "pai": 405634,
+      "nivel": 4,
+      "indice": "3.4.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424718,
+      "nome": "LOA na CF/88",
+      "pai": 405634,
+      "nivel": 4,
+      "indice": "3.4.3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424719,
+      "nome": "LOA na Lei 4.320 de 1964",
+      "pai": 405634,
+      "nivel": 4,
+      "indice": "3.4.3.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424720,
+      "nome": "LOA na LRF (art. 5º)",
+      "pai": 405634,
+      "nivel": 4,
+      "indice": "3.4.3.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424721,
+      "nome": "Orçamento Fiscal - OF",
+      "pai": 405634,
+      "nivel": 4,
+      "indice": "3.4.3.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424722,
+      "nome": "Orçamento de Investimento das Estatais - OI",
+      "pai": 405634,
+      "nivel": 4,
+      "indice": "3.4.3.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424723,
+      "nome": "Orçamento da Seguridade Social - OSS",
+      "pai": 405634,
+      "nivel": 4,
+      "indice": "3.4.3.7.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424724,
+      "nome": "LOAs Específicas dos Estados, DF e Municípios",
+      "pai": 405634,
+      "nivel": 4,
+      "indice": "3.4.3.8.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405641,
+      "nome": "Créditos Adicionais e ordinários",
+      "pai": 405635,
+      "nivel": 3,
+      "indice": "3.4.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424725,
+      "nome": "Conceito",
+      "pai": 405641,
+      "nivel": 4,
+      "indice": "3.4.4.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411818,
+      "nome": "Tipos ou Espécies",
+      "pai": 405641,
+      "nivel": 4,
+      "indice": "3.4.4.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411814,
+      "nome": "Créditos Suplementares",
+      "pai": 411818,
+      "nivel": 5,
+      "indice": "3.4.4.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411815,
+      "nome": "Créditos Especiais",
+      "pai": 411818,
+      "nivel": 5,
+      "indice": "3.4.4.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411816,
+      "nome": "Créditos Extraordinários",
+      "pai": 411818,
+      "nivel": 5,
+      "indice": "3.4.4.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424726,
+      "nome": "Vigência dos Créditos Adicionais",
+      "pai": 405641,
+      "nivel": 4,
+      "indice": "3.4.4.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411817,
+      "nome": "Fontes de Recursos dos Créditos Adicionais",
+      "pai": 405641,
+      "nivel": 4,
+      "indice": "3.4.4.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405640,
+      "nome": "Princípios Orçamentários",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411819,
+      "nome": "Considerações Gerais",
+      "pai": 405640,
+      "nivel": 3,
+      "indice": "3.5.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411820,
+      "nome": "Tipos ou Espécies de Princípios Orçamentários",
+      "pai": 405640,
+      "nivel": 3,
+      "indice": "3.5.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411830,
+      "nome": "Legalidade aplicada ao Orçamento",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411823,
+      "nome": "Anualidade ou Periodicidade",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411822,
+      "nome": "Unidade e Totalidade",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411821,
+      "nome": "Universalidade",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411824,
+      "nome": "Orçamento Bruto",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411825,
+      "nome": "Especificação, Especialização ou Discriminação",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411826,
+      "nome": "Exclusividade",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.7.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411827,
+      "nome": "Não vinculação ou Não afetação da receita de impostos",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.8.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411833,
+      "nome": "Equilíbrio Orçamentário",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.9.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411828,
+      "nome": "Proibição do Estorno",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.10.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411829,
+      "nome": "Limitação dos Créditos Orçamentários",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.11.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411831,
+      "nome": "Transparência",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.12.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411832,
+      "nome": "Publicidade",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.13.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411836,
+      "nome": "Clareza ou Inteligibilidade",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.14.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411835,
+      "nome": "Uniformidade",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.15.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411834,
+      "nome": "Programação",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.16.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 417372,
+      "nome": "Exatidão ",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.17.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424727,
+      "nome": "Economicidade",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.18.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411837,
+      "nome": "Unidade de Tesouraria ou de Caixa",
+      "pai": 411820,
+      "nivel": 4,
+      "indice": "3.5.2.19.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424728,
+      "nome": "Outros Princípios Gerais",
+      "pai": 405640,
+      "nivel": 3,
+      "indice": "3.5.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405642,
+      "nome": "Receita Pública",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411852,
+      "nome": "Aspectos Gerais",
+      "pai": 405642,
+      "nivel": 3,
+      "indice": "3.6.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405643,
+      "nome": "Conceitos",
+      "pai": 405642,
+      "nivel": 3,
+      "indice": "3.6.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424729,
+      "nome": "Receita Orçamentária",
+      "pai": 405643,
+      "nivel": 4,
+      "indice": "3.6.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424730,
+      "nome": "Receita Extraorçamentária (ou mero ingresso)",
+      "pai": 405643,
+      "nivel": 4,
+      "indice": "3.6.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424731,
+      "nome": "Classificações",
+      "pai": 405642,
+      "nivel": 3,
+      "indice": "3.6.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411854,
+      "nome": "Classificação por Natureza da Receita (Níveis e Dígitos)",
+      "pai": 424731,
+      "nivel": 4,
+      "indice": "3.6.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411855,
+      "nome": "Categoria Econômica da Receita (1º Nível e 1º Dígito)",
+      "pai": 411854,
+      "nivel": 5,
+      "indice": "3.6.3.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411856,
+      "nome": "Origem (2º Nível e 2º Dígito)",
+      "pai": 411854,
+      "nivel": 5,
+      "indice": "3.6.3.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411857,
+      "nome": "Origens das Receitas Correntes",
+      "pai": 411856,
+      "nivel": 6,
+      "indice": "3.6.3.1.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411858,
+      "nome": "Origens das Receitas de Capital",
+      "pai": 411856,
+      "nivel": 6,
+      "indice": "3.6.3.1.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405644,
+      "nome": "Espécie (3º Nível e 3º Dígito)",
+      "pai": 411854,
+      "nivel": 5,
+      "indice": "3.6.3.1.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411853,
+      "nome": "Desdobramentos (4º Nível, do 4º ao 7º Dígito)",
+      "pai": 411854,
+      "nivel": 5,
+      "indice": "3.6.3.1.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424732,
+      "nome": "Tipo (5º Nível e 8º Dígito)",
+      "pai": 411854,
+      "nivel": 5,
+      "indice": "3.6.3.1.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424733,
+      "nome": "Outros níveis/dígitos (particularidades dos entes ou revogados)",
+      "pai": 411854,
+      "nivel": 5,
+      "indice": "3.6.3.1.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411882,
+      "nome": "Classificação quanto à Origem ou Procedência",
+      "pai": 424731,
+      "nivel": 4,
+      "indice": "3.6.3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411883,
+      "nome": "Classificação por Fontes/Destinação de Recursos",
+      "pai": 424731,
+      "nivel": 4,
+      "indice": "3.6.3.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411884,
+      "nome": "Classificação por Indicador de Resultado Primário",
+      "pai": 424731,
+      "nivel": 4,
+      "indice": "3.6.3.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424734,
+      "nome": "Classificação por Esfera Orçamentária",
+      "pai": 424731,
+      "nivel": 4,
+      "indice": "3.6.3.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424735,
+      "nome": "Classificação Patrimonial (afetação do patrimônio líquido)",
+      "pai": 424731,
+      "nivel": 4,
+      "indice": "3.6.3.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424736,
+      "nome": "Outras Classificações",
+      "pai": 424731,
+      "nivel": 4,
+      "indice": "3.6.3.7.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405645,
+      "nome": "Estágios/Etapas da Receita Pública",
+      "pai": 405642,
+      "nivel": 3,
+      "indice": "3.6.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411862,
+      "nome": "Previsão",
+      "pai": 405645,
+      "nivel": 4,
+      "indice": "3.6.4.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411863,
+      "nome": "Lançamento",
+      "pai": 405645,
+      "nivel": 4,
+      "indice": "3.6.4.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411864,
+      "nome": "Arrecadação",
+      "pai": 405645,
+      "nivel": 4,
+      "indice": "3.6.4.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411865,
+      "nome": "Recolhimento",
+      "pai": 405645,
+      "nivel": 4,
+      "indice": "3.6.4.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424737,
+      "nome": "Conta Única do Tesouro",
+      "pai": 411865,
+      "nivel": 5,
+      "indice": "3.6.4.4.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424738,
+      "nome": "Na CF/88",
+      "pai": 424737,
+      "nivel": 6,
+      "indice": "3.6.4.4.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424739,
+      "nome": "Na Legislação Infraconstitucional",
+      "pai": 424737,
+      "nivel": 6,
+      "indice": "3.6.4.4.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424740,
+      "nome": "Princípio da Unidade de Tesouraria ou de Caixa",
+      "pai": 424737,
+      "nivel": 6,
+      "indice": "3.6.4.4.1.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405646,
+      "nome": "Dívida ativa",
+      "pai": 405642,
+      "nivel": 3,
+      "indice": "3.6.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411866,
+      "nome": "Dívida Ativa na Lei nº 4.320/1964",
+      "pai": 405646,
+      "nivel": 4,
+      "indice": "3.6.5.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411867,
+      "nome": "Outros aspectos sobre a Divida Ativa",
+      "pai": 405646,
+      "nivel": 4,
+      "indice": "3.6.5.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405648,
+      "nome": "Despesa Pública",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.7.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405647,
+      "nome": "Aspectos Gerais",
+      "pai": 405648,
+      "nivel": 3,
+      "indice": "3.7.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405649,
+      "nome": "Conceito",
+      "pai": 405648,
+      "nivel": 3,
+      "indice": "3.7.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424769,
+      "nome": "Classificações",
+      "pai": 405648,
+      "nivel": 3,
+      "indice": "3.7.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405650,
+      "nome": "Classificação Quantitativa",
+      "pai": 424769,
+      "nivel": 4,
+      "indice": "3.7.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411869,
+      "nome": "Por Natureza da Despesa ( ou por Categorias Econômicas)",
+      "pai": 405650,
+      "nivel": 5,
+      "indice": "3.7.3.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424741,
+      "nome": "Categoria Econômica (1º Nível)",
+      "pai": 411869,
+      "nivel": 6,
+      "indice": "3.7.3.1.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411870,
+      "nome": "Grupo de Natureza (2º Nível)",
+      "pai": 411869,
+      "nivel": 6,
+      "indice": "3.7.3.1.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411874,
+      "nome": "Modalidade de Aplicação (3º nível)",
+      "pai": 411869,
+      "nivel": 6,
+      "indice": "3.7.3.1.1.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411875,
+      "nome": "Elemento de Despesa (4º nível)",
+      "pai": 411869,
+      "nivel": 6,
+      "indice": "3.7.3.1.1.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411876,
+      "nome": "Subelemento ou Desdobramento do Elemento (5º Nível)",
+      "pai": 411869,
+      "nivel": 6,
+      "indice": "3.7.3.1.1.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411871,
+      "nome": "Por Identificador de Resultado Primário",
+      "pai": 405650,
+      "nivel": 5,
+      "indice": "3.7.3.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411872,
+      "nome": "Por Fonte de Recursos",
+      "pai": 405650,
+      "nivel": 5,
+      "indice": "3.7.3.1.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411873,
+      "nome": "Por Identificador de Doação e de Operação de Crédito (IDOC) ",
+      "pai": 405650,
+      "nivel": 5,
+      "indice": "3.7.3.1.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411891,
+      "nome": "Classificação por Identificador de Uso - IDUSO",
+      "pai": 405650,
+      "nivel": 5,
+      "indice": "3.7.3.1.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424743,
+      "nome": "Por Dotação (valor do montante alocado)",
+      "pai": 405650,
+      "nivel": 5,
+      "indice": "3.7.3.1.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424745,
+      "nome": "Classificação Qualitativa",
+      "pai": 424769,
+      "nivel": 4,
+      "indice": "3.7.3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424746,
+      "nome": "Por Esfera Orçamentária",
+      "pai": 424745,
+      "nivel": 5,
+      "indice": "3.7.3.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424747,
+      "nome": "Institucional",
+      "pai": 424745,
+      "nivel": 5,
+      "indice": "3.7.3.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411889,
+      "nome": "Funcional",
+      "pai": 424745,
+      "nivel": 5,
+      "indice": "3.7.3.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424749,
+      "nome": "Estrutura Programática",
+      "pai": 424745,
+      "nivel": 5,
+      "indice": "3.7.3.2.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411879,
+      "nome": "Tipos de Programas",
+      "pai": 424749,
+      "nivel": 6,
+      "indice": "3.7.3.2.4.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411880,
+      "nome": "Tipos de Ações",
+      "pai": 424749,
+      "nivel": 6,
+      "indice": "3.7.3.2.4.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411881,
+      "nome": "Subtítulo ou Localizador de Gasto",
+      "pai": 424749,
+      "nivel": 6,
+      "indice": "3.7.3.2.4.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411877,
+      "nome": "Classificações Doutrinárias",
+      "pai": 424769,
+      "nivel": 4,
+      "indice": "3.7.3.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411878,
+      "nome": "Classificações na lei 4.320/1964",
+      "pai": 424769,
+      "nivel": 4,
+      "indice": "3.7.3.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411890,
+      "nome": "Outras Classificações",
+      "pai": 424769,
+      "nivel": 4,
+      "indice": "3.7.3.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405651,
+      "nome": "Estágios/Etapas da Despesa Pública",
+      "pai": 405648,
+      "nivel": 3,
+      "indice": "3.7.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411893,
+      "nome": "Fixação",
+      "pai": 405651,
+      "nivel": 4,
+      "indice": "3.7.4.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424750,
+      "nome": "Descentralização de Créditos Orçamentários",
+      "pai": 405651,
+      "nivel": 4,
+      "indice": "3.7.4.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424751,
+      "nome": "Programação Orçamentária e Financeira",
+      "pai": 405651,
+      "nivel": 4,
+      "indice": "3.7.4.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424752,
+      "nome": "Processo de Licitação e Contratação",
+      "pai": 405651,
+      "nivel": 4,
+      "indice": "3.7.4.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411894,
+      "nome": "Empenho",
+      "pai": 405651,
+      "nivel": 4,
+      "indice": "3.7.4.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411895,
+      "nome": "Liquidação",
+      "pai": 405651,
+      "nivel": 4,
+      "indice": "3.7.4.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411896,
+      "nome": "Pagamento",
+      "pai": 405651,
+      "nivel": 4,
+      "indice": "3.7.4.7.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405652,
+      "nome": "Restos a Pagar - RP",
+      "pai": 405648,
+      "nivel": 3,
+      "indice": "3.7.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405653,
+      "nome": "Despesas de Exercícios Anteriores - DEA",
+      "pai": 405648,
+      "nivel": 3,
+      "indice": "3.7.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405655,
+      "nome": "Suprimento de Fundos ou Regime de Adiantamento",
+      "pai": 405648,
+      "nivel": 3,
+      "indice": "3.7.7.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405656,
+      "nome": "Programação e Execução Orçamentária e Financeira",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.8.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411900,
+      "nome": "Competências",
+      "pai": 405656,
+      "nivel": 3,
+      "indice": "3.8.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411901,
+      "nome": "Cotas Trimestrais",
+      "pai": 405656,
+      "nivel": 3,
+      "indice": "3.8.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411902,
+      "nome": "Decreto de Programação Orçamentária e Financeira",
+      "pai": 405656,
+      "nivel": 3,
+      "indice": "3.8.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411903,
+      "nome": "Necessidades de Financiamento no Setor Público",
+      "pai": 405656,
+      "nivel": 3,
+      "indice": "3.8.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411898,
+      "nome": "Descentralização Orçamentária e Financeira",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.9.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411904,
+      "nome": "Descentralização de Créditos Orçamentários",
+      "pai": 411898,
+      "nivel": 3,
+      "indice": "3.9.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424753,
+      "nome": "Dotação",
+      "pai": 411904,
+      "nivel": 4,
+      "indice": "3.9.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411906,
+      "nome": "Destaque",
+      "pai": 411904,
+      "nivel": 4,
+      "indice": "3.9.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411907,
+      "nome": "Provisão",
+      "pai": 411904,
+      "nivel": 4,
+      "indice": "3.9.1.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411905,
+      "nome": "Movimentação de Recursos",
+      "pai": 411898,
+      "nivel": 3,
+      "indice": "3.9.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411908,
+      "nome": "Cota",
+      "pai": 411905,
+      "nivel": 4,
+      "indice": "3.9.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411909,
+      "nome": "Repasse",
+      "pai": 411905,
+      "nivel": 4,
+      "indice": "3.9.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411910,
+      "nome": "Sub-repasse",
+      "pai": 411905,
+      "nivel": 4,
+      "indice": "3.9.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411899,
+      "nome": "Transferências",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.10.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411911,
+      "nome": "Considerações Gerais",
+      "pai": 411899,
+      "nivel": 3,
+      "indice": "3.10.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411912,
+      "nome": "Transferências Obrigatórias",
+      "pai": 411899,
+      "nivel": 3,
+      "indice": "3.10.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411913,
+      "nome": "Transferências Voluntárias (art. 25 da LRF)",
+      "pai": 411899,
+      "nivel": 3,
+      "indice": "3.10.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405658,
+      "nome": "Sistemas de Informações: SIOP (antigo SIDOR), SIAFI e SIAFEM",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.11.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411916,
+      "nome": "SIOP (antigo SIDOR)",
+      "pai": 405658,
+      "nivel": 3,
+      "indice": "3.11.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411930,
+      "nome": "Aspectos Gerais",
+      "pai": 411916,
+      "nivel": 4,
+      "indice": "3.11.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411931,
+      "nome": "Subsistemas",
+      "pai": 411916,
+      "nivel": 4,
+      "indice": "3.11.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411932,
+      "nome": "Módulos",
+      "pai": 411916,
+      "nivel": 4,
+      "indice": "3.11.1.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411933,
+      "nome": "Qualitativo PPA e LOA",
+      "pai": 411932,
+      "nivel": 5,
+      "indice": "3.11.1.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411935,
+      "nome": "Quantitativo",
+      "pai": 411932,
+      "nivel": 5,
+      "indice": "3.11.1.3.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411915,
+      "nome": "SIAFI",
+      "pai": 405658,
+      "nivel": 3,
+      "indice": "3.11.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411914,
+      "nome": "Histórico",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411919,
+      "nome": "Conceitos Básicos",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411920,
+      "nome": "Objetivos",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405657,
+      "nome": "Características",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411921,
+      "nome": "Documentos",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411922,
+      "nome": "Usuários",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411923,
+      "nome": "Formas de Acesso",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.7.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411925,
+      "nome": "Modalidades de Consulta",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.8.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411926,
+      "nome": "Segurança do Sistema",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.9.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411927,
+      "nome": "Registros Contábeis",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.10.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424754,
+      "nome": "Plano de Contas",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.11.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411928,
+      "nome": "Novo SIAFI (SIAFI WEB)",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.12.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411929,
+      "nome": "Guia de Recolhimento da União (GRU)",
+      "pai": 411915,
+      "nivel": 4,
+      "indice": "3.11.2.13.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411918,
+      "nome": "SIAFEM",
+      "pai": 405658,
+      "nivel": 3,
+      "indice": "3.11.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411917,
+      "nome": "Lei 10.180 de 2001 - Sistemas Estruturais",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.12.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411936,
+      "nome": "Disposições Gerais",
+      "pai": 411917,
+      "nivel": 3,
+      "indice": "3.12.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411937,
+      "nome": "Sistema de Planejamento e Orçamento Federal - SPOF",
+      "pai": 411917,
+      "nivel": 3,
+      "indice": "3.12.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411886,
+      "nome": "Finalidades",
+      "pai": 411937,
+      "nivel": 4,
+      "indice": "3.12.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411885,
+      "nome": "Organização",
+      "pai": 411937,
+      "nivel": 4,
+      "indice": "3.12.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411868,
+      "nome": "Competências",
+      "pai": 411937,
+      "nivel": 4,
+      "indice": "3.12.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411938,
+      "nome": "Sistema de Administração Financeira Federal - SAFF",
+      "pai": 411917,
+      "nivel": 3,
+      "indice": "3.12.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424755,
+      "nome": "Finalidades",
+      "pai": 411938,
+      "nivel": 4,
+      "indice": "3.12.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424756,
+      "nome": "Organização",
+      "pai": 411938,
+      "nivel": 4,
+      "indice": "3.12.3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424757,
+      "nome": "Competências",
+      "pai": 411938,
+      "nivel": 4,
+      "indice": "3.12.3.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411888,
+      "nome": "Sistema de Contabilidade Federal - SCF",
+      "pai": 411917,
+      "nivel": 3,
+      "indice": "3.12.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424759,
+      "nome": "Organização",
+      "pai": 411888,
+      "nivel": 4,
+      "indice": "3.12.4.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424760,
+      "nome": "Competências",
+      "pai": 411888,
+      "nivel": 4,
+      "indice": "3.12.4.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411887,
+      "nome": "Sistema de Controle Interno do Poder Executivo Federal - SCI",
+      "pai": 411917,
+      "nivel": 3,
+      "indice": "3.12.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424761,
+      "nome": "Finalidades",
+      "pai": 411887,
+      "nivel": 4,
+      "indice": "3.12.5.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424762,
+      "nome": "Organização",
+      "pai": 411887,
+      "nivel": 4,
+      "indice": "3.12.5.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424763,
+      "nome": "Competências",
+      "pai": 411887,
+      "nivel": 4,
+      "indice": "3.12.5.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412033,
+      "nome": "Lei nº 4.320/64 - Normas Gerais de Direito Financeiro",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.13.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 432622,
+      "nome": "Decreto nº 10.540/2020 - \t Dispõe sobre o padrão mínimo de qualidade do Sistema Único e Integrado de Execução Orçamentária, Administração Financeira e Controle.",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.14.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424764,
+      "nome": "Orçamento na Constituição Federal de 1988",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.15.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424765,
+      "nome": "Precatórios - Disciplina Constitucional",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.16.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412038,
+      "nome": "Manual Técnico do Orçamento (MTO)",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.17.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424766,
+      "nome": "Manual de Contabilidade Aplicada ao Setor Público (MCASP)",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.18.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424767,
+      "nome": "Decreto nº 93.872/1986.",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.19.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424768,
+      "nome": "Leis Orçamentárias sem vigência",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.20.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405659,
+      "nome": "Lei Complementar nº 101/2000 e suas alterac?o?es (Lei de Responsabilidade Fiscal - LRF).",
+      "pai": 405626,
+      "nivel": 2,
+      "indice": "3.21.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411939,
+      "nome": "Introdução",
+      "pai": 405659,
+      "nivel": 3,
+      "indice": "3.21.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411940,
+      "nome": "Histórico",
+      "pai": 411939,
+      "nivel": 4,
+      "indice": "3.21.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411941,
+      "nome": "Princípios",
+      "pai": 411939,
+      "nivel": 4,
+      "indice": "3.21.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405660,
+      "nome": "Disposições Preliminares (Art. 1º e Art. 2º)",
+      "pai": 405659,
+      "nivel": 3,
+      "indice": "3.21.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411942,
+      "nome": "Amparo Constitucional",
+      "pai": 405660,
+      "nivel": 4,
+      "indice": "3.21.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411943,
+      "nome": "Objetivos",
+      "pai": 405660,
+      "nivel": 4,
+      "indice": "3.21.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411944,
+      "nome": "Abrangência",
+      "pai": 405660,
+      "nivel": 4,
+      "indice": "3.21.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411945,
+      "nome": "Empresa Estatal Dependente",
+      "pai": 405660,
+      "nivel": 4,
+      "indice": "3.21.2.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411946,
+      "nome": "Receita Corrente Líquida - RCL",
+      "pai": 405660,
+      "nivel": 4,
+      "indice": "3.21.2.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424403,
+      "nome": "Outros Conceitos Preliminares",
+      "pai": 405660,
+      "nivel": 4,
+      "indice": "3.21.2.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405661,
+      "nome": "Planejamento: PPA, LDO e LOA (Art. 3º ao Art. 10)",
+      "pai": 405659,
+      "nivel": 3,
+      "indice": "3.21.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411947,
+      "nome": "Plano Plurianual (conteúdo vetado no art. 3º)",
+      "pai": 405661,
+      "nivel": 4,
+      "indice": "3.21.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411948,
+      "nome": "Lei de Diretrizes Orçamentárias (LDO)",
+      "pai": 405661,
+      "nivel": 4,
+      "indice": "3.21.3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411949,
+      "nome": "A Lei de Diretrizes Orçamentárias na LRF",
+      "pai": 411948,
+      "nivel": 5,
+      "indice": "3.21.3.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411950,
+      "nome": "Os Anexos da LDO",
+      "pai": 411948,
+      "nivel": 5,
+      "indice": "3.21.3.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424404,
+      "nome": "Anexo de Metas Fiscais - AMF",
+      "pai": 411950,
+      "nivel": 6,
+      "indice": "3.21.3.2.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424405,
+      "nome": "Anexo de Riscos Fiscais - ARF",
+      "pai": 411950,
+      "nivel": 6,
+      "indice": "3.21.3.2.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424406,
+      "nome": "Anexo Específico - AE",
+      "pai": 411950,
+      "nivel": 6,
+      "indice": "3.21.3.2.2.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411951,
+      "nome": "Lei Orçamentária Anual - LOA",
+      "pai": 405661,
+      "nivel": 4,
+      "indice": "3.21.3.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411952,
+      "nome": "Da Execução Orçamentária e do Cumprimento das Metas",
+      "pai": 405661,
+      "nivel": 4,
+      "indice": "3.21.3.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412007,
+      "nome": "Programação Financeira e Cronograma de Execução Mensal de Desembolso",
+      "pai": 411952,
+      "nivel": 5,
+      "indice": "3.21.3.4.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411954,
+      "nome": "Limitação de Empenho e Movimentação Financeira (contingenciamento)",
+      "pai": 411952,
+      "nivel": 5,
+      "indice": "3.21.3.4.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412006,
+      "nome": "Aspectos Gerais da Execução Orçamentária e Financeira",
+      "pai": 411952,
+      "nivel": 5,
+      "indice": "3.21.3.4.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405662,
+      "nome": "Receita Pública (Art. 11 ao Art. 14)",
+      "pai": 405659,
+      "nivel": 3,
+      "indice": "3.21.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411978,
+      "nome": "Instituição, Previsão e Arrecadação",
+      "pai": 405662,
+      "nivel": 4,
+      "indice": "3.21.4.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411980,
+      "nome": "Regra de Ouro na LRF",
+      "pai": 405662,
+      "nivel": 4,
+      "indice": "3.21.4.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411981,
+      "nome": "Renúncia de Receita",
+      "pai": 405662,
+      "nivel": 4,
+      "indice": "3.21.4.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411956,
+      "nome": "Despesa Pública (Art. 15 ao Art. 24)",
+      "pai": 405659,
+      "nivel": 3,
+      "indice": "3.21.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411957,
+      "nome": "Geração da Despesa",
+      "pai": 411956,
+      "nivel": 4,
+      "indice": "3.21.5.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411958,
+      "nome": "Despesa Obrigatória de Caráter Continuado - DOCC",
+      "pai": 411956,
+      "nivel": 4,
+      "indice": "3.21.5.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405672,
+      "nome": "Despesas com pessoal ",
+      "pai": 411956,
+      "nivel": 4,
+      "indice": "3.21.5.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411959,
+      "nome": " Conceito",
+      "pai": 405672,
+      "nivel": 5,
+      "indice": "3.21.5.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424407,
+      "nome": "Limites",
+      "pai": 405672,
+      "nivel": 5,
+      "indice": "3.21.5.3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411960,
+      "nome": "Controle",
+      "pai": 405672,
+      "nivel": 5,
+      "indice": "3.21.5.3.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411962,
+      "nome": "Nulidades",
+      "pai": 411960,
+      "nivel": 6,
+      "indice": "3.21.5.3.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411963,
+      "nome": "Limite Alerta",
+      "pai": 411960,
+      "nivel": 6,
+      "indice": "3.21.5.3.3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411964,
+      "nome": "Limite Prudencial",
+      "pai": 411960,
+      "nivel": 6,
+      "indice": "3.21.5.3.3.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411965,
+      "nome": "Limite Ultrapassado (Excesso)",
+      "pai": 411960,
+      "nivel": 6,
+      "indice": "3.21.5.3.3.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411966,
+      "nome": "Exceções à aplicação de sanção",
+      "pai": 411960,
+      "nivel": 6,
+      "indice": "3.21.5.3.3.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411961,
+      "nome": "Despesas com a Seguridade Social",
+      "pai": 405672,
+      "nivel": 5,
+      "indice": "3.21.5.3.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405663,
+      "nome": "Transferências Voluntárias (Art. 25)",
+      "pai": 405659,
+      "nivel": 3,
+      "indice": "3.21.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405664,
+      "nome": "Recursos Públicos para o Setor Privado (Art. 26 ao 28)",
+      "pai": 405659,
+      "nivel": 3,
+      "indice": "3.21.7.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405665,
+      "nome": " Dívida e Endividamento (Art. 29 ao 42)",
+      "pai": 405659,
+      "nivel": 3,
+      "indice": "3.21.8.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424408,
+      "nome": "Definições Básicas (conceitos)",
+      "pai": 405665,
+      "nivel": 4,
+      "indice": "3.21.8.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411990,
+      "nome": "Dívida Pública Consolidada ou Fundada",
+      "pai": 424408,
+      "nivel": 5,
+      "indice": "3.21.8.1.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411991,
+      "nome": "Dívida Pública Mobiliária",
+      "pai": 424408,
+      "nivel": 5,
+      "indice": "3.21.8.1.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411992,
+      "nome": "Operação de Crédito",
+      "pai": 424408,
+      "nivel": 5,
+      "indice": "3.21.8.1.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411993,
+      "nome": "Concessão de Garantia",
+      "pai": 424408,
+      "nivel": 5,
+      "indice": "3.21.8.1.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411994,
+      "nome": "Refinanciamento da Dívida Mobiliária",
+      "pai": 424408,
+      "nivel": 5,
+      "indice": "3.21.8.1.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411995,
+      "nome": "Dívida Flutuante (Art. 92, Lei 4.320/64)",
+      "pai": 424408,
+      "nivel": 5,
+      "indice": "3.21.8.1.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424409,
+      "nome": "Limites da Dívida Pública e das Operações de Crédito",
+      "pai": 405665,
+      "nivel": 4,
+      "indice": "3.21.8.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424410,
+      "nome": "Recondução da Dívida aos Limites",
+      "pai": 405665,
+      "nivel": 4,
+      "indice": "3.21.8.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411996,
+      "nome": "Das Operações de Crédito",
+      "pai": 405665,
+      "nivel": 4,
+      "indice": "3.21.8.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412002,
+      "nome": "Contratação",
+      "pai": 411996,
+      "nivel": 5,
+      "indice": "3.21.8.4.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411997,
+      "nome": "Vedações",
+      "pai": 411996,
+      "nivel": 5,
+      "indice": "3.21.8.4.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412003,
+      "nome": "Operações de Crédito por Antecipação de Receita (ARO)",
+      "pai": 411996,
+      "nivel": 5,
+      "indice": "3.21.8.4.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411998,
+      "nome": "Operações com o Banco Central do Brasil (BACEN)",
+      "pai": 411996,
+      "nivel": 5,
+      "indice": "3.21.8.4.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411999,
+      "nome": "Garantia e Contragarantia",
+      "pai": 405665,
+      "nivel": 4,
+      "indice": "3.21.8.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412000,
+      "nome": "Restos a Pagar na LRF",
+      "pai": 405665,
+      "nivel": 4,
+      "indice": "3.21.8.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405666,
+      "nome": "Gestão Patrimonial (Art. 43 ao Art. 47)",
+      "pai": 405659,
+      "nivel": 3,
+      "indice": "3.21.9.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411982,
+      "nome": "Das Disponibilidades de Caixa",
+      "pai": 405666,
+      "nivel": 4,
+      "indice": "3.21.9.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411985,
+      "nome": "Da Preservação do Patrimônio Público",
+      "pai": 405666,
+      "nivel": 4,
+      "indice": "3.21.9.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411986,
+      "nome": "Das Empresas Controladas pelo Setor Público",
+      "pai": 405666,
+      "nivel": 4,
+      "indice": "3.21.9.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405667,
+      "nome": "Transparência, Controle e Fiscalização (Art. 48 ao Art. 59)",
+      "pai": 405659,
+      "nivel": 3,
+      "indice": "3.21.10.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424411,
+      "nome": "Da Transparência da Gestão Fiscal",
+      "pai": 405667,
+      "nivel": 4,
+      "indice": "3.21.10.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411967,
+      "nome": "Da Escrituração e Consolidação das Contas",
+      "pai": 405667,
+      "nivel": 4,
+      "indice": "3.21.10.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411968,
+      "nome": "Escrituração das Contas",
+      "pai": 411967,
+      "nivel": 5,
+      "indice": "3.21.10.2.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411969,
+      "nome": "Consolidação das Contas",
+      "pai": 411967,
+      "nivel": 5,
+      "indice": "3.21.10.2.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411970,
+      "nome": "Relatórios",
+      "pai": 405667,
+      "nivel": 4,
+      "indice": "3.21.10.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411971,
+      "nome": "Do Relatório Resumido da Execução Orçamentária - RREO",
+      "pai": 411970,
+      "nivel": 5,
+      "indice": "3.21.10.3.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411972,
+      "nome": "Do Relatório de Gestão Fiscal - RGF",
+      "pai": 411970,
+      "nivel": 5,
+      "indice": "3.21.10.3.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411974,
+      "nome": "Das Prestações de Contas",
+      "pai": 405667,
+      "nivel": 4,
+      "indice": "3.21.10.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411975,
+      "nome": "Da Fiscalização da Gestão Fiscal",
+      "pai": 405667,
+      "nivel": 4,
+      "indice": "3.21.10.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411976,
+      "nome": "Fiscalização das Normas",
+      "pai": 411975,
+      "nivel": 5,
+      "indice": "3.21.10.5.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 411977,
+      "nome": "Tribunais de Contas na LRF",
+      "pai": 411975,
+      "nivel": 5,
+      "indice": "3.21.10.5.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 405668,
+      "nome": "Disposições Finais e Transitórias (Art. 60 ao Art. 75)",
+      "pai": 405659,
+      "nivel": 3,
+      "indice": "3.21.11.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412008,
+      "nome": "Limites inferiores fixados por leis estaduais ou municipais",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424412,
+      "nome": "Títulos da Dívida oferecidos em caução",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.2.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424413,
+      "nome": "Contribuição municipal para outros entes",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.3.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424414,
+      "nome": "Municípios com população inferior a 50 mil habitantes",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.4.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412009,
+      "nome": "Assistência técnica e cooperação financeira",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.5.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412010,
+      "nome": "Calamidade Pública",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.6.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424415,
+      "nome": "Estado de Defesa (revogado pela LC 173/2020)",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.7.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424416,
+      "nome": "Estado de Sítio (revogado pela LC 173/2020)",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.8.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412011,
+      "nome": "Crescimento real baixo ou negativo do PIB",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.9.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412012,
+      "nome": "Conselho de Gestão Fiscal",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.10.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412013,
+      "nome": "Fundo do Regime Geral de Previdência Social - RGPS",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.11.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 412014,
+      "nome": "Regime Próprio de Previdência Social - RPPS",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.12.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424417,
+      "nome": " Disposições Transitórias",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.13.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424418,
+      "nome": "Infrações à LRF e normas pertinentes",
+      "pai": 405668,
+      "nivel": 4,
+      "indice": "3.21.11.14.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424770,
+      "nome": "Alterações na LRF",
+      "pai": 405659,
+      "nivel": 3,
+      "indice": "3.21.12.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 424771,
+      "nome": "Lei Complementar nº 131 de 2009 - Transparência na gestão pública",
+      "pai": 424770,
+      "nivel": 4,
+      "indice": "3.21.12.1.",
+      "assunto_raiz": 405626
+    },
+    {
+      "id": 404572,
+      "nome": "Introdução à Administração",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417269,
+      "nome": "Conceitos introdutórios de Administração",
+      "pai": 404572,
+      "nivel": 3,
+      "indice": "4.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417294,
+      "nome": "Conceitos de administração/organização",
+      "pai": 417269,
+      "nivel": 4,
+      "indice": "4.1.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404613,
+      "nome": "Eficiência, eficácia e efetividade",
+      "pai": 417269,
+      "nivel": 4,
+      "indice": "4.1.1.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417282,
+      "nome": "Ambiente organizacional",
+      "pai": 404572,
+      "nivel": 3,
+      "indice": "4.1.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417270,
+      "nome": "Papéis dos administradores",
+      "pai": 404572,
+      "nivel": 3,
+      "indice": "4.1.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417274,
+      "nome": "Níveis organizacionais",
+      "pai": 404572,
+      "nivel": 3,
+      "indice": "4.1.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417273,
+      "nome": "Habilidades do Administrador",
+      "pai": 404572,
+      "nivel": 3,
+      "indice": "4.1.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404674,
+      "nome": "Processo organizacional (PODC)",
+      "pai": 404572,
+      "nivel": 3,
+      "indice": "4.1.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404675,
+      "nome": "Planejamento",
+      "pai": 404674,
+      "nivel": 4,
+      "indice": "4.1.6.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404678,
+      "nome": "Organização",
+      "pai": 404674,
+      "nivel": 4,
+      "indice": "4.1.6.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404677,
+      "nome": "Direção",
+      "pai": 404674,
+      "nivel": 4,
+      "indice": "4.1.6.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404676,
+      "nome": "Controle",
+      "pai": 404674,
+      "nivel": 4,
+      "indice": "4.1.6.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417276,
+      "nome": "Teorias da Administração",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404573,
+      "nome": "Abordagem clássica",
+      "pai": 417276,
+      "nivel": 3,
+      "indice": "4.2.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404575,
+      "nome": "Teoria da administração científica",
+      "pai": 404573,
+      "nivel": 4,
+      "indice": "4.2.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404574,
+      "nome": "Teoria clássica",
+      "pai": 404573,
+      "nivel": 4,
+      "indice": "4.2.1.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404576,
+      "nome": "Princípios gerais da administração segundo Fayol",
+      "pai": 404574,
+      "nivel": 5,
+      "indice": "4.2.1.2.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404577,
+      "nome": "Abordagem humanística",
+      "pai": 417276,
+      "nivel": 3,
+      "indice": "4.2.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404578,
+      "nome": "Teoria das relações humanas ",
+      "pai": 404577,
+      "nivel": 4,
+      "indice": "4.2.2.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404579,
+      "nome": "Abordagem neoclássica",
+      "pai": 417276,
+      "nivel": 3,
+      "indice": "4.2.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404580,
+      "nome": "Teoria Neoclássica da Administração",
+      "pai": 404579,
+      "nivel": 4,
+      "indice": "4.2.3.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404581,
+      "nome": "Administração por objetivos (APO)",
+      "pai": 404579,
+      "nivel": 4,
+      "indice": "4.2.3.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404582,
+      "nome": "Abordagem Estruturalista ",
+      "pai": 417276,
+      "nivel": 3,
+      "indice": "4.2.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404583,
+      "nome": "Teoria da burocracia",
+      "pai": 404582,
+      "nivel": 4,
+      "indice": "4.2.4.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404584,
+      "nome": "Teoria estruturalista",
+      "pai": 404582,
+      "nivel": 4,
+      "indice": "4.2.4.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404585,
+      "nome": "Abordagem Comportamental ",
+      "pai": 417276,
+      "nivel": 3,
+      "indice": "4.2.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404586,
+      "nome": "Teoria comportamental ou behaviorista da Administração ",
+      "pai": 404585,
+      "nivel": 4,
+      "indice": "4.2.5.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417240,
+      "nome": "Comportamento organizacional ",
+      "pai": 404585,
+      "nivel": 4,
+      "indice": "4.2.5.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417280,
+      "nome": "Teoria do Desenvolvimento Organizacional",
+      "pai": 404585,
+      "nivel": 4,
+      "indice": "4.2.5.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404587,
+      "nome": "Abordagem Sistêmica",
+      "pai": 417276,
+      "nivel": 3,
+      "indice": "4.2.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404589,
+      "nome": "Teoria Geral dos Sistemas ",
+      "pai": 404587,
+      "nivel": 4,
+      "indice": "4.2.6.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404591,
+      "nome": "Abordagem Contingencial ",
+      "pai": 417276,
+      "nivel": 3,
+      "indice": "4.2.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404592,
+      "nome": "Teoria contingencial ",
+      "pai": 404591,
+      "nivel": 4,
+      "indice": "4.2.7.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404608,
+      "nome": "Planejamento e estratégia ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425401,
+      "nome": "Planejamento das organizações",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425402,
+      "nome": "Níveis do planejamento",
+      "pai": 425401,
+      "nivel": 4,
+      "indice": "4.3.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404609,
+      "nome": "Planejamento Estratégico",
+      "pai": 425402,
+      "nivel": 5,
+      "indice": "4.3.1.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425403,
+      "nome": "Planejamento Tático ",
+      "pai": 425402,
+      "nivel": 5,
+      "indice": "4.3.1.1.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425404,
+      "nome": "Planejamento Operacional ",
+      "pai": 425402,
+      "nivel": 5,
+      "indice": "4.3.1.1.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404610,
+      "nome": "Missão, Visão e Negócio",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404614,
+      "nome": "Diagnóstico Estratégico – Análise SWOT",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404615,
+      "nome": "Matriz GUT",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417250,
+      "nome": "Ferramenta 5W2H",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404612,
+      "nome": "Planejamento por Cenários",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425405,
+      "nome": "Objetivos, Metas e Planos",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425406,
+      "nome": "Escolas do Planejamento ",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404611,
+      "nome": "Estratégia",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417238,
+      "nome": "Estratégias Deliberadas e Emergentes",
+      "pai": 404611,
+      "nivel": 4,
+      "indice": "4.3.9.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417296,
+      "nome": "Condições Necessárias para se Desenvolver a Estratégia ",
+      "pai": 404611,
+      "nivel": 4,
+      "indice": "4.3.9.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425407,
+      "nome": "Transformação Estratégica",
+      "pai": 404611,
+      "nivel": 4,
+      "indice": "4.3.9.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404616,
+      "nome": "Análise Competitiva e Estratégias Genéricas",
+      "pai": 404611,
+      "nivel": 4,
+      "indice": "4.3.9.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404619,
+      "nome": "Liderança nos custos",
+      "pai": 404616,
+      "nivel": 5,
+      "indice": "4.3.9.4.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417295,
+      "nome": "Diferenciação",
+      "pai": 404616,
+      "nivel": 5,
+      "indice": "4.3.9.4.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425408,
+      "nome": "Estratégia como Posicionamento",
+      "pai": 404611,
+      "nivel": 4,
+      "indice": "4.3.9.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404599,
+      "nome": "Modelo de Cinco Forças de Porter",
+      "pai": 425408,
+      "nivel": 5,
+      "indice": "4.3.9.5.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425410,
+      "nome": "Estratégias Genéricas de Porter",
+      "pai": 425408,
+      "nivel": 5,
+      "indice": "4.3.9.5.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425411,
+      "nome": "Matriz de Ansoff ",
+      "pai": 425408,
+      "nivel": 5,
+      "indice": "4.3.9.5.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425412,
+      "nome": "Matriz BCG ",
+      "pai": 425408,
+      "nivel": 5,
+      "indice": "4.3.9.5.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425413,
+      "nome": "Matriz GE/Mckinsey ",
+      "pai": 425408,
+      "nivel": 5,
+      "indice": "4.3.9.5.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425414,
+      "nome": "Estratégias de Miles e Snow",
+      "pai": 425408,
+      "nivel": 5,
+      "indice": "4.3.9.5.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425415,
+      "nome": "Estratégia como Movimento",
+      "pai": 404611,
+      "nivel": 4,
+      "indice": "4.3.9.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425416,
+      "nome": "Tipos de Estratégia ",
+      "pai": 404611,
+      "nivel": 4,
+      "indice": "4.3.9.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425417,
+      "nome": "Estratégia de Sobrevivência ",
+      "pai": 425416,
+      "nivel": 5,
+      "indice": "4.3.9.7.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425418,
+      "nome": "Estratégia de Manutenção",
+      "pai": 425416,
+      "nivel": 5,
+      "indice": "4.3.9.7.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425419,
+      "nome": "Estratégia de Crescimento",
+      "pai": 425416,
+      "nivel": 5,
+      "indice": "4.3.9.7.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425420,
+      "nome": "Estratégia de Desenvolvimento ",
+      "pai": 425416,
+      "nivel": 5,
+      "indice": "4.3.9.7.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404593,
+      "nome": "Gestão Estratégica",
+      "pai": 404611,
+      "nivel": 4,
+      "indice": "4.3.9.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417300,
+      "nome": "Redes e Alianças",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.10.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404618,
+      "nome": "Controle Estratégico ",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.11.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404594,
+      "nome": "Balanced Scorecard (BSC)",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.12.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425421,
+      "nome": "Perspectivas/dimensões do BSC",
+      "pai": 404594,
+      "nivel": 4,
+      "indice": "4.3.12.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425422,
+      "nome": "Mapas estratégicos",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.13.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425423,
+      "nome": "Planejamento Estratégico Situacional - PES ",
+      "pai": 404608,
+      "nivel": 3,
+      "indice": "4.3.14.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404625,
+      "nome": "Estrutura Organizacional",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425424,
+      "nome": "Estrutura formal e informal",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417321,
+      "nome": "Especialização do trabalho",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425425,
+      "nome": "Níveis organizacionais",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404624,
+      "nome": "Organograma",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425426,
+      "nome": "Enriquecimento do trabalho",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425427,
+      "nome": "Cadeia de comando",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417231,
+      "nome": "Amplitude de controle ",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404621,
+      "nome": "Centralização e descentralização",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417315,
+      "nome": "Posições de Linha e Staff ",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417242,
+      "nome": "Modelos organizacionais ",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.10.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417233,
+      "nome": "Departamentalização",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.11.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404622,
+      "nome": "Departamentalização Funcional",
+      "pai": 417233,
+      "nivel": 4,
+      "indice": "4.4.11.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404623,
+      "nome": "Departamentalização por Produto",
+      "pai": 417233,
+      "nivel": 4,
+      "indice": "4.4.11.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425428,
+      "nome": "Departamentalização por Cliente",
+      "pai": 417233,
+      "nivel": 4,
+      "indice": "4.4.11.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425429,
+      "nome": "Departamentalização Territorial ou Geográfica ",
+      "pai": 417233,
+      "nivel": 4,
+      "indice": "4.4.11.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425430,
+      "nome": "Departamentalização por Processo ",
+      "pai": 417233,
+      "nivel": 4,
+      "indice": "4.4.11.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425431,
+      "nome": "Departamentalização por Projeto",
+      "pai": 417233,
+      "nivel": 4,
+      "indice": "4.4.11.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425432,
+      "nome": "Departamentalização x Estruturas",
+      "pai": 417233,
+      "nivel": 4,
+      "indice": "4.4.11.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425433,
+      "nome": "Desenho estrutural das organizações ",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.12.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425434,
+      "nome": "Estrutura Linear",
+      "pai": 425433,
+      "nivel": 4,
+      "indice": "4.4.12.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425435,
+      "nome": "Estrutura Funcional",
+      "pai": 425433,
+      "nivel": 4,
+      "indice": "4.4.12.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425436,
+      "nome": "Estrutura Divisional ",
+      "pai": 425433,
+      "nivel": 4,
+      "indice": "4.4.12.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404620,
+      "nome": "Estrutura Matricial ",
+      "pai": 425433,
+      "nivel": 4,
+      "indice": "4.4.12.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425437,
+      "nome": "Estrutura em Rede ",
+      "pai": 425433,
+      "nivel": 4,
+      "indice": "4.4.12.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425438,
+      "nome": "Organização Virtual e Sem Fronteiras",
+      "pai": 425433,
+      "nivel": 4,
+      "indice": "4.4.12.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425439,
+      "nome": "Horizontalidade e Verticalidade ",
+      "pai": 425433,
+      "nivel": 4,
+      "indice": "4.4.12.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425440,
+      "nome": "Fatores que influenciam a estrutura",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.13.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425442,
+      "nome": "A Estrutura Segue a Estratégia",
+      "pai": 425440,
+      "nivel": 4,
+      "indice": "4.4.13.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425443,
+      "nome": "A Estrutura Segue o Ambiente ",
+      "pai": 425440,
+      "nivel": 4,
+      "indice": "4.4.13.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425444,
+      "nome": "A Estrutura se Adapta à Tecnologia ",
+      "pai": 425440,
+      "nivel": 4,
+      "indice": "4.4.13.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425445,
+      "nome": "A Estrutura Segue o Tamanho ",
+      "pai": 425440,
+      "nivel": 4,
+      "indice": "4.4.13.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417241,
+      "nome": "Estruturas de Mintzberg ",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.14.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425441,
+      "nome": "Autoridade ",
+      "pai": 404625,
+      "nivel": 3,
+      "indice": "4.4.15.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425446,
+      "nome": "Tipos de Autoridade Formal ",
+      "pai": 425441,
+      "nivel": 4,
+      "indice": "4.4.15.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 432519,
+      "nome": "Competências Organizacionais",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404670,
+      "nome": "Motivação",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404661,
+      "nome": "Motivação e Desempenho",
+      "pai": 404670,
+      "nivel": 3,
+      "indice": "4.6.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425447,
+      "nome": "Ciclo Motivacional ",
+      "pai": 404670,
+      "nivel": 3,
+      "indice": "4.6.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425448,
+      "nome": "Teorias motivacionais",
+      "pai": 404670,
+      "nivel": 3,
+      "indice": "4.6.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425449,
+      "nome": "Teoria das Necessidades de Maslow",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425450,
+      "nome": "Teoria X e Y de McGregor",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425451,
+      "nome": "Teoria Z de William Ouchi ",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425452,
+      "nome": "Teoria dos Dois Fatores de Herzberg",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425453,
+      "nome": "Teoria do Reforço",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425454,
+      "nome": "Teoria ERC (ou ERG) – Alderfer",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425455,
+      "nome": "Teoria da Expectância de Vroom ",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425456,
+      "nome": "Teoria das Necessidades Adquiridas, de McClelland",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425457,
+      "nome": "Teoria da Equidade",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425458,
+      "nome": "Teoria do Estabelecimento de Objetivos (Autoeficácia) ",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.10.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425459,
+      "nome": "Teoria da Avaliação Cognitiva",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.11.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425460,
+      "nome": "Teoria da Dissonância Cognitiva, de Festinger",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.12.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425461,
+      "nome": "Teoria da Autodeterminação (TDA), de White",
+      "pai": 425448,
+      "nivel": 4,
+      "indice": "4.6.3.13.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425462,
+      "nome": "Motivação e o Contrato Psicológico",
+      "pai": 404670,
+      "nivel": 3,
+      "indice": "4.6.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417260,
+      "nome": "Empoderamento (Empowerment)",
+      "pai": 404670,
+      "nivel": 3,
+      "indice": "4.6.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425463,
+      "nome": "Comprometimento",
+      "pai": 404670,
+      "nivel": 3,
+      "indice": "4.6.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404664,
+      "nome": "Liderança",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425464,
+      "nome": "Diferenças entre Líderes e Chefes",
+      "pai": 404664,
+      "nivel": 3,
+      "indice": "4.7.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425465,
+      "nome": "Tipos e Fontes de Poder",
+      "pai": 404664,
+      "nivel": 3,
+      "indice": "4.7.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425466,
+      "nome": "Abordagens de Liderança",
+      "pai": 404664,
+      "nivel": 3,
+      "indice": "4.7.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425467,
+      "nome": "Teoria dos Traços de Liderança",
+      "pai": 404664,
+      "nivel": 3,
+      "indice": "4.7.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 426166,
+      "nome": "Teorias Comportamentais ",
+      "pai": 404664,
+      "nivel": 3,
+      "indice": "4.7.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425468,
+      "nome": "Estilos de Liderança",
+      "pai": 426166,
+      "nivel": 4,
+      "indice": "4.7.5.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425469,
+      "nome": "Estilos de Liderança de Likert ",
+      "pai": 426166,
+      "nivel": 4,
+      "indice": "4.7.5.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425470,
+      "nome": "Continuum da Liderança ",
+      "pai": 426166,
+      "nivel": 4,
+      "indice": "4.7.5.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425498,
+      "nome": "Grid Gerencial de Blake e Mouton",
+      "pai": 426166,
+      "nivel": 4,
+      "indice": "4.7.5.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425499,
+      "nome": "Lideranças Contingenciais e Situacionais",
+      "pai": 404664,
+      "nivel": 3,
+      "indice": "4.7.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425500,
+      "nome": "Teoria da Contingência de Fiedle",
+      "pai": 404664,
+      "nivel": 3,
+      "indice": "4.7.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425501,
+      "nome": "Teoria Caminho-meta ",
+      "pai": 404664,
+      "nivel": 3,
+      "indice": "4.7.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425502,
+      "nome": "Teoria Situacional ",
+      "pai": 404664,
+      "nivel": 3,
+      "indice": "4.7.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425503,
+      "nome": "Liderança Transacional x Transformacional ",
+      "pai": 404664,
+      "nivel": 3,
+      "indice": "4.7.10.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425504,
+      "nome": "Liderança Carismática",
+      "pai": 404664,
+      "nivel": 3,
+      "indice": "4.7.11.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425505,
+      "nome": "Liderança Visionária",
+      "pai": 404664,
+      "nivel": 3,
+      "indice": "4.7.12.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425506,
+      "nome": "Comunicação",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425507,
+      "nome": "Comunicação Eficiente e Efetiva ",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425508,
+      "nome": "Canais de Comunicação",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425509,
+      "nome": "Comunicação Verbal e Não Verbal ",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425510,
+      "nome": "Comunicação Formal e Informal ",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425511,
+      "nome": "Comunicação Organizacional",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425512,
+      "nome": "Fluxos da Comunicação",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425513,
+      "nome": "Comunicação Integrada",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425514,
+      "nome": "Comunicação Pública e Comunicação Estatal ",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425515,
+      "nome": "Barreiras à Comunicação ",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425516,
+      "nome": "Redes de Comunicação",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.10.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425517,
+      "nome": "Rede Formal ",
+      "pai": 425516,
+      "nivel": 4,
+      "indice": "4.8.10.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425518,
+      "nome": "Rede Informal ",
+      "pai": 425516,
+      "nivel": 4,
+      "indice": "4.8.10.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425519,
+      "nome": "Comunicação Interna - Endomarketing ",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.11.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425520,
+      "nome": "Processo de Comunicação",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.12.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425521,
+      "nome": "Comunicação Administrativa",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.13.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425522,
+      "nome": "Técnicas e Ferramentas de Comunicação",
+      "pai": 425506,
+      "nivel": 3,
+      "indice": "4.8.14.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404617,
+      "nome": "Cultura organizacional",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425523,
+      "nome": "Cultura organizacional",
+      "pai": 404617,
+      "nivel": 3,
+      "indice": "4.9.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425524,
+      "nome": "Níveis da cultura",
+      "pai": 425523,
+      "nivel": 4,
+      "indice": "4.9.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425525,
+      "nome": "Artefatos",
+      "pai": 425524,
+      "nivel": 5,
+      "indice": "4.9.1.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425526,
+      "nome": "Valores compartilhados",
+      "pai": 425524,
+      "nivel": 5,
+      "indice": "4.9.1.1.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425527,
+      "nome": "Pressuposições básicas",
+      "pai": 425524,
+      "nivel": 5,
+      "indice": "4.9.1.1.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425528,
+      "nome": "Cultura Forte e Cultura Fraca",
+      "pai": 425523,
+      "nivel": 4,
+      "indice": "4.9.1.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425529,
+      "nome": "Elementos da Cultura",
+      "pai": 425523,
+      "nivel": 4,
+      "indice": "4.9.1.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425530,
+      "nome": "Artefatos Verbais",
+      "pai": 425529,
+      "nivel": 5,
+      "indice": "4.9.1.3.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425531,
+      "nome": "Artefatos Comportamentais",
+      "pai": 425529,
+      "nivel": 5,
+      "indice": "4.9.1.3.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425532,
+      "nome": "Artefatos Físicos",
+      "pai": 425529,
+      "nivel": 5,
+      "indice": "4.9.1.3.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425533,
+      "nome": "Cultura Mecanicista e Cultura Orgânica",
+      "pai": 425523,
+      "nivel": 4,
+      "indice": "4.9.1.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425534,
+      "nome": "Cultura Dominante e Subculturas",
+      "pai": 425523,
+      "nivel": 4,
+      "indice": "4.9.1.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425535,
+      "nome": "Disfunções da Cultura",
+      "pai": 425523,
+      "nivel": 4,
+      "indice": "4.9.1.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425536,
+      "nome": "Clima Organizacional ",
+      "pai": 404617,
+      "nivel": 3,
+      "indice": "4.9.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425537,
+      "nome": "Métodos e Técnicas de Pesquisa Organizacional ",
+      "pai": 404617,
+      "nivel": 3,
+      "indice": "4.9.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425538,
+      "nome": "Controle e Avaliação",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.10.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425539,
+      "nome": "Conceito de Controle",
+      "pai": 425538,
+      "nivel": 3,
+      "indice": "4.10.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425540,
+      "nome": "Tipos de Controle ",
+      "pai": 425539,
+      "nivel": 4,
+      "indice": "4.10.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425541,
+      "nome": "Momento do Controle ",
+      "pai": 425539,
+      "nivel": 4,
+      "indice": "4.10.1.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425542,
+      "nome": "Outras Classificações de Controle",
+      "pai": 425539,
+      "nivel": 4,
+      "indice": "4.10.1.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417298,
+      "nome": "Indicadores de desempenho",
+      "pai": 425538,
+      "nivel": 3,
+      "indice": "4.10.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425543,
+      "nome": "Uso de Controles e Indicadores de Produtividade ",
+      "pai": 417298,
+      "nivel": 4,
+      "indice": "4.10.2.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425544,
+      "nome": "Tipos de Indicadores",
+      "pai": 417298,
+      "nivel": 4,
+      "indice": "4.10.2.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425545,
+      "nome": "Indicadores Ligados à Dimensão Resultado ",
+      "pai": 417298,
+      "nivel": 4,
+      "indice": "4.10.2.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425546,
+      "nome": "Indicadores de eficiência",
+      "pai": 425545,
+      "nivel": 5,
+      "indice": "4.10.2.3.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425547,
+      "nome": "Indicadores de eficácia",
+      "pai": 425545,
+      "nivel": 5,
+      "indice": "4.10.2.3.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425548,
+      "nome": "Indicadores de efetividade",
+      "pai": 425545,
+      "nivel": 5,
+      "indice": "4.10.2.3.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425549,
+      "nome": "Indicadores Ligados à Dimensão Esforço",
+      "pai": 417298,
+      "nivel": 4,
+      "indice": "4.10.2.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425550,
+      "nome": "Indicadores de economicidade",
+      "pai": 425549,
+      "nivel": 5,
+      "indice": "4.10.2.4.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425551,
+      "nome": "Indicadores de execução",
+      "pai": 425549,
+      "nivel": 5,
+      "indice": "4.10.2.4.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425552,
+      "nome": "Indicadores de excelência",
+      "pai": 425549,
+      "nivel": 5,
+      "indice": "4.10.2.4.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425553,
+      "nome": "Variáveis dos Indicadores ",
+      "pai": 417298,
+      "nivel": 4,
+      "indice": "4.10.2.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425554,
+      "nome": "Qualidade dos Indicadores ",
+      "pai": 417298,
+      "nivel": 4,
+      "indice": "4.10.2.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425555,
+      "nome": "Avaliação de Programas e Projetos Governamentais",
+      "pai": 425538,
+      "nivel": 3,
+      "indice": "4.10.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425556,
+      "nome": "Controle Censitário e por Amostragem",
+      "pai": 425555,
+      "nivel": 4,
+      "indice": "4.10.3.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425557,
+      "nome": "Métodos Quantitativos e Qualitativos",
+      "pai": 425555,
+      "nivel": 4,
+      "indice": "4.10.3.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425558,
+      "nome": "Tipos de avaliação",
+      "pai": 425555,
+      "nivel": 4,
+      "indice": "4.10.3.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425559,
+      "nome": "Análise Custo-Benefício",
+      "pai": 425558,
+      "nivel": 5,
+      "indice": "4.10.3.3.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425560,
+      "nome": "Análise Custo-Efetividade",
+      "pai": 425558,
+      "nivel": 5,
+      "indice": "4.10.3.3.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425561,
+      "nome": "Coleta, Análise e Interpretação de Informações",
+      "pai": 425538,
+      "nivel": 3,
+      "indice": "4.10.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425563,
+      "nome": "Métodos e técnicas de Coleta de Dados",
+      "pai": 425561,
+      "nivel": 4,
+      "indice": "4.10.4.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425564,
+      "nome": "Métodos e técnicas de Análise dos Dados",
+      "pai": 425561,
+      "nivel": 4,
+      "indice": "4.10.4.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425562,
+      "nome": "O Fator Humano no Processo de Controle",
+      "pai": 425538,
+      "nivel": 3,
+      "indice": "4.10.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425565,
+      "nome": "Efeitos Comportamentais no Processo de Controle",
+      "pai": 425562,
+      "nivel": 4,
+      "indice": "4.10.5.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425566,
+      "nome": "Abordagens Estratégicas ao Controle Comportamental ",
+      "pai": 425562,
+      "nivel": 4,
+      "indice": "4.10.5.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425568,
+      "nome": "Gestão de Mudanças",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.11.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425579,
+      "nome": "Criatividade e Inovação Organizacional",
+      "pai": 425568,
+      "nivel": 3,
+      "indice": "4.11.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425580,
+      "nome": "Criatividade ",
+      "pai": 425579,
+      "nivel": 4,
+      "indice": "4.11.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425581,
+      "nome": "Inovação ",
+      "pai": 425579,
+      "nivel": 4,
+      "indice": "4.11.1.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425582,
+      "nome": "Inovação Incremental e Radical ",
+      "pai": 425579,
+      "nivel": 4,
+      "indice": "4.11.1.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425583,
+      "nome": "Mudança Organizacional ",
+      "pai": 425568,
+      "nivel": 3,
+      "indice": "4.11.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425584,
+      "nome": "Agentes de Mudança ",
+      "pai": 425583,
+      "nivel": 4,
+      "indice": "4.11.2.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425585,
+      "nome": "Dimensões Estratégica de Mudança",
+      "pai": 425583,
+      "nivel": 4,
+      "indice": "4.11.2.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425586,
+      "nome": "Tipos de Mudança",
+      "pai": 425583,
+      "nivel": 4,
+      "indice": "4.11.2.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425587,
+      "nome": "Modelos de Mudança",
+      "pai": 425568,
+      "nivel": 3,
+      "indice": "4.11.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425588,
+      "nome": "Mudança de Cima para Baixo (Top-Down) ",
+      "pai": 425587,
+      "nivel": 4,
+      "indice": "4.11.3.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425589,
+      "nome": "Mudança de Baixo para Cima (Bottom-Up)",
+      "pai": 425587,
+      "nivel": 4,
+      "indice": "4.11.3.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425590,
+      "nome": "Mudança Integrada ",
+      "pai": 425587,
+      "nivel": 4,
+      "indice": "4.11.3.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425591,
+      "nome": "Resistências às Mudanças",
+      "pai": 425568,
+      "nivel": 3,
+      "indice": "4.11.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425592,
+      "nome": "Mudanças Planejadas",
+      "pai": 425568,
+      "nivel": 3,
+      "indice": "4.11.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404663,
+      "nome": "Gestão de Conflitos",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.12.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425593,
+      "nome": "Mudanças nas Visões sobre os Conflitos",
+      "pai": 404663,
+      "nivel": 3,
+      "indice": "4.12.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425594,
+      "nome": "Conflitos Funcionais e Disfuncionais",
+      "pai": 404663,
+      "nivel": 3,
+      "indice": "4.12.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425595,
+      "nome": "Conflitos Substantivos e Emocionais ",
+      "pai": 404663,
+      "nivel": 3,
+      "indice": "4.12.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425596,
+      "nome": "Tipos de Conflitos",
+      "pai": 404663,
+      "nivel": 3,
+      "indice": "4.12.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425597,
+      "nome": "Causas dos Conflitos ",
+      "pai": 404663,
+      "nivel": 3,
+      "indice": "4.12.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425598,
+      "nome": "Gravidade dos Conflitos ",
+      "pai": 404663,
+      "nivel": 3,
+      "indice": "4.12.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425599,
+      "nome": "Estilos de Gestão de Conflitos",
+      "pai": 404663,
+      "nivel": 3,
+      "indice": "4.12.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425600,
+      "nome": "Abordagens na Resolução de Conflitos ",
+      "pai": 404663,
+      "nivel": 3,
+      "indice": "4.12.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425601,
+      "nome": "Abordagem Estrutural",
+      "pai": 425600,
+      "nivel": 4,
+      "indice": "4.12.8.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425602,
+      "nome": "Abordagem de Processo",
+      "pai": 425600,
+      "nivel": 4,
+      "indice": "4.12.8.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425603,
+      "nome": "Abordagem Mista",
+      "pai": 425600,
+      "nivel": 4,
+      "indice": "4.12.8.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425604,
+      "nome": "Efeitos do Conflito",
+      "pai": 404663,
+      "nivel": 3,
+      "indice": "4.12.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404626,
+      "nome": "Gestão de processos",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.13.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404627,
+      "nome": "Manualização",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404628,
+      "nome": "Gestão Funcional versus Gestão por Processos",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417301,
+      "nome": "O Gestor de Processos ",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404629,
+      "nome": "Cadeia de Valor",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404630,
+      "nome": "Tipos de Processos",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425605,
+      "nome": "Processos finalísticos",
+      "pai": 404630,
+      "nivel": 4,
+      "indice": "4.13.5.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425606,
+      "nome": "Processos de suporte",
+      "pai": 404630,
+      "nivel": 4,
+      "indice": "4.13.5.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425607,
+      "nome": "Processos gerenciais",
+      "pai": 404630,
+      "nivel": 4,
+      "indice": "4.13.5.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425608,
+      "nome": "Níveis de Detalhamento dos Processos ",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425609,
+      "nome": "Mapeamento de Processos ",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425610,
+      "nome": "Projeto de Mapeamento e Modelagem de Processos",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425611,
+      "nome": "Técnicas de Mapeamento de Processos",
+      "pai": 425610,
+      "nivel": 4,
+      "indice": "4.13.8.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425612,
+      "nome": "Técnicas de Coleta de Dados ",
+      "pai": 425610,
+      "nivel": 4,
+      "indice": "4.13.8.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425613,
+      "nome": "Técnicas de Análise e Melhoria de Processos ",
+      "pai": 425610,
+      "nivel": 4,
+      "indice": "4.13.8.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425614,
+      "nome": "Nível de maturidade em processos",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425615,
+      "nome": "Visão do CBOK ",
+      "pai": 425614,
+      "nivel": 4,
+      "indice": "4.13.9.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425616,
+      "nome": "Visão da SDPS",
+      "pai": 425614,
+      "nivel": 4,
+      "indice": "4.13.9.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425617,
+      "nome": "Noções de Estatística Aplicada ao Controle e à Melhoria de Processos ",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.10.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425618,
+      "nome": "População e Amostra",
+      "pai": 425617,
+      "nivel": 4,
+      "indice": "4.13.10.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425619,
+      "nome": "Média e Variabilidade ",
+      "pai": 425617,
+      "nivel": 4,
+      "indice": "4.13.10.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425620,
+      "nome": "Melhoria dos Processos",
+      "pai": 425617,
+      "nivel": 4,
+      "indice": "4.13.10.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425621,
+      "nome": "Lean Management ",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.11.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425622,
+      "nome": "Reengenharia ",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.12.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425623,
+      "nome": "Guia para o Gerenciamento de Processos de Negócio - Corpo Comum de Conhecimento (BPM CBOK³)",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.13.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425624,
+      "nome": "Áreas de conhecimento do CBOK",
+      "pai": 425623,
+      "nivel": 4,
+      "indice": "4.13.13.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425625,
+      "nome": "Organização, sistemas e métodos",
+      "pai": 404626,
+      "nivel": 3,
+      "indice": "4.13.14.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417247,
+      "nome": "Gestão da Qualidade",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.14.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417302,
+      "nome": "Eras da Gestão da Qualidade ",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417249,
+      "nome": "Inspeção ",
+      "pai": 417302,
+      "nivel": 4,
+      "indice": "4.14.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425626,
+      "nome": "Controle Estatístico da Qualidade",
+      "pai": 417302,
+      "nivel": 4,
+      "indice": "4.14.1.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425627,
+      "nome": "Garantia da Qualidade ",
+      "pai": 417302,
+      "nivel": 4,
+      "indice": "4.14.1.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425628,
+      "nome": "Gestão Estratégica da Qualidade ou Gestão da Qualidade Total ",
+      "pai": 417302,
+      "nivel": 4,
+      "indice": "4.14.1.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417251,
+      "nome": "Principais Autores da Qualidade",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425629,
+      "nome": "Shewart",
+      "pai": 417251,
+      "nivel": 4,
+      "indice": "4.14.2.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425630,
+      "nome": "Deming ",
+      "pai": 417251,
+      "nivel": 4,
+      "indice": "4.14.2.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425631,
+      "nome": "Juran ",
+      "pai": 417251,
+      "nivel": 4,
+      "indice": "4.14.2.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425632,
+      "nome": "Feigenbaum ",
+      "pai": 417251,
+      "nivel": 4,
+      "indice": "4.14.2.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425633,
+      "nome": "Crosby ",
+      "pai": 417251,
+      "nivel": 4,
+      "indice": "4.14.2.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417304,
+      "nome": "Ferramentas de gestão da qualidade",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404597,
+      "nome": "Diagrama de Causa e Efeito ou de Ishikawa ",
+      "pai": 417304,
+      "nivel": 4,
+      "indice": "4.14.3.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425634,
+      "nome": "Folha de Verificação",
+      "pai": 417304,
+      "nivel": 4,
+      "indice": "4.14.3.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425635,
+      "nome": "Histograma ",
+      "pai": 417304,
+      "nivel": 4,
+      "indice": "4.14.3.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404601,
+      "nome": "Gráfico de Pareto",
+      "pai": 417304,
+      "nivel": 4,
+      "indice": "4.14.3.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425636,
+      "nome": "Diagrama de Correlação ou Dispersão",
+      "pai": 417304,
+      "nivel": 4,
+      "indice": "4.14.3.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425637,
+      "nome": "Fluxograma",
+      "pai": 417304,
+      "nivel": 4,
+      "indice": "4.14.3.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425638,
+      "nome": "Gráfico de Controle ",
+      "pai": 417304,
+      "nivel": 4,
+      "indice": "4.14.3.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404598,
+      "nome": "Programa 5S (ou 6S) ",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404607,
+      "nome": "Seis Sigma",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417305,
+      "nome": "Kaizen (melhoria contínua) ",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404606,
+      "nome": "Ciclo PDCA (Ciclo de Deming ou da Melhoria contínua)",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404595,
+      "nome": "Benchmarking",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404603,
+      "nome": "Gerenciamento pelas Diretrizes ",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417303,
+      "nome": "Modelo de Excelência em Gestão (MEG) da Fundação Nacional da Qualidade (FNQ)",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.10.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417252,
+      "nome": "Ciclo PDCL",
+      "pai": 417303,
+      "nivel": 4,
+      "indice": "4.14.10.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425639,
+      "nome": "Programa Nacional de Gestão Pública e Desburocratização (Gespública) ",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.11.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404605,
+      "nome": "Critérios de Avaliação",
+      "pai": 425639,
+      "nivel": 4,
+      "indice": "4.14.11.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404604,
+      "nome": "Qualidade e Produtividade ",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.12.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404602,
+      "nome": "Processos e Certificação ISO 9000:2000 ",
+      "pai": 417247,
+      "nivel": 3,
+      "indice": "4.14.13.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417254,
+      "nome": "Gestão do Conhecimento",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.15.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425640,
+      "nome": "Conceitos de Dados, Informação e Conhecimento",
+      "pai": 417254,
+      "nivel": 3,
+      "indice": "4.15.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425641,
+      "nome": "Gestão do Conhecimento ",
+      "pai": 417254,
+      "nivel": 3,
+      "indice": "4.15.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425642,
+      "nome": "Conhecimento Tácito e Explícito ",
+      "pai": 425641,
+      "nivel": 4,
+      "indice": "4.15.2.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425643,
+      "nome": "Aprendizagem Organizacional ",
+      "pai": 425641,
+      "nivel": 4,
+      "indice": "4.15.2.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425644,
+      "nome": "Modelos de Aprendizagem ",
+      "pai": 425643,
+      "nivel": 5,
+      "indice": "4.15.2.2.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417237,
+      "nome": "Modelo Behaviorista",
+      "pai": 425644,
+      "nivel": 6,
+      "indice": "4.15.2.2.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404600,
+      "nome": "Modelo Cognitivista ",
+      "pai": 425644,
+      "nivel": 6,
+      "indice": "4.15.2.2.1.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404590,
+      "nome": "Cinco Vias de Aprendizagem (Garvin) ",
+      "pai": 425644,
+      "nivel": 6,
+      "indice": "4.15.2.2.1.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404588,
+      "nome": "A Quinta Disciplina (Peter Senge)",
+      "pai": 425644,
+      "nivel": 6,
+      "indice": "4.15.2.2.1.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417232,
+      "nome": "Aquisição Interna e Externa ",
+      "pai": 425643,
+      "nivel": 5,
+      "indice": "4.15.2.2.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404798,
+      "nome": "Organizações de Aprendizagem",
+      "pai": 417254,
+      "nivel": 3,
+      "indice": "4.15.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417342,
+      "nome": "Espiral do Conhecimento de Nonaka e Takeuchi ",
+      "pai": 417254,
+      "nivel": 3,
+      "indice": "4.15.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417326,
+      "nome": "Capital Intelectual ",
+      "pai": 417254,
+      "nivel": 3,
+      "indice": "4.15.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404631,
+      "nome": "Processo Decisório",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.16.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417256,
+      "nome": "Estrutura das Decisões Empresariais ",
+      "pai": 404631,
+      "nivel": 3,
+      "indice": "4.16.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404632,
+      "nome": "Tipos de Decisões",
+      "pai": 404631,
+      "nivel": 3,
+      "indice": "4.16.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404633,
+      "nome": "Decisões Programadas e Não programadas ",
+      "pai": 404632,
+      "nivel": 4,
+      "indice": "4.16.2.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404634,
+      "nome": "Tipos de Decisão por Nível Hierárquico ",
+      "pai": 404632,
+      "nivel": 4,
+      "indice": "4.16.2.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404635,
+      "nome": "Racionalidade e Racionalidade Limitada",
+      "pai": 404631,
+      "nivel": 3,
+      "indice": "4.16.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417306,
+      "nome": "Certeza, Risco e Incerteza ",
+      "pai": 404631,
+      "nivel": 3,
+      "indice": "4.16.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417239,
+      "nome": "Heurísticas - Processo de Julgamento e Tomada de Decisão ",
+      "pai": 404631,
+      "nivel": 3,
+      "indice": "4.16.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417327,
+      "nome": "Processo Linear e Sistêmico ",
+      "pai": 404631,
+      "nivel": 3,
+      "indice": "4.16.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417264,
+      "nome": "Técnicas de Análise e Solução de Problemas ",
+      "pai": 404631,
+      "nivel": 3,
+      "indice": "4.16.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417307,
+      "nome": "Ferramentas de Diagnóstico ",
+      "pai": 404631,
+      "nivel": 3,
+      "indice": "4.16.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425648,
+      "nome": "Princípio de Pareto ",
+      "pai": 417307,
+      "nivel": 4,
+      "indice": "4.16.8.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417230,
+      "nome": "Diagrama de Ishikawa",
+      "pai": 417307,
+      "nivel": 4,
+      "indice": "4.16.8.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417229,
+      "nome": "Diagrama de Dispersão ",
+      "pai": 417307,
+      "nivel": 4,
+      "indice": "4.16.8.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425649,
+      "nome": "Ferramentas de Desenvolvimento de Alternativas ",
+      "pai": 404631,
+      "nivel": 3,
+      "indice": "4.16.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404596,
+      "nome": "Brainstorming e Brainwriting ",
+      "pai": 425649,
+      "nivel": 4,
+      "indice": "4.16.9.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417228,
+      "nome": "Análise do Campo de Forças",
+      "pai": 425649,
+      "nivel": 4,
+      "indice": "4.16.9.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425650,
+      "nome": "Diagrama de Árvore de Decisão ",
+      "pai": 425649,
+      "nivel": 4,
+      "indice": "4.16.9.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425651,
+      "nome": "Método Cartesiano ",
+      "pai": 425649,
+      "nivel": 4,
+      "indice": "4.16.9.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425652,
+      "nome": "Método Delphi",
+      "pai": 425649,
+      "nivel": 4,
+      "indice": "4.16.9.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404669,
+      "nome": "Trabalho em Equipe ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.17.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425653,
+      "nome": "Formação dos Grupos ",
+      "pai": 404669,
+      "nivel": 3,
+      "indice": "4.17.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425654,
+      "nome": "Grupos versus Indivíduos ",
+      "pai": 404669,
+      "nivel": 3,
+      "indice": "4.17.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425655,
+      "nome": "Estrutura dos Grupos ",
+      "pai": 404669,
+      "nivel": 3,
+      "indice": "4.17.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425656,
+      "nome": "Liderança Formal ",
+      "pai": 425655,
+      "nivel": 4,
+      "indice": "4.17.3.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425657,
+      "nome": "Papéis ",
+      "pai": 425655,
+      "nivel": 4,
+      "indice": "4.17.3.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425658,
+      "nome": "Desempenho de Papel ",
+      "pai": 425655,
+      "nivel": 4,
+      "indice": "4.17.3.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425659,
+      "nome": "Normas ",
+      "pai": 425655,
+      "nivel": 4,
+      "indice": "4.17.3.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425660,
+      "nome": "Status do Grupo ",
+      "pai": 425655,
+      "nivel": 4,
+      "indice": "4.17.3.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425661,
+      "nome": "Tamanho do Grupo ",
+      "pai": 425655,
+      "nivel": 4,
+      "indice": "4.17.3.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425662,
+      "nome": "Composição do Grupo ",
+      "pai": 425655,
+      "nivel": 4,
+      "indice": "4.17.3.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425663,
+      "nome": "Grau de Coesão ",
+      "pai": 425655,
+      "nivel": 4,
+      "indice": "4.17.3.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425664,
+      "nome": "Equipes",
+      "pai": 404669,
+      "nivel": 3,
+      "indice": "4.17.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425665,
+      "nome": "Tipos de Equipe ",
+      "pai": 425664,
+      "nivel": 4,
+      "indice": "4.17.4.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425666,
+      "nome": "Criando Equipes Eficazes",
+      "pai": 404669,
+      "nivel": 3,
+      "indice": "4.17.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417285,
+      "nome": "Fatores de Contexto",
+      "pai": 425666,
+      "nivel": 4,
+      "indice": "4.17.5.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 423199,
+      "nome": "Fatores de Composição",
+      "pai": 425666,
+      "nivel": 4,
+      "indice": "4.17.5.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425667,
+      "nome": "Fatores de Processo",
+      "pai": 425666,
+      "nivel": 4,
+      "indice": "4.17.5.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425668,
+      "nome": "Fatores do Projeto de Trabalho",
+      "pai": 425666,
+      "nivel": 4,
+      "indice": "4.17.5.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425669,
+      "nome": "Competência Interpessoal ",
+      "pai": 404669,
+      "nivel": 3,
+      "indice": "4.17.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425670,
+      "nome": "Comportamentos Receptivo e Defensivo",
+      "pai": 404669,
+      "nivel": 3,
+      "indice": "4.17.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425671,
+      "nome": "Comportamento Receptivo ",
+      "pai": 425670,
+      "nivel": 4,
+      "indice": "4.17.7.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425672,
+      "nome": "Comportamento Defensivo ",
+      "pai": 425670,
+      "nivel": 4,
+      "indice": "4.17.7.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425673,
+      "nome": "Empatia e Compreensão Mútua",
+      "pai": 404669,
+      "nivel": 3,
+      "indice": "4.17.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404659,
+      "nome": "Gestão de Pessoas",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.18.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417314,
+      "nome": "Atribuições Básicas e Objetivos",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417320,
+      "nome": "Fundamentos, Teorias e Escolas da Administração e seu Impacto na Gestão de Pessoas ",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417317,
+      "nome": "A Função do Órgão de Gestão de Pessoas ",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417310,
+      "nome": "Gestão Estratégica de Pessoas ",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417311,
+      "nome": "Evolução dos Modelos de Gestão de Pessoas ",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417312,
+      "nome": "Evolução de acordo com Fischer",
+      "pai": 417311,
+      "nivel": 4,
+      "indice": "4.18.5.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417313,
+      "nome": "Modelo Instrumental, Político e Estratégico de Gestão de Pessoas ",
+      "pai": 417311,
+      "nivel": 4,
+      "indice": "4.18.5.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425674,
+      "nome": "Possibilidades e Limites da Gestão de Pessoas no Setor Público ",
+      "pai": 417311,
+      "nivel": 4,
+      "indice": "4.18.5.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404667,
+      "nome": "Recrutamento e Seleção de Pessoas ",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425675,
+      "nome": "Recrutamento",
+      "pai": 404667,
+      "nivel": 4,
+      "indice": "4.18.6.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425676,
+      "nome": "Seleção de Pessoas ",
+      "pai": 404667,
+      "nivel": 4,
+      "indice": "4.18.6.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425677,
+      "nome": "Recrutamento e Seleção nos Órgãos Públicos",
+      "pai": 404667,
+      "nivel": 4,
+      "indice": "4.18.6.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425678,
+      "nome": "Características profissionais",
+      "pai": 404667,
+      "nivel": 4,
+      "indice": "4.18.6.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417319,
+      "nome": "Cargos, Carreiras e Remuneração",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404668,
+      "nome": "Avaliação do Desempenho",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425679,
+      "nome": "Método das Escalas Gráficas ",
+      "pai": 404668,
+      "nivel": 4,
+      "indice": "4.18.8.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404662,
+      "nome": "Listas de Verificação ",
+      "pai": 404668,
+      "nivel": 4,
+      "indice": "4.18.8.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404660,
+      "nome": "Método da Escolha Forçada",
+      "pai": 404668,
+      "nivel": 4,
+      "indice": "4.18.8.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404672,
+      "nome": "Método dos Incidentes Críticos ",
+      "pai": 404668,
+      "nivel": 4,
+      "indice": "4.18.8.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417309,
+      "nome": "Método da Pesquisa de Campo ",
+      "pai": 404668,
+      "nivel": 4,
+      "indice": "4.18.8.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404673,
+      "nome": "Avaliação 360° ",
+      "pai": 404668,
+      "nivel": 4,
+      "indice": "4.18.8.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425680,
+      "nome": "Aspectos Gerais da Avaliação de Desempenho",
+      "pai": 404668,
+      "nivel": 4,
+      "indice": "4.18.8.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404666,
+      "nome": "Processos de Gestão de Pessoas ",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425681,
+      "nome": "Processo de Agregar Pessoas ",
+      "pai": 404666,
+      "nivel": 4,
+      "indice": "4.18.9.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425682,
+      "nome": "Processo de Aplicar Pessoas ",
+      "pai": 404666,
+      "nivel": 4,
+      "indice": "4.18.9.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417308,
+      "nome": "Processo de Recompensar Pessoas ",
+      "pai": 404666,
+      "nivel": 4,
+      "indice": "4.18.9.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417316,
+      "nome": "Processo de Desenvolver Pessoas ",
+      "pai": 404666,
+      "nivel": 4,
+      "indice": "4.18.9.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425683,
+      "nome": "Treinamento e Desenvolvimento ",
+      "pai": 417316,
+      "nivel": 5,
+      "indice": "4.18.9.4.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425684,
+      "nome": "Métodos de Treinamento",
+      "pai": 425683,
+      "nivel": 6,
+      "indice": "4.18.9.4.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425685,
+      "nome": "Processo de Manter Pessoas ",
+      "pai": 404666,
+      "nivel": 4,
+      "indice": "4.18.9.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404665,
+      "nome": "Qualidade de Vida",
+      "pai": 425685,
+      "nivel": 5,
+      "indice": "4.18.9.5.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425686,
+      "nome": "Equilíbrio Organizacional ",
+      "pai": 425685,
+      "nivel": 5,
+      "indice": "4.18.9.5.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425687,
+      "nome": "Sistemas de Informações Gerenciais",
+      "pai": 425685,
+      "nivel": 5,
+      "indice": "4.18.9.5.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425688,
+      "nome": "Processo de Monitorar Pessoas ",
+      "pai": 404666,
+      "nivel": 4,
+      "indice": "4.18.9.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417322,
+      "nome": "Modelos de Planejamento de Recursos Humanos",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.10.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425689,
+      "nome": "O Baseado na Procura Estimada do Produto ou Serviço",
+      "pai": 417322,
+      "nivel": 4,
+      "indice": "4.18.10.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404671,
+      "nome": "Baseado em Segmentos de Cargos ",
+      "pai": 417322,
+      "nivel": 4,
+      "indice": "4.18.10.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425690,
+      "nome": "De Substituição de Postos-chave ",
+      "pai": 417322,
+      "nivel": 4,
+      "indice": "4.18.10.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425691,
+      "nome": "Baseado no Fluxo de Pessoal ",
+      "pai": 417322,
+      "nivel": 4,
+      "indice": "4.18.10.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425692,
+      "nome": "De Planejamento Integrado ",
+      "pai": 417322,
+      "nivel": 4,
+      "indice": "4.18.10.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425693,
+      "nome": "Relações Indivíduo-Organização e Indivíduo-Indivíduo",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.11.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425694,
+      "nome": "Equilíbrio Organizacional ",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.12.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425695,
+      "nome": "Gestão do Pessoal Terceirizado ",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.13.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425696,
+      "nome": "Qualidade de Vida no Trabalho",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.14.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425697,
+      "nome": "Gestão de Pessoas por Competências ",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.15.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425698,
+      "nome": "Satisfação no Trabalho",
+      "pai": 404659,
+      "nivel": 3,
+      "indice": "4.18.16.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404636,
+      "nome": "Gestão de Projetos",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.19.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404637,
+      "nome": "Projetos, Desenvolvimento, Implantação e Documentação de Sistemas ",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404638,
+      "nome": "Conceitos Gerais",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404639,
+      "nome": "Diferenças entre Projetos e Operações",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404640,
+      "nome": "Stakeholders ou Partes Interessadas",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404641,
+      "nome": "Grupos de Processos dos Projetos ",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425720,
+      "nome": "Iniciação ",
+      "pai": 404641,
+      "nivel": 4,
+      "indice": "4.19.5.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425721,
+      "nome": "Planejamento",
+      "pai": 404641,
+      "nivel": 4,
+      "indice": "4.19.5.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425722,
+      "nome": "Execução ",
+      "pai": 404641,
+      "nivel": 4,
+      "indice": "4.19.5.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425723,
+      "nome": "Monitoramento e Controle",
+      "pai": 404641,
+      "nivel": 4,
+      "indice": "4.19.5.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425724,
+      "nome": "Encerramento ",
+      "pai": 404641,
+      "nivel": 4,
+      "indice": "4.19.5.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404642,
+      "nome": "Áreas do Conhecimento",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404643,
+      "nome": "Portfólios, Programas, Projetos e Subprojetos",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.7.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404644,
+      "nome": "O Gerente de Projetos e o Gerente de Portfólios",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.8.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404645,
+      "nome": "Escritório de Projetos",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.9.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404646,
+      "nome": "Ciclo de Vida dos Projetos",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.10.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404647,
+      "nome": "Ciclo de Vida do Produto ",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.11.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404648,
+      "nome": "Custos e Riscos no Ciclo de Projetos ",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.12.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404649,
+      "nome": "PERT-CPM",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.13.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425725,
+      "nome": "Restrições aos Projetos ",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.14.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425726,
+      "nome": "Técnicas para mudar as restrições",
+      "pai": 425725,
+      "nivel": 4,
+      "indice": "4.19.14.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425727,
+      "nome": "Gestão de Riscos",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.15.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425728,
+      "nome": "Planejar o Gerenciamento dos Riscos ",
+      "pai": 425727,
+      "nivel": 4,
+      "indice": "4.19.15.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425729,
+      "nome": "Identificação dos Riscos ",
+      "pai": 425727,
+      "nivel": 4,
+      "indice": "4.19.15.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425730,
+      "nome": "Análises Quantitativas e Qualitativas",
+      "pai": 425727,
+      "nivel": 4,
+      "indice": "4.19.15.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425731,
+      "nome": "Respostas aos Riscos ",
+      "pai": 425727,
+      "nivel": 4,
+      "indice": "4.19.15.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425732,
+      "nome": "Gerenciamento das Aquisições do Projeto",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.16.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 433628,
+      "nome": "Métodos Ágeis",
+      "pai": 404636,
+      "nivel": 3,
+      "indice": "4.19.17.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425733,
+      "nome": "Negociação",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.20.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425734,
+      "nome": "Conceitos Básicos",
+      "pai": 425733,
+      "nivel": 3,
+      "indice": "4.20.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425735,
+      "nome": "Características da Negociação",
+      "pai": 425733,
+      "nivel": 3,
+      "indice": "4.20.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425736,
+      "nome": "Estratégias de Negociação",
+      "pai": 425733,
+      "nivel": 3,
+      "indice": "4.20.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425737,
+      "nome": "Qualidade no Atendimento ao Público",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.21.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425738,
+      "nome": "Carta de Serviços ao Usuário ",
+      "pai": 425737,
+      "nivel": 3,
+      "indice": "4.21.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425739,
+      "nome": "Carta de Serviços ao Usuário – O Decreto nº 9.094, de 2017",
+      "pai": 425738,
+      "nivel": 4,
+      "indice": "4.21.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425740,
+      "nome": "Programas governamentais de simplificação administrativa",
+      "pai": 425737,
+      "nivel": 3,
+      "indice": "4.21.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425741,
+      "nome": "Sanções por Descumprimento",
+      "pai": 425737,
+      "nivel": 3,
+      "indice": "4.21.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425742,
+      "nome": "Avaliação e Melhoria dos Serviços Públicos ",
+      "pai": 425737,
+      "nivel": 3,
+      "indice": "4.21.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425743,
+      "nome": "Organização do Trabalho",
+      "pai": 425737,
+      "nivel": 3,
+      "indice": "4.21.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425744,
+      "nome": "Características do atendimento ",
+      "pai": 425737,
+      "nivel": 3,
+      "indice": "4.21.6.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417265,
+      "nome": "Administração Financeira ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.22.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404658,
+      "nome": "Conceitos importantes de administração financeira",
+      "pai": 417265,
+      "nivel": 3,
+      "indice": "4.22.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417266,
+      "nome": "Risco e Retorno",
+      "pai": 417265,
+      "nivel": 3,
+      "indice": "4.22.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417268,
+      "nome": "Custo de Capital",
+      "pai": 417265,
+      "nivel": 3,
+      "indice": "4.22.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425808,
+      "nome": "Alavancagem e Estrutura de Capital",
+      "pai": 417265,
+      "nivel": 3,
+      "indice": "4.22.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425809,
+      "nome": "Análise de Negócios ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.23.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425810,
+      "nome": "Business Analysis Body of Knowledge (BABOK) ",
+      "pai": 425809,
+      "nivel": 3,
+      "indice": "4.23.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425811,
+      "nome": "Gestão por Resultados",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.24.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425812,
+      "nome": "Sistemas de Gestão e de Informação ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.25.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425814,
+      "nome": "Sistema Integrado de Gestão Empresarial (ERP) ",
+      "pai": 425812,
+      "nivel": 3,
+      "indice": "4.25.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425813,
+      "nome": "Governança corporativa e Gestão de Riscos",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.26.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425815,
+      "nome": "Governança Corporativa",
+      "pai": 425813,
+      "nivel": 3,
+      "indice": "4.26.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425817,
+      "nome": "Conceitos de Governança Corporativa",
+      "pai": 425815,
+      "nivel": 4,
+      "indice": "4.26.1.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425818,
+      "nome": "Princípios de Governança Corporativa",
+      "pai": 425815,
+      "nivel": 4,
+      "indice": "4.26.1.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425819,
+      "nome": "Lei Sarbanes-Oxley",
+      "pai": 425815,
+      "nivel": 4,
+      "indice": "4.26.1.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425820,
+      "nome": "Governança no Setor Público",
+      "pai": 425815,
+      "nivel": 4,
+      "indice": "4.26.1.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425821,
+      "nome": "Referencial Básico de Governança do TCU",
+      "pai": 425820,
+      "nivel": 5,
+      "indice": "4.26.1.4.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425822,
+      "nome": "Decreto nº 9.203/2017",
+      "pai": 425820,
+      "nivel": 5,
+      "indice": "4.26.1.4.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425823,
+      "nome": "Compliance",
+      "pai": 425815,
+      "nivel": 4,
+      "indice": "4.26.1.5.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425816,
+      "nome": "Gestão de riscos",
+      "pai": 425813,
+      "nivel": 3,
+      "indice": "4.26.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425824,
+      "nome": "Conceitos de Gestão de Riscos",
+      "pai": 425816,
+      "nivel": 4,
+      "indice": "4.26.2.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425825,
+      "nome": "Processo de Gestão de Riscos",
+      "pai": 425816,
+      "nivel": 4,
+      "indice": "4.26.2.2.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425826,
+      "nome": "Ferramentas de Gestão de Riscos",
+      "pai": 425816,
+      "nivel": 4,
+      "indice": "4.26.2.3.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 425827,
+      "nome": "Instrução Normativa MP/CGU no 01/2016",
+      "pai": 425816,
+      "nivel": 4,
+      "indice": "4.26.2.4.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417324,
+      "nome": "Gestão da Inovação e Empreendedorismo",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.27.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417263,
+      "nome": "Empreendedorismo",
+      "pai": 417324,
+      "nivel": 3,
+      "indice": "4.27.1.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 404976,
+      "nome": "Administração Hospitalar",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.28.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 417267,
+      "nome": "Administração de Marketing",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.29.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 430282,
+      "nome": "Código de Ética do Administrador ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.30.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 432510,
+      "nome": "Ética Organizacional",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.31.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 432523,
+      "nome": "Identidade Corporativa",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.32.",
+      "assunto_raiz": 404571
+    },
+    {
+      "id": 433478,
+      "nome": "Governança ambiental, social e corporativa  - ESG - Environmental, Social and Governance ",
+      "pai": 404571,
+      "nivel": 2,
+      "indice": "4.33.",
+      "assunto_raiz": 404571
+    }
+  ]
+}

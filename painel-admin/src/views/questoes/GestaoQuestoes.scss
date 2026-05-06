@@ -1,0 +1,177 @@
+// GestaoQuestoes.scss
+// Premium styling for the Question Management view
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gestao-questoes-container {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.premium-card {
+  background: var(--color-bg-elevated, #ffffff);
+  border: 1px solid var(--color-border-light, #ecf0f1);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px var(--color-shadow, rgba(0, 0, 0, 0.05));
+  transition: all 0.3s ease;
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: 0 8px 30px var(--color-shadow-md, rgba(0, 0, 0, 0.12));
+    border-color: var(--color-primary, #2c3e50);
+  }
+
+  .card-header {
+    background: linear-gradient(135deg, var(--color-bg-elevated, #ffffff), var(--color-bg-secondary, #f8f9fa));
+    border-bottom: 1px solid var(--color-border-light, #ecf0f1);
+    padding: 1.5rem;
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+}
+
+.glass-filter-bar {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  
+  [data-theme='dark'] & {
+    background: rgba(30, 30, 30, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+.premium-table {
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  background: transparent !important;
+  border: none !important;
+
+  thead th {
+    background: transparent !important;
+    border: none !important;
+    color: var(--color-text-secondary, #7f8c8d);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    padding: 1rem;
+  }
+
+  tbody tr {
+    background: var(--color-bg-elevated, #ffffff);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+    
+    td {
+      border: none !important;
+      padding: 1rem;
+      
+      &:first-child {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+      }
+      &:last-child {
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+      }
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      background: var(--color-bg-secondary, #f8f9fa) !important;
+    }
+  }
+}
+
+.btn-premium {
+  border-radius: 10px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  
+  &.btn-primary {
+    background: linear-gradient(135deg, var(--color-primary, #2c3e50), var(--color-secondary, #3498db));
+    border: none;
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+    }
+  }
+
+  &.btn-outline-success {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+    }
+  }
+}
+
+.badge-video {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
+}
+
+.search-input-premium {
+  border-radius: 10px !important;
+  border: 1px solid var(--color-border-light, #ecf0f1);
+  background: var(--color-bg-secondary, #f8f9fa);
+  transition: all 0.3s ease;
+
+  &:focus {
+    background: var(--color-bg-elevated, #ffffff);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    border-color: var(--color-secondary, #3498db);
+  }
+}
+
+.modal-premium {
+  .modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  }
+  
+  .modal-header {
+    background: linear-gradient(135deg, var(--color-primary, #2c3e50), var(--color-primary-light, #34495e));
+    color: white;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 1.5rem;
+    
+    .modal-title {
+      font-weight: 700;
+    }
+  }
+  
+  .modal-body {
+    padding: 2rem;
+  }
+  
+  .section-label {
+    color: var(--color-primary, #2c3e50);
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+    display: block;
+  }
+}

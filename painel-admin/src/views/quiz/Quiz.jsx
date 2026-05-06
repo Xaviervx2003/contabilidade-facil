@@ -154,7 +154,7 @@ const FilterGroupHeader = ({ icon, title, subtitle }) => (
 
 const ChecklistItem = ({ icon, title, subtitle, children, isOpen, onToggle, isCompleted, ctaLabel, onCta }) => (
   <div
-    className={`mb-3 rounded-4 overflow-hidden border transition-all ${isOpen ? 'shadow-sm border-primary' : 'bg-body-tertiary border-transparent'}`}
+    className={`mb-3 rounded-4 border transition-all ${isOpen ? 'shadow-sm border-primary overflow-visible' : 'bg-body-tertiary border-transparent overflow-hidden'}`}
     style={{ transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}
   >
     <div
@@ -178,7 +178,7 @@ const ChecklistItem = ({ icon, title, subtitle, children, isOpen, onToggle, isCo
         ▼
       </div>
     </div>
-    <CCollapse visible={isOpen}>
+    <CCollapse visible={isOpen} className={isOpen ? 'overflow-visible' : ''}>
       <div className="px-4 pb-4 pt-2 border-top bg-body">
         {children}
         {ctaLabel && (
@@ -503,7 +503,7 @@ const QuizRunning = ({
                       <p className="small fst-italic mt-1 mb-0">"{c.texto}"</p>
                       {c.resposta_professor && (
                         <div className="mt-2 ms-3 p-2 bg-primary bg-opacity-10 border-start border-primary border-3 rounded-end">
-                          <small className="fw-bold text-primary">👨‍🏫 Professor:</small>{' '}
+                          <small className="fw-bold text-primary">👨🏫 Professor:</small>{' '}
                           <small className="text-body-secondary">{c.resposta_professor}</small>
                         </div>
                       )}
@@ -780,9 +780,11 @@ const Quiz = () => {
 
       const url = `${API_URL}/api/questoes${params.toString() ? '?' + params.toString() : ''}`
       const res = await fetch(url)
-      let data = await res.json()
+      const responseJson = await res.json()
+      let data = responseJson.sucesso !== undefined ? responseJson.dados : responseJson
+      
       if (!res.ok || !Array.isArray(data) || data.length === 0)
-        throw new Error('Nenhuma questão encontrada para este filtro.')
+        throw new Error(responseJson.mensagem || 'Nenhuma questão encontrada para este filtro.')
       let pool = shuffle(data)
       if (quantidade > 0 && quantidade < pool.length) pool = pool.slice(0, quantidade)
       startQuiz(pool)
@@ -796,9 +798,11 @@ const Quiz = () => {
     setError(''); setFeedback(''); setStatus('loading')
     try {
       const res = await fetch(`${API_URL}/api/questoes?limit=30`)
-      const data = await res.json()
+      const responseJson = await res.json()
+      let data = responseJson.sucesso !== undefined ? responseJson.dados : responseJson
+      
       if (!res.ok || !Array.isArray(data) || data.length === 0)
-        throw new Error('Nenhuma questão encontrada.')
+        throw new Error(responseJson.mensagem || 'Nenhuma questão encontrada.')
       startQuizWithTime(shuffle(data).slice(0, 10), 600)
     } catch (err) {
       setError(err.message || 'Erro ao buscar questões.')
