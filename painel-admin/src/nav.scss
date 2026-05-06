@@ -1,0 +1,54 @@
+// Styles for Navigation and Theme Toggle
+// Injected into the App via _nav.jsx
+
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background-color: var(--color-bg-elevated);
+    color: var(--color-icon);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    padding: 0;
+    margin: 0 10px;
+    box-shadow: var(--color-shadow-sm);
+
+    &:hover {
+        background-color: var(--color-hover);
+        color: var(--color-primary);
+        border-color: var(--color-primary);
+        transform: translateY(-1px);
+        box-shadow: var(--color-shadow-md);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+}
+
+.theme-toggle-icon {
+    width: 18px;
+    height: 18px;
+}
+
+// Nav Link Adjustments for better theme integration
+.nav-link {
+    &.active {
+        background-color: var(--color-active) !important;
+        color: var(--color-primary) !important;
+        
+        .nav-icon {
+            color: var(--color-primary) !important;
+        }
+    }
+}
+
+.nav-title {
+    color: var(--color-text-tertiary) !important;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}

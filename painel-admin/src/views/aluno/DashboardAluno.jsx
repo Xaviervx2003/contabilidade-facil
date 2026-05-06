@@ -10,6 +10,12 @@ import {
   CAlert,
   CButton,
   CBadge,
+  CTable,
+  CTableHead,
+  CTableRow,
+  CTableHeaderCell,
+  CTableBody,
+  CTableDataCell,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -26,6 +32,7 @@ import {
 } from '@coreui/icons'
 import { useNavigate } from 'react-router-dom'
 import { API_URL } from '../../config'
+import { useTheme } from '../../context/themeContext'
 
 /* ── Helpers ──────────────────────────────────────────────── */
 const formatTempo = (seg) => {
@@ -77,7 +84,7 @@ const MiniBarChart = ({ data, isDark }) => {
               fontSize: 9,
               marginTop: 4,
               fontWeight: isHoje ? 700 : 400,
-              color: isHoje ? '#6366f1' : (isDark ? '#94a3b8' : '#94a3b8'),
+              color: isHoje ? '#6366f1' : 'var(--color-text-tertiary)',
             }}>
               {diasSemana[dt.getDay()]}
             </small>
@@ -88,34 +95,18 @@ const MiniBarChart = ({ data, isDark }) => {
   )
 }
 
-/* ── Stat Card ────────────────────────────────────────────── */
-const StatCard = ({ icon, label, value, sub, color, isDark }) => (
-  <CCard className="border-0 h-100" style={{
-    background: isDark
-      ? 'rgba(255,255,255,0.03)'
-      : 'rgba(255,255,255,0.8)',
-    backdropFilter: 'blur(10px)',
-  }}>
-    <CCardBody className="d-flex align-items-center gap-3 py-3">
-      <div style={{
-        width: 48, height: 48, borderRadius: 12,
-        background: `linear-gradient(135deg, ${color}22, ${color}44)`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0,
-      }}>
-        <CIcon icon={icon} style={{ color, width: 22, height: 22 }} />
-      </div>
-      <div className="flex-fill min-w-0">
-        <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: isDark ? '#94a3b8' : '#64748b' }}>
-          {label}
-        </div>
-        <div className="fw-bold" style={{ fontSize: 24, lineHeight: 1.2, color: isDark ? '#f1f5f9' : '#1e293b' }}>
-          {value}
-        </div>
-        {sub && <small style={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: 11 }}>{sub}</small>}
-      </div>
-    </CCardBody>
-  </CCard>
+/* ── Stat Card ──────────────────────────────────────────── */
+const StatCard = ({ icon, label, value, sub, color }) => (
+  <div className="stat-box h-100 fade-in-up" style={{ animationDelay: '0.1s' }}>
+    <div className={`stat-icon-wrapper ${color}`}>
+      <CIcon icon={icon} />
+    </div>
+    <div className="stat-info">
+      <div className="stat-value">{value}</div>
+      <div className="stat-desc">{label}</div>
+      {sub && <div className="text-body-tertiary small mt-1">{sub}</div>}
+    </div>
+  </div>
 )
 
 /* ── Componente Principal ─────────────────────────────────── */
@@ -125,17 +116,14 @@ const DashboardAluno = () => {
   const [error, setError] = useState(null)
   const [isDark, setIsDark] = useState(false)
   const navigate = useNavigate()
+  const { isDark: themeIsDark } = useTheme()
 
   const matricula = sessionStorage.getItem('matricula')
   const nomeUsuario = sessionStorage.getItem('nome') || ''
 
   useEffect(() => {
-    const check = () => setIsDark(document.documentElement.getAttribute('data-coreui-theme') === 'dark')
-    check()
-    const obs = new MutationObserver(check)
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-coreui-theme'] })
-    return () => obs.disconnect()
-  }, [])
+    setIsDark(themeIsDark)
+  }, [themeIsDark])
 
   useEffect(() => {
     if (!matricula) {
@@ -149,6 +137,9 @@ const DashboardAluno = () => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const json = await res.json()
         setData(json)
+        if (json.nome && json.nome !== nomeUsuario) {
+          sessionStorage.setItem('nome', json.nome)
+        }
       } catch (err) {
         setError(`Erro ao carregar dashboard: ${err.message}`)
       } finally {
@@ -180,17 +171,18 @@ const DashboardAluno = () => {
   if (!data) return null
 
   const { hoje, semana, geral, streak, progresso, materias_fracas, materias_fortes, ultimas_sessoes, serie_semanal } = data
-  const primeiroNome = (nomeUsuario || data.nome || '').split(' ')[0]
+  const nomeExibicao = data.nome || nomeUsuario || 'Estudante'
+  const primeiroNome = nomeExibicao.split(' ')[0]
 
   return (
     <div className="p-2 p-md-4" style={{ maxWidth: 1200, margin: '0 auto' }}>
 
       {/* ── Cabeçalho ── */}
       <div className="mb-4">
-        <h2 className="fw-bold mb-1" style={{ color: isDark ? '#f1f5f9' : '#1e293b' }}>
+        <h2 className="fw-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>
           {saudacao()}, {primeiroNome}! 👋
         </h2>
-        <p style={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: 14 }}>
+        <p style={{ color: 'var(--color-text-tertiary)', fontSize: 14 }}>
           {hoje.questoes > 0
             ? `Você já respondeu ${hoje.questoes} questões hoje. Continue assim!`
             : 'Que tal começar sua sessão de estudos agora?'
@@ -206,8 +198,7 @@ const DashboardAluno = () => {
             label="Streak"
             value={`${streak} dias`}
             sub={streak > 0 ? 'Sequência ativa 🔥' : 'Estude hoje para iniciar!'}
-            color="#f59e0b"
-            isDark={isDark}
+            color="warning"
           />
         </CCol>
         <CCol xs={6} lg={3}>
@@ -215,19 +206,17 @@ const DashboardAluno = () => {
             icon={cilCheckCircle}
             label="Hoje"
             value={hoje.questoes}
-            sub={`${hoje.sessoes} sessão(ões) · ${formatTempo(hoje.tempo_seg)}`}
-            color="#22c55e"
-            isDark={isDark}
+            sub={`${hoje.sessoes} sessões · ${formatTempo(hoje.tempo_seg)}`}
+            color="success"
           />
         </CCol>
         <CCol xs={6} lg={3}>
           <StatCard
             icon={cilClock}
-            label="Esta semana"
+            label="Semana"
             value={semana.questoes}
             sub={`${semana.dias_estudados}/7 dias · ${formatTempo(semana.tempo_seg)}`}
-            color="#6366f1"
-            isDark={isDark}
+            color="primary"
           />
         </CCol>
         <CCol xs={6} lg={3}>
@@ -236,274 +225,248 @@ const DashboardAluno = () => {
             label="Média geral"
             value={`${geral.media_geral}%`}
             sub={`${geral.total_questoes} questões total`}
-            color="#ec4899"
-            isDark={isDark}
+            color="secondary"
           />
         </CCol>
       </CRow>
 
-      {/* ── Ações Rápidas + Gráfico Semanal ── */}
+      {/* ── Guia Rápido + Gráfico Semanal ── */}
       <CRow className="g-3 mb-4">
         <CCol xs={12} lg={5}>
-          <CCard className="border-0 h-100" style={{
-            background: isDark
-              ? 'linear-gradient(135deg, #1e1b4b, #312e81)'
-              : 'linear-gradient(135deg, #eef2ff, #e0e7ff)',
-          }}>
-            <CCardBody className="d-flex flex-column justify-content-center">
-              <h6 className="fw-bold mb-3" style={{ color: isDark ? '#c7d2fe' : '#4338ca' }}>
-                ⚡ Ações Rápidas
-              </h6>
-              <div className="d-grid gap-2">
-                <CButton
-                  color="primary"
-                  className="fw-bold d-flex align-items-center justify-content-between"
-                  onClick={() => navigate('/quiz')}
-                >
-                  <span><CIcon icon={cilPuzzle} className="me-2" /> Iniciar Quiz</span>
-                  <CIcon icon={cilArrowRight} />
-                </CButton>
-                <CButton
-                  color="light"
-                  className="fw-bold d-flex align-items-center justify-content-between"
-                  style={{ color: isDark ? '#e2e8f0' : '#334155' }}
-                  onClick={() => navigate('/aluno/historico')}
-                >
-                  <span><CIcon icon={cilHistory} className="me-2" /> Meu Histórico</span>
-                  <CIcon icon={cilArrowRight} />
-                </CButton>
-                <CButton
-                  color="light"
-                  className="fw-bold d-flex align-items-center justify-content-between"
-                  style={{ color: isDark ? '#e2e8f0' : '#334155' }}
-                  onClick={() => navigate('/conquistas')}
-                >
-                  <span><CIcon icon={cilStar} className="me-2" /> Minhas Conquistas</span>
-                  <CIcon icon={cilArrowRight} />
-                </CButton>
-              </div>
-            </CCardBody>
-          </CCard>
+          <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.15s' }}>
+            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
+              <span style={{ fontSize: '1.2rem' }}>⚡</span> Guia Rápido
+            </h6>
+            <div className="d-grid gap-2">
+              <CButton
+                color="primary"
+                className="fw-bold d-flex align-items-center justify-content-between p-3 rounded-3"
+                onClick={() => navigate('/quiz')}
+              >
+                <span><CIcon icon={cilPuzzle} className="me-2" /> Iniciar Quiz</span>
+                <CIcon icon={cilArrowRight} />
+              </CButton>
+              <CButton
+                variant="outline"
+                color="secondary"
+                className="fw-bold d-flex align-items-center justify-content-between p-3 rounded-3"
+                onClick={() => navigate('/aluno/historico')}
+              >
+                <span><CIcon icon={cilHistory} className="me-2" /> Meu Histórico</span>
+                <CIcon icon={cilArrowRight} />
+              </CButton>
+              <CButton
+                variant="outline"
+                color="warning"
+                className="fw-bold d-flex align-items-center justify-content-between p-3 rounded-3"
+                onClick={() => navigate('/conquistas')}
+              >
+                <span><CIcon icon={cilStar} className="me-2" /> Minhas Conquistas</span>
+                <CIcon icon={cilArrowRight} />
+              </CButton>
+            </div>
+          </div>
         </CCol>
 
         <CCol xs={12} lg={7}>
-          <CCard className="border-0 h-100" style={{
-            background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.8)',
-            backdropFilter: 'blur(10px)',
-          }}>
-            <CCardHeader className="border-0 bg-transparent d-flex justify-content-between align-items-center">
-              <span className="fw-bold" style={{ fontSize: 14 }}>📊 Questões por dia (últimos 7 dias)</span>
-              <CBadge color="info" shape="rounded-pill" className="fw-normal">
-                {semana.questoes} na semana
+          <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <span className="fw-bold">📊 Desempenho Semanal</span>
+              <CBadge color="info" shape="rounded-pill" className="px-3 py-2">
+                {semana.questoes} questões
               </CBadge>
-            </CCardHeader>
-            <CCardBody>
-              {serie_semanal && serie_semanal.length > 0 ? (
-                <MiniBarChart data={serie_semanal} isDark={isDark} />
-              ) : (
-                <p className="text-muted text-center small">Nenhum dado nesta semana</p>
-              )}
-            </CCardBody>
-          </CCard>
+            </div>
+            {serie_semanal && serie_semanal.length > 0 ? (
+              <MiniBarChart data={serie_semanal} isDark={isDark} />
+            ) : (
+              <p className="text-muted text-center small">Nenhum dado nesta semana</p>
+            )}
+          </div>
         </CCol>
       </CRow>
 
       {/* ── Progresso no Banco + Matérias Fracas + Fortes ── */}
       <CRow className="g-3 mb-4">
         <CCol xs={12} lg={4}>
-          <CCard className="border-0 h-100" style={{
-            background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.8)',
-            backdropFilter: 'blur(10px)',
-          }}>
-            <CCardHeader className="border-0 bg-transparent">
-              <span className="fw-bold" style={{ fontSize: 14 }}>🎯 Progresso Geral</span>
-            </CCardHeader>
-            <CCardBody className="d-flex flex-column align-items-center justify-content-center">
-              <div style={{ position: 'relative', width: 120, height: 120 }}>
-                <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke={isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}
-                    strokeWidth="3"
-                  />
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="#6366f1"
-                    strokeWidth="3"
-                    strokeDasharray={`${progresso.percentual}, 100`}
-                    strokeLinecap="round"
-                    style={{ transition: 'stroke-dasharray 1s ease' }}
-                  />
-                </svg>
-                <div style={{
-                  position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                  textAlign: 'center',
-                }}>
-                  <div className="fw-bold" style={{ fontSize: 20, color: isDark ? '#f1f5f9' : '#1e293b' }}>
-                    {progresso.percentual}%
+          <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.25s' }}>
+            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
+              <CIcon icon={cilChartLine} className="text-primary" />
+              Progresso no Edital
+            </h6>
+            <div className="d-flex flex-column justify-content-center h-100 pb-3">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <span className="text-body-tertiary small">Progresso Geral</span>
+                <span className="fw-bold text-primary">{progresso.percentual}%</span>
+              </div>
+              <CProgress value={progresso.percentual} color="primary" />
+              <div className="mt-3">
+                <div className="d-flex align-items-center gap-2 mb-1">
+                  <div className="stat-icon-wrapper primary" style={{ width: 24, height: 24, fontSize: '0.8rem' }}>
+                    <CIcon icon={cilCheckCircle} />
                   </div>
+                  <span className="small text-body-secondary">
+                    <strong>{progresso.respondidas}</strong> respondidas
+                  </span>
+                </div>
+                <div className="d-flex align-items-center gap-2">
+                  <div className="stat-icon-wrapper secondary" style={{ width: 24, height: 24, fontSize: '0.8rem' }}>
+                    <CIcon icon={cilLibrary} />
+                  </div>
+                  <span className="small text-body-secondary">
+                    <strong>{progresso.total_banco.toLocaleString('pt-BR')}</strong> no banco
+                  </span>
                 </div>
               </div>
-              <div className="text-center mt-3">
-                <div style={{ fontSize: 13, color: isDark ? '#94a3b8' : '#64748b' }}>
-                  <strong>{progresso.respondidas}</strong> de <strong>{progresso.total_banco.toLocaleString('pt-BR')}</strong> questões
-                </div>
-                <small className="text-muted">do banco respondidas</small>
-              </div>
-            </CCardBody>
-          </CCard>
+            </div>
+          </div>
         </CCol>
 
         <CCol xs={12} sm={6} lg={4}>
-          <CCard className="border-0 h-100" style={{
-            background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.8)',
-            backdropFilter: 'blur(10px)',
-          }}>
-            <CCardHeader className="border-0 bg-transparent d-flex align-items-center gap-2">
-              <span className="fw-bold" style={{ fontSize: 14 }}>📉 Pontos Fracos</span>
+          <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <div className="d-flex align-items-center justify-content-between mb-3">
+              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2">
+                <CIcon icon={cilChartLine} className="text-danger" />
+                Pontos Fracos
+              </h6>
               <CBadge color="danger" shape="rounded-pill" style={{ fontSize: 10 }}>Focar aqui</CBadge>
-            </CCardHeader>
-            <CCardBody>
-              {materias_fracas.length > 0 ? (
-                <div className="d-flex flex-column gap-3">
-                  {materias_fracas.map((m, i) => (
-                    <div key={i}>
-                      <div className="d-flex justify-content-between align-items-center mb-1">
-                        <span className="small fw-medium text-truncate" style={{ maxWidth: '70%' }}>
-                          {m.materia}
-                        </span>
-                        <span className="small fw-bold" style={{ color: m.media_acerto < 40 ? '#ef4444' : '#f59e0b' }}>
-                          {m.media_acerto}%
-                        </span>
-                      </div>
-                      <CProgress
-                        value={m.media_acerto}
-                        height={6}
-                        color={m.media_acerto < 30 ? 'danger' : m.media_acerto < 50 ? 'warning' : 'info'}
-                        style={{ borderRadius: 4 }}
-                      />
-                      <small className="text-muted" style={{ fontSize: 10 }}>
-                        {m.questoes} questões respondidas
+            </div>
+            {materias_fracas.length > 0 ? (
+              <div className="d-flex flex-column gap-3">
+                {materias_fracas.map((m, i) => (
+                  <div key={i} className={i !== 0 ? 'pt-2 border-top' : ''}>
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <span className="small fw-medium text-truncate" style={{ maxWidth: '70%' }}>
+                        {m.materia}
+                      </span>
+                      <span className="small fw-bold text-danger">
+                        {m.media_acerto}%
+                      </span>
+                    </div>
+                    <CProgress
+                      value={m.media_acerto}
+                      color="danger"
+                      className="thin"
+                    />
+                    <div className="d-flex justify-content-between mt-1">
+                      <small className="text-muted" style={{ fontSize: 9 }}>
+                        {m.questoes} questões
                       </small>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted text-center small mb-0">Responda mais questões para ver suas matérias fracas</p>
-              )}
-            </CCardBody>
-          </CCard>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted text-center small py-4">Continue estudando para ver suas métricas.</p>
+            )}
+          </div>
         </CCol>
 
         <CCol xs={12} sm={6} lg={4}>
-          <CCard className="border-0 h-100" style={{
-            background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.8)',
-            backdropFilter: 'blur(10px)',
-          }}>
-            <CCardHeader className="border-0 bg-transparent d-flex align-items-center gap-2">
-              <span className="fw-bold" style={{ fontSize: 14 }}>📈 Pontos Fortes</span>
+          <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.35s' }}>
+            <div className="d-flex align-items-center justify-content-between mb-3">
+              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2">
+                <CIcon icon={cilCheckCircle} className="text-success" />
+                Pontos Fortes
+              </h6>
               <CBadge color="success" shape="rounded-pill" style={{ fontSize: 10 }}>Mandando bem!</CBadge>
-            </CCardHeader>
-            <CCardBody>
-              {materias_fortes.length > 0 ? (
-                <div className="d-flex flex-column gap-3">
-                  {materias_fortes.map((m, i) => (
-                    <div key={i}>
-                      <div className="d-flex justify-content-between align-items-center mb-1">
-                        <span className="small fw-medium text-truncate" style={{ maxWidth: '70%' }}>
-                          {m.materia}
-                        </span>
-                        <span className="small fw-bold" style={{ color: '#22c55e' }}>
-                          {m.media_acerto}%
-                        </span>
-                      </div>
-                      <CProgress
-                        value={m.media_acerto}
-                        height={6}
-                        color="success"
-                        style={{ borderRadius: 4 }}
-                      />
-                      <small className="text-muted" style={{ fontSize: 10 }}>
-                        {m.questoes} questões respondidas
+            </div>
+            {materias_fortes.length > 0 ? (
+              <div className="d-flex flex-column gap-3">
+                {materias_fortes.map((m, i) => (
+                  <div key={i} className={i !== 0 ? 'pt-2 border-top' : ''}>
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <span className="small fw-medium text-truncate" style={{ maxWidth: '70%' }}>
+                        {m.materia}
+                      </span>
+                      <span className="small fw-bold text-success">
+                        {m.media_acerto}%
+                      </span>
+                    </div>
+                    <CProgress
+                      value={m.media_acerto}
+                      color="success"
+                      className="thin"
+                    />
+                    <div className="d-flex justify-content-between mt-1">
+                      <small className="text-muted" style={{ fontSize: 9 }}>
+                        {m.questoes} questões
                       </small>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted text-center small mb-0">Responda mais questões para ver suas matérias fortes</p>
-              )}
-            </CCardBody>
-          </CCard>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted text-center small py-4">Ainda não há dados suficientes.</p>
+            )}
+          </div>
         </CCol>
       </CRow>
 
       {/* ── Últimas Sessões ── */}
       <CRow className="g-3 mb-4">
         <CCol xs={12}>
-          <CCard className="border-0" style={{
-            background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.8)',
-            backdropFilter: 'blur(10px)',
-          }}>
-            <CCardHeader className="border-0 bg-transparent d-flex justify-content-between align-items-center">
-              <span className="fw-bold" style={{ fontSize: 14 }}>🕐 Últimas Sessões</span>
+          <div className="premium-card fade-in-up" style={{ animationDelay: '0.4s', padding: 0, overflow: 'hidden' }}>
+            <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
+              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2">
+                <CIcon icon={cilHistory} className="text-info" />
+                Últimas Sessões
+              </h6>
               <CButton
                 color="link"
                 size="sm"
-                className="p-0 fw-bold text-decoration-none"
+                className="p-0 fw-bold text-decoration-none small"
                 onClick={() => navigate('/aluno/historico')}
               >
-                Ver tudo →
+                Ver histórico completo →
               </CButton>
-            </CCardHeader>
-            <CCardBody className="p-0">
-              {ultimas_sessoes.length > 0 ? (
-                <div className="table-responsive">
-                  <table className="table table-hover mb-0" style={{ fontSize: 13 }}>
-                    <thead>
-                      <tr>
-                        <th className="border-0 px-3 py-2 text-uppercase small fw-bold" style={{ color: isDark ? '#94a3b8' : '#64748b', letterSpacing: '0.05em', fontSize: 10 }}>Matéria</th>
-                        <th className="border-0 px-3 py-2 text-center text-uppercase small fw-bold" style={{ color: isDark ? '#94a3b8' : '#64748b', letterSpacing: '0.05em', fontSize: 10 }}>Questões</th>
-                        <th className="border-0 px-3 py-2 text-center text-uppercase small fw-bold" style={{ color: isDark ? '#94a3b8' : '#64748b', letterSpacing: '0.05em', fontSize: 10 }}>Acerto</th>
-                        <th className="border-0 px-3 py-2 text-center text-uppercase small fw-bold" style={{ color: isDark ? '#94a3b8' : '#64748b', letterSpacing: '0.05em', fontSize: 10 }}>Tempo</th>
-                        <th className="border-0 px-3 py-2 text-end text-uppercase small fw-bold" style={{ color: isDark ? '#94a3b8' : '#64748b', letterSpacing: '0.05em', fontSize: 10 }}>Data</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ultimas_sessoes.map((s, i) => (
-                        <tr key={i}>
-                          <td className="px-3 py-2 align-middle">
-                            <div className="d-flex align-items-center gap-2">
-                              <CIcon icon={cilLibrary} size="sm" className="text-muted" />
-                              <span className="text-truncate" style={{ maxWidth: 200 }}>{s.materia}</span>
+            </div>
+            {ultimas_sessoes.length > 0 ? (
+              <div className="table-responsive">
+                <CTable hover align="middle" className="mb-0">
+                  <CTableHead>
+                    <CTableRow>
+                      <CTableHeaderCell className="bg-body-tertiary px-3 py-2 small border-0">Matéria</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary text-center small border-0">Questões</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary text-center small border-0">Acerto</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary text-center small border-0">Tempo</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary text-end px-3 small border-0">Data</CTableHeaderCell>
+                    </CTableRow>
+                  </CTableHead>
+                  <CTableBody>
+                    {ultimas_sessoes.map((s, i) => (
+                      <CTableRow key={i}>
+                        <CTableDataCell className="px-3">
+                          <div className="d-flex align-items-center gap-2">
+                            <div className="stat-icon-wrapper secondary" style={{ width: 28, height: 28, fontSize: '0.75rem' }}>
+                              <CIcon icon={cilLibrary} />
                             </div>
-                          </td>
-                          <td className="px-3 py-2 text-center align-middle fw-bold">{s.questoes}</td>
-                          <td className="px-3 py-2 text-center align-middle">
-                            <CBadge color={s.acerto >= 70 ? 'success' : s.acerto >= 40 ? 'warning' : 'danger'} shape="rounded-pill">
-                              {s.acerto}%
-                            </CBadge>
-                          </td>
-                          <td className="px-3 py-2 text-center align-middle text-muted">{formatTempo(s.tempo_seg)}</td>
-                          <td className="px-3 py-2 text-end align-middle text-muted">
-                            {s.data ? new Date(s.data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '—'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-center py-4">
-                  <p className="text-muted mb-2">Nenhuma sessão registrada ainda</p>
-                  <CButton color="primary" size="sm" onClick={() => navigate('/quiz')}>
-                    Começar agora →
-                  </CButton>
-                </div>
-              )}
-            </CCardBody>
-          </CCard>
+                            <span className="fw-medium text-truncate" style={{ maxWidth: 200 }}>{s.materia}</span>
+                          </div>
+                        </CTableDataCell>
+                        <CTableDataCell className="text-center fw-bold">{s.questoes}</CTableDataCell>
+                        <CTableDataCell className="text-center">
+                          <CBadge color={s.acerto >= 70 ? 'success' : s.acerto >= 40 ? 'warning' : 'danger'} shape="rounded-pill">
+                            {s.acerto}%
+                          </CBadge>
+                        </CTableDataCell>
+                        <CTableDataCell className="text-center text-body-tertiary">{formatTempo(s.tempo_seg)}</CTableDataCell>
+                        <CTableDataCell className="text-end px-3 text-body-tertiary small">
+                          {s.data ? new Date(s.data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '—'}
+                        </CTableDataCell>
+                      </CTableRow>
+                    ))}
+                  </CTableBody>
+                </CTable>
+              </div>
+            ) : (
+              <div className="text-center py-5">
+                <p className="text-muted mb-3">Você ainda não realizou nenhuma sessão de estudos.</p>
+                <CButton color="primary" onClick={() => navigate('/quiz')}>
+                  Fazer meu primeiro Quiz
+                </CButton>
+              </div>
+            )}
+          </div>
         </CCol>
       </CRow>
 

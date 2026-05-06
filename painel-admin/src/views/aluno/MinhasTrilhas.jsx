@@ -77,8 +77,8 @@ const MinhasTrilhas = () => {
     <CRow>
       <CCol xs={12}>
         <div className="mb-4">
-          <h2 className="fw-bold" style={{ color: 'var(--cui-primary)' }}>Minhas Trilhas de Aprendizado</h2>
-          <p className="text-muted">Siga os cursos e módulos elaborados pelos professores para guiar seus estudos.</p>
+          <h2 className="fw-bold" style={{ color: 'var(--color-primary)' }}>Minhas Trilhas de Aprendizado</h2>
+          <p className="text-body-secondary">Siga os cursos e módulos elaborados pelos professores para guiar seus estudos.</p>
         </div>
 
         {error && <CAlert color="danger">{error}</CAlert>}
@@ -89,19 +89,19 @@ const MinhasTrilhas = () => {
           <CRow>
             {trilhas.map(t => (
               <CCol xs={12} lg={6} xl={4} key={t.id} className="mb-4">
-                <CCard className="h-100 shadow-sm border-0">
-                  <CCardHeader className="bg-white border-bottom-0 pt-4 pb-0">
+                <CCard className="h-100 shadow-sm">
+                  <CCardHeader className="bg-body-tertiary border-bottom-0 pt-4 pb-0">
                     <div className="d-flex justify-content-between align-items-start mb-2">
                       <h5 className="fw-bold mb-0">{t.nome}</h5>
                       <CBadge color={t.progresso_percentual === 100 ? "success" : "primary"}>
                         {t.progresso_percentual}%
                       </CBadge>
                     </div>
-                    <div className="text-muted small">{t.descricao}</div>
+                    <div className="text-body-secondary small">{t.descricao}</div>
                   </CCardHeader>
                   <CCardBody>
                     <div className="mb-4 mt-2">
-                      <div className="d-flex justify-content-between small text-muted mb-1">
+                      <div className="d-flex justify-content-between small text-body-secondary mb-1">
                         <span>Progresso Geral</span>
                         <span>{t.progresso_percentual}%</span>
                       </div>
@@ -113,9 +113,9 @@ const MinhasTrilhas = () => {
                     {t.modulos?.length > 0 ? (
                       <div className="d-flex flex-column gap-2">
                         {t.modulos.map((m, idx) => (
-                          <div key={m.id} className={`p-3 rounded border ${m.concluido ? 'bg-light border-success' : 'bg-white'}`}>
+                          <div key={m.id} className={`p-3 rounded border ${m.concluido ? 'bg-body-tertiary border-success' : 'bg-body-elevated'}`}>
                             <div className="d-flex justify-content-between align-items-center mb-2">
-                              <span className={`fw-bold ${m.concluido ? 'text-success' : 'text-dark'}`}>
+                              <span className={`fw-bold ${m.concluido ? 'text-success' : 'text-body'}`}>
                                 {m.ordem}. {m.nome}
                               </span>
                               {m.concluido ? (
@@ -127,10 +127,10 @@ const MinhasTrilhas = () => {
                               )}
                             </div>
                             
-                            <p className="small text-muted mb-3">{m.descricao}</p>
+                            <p className="small text-body-secondary mb-3">{m.descricao}</p>
                             
                             {m.texto_teorico && (
-                              <div className="small text-dark bg-body-tertiary p-2 rounded mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+                              <div className="small text-body bg-body-tertiary p-2 rounded mb-3" style={{ whiteSpace: 'pre-wrap' }}>
                                 {m.texto_teorico}
                               </div>
                             )}
@@ -153,7 +153,7 @@ const MinhasTrilhas = () => {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-muted small">Módulos em construção...</div>
+                      <div className="text-body-secondary small">Módulos em construção...</div>
                     )}
                   </CCardBody>
                 </CCard>

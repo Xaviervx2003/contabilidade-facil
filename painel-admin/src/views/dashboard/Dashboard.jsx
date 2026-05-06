@@ -17,6 +17,7 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CBadge,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -32,6 +33,7 @@ import {
 
 import { API_URL } from '../../config'
 import MainChart from './MainChart'
+import { useTheme } from '../../context/themeContext'
 
 // ── Helpers ─────────────────────────────────────────────
 const getUserId = () => {
@@ -158,21 +160,20 @@ const useVisaoGeral = (userId) => {
 
 // ── Componentes auxiliares ──────────────────────────────
 const StatCard = ({ titulo, valor, cor, icone, loading }) => (
-  <div
-    className={`p-3 rounded-3 shadow-sm border-start border-4 border-${cor}`}
-    style={{ backgroundColor: `var(--cui-${cor}-bg-subtle)` }}
-  >
-    <div className="d-flex align-items-center gap-2 mb-2">
-      <CIcon icon={icone} size="lg" style={{ color: `var(--cui-${cor})` }} />
-      <div className="small text-body-secondary">{titulo}</div>
+  <div className="stat-box h-100 fade-in-up" style={{ animationDelay: '0.1s' }}>
+    <div className={`stat-icon-wrapper ${cor}`}>
+      <CIcon icon={icone} size="lg" />
     </div>
-    <div className="fs-3 fw-bold" style={{ color: `var(--cui-${cor})` }}>
-      {loading ? <CSpinner size="sm" /> : valor}
+    <div className="stat-info">
+      <div className="stat-value">
+        {loading ? <CSpinner size="sm" /> : valor}
+      </div>
+      <div className="stat-desc">{titulo}</div>
     </div>
   </div>
 )
 
-const SkeletonRow = () => (
+const SkeletonRow = ({ isDark }) => (
   <CTableRow>
     {[...Array(5)].map((_, i) => (
       <CTableDataCell key={i}>
@@ -180,7 +181,9 @@ const SkeletonRow = () => (
           style={{
             height: 16,
             borderRadius: 4,
-            background: 'linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%)',
+            background: isDark
+              ? 'linear-gradient(90deg, #212121 25%, #2a2a2a 50%, #212121 75%)'
+              : 'linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%)',
             backgroundSize: '200% 100%',
             animation: 'shimmer 1.4s infinite',
             width: i === 0 ? '40%' : '80%',
@@ -197,16 +200,7 @@ const Dashboard = () => {
 
   const [pagina, setPagina] = useState(1)
   const porPagina = 10
-  const [isDark, setIsDark] = useState(false)
-
-  // Detecção de tema escuro
-  useEffect(() => {
-    const check = () => setIsDark(document.documentElement.getAttribute('data-coreui-theme') === 'dark')
-    check()
-    const obs = new MutationObserver(check)
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-coreui-theme'] })
-    return () => obs.disconnect()
-  }, [])
+  const { isDark } = useTheme()
 
   const { stats, loading: loadingStats, error: errorStats } = useDashboardStats(userId)
   const { data, loading: loadingAlunos, error: errorAlunos } = useAlunos(userId, pagina, porPagina)
@@ -293,12 +287,12 @@ const Dashboard = () => {
       {/* Progresso Geral da Turma + Últimas Atividades */}
       <CRow className="g-3 mb-4">
         <CCol md={6}>
-          <CCard className="shadow-sm border-0 h-100">
-            <CCardHeader className="bg-transparent border-0 d-flex align-items-center gap-2">
+          <div className="premium-card shadow-sm h-100 fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <div className="d-flex align-items-center gap-2 mb-3">
               <CIcon icon={cilBarChart} className="text-success" />
-              <strong>Progresso Geral da Turma</strong>
-            </CCardHeader>
-            <CCardBody className="d-flex flex-column justify-content-center">
+              <strong className="text-body-primary">Progresso Geral da Turma</strong>
+            </div>
+            <div className="d-flex flex-column justify-content-center">
               {loadingVisao ? (
                 <CSpinner color="success" size="sm" />
               ) : errorVisao ? (
@@ -314,69 +308,67 @@ const Dashboard = () => {
                   <CProgress
                     color="success"
                     value={percentualTurma}
-                    height={32}
-                    className="rounded-pill fw-bold fs-6"
-                    style={isDark ? { backgroundColor: '#2d3f52' } : {}}
-                  >
-                    {percentualTurma}%
-                  </CProgress>
-                  <small className="text-body-secondary mt-2">
-                    Total de questões no banco: {stats?.total_questoes_banco || 0}
-                  </small>
+                  />
+                  <div className="d-flex justify-content-center mt-3">
+                    <span className="fw-bold text-success fs-3">{percentualTurma}%</span>
+                  </div>
+                  <div className="mt-3 pt-3 border-top">
+                    <small className="text-body-tertiary">
+                      Total de questões no banco: <strong>{stats?.total_questoes_banco || 0}</strong>
+                    </small>
+                  </div>
                 </>
               )}
-            </CCardBody>
-          </CCard>
+            </div>
+          </div>
         </CCol>
         <CCol md={6}>
-          <CCard className="shadow-sm border-0 h-100">
-            <CCardHeader className="bg-transparent border-0 d-flex align-items-center gap-2">
+          <div className="premium-card shadow-sm h-100 fade-in-up" style={{ animationDelay: '0.25s' }}>
+            <div className="d-flex align-items-center gap-2 mb-3">
               <CIcon icon={cilHistory} className="text-info" />
-              <strong>Últimas Atividades</strong>
-            </CCardHeader>
-            <CCardBody>
-              {loadingVisao ? (
-                <CSpinner color="info" size="sm" />
-              ) : errorVisao ? (
-                <CAlert color="danger" className="mb-0">{errorVisao}</CAlert>
-              ) : (
-                <div className="table-responsive">
-                  <CTable small hover className="mb-0" {...(isDark ? { color: 'dark' } : {})}>
-                    <CTableHead>
-                      <CTableRow>
-                        <CTableHeaderCell>Aluno</CTableHeaderCell>
-                        <CTableHeaderCell>Assunto</CTableHeaderCell>
-                        <CTableHeaderCell className="text-center">Qtd</CTableHeaderCell>
-                        <CTableHeaderCell className="text-center">Acerto</CTableHeaderCell>
-                      </CTableRow>
-                    </CTableHead>
-                    <CTableBody>
-                      {visao?.ultimas_sessoes?.length > 0 ? (
-                        visao.ultimas_sessoes.map((sessao, idx) => (
-                          <CTableRow key={idx}>
-                            <CTableDataCell className="fw-medium">{sessao.aluno}</CTableDataCell>
-                            <CTableDataCell>{sessao.assunto}</CTableDataCell>
-                            <CTableDataCell className="text-center">{sessao.questoes}</CTableDataCell>
-                            <CTableDataCell className="text-center">
-                              <span className={`badge bg-${sessao.acerto >= 80 ? 'success' : sessao.acerto >= 60 ? 'warning' : 'danger'}`}>
-                                {sessao.acerto}%
-                              </span>
-                            </CTableDataCell>
-                          </CTableRow>
-                        ))
-                      ) : (
-                        <CTableRow>
-                          <CTableDataCell colSpan={4} className="text-center py-3 text-body-secondary">
-                            Nenhuma atividade recente.
+              <strong className="text-body-primary">Últimas Atividades</strong>
+            </div>
+            {loadingVisao ? (
+              <CSpinner color="info" size="sm" />
+            ) : errorVisao ? (
+              <CAlert color="danger" className="mb-0">{errorVisao}</CAlert>
+            ) : (
+              <div className="table-responsive">
+                <CTable hover align="middle" className="mb-0">
+                  <CTableHead>
+                    <CTableRow>
+                      <CTableHeaderCell className="bg-body-tertiary small border-0">Aluno</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary small border-0">Assunto</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary text-center small border-0">Qtd</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary text-center small border-0">Acerto</CTableHeaderCell>
+                    </CTableRow>
+                  </CTableHead>
+                  <CTableBody>
+                    {visao?.ultimas_sessoes?.length > 0 ? (
+                      visao.ultimas_sessoes.map((sessao, idx) => (
+                        <CTableRow key={idx}>
+                          <CTableDataCell className="fw-medium small">{sessao.aluno}</CTableDataCell>
+                          <CTableDataCell className="small">{sessao.assunto}</CTableDataCell>
+                          <CTableDataCell className="text-center fw-bold small">{sessao.questoes}</CTableDataCell>
+                          <CTableDataCell className="text-center">
+                            <CBadge color={sessao.acerto >= 80 ? 'success' : sessao.acerto >= 60 ? 'warning' : 'danger'} shape="rounded-pill">
+                              {sessao.acerto}%
+                            </CBadge>
                           </CTableDataCell>
                         </CTableRow>
-                      )}
-                    </CTableBody>
-                  </CTable>
-                </div>
-              )}
-            </CCardBody>
-          </CCard>
+                      ))
+                    ) : (
+                      <CTableRow>
+                        <CTableDataCell colSpan={4} className="text-center py-4 text-body-tertiary small">
+                          Nenhuma atividade recente.
+                        </CTableDataCell>
+                      </CTableRow>
+                    )}
+                  </CTableBody>
+                </CTable>
+              </div>
+            )}
+          </div>
         </CCol>
       </CRow>
 
@@ -434,7 +426,7 @@ const Dashboard = () => {
                   </CTableHead>
                   <CTableBody>
                     {loadingAlunos
-                      ? [...Array(porPagina)].map((_, i) => <SkeletonRow key={i} />)
+                      ? [...Array(porPagina)].map((_, i) => <SkeletonRow key={i} isDark={isDark} />)
                       : estudantes.length === 0
                         ? (
                           <CTableRow>

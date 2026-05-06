@@ -131,9 +131,10 @@ def visao_geral(usuario_id: int = Query(..., description="ID do usuário logado"
                 filtro = "AND s.matricula_aluno = %(mat)s"
 
             cursor.execute(f"""
-                SELECT s.matricula_aluno, s.assunto_estudado, s.questoes_respondidas, 
+                SELECT COALESCE(u.nome, s.matricula_aluno), s.assunto_estudado, s.questoes_respondidas, 
                        s.taxa_acerto, s.data_sessao
                 FROM sessoes_estudo s
+                LEFT JOIN usuarios u ON u.matricula = s.matricula_aluno
                 WHERE 1=1 {filtro} ORDER BY s.data_sessao DESC LIMIT 5
             """, params)
             

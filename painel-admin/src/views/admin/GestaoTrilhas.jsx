@@ -190,16 +190,16 @@ const GestaoTrilhas = () => {
             {loading ? (
               <div className="text-center py-5"><CSpinner /></div>
             ) : trilhas.length === 0 ? (
-              <div className="text-center py-5 text-muted">
+              <div className="text-center py-5 text-body-secondary">
                 Nenhuma trilha criada ainda. Crie sua primeira trilha de aprendizado!
               </div>
             ) : (
               trilhas.map(t => (
                 <CCard key={t.id} className="mb-4 border-info">
-                  <CCardHeader className="d-flex justify-content-between align-items-center bg-light">
+                  <CCardHeader className="d-flex justify-content-between align-items-center bg-body-tertiary">
                     <div>
                       <h5 className="mb-1">{t.nome}</h5>
-                      <div className="small text-muted">{t.descricao}</div>
+                      <div className="small text-body-secondary">{t.descricao}</div>
                       <CBadge color={t.status === 'publicado' ? 'success' : 'warning'} className="mt-2">
                         {t.status.toUpperCase()}
                       </CBadge>
@@ -237,7 +237,7 @@ const GestaoTrilhas = () => {
                               <CTableDataCell className="fw-bold">{m.ordem}</CTableDataCell>
                               <CTableDataCell>
                                 {m.nome}
-                                <div className="small text-muted">{m.descricao}</div>
+                                <div className="small text-body-secondary">{m.descricao}</div>
                               </CTableDataCell>
                               <CTableDataCell>
                                 {m.link_video && <CBadge color="danger"><CIcon icon={cilVideo} /> Vídeo</CBadge>}
@@ -254,7 +254,7 @@ const GestaoTrilhas = () => {
                         </CTableBody>
                       </CTable>
                     ) : (
-                      <div className="text-muted small">Nenhum módulo nesta trilha.</div>
+                      <div className="text-body-secondary small">Nenhum módulo nesta trilha.</div>
                     )}
                   </CCardBody>
                 </CCard>
@@ -313,7 +313,7 @@ const GestaoTrilhas = () => {
               <CFormInput value={formModulo.descricao} onChange={e => setFormModulo({...formModulo, descricao: e.target.value})} />
             </div>
 
-            <div className="mb-3 p-3 bg-light border rounded">
+            <div className="mb-3 p-3 bg-body-tertiary border rounded">
               <label className="form-label fw-bold">Tipo de Conteúdo Primário</label>
               <CFormSelect value={formModulo.tipo} onChange={e => setFormModulo({...formModulo, tipo: e.target.value})} className="mb-3">
                 <option value="video">🎥 Vídeo-Aula (Teoria)</option>

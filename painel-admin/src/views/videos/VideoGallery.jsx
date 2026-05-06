@@ -12,6 +12,7 @@ import {
   cilFilter, cilSortAscending,
 } from '@coreui/icons'
 import { API_URL } from '../../config'
+import { useTheme } from '../../context/themeContext'
 
 /* ─── Helpers ─── */
 
@@ -368,7 +369,7 @@ const VideoGallery = () => {
   const [assistidos, setAssistidos] = useState(() => ls.get('videosAssistidos', []))
   const [desempenhoBaixo, setDesempenhoBaixo] = useState([]) // assuntos com acerto < 60%
 
-  const isDark = document.documentElement.getAttribute('data-coreui-theme') === 'dark'
+  const { isDark } = useTheme()
   const matricula = sessionStorage.getItem('matricula')
 
   // Persistir assistidos

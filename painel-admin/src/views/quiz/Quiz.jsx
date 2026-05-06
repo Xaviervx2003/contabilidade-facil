@@ -15,6 +15,7 @@ import {
   CNavLink,
   CProgress,
   CRow,
+  CCollapse,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -29,6 +30,7 @@ import {
 import { API_URL } from '../../config'
 import { calculateScore, calculateGrade, formatSeconds, shuffle } from '../../utils/quizUtils'
 import MateriaMultiSelect from '../../components/MateriaMultiSelect'
+import { useTheme } from '../../context/themeContext'
 
 /* ─── Constantes e tokens ────────────────────────────────────────────────────── */
 
@@ -140,8 +142,59 @@ const ReviewTable = ({ questionsAndAnswers, isDark }) => (
 
 /* ─── Subcomponentes das telas ───────────────────────────────────────────────── */
 
+const FilterGroupHeader = ({ icon, title, subtitle }) => (
+  <div className="mb-1">
+    <div className="d-flex align-items-center gap-2 mb-1">
+      <span style={{ fontSize: 20 }}>{icon}</span>
+      <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '0.02em', color: 'var(--color-text-primary)' }}>{title}</span>
+    </div>
+    {subtitle && <div className="text-body-secondary small" style={{ marginLeft: 28, fontSize: 12 }}>{subtitle}</div>}
+  </div>
+)
+
+const ChecklistItem = ({ icon, title, subtitle, children, isOpen, onToggle, isCompleted, ctaLabel, onCta }) => (
+  <div
+    className={`mb-3 rounded-4 overflow-hidden border transition-all ${isOpen ? 'shadow-sm border-primary' : 'bg-body-tertiary border-transparent'}`}
+    style={{ transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}
+  >
+    <div
+      className="p-3 d-flex align-items-center justify-content-between cursor-pointer"
+      style={{ cursor: 'pointer', background: isOpen ? 'rgba(var(--cui-primary-rgb), 0.03)' : 'transparent' }}
+      onClick={onToggle}
+    >
+      <div className="d-flex align-items-center gap-3">
+        <div
+          className={`rounded-circle d-flex align-items-center justify-content-center ${isCompleted ? 'bg-success text-white' : isOpen ? 'bg-primary text-white' : 'bg-secondary text-white'}`}
+          style={{ width: 32, height: 32, transition: 'all 0.3s' }}
+        >
+          {isCompleted ? '✓' : icon}
+        </div>
+        <div>
+          <h6 className="mb-0 fw-bold" style={{ fontSize: 14 }}>{title}</h6>
+          <small className="text-body-secondary" style={{ fontSize: 11 }}>{subtitle}</small>
+        </div>
+      </div>
+      <div className={`transition-all ${isOpen ? 'rotate-180' : ''}`} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: '0.3s' }}>
+        ▼
+      </div>
+    </div>
+    <CCollapse visible={isOpen}>
+      <div className="px-4 pb-4 pt-2 border-top bg-body">
+        {children}
+        {ctaLabel && (
+          <div className="d-flex justify-content-end mt-3">
+            <CButton color="primary" size="sm" variant="outline" className="rounded-pill px-3" onClick={(e) => { e.stopPropagation(); onCta && onCta() }}>
+              {ctaLabel}
+            </CButton>
+          </div>
+        )}
+      </div>
+    </CCollapse>
+  </div>
+)
+
 const ReadyScreen = ({
-  T, materias, materiasSelected, setMateriasSelected,
+  materias, materiasSelected, setMateriasSelected,
   bancaSelecionada, setBancaSelecionada,
   orgaoSelecionado, setOrgaoSelecionado,
   cargoSelecionado, setCargoSelecionado,
@@ -149,81 +202,144 @@ const ReadyScreen = ({
   quantidade, setQuantidade, tempoLimite, setTempoLimite,
   modoEstudo, setModoEstudo,
   onStartPersonalizado, onStartSimuladoRapido
-}) => (
-  <div style={{ animation: 'fade-up .35s ease' }}>
-    <div className="text-center mb-4">
-      <div className="fs-1 mb-3">🎯</div>
-      <h5 className="fw-bold mb-2">Pronto para testar seus conhecimentos?</h5>
-      <p className="small text-muted">Configure sua sessão abaixo ou inicie o simulado rápido.</p>
-    </div>
+}) => {
+  const [activeStep, setActiveStep] = useState(0)
 
-    <CRow className="g-3 mb-4">
-      <CCol xs={12}>
-        <label className="form-label small fw-bold text-uppercase text-muted">Disciplina e Assunto</label>
+  const steps = [
+    { id: 0, title: 'Conteúdo', icon: '1', completed: materiasSelected.length > 0 },
+    { id: 1, title: 'Filtros', icon: '2', completed: !!(bancaSelecionada || orgaoSelecionado || cargoSelecionado || anoSelecionado) },
+    { id: 2, title: 'Regras', icon: '3', completed: true },
+    { id: 3, title: 'Foco', icon: '4', completed: true }
+  ]
+
+  const progressValue = (steps.filter(s => s.completed).length / steps.length) * 100
+
+  return (
+    <div style={{ animation: 'fade-up .35s ease' }}>
+      <div className="text-center mb-4">
+        <h4 className="fw-bold mb-1">Configuração do Treino</h4>
+        <p className="text-body-secondary small">Siga os passos abaixo para personalizar sua sessão.</p>
+        <div className="px-4 mt-3">
+          <CProgress value={progressValue} color="success" height={6} className="rounded-pill shadow-sm mb-1" />
+          <div className="d-flex justify-content-between small text-body-secondary px-1" style={{ fontSize: 10 }}>
+            <span>Início</span>
+            <span>{Math.round(progressValue)}% concluído</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Passo 1: Conteúdo */}
+      <ChecklistItem
+        icon="📚"
+        title="O que você quer estudar?"
+        subtitle={materiasSelected.length ? `${materiasSelected.length} matérias selecionadas` : 'Selecione as disciplinas para o quiz'}
+        isOpen={activeStep === 0}
+        onToggle={() => setActiveStep(activeStep === 0 ? -1 : 0)}
+        isCompleted={steps[0].completed}
+        ctaLabel="Confirmar Disciplinas"
+        onCta={() => setActiveStep(1)}
+      >
         <MateriaMultiSelect materias={materias} selected={materiasSelected} onChange={setMateriasSelected} esconderVazias={true} />
-      </CCol>
-      <CCol sm={6} md={4}>
-        <label className="form-label small fw-bold text-uppercase text-muted">Banca</label>
-        <input type="text" className="form-control" placeholder="Ex: FGV, CESPE..." value={bancaSelecionada} onChange={e => setBancaSelecionada(e.target.value)} />
-      </CCol>
-      <CCol sm={6} md={4}>
-        <label className="form-label small fw-bold text-uppercase text-muted">Órgão</label>
-        <input type="text" className="form-control" placeholder="Ex: Receita Federal" value={orgaoSelecionado} onChange={e => setOrgaoSelecionado(e.target.value)} />
-      </CCol>
-      <CCol sm={6} md={4}>
-        <label className="form-label small fw-bold text-uppercase text-muted">Cargo</label>
-        <input type="text" className="form-control" placeholder="Ex: Auditor" value={cargoSelecionado} onChange={e => setCargoSelecionado(e.target.value)} />
-      </CCol>
-      <CCol xs={6} sm={3} md={2}>
-        <label className="form-label small fw-bold text-uppercase text-muted">Ano</label>
-        <input type="number" className="form-control" placeholder="Ex: 2024" value={anoSelecionado} onChange={e => setAnoSelecionado(e.target.value)} />
-      </CCol>
-      <CCol xs={6} sm={3} md={3}>
-        <label className="form-label small fw-bold text-uppercase text-muted">Nº de Questões</label>
-        <CFormSelect value={quantidade} onChange={e => setQuantidade(Number(e.target.value))}>
-          {QTD_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </CFormSelect>
-      </CCol>
-      <CCol xs={6} sm={3} md={3}>
-        <label className="form-label small fw-bold text-uppercase text-muted">Tempo Limite</label>
-        <CFormSelect value={tempoLimite} onChange={e => setTempoLimite(Number(e.target.value))}>
-          {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </CFormSelect>
-      </CCol>
-    </CRow>
+      </ChecklistItem>
 
-    <div className="mb-4">
-      <label className="form-label small fw-bold text-uppercase text-muted">Focar em quais questões?</label>
-      <CRow className="g-2">
-        {[
-          { id: 'todas', label: 'Todas as Questões', desc: 'Revisar todo o banco' },
-          { id: 'nao_respondidas', label: 'Não Respondidas', desc: 'Apenas o que nunca fiz' },
-          { id: 'erros', label: 'Meus Erros', desc: 'Focar no que errei antes' },
-        ].map(m => (
-          <CCol key={m.id} sm={4}>
-            <div
-              onClick={() => setModoEstudo(m.id)}
-              className={`rounded-3 p-3 cursor-pointer border ${modoEstudo === m.id ? 'border-primary bg-primary bg-opacity-10' : 'border-light'}`}
-              style={{ transition: 'all .2s' }}
-            >
-              <div className={`fw-bold small ${modoEstudo === m.id ? 'text-primary' : ''}`}>{m.label}</div>
-              <div className="text-muted" style={{ fontSize: 10 }}>{m.desc}</div>
-            </div>
+      {/* Passo 2: Dados do Concurso */}
+      <ChecklistItem
+        icon="🏛️"
+        title="Dados do Concurso (Opcional)"
+        subtitle="Filtre por banca, órgão ou ano específico"
+        isOpen={activeStep === 1}
+        onToggle={() => setActiveStep(activeStep === 1 ? -1 : 1)}
+        isCompleted={steps[1].completed}
+        ctaLabel="Continuar"
+        onCta={() => setActiveStep(2)}
+      >
+        <CRow className="g-3">
+          <CCol xs={12} sm={6}>
+            <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>Banca</label>
+            <input type="text" className="form-control form-control-sm rounded-3" placeholder="Ex: FGV, CESPE..." value={bancaSelecionada} onChange={e => setBancaSelecionada(e.target.value)} />
           </CCol>
-        ))}
-      </CRow>
-    </div>
+          <CCol xs={12} sm={6}>
+            <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>Órgão</label>
+            <input type="text" className="form-control form-control-sm rounded-3" placeholder="Ex: Receita Federal" value={orgaoSelecionado} onChange={e => setOrgaoSelecionado(e.target.value)} />
+          </CCol>
+          <CCol xs={12} sm={6}>
+            <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>Cargo</label>
+            <input type="text" className="form-control form-control-sm rounded-3" placeholder="Ex: Auditor" value={cargoSelecionado} onChange={e => setCargoSelecionado(e.target.value)} />
+          </CCol>
+          <CCol xs={12} sm={6}>
+            <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>Ano</label>
+            <input type="number" className="form-control form-control-sm rounded-3" placeholder="Ex: 2024" value={anoSelecionado} onChange={e => setAnoSelecionado(e.target.value)} />
+          </CCol>
+        </CRow>
+      </ChecklistItem>
 
-    <div className="d-grid gap-2">
-      <CButton color="primary" size="lg" className="fw-bold" onClick={onStartPersonalizado}>
-        ▶ Iniciar Quiz Personalizado
-      </CButton>
-      <CButton color="success" variant="outline" size="lg" className="fw-bold" onClick={onStartSimuladoRapido}>
-        ⚡ Simulado Rápido — 10 Questões · 10 min
-      </CButton>
+      {/* Passo 3: Configuração */}
+      <ChecklistItem
+        icon="⚙️"
+        title="Regras do Simulado"
+        subtitle={`${quantidade === 0 ? 'Todas' : quantidade} questões · ${tempoLimite / 60} minutos`}
+        isOpen={activeStep === 2}
+        onToggle={() => setActiveStep(activeStep === 2 ? -1 : 2)}
+        isCompleted={steps[2].completed}
+        ctaLabel="Confirmar Regras"
+        onCta={() => setActiveStep(3)}
+      >
+        <CRow className="g-3">
+          <CCol xs={6}>
+            <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>Quantidade</label>
+            <CFormSelect size="sm" className="rounded-3" value={quantidade} onChange={e => setQuantidade(Number(e.target.value))}>
+              {QTD_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </CFormSelect>
+          </CCol>
+          <CCol xs={6}>
+            <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>Tempo</label>
+            <CFormSelect size="sm" className="rounded-3" value={tempoLimite} onChange={e => setTempoLimite(Number(e.target.value))}>
+              {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </CFormSelect>
+          </CCol>
+        </CRow>
+      </ChecklistItem>
+
+      {/* Passo 4: Modo de Estudo */}
+      <ChecklistItem
+        icon="🎯"
+        title="Foco do Treino"
+        subtitle={modoEstudo === 'todas' ? 'Todas as questões' : modoEstudo === 'erros' ? 'Apenas erros' : 'Não respondidas'}
+        isOpen={activeStep === 3}
+        onToggle={() => setActiveStep(activeStep === 3 ? -1 : 3)}
+        isCompleted={steps[3].completed}
+      >
+        <CRow className="g-2">
+          {[
+            { id: 'todas', icon: '📋', label: 'Todas', desc: 'Geral' },
+            { id: 'nao_respondidas', icon: '🆕', label: 'Inéditas', desc: 'Novas' },
+            { id: 'erros', icon: '❌', label: 'Erros', desc: 'Revisão' },
+          ].map(m => (
+            <CCol key={m.id} xs={4}>
+              <div
+                onClick={() => setModoEstudo(m.id)}
+                className={`rounded-3 p-2 text-center transition-all ${modoEstudo === m.id ? 'bg-primary text-white' : 'bg-body-tertiary border'}`}
+                style={{ cursor: 'pointer', transition: '0.2s' }}
+              >
+                <div style={{ fontSize: 18 }}>{m.icon}</div>
+                <div className="fw-bold mt-1" style={{ fontSize: 11 }}>{m.label}</div>
+              </div>
+            </CCol>
+          ))}
+        </CRow>
+      </ChecklistItem>
+
+      <div className="mt-4 pt-3 border-top d-grid gap-2">
+        <CButton color="primary" size="lg" className="fw-bold rounded-pill shadow-sm" onClick={onStartPersonalizado} disabled={!steps[0].completed}>
+          🚀 Iniciar Quiz Personalizado
+        </CButton>
+        <CButton color="link" size="sm" className="text-body-secondary text-decoration-none" onClick={onStartSimuladoRapido}>
+          Ou inicie um Simulado Rápido (10 questões · 10 min)
+        </CButton>
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 const QuizRunning = ({
   T, isDark, currentQuestion, queue, totalQuestions, totalAnswered, progress,
@@ -241,8 +357,8 @@ const QuizRunning = ({
   return (
     <div style={{ animation: 'fade-up .3s ease' }}>
       <div className="d-flex justify-content-between align-items-center mb-2">
-        <small className="text-muted">Questão {totalAnswered + 1} de {totalQuestions}</small>
-        <small className="text-muted">{Math.round(progress)}%</small>
+        <small className="text-body-secondary">Questão {totalAnswered + 1} de {totalQuestions}</small>
+        <small className="text-body-secondary">{Math.round(progress)}%</small>
       </div>
       <CProgress value={progress} color="primary" className="mb-3" height={6} />
 
@@ -269,24 +385,34 @@ const QuizRunning = ({
         </div>
       )}
 
-      <div className="mb-3 d-flex flex-wrap gap-1">
-        {[currentQuestion.banca, currentQuestion.ano, currentQuestion.orgao, currentQuestion.cargo, currentQuestion.escolaridade]
-          .filter(Boolean).map((tag, idx) => (
-            <CBadge key={idx} color="secondary" shape="rounded-pill" className="text-truncate" style={{ maxWidth: '150px' }}>
-              {tag}
-            </CBadge>
-          ))}
-      </div>
-
-      <div className="d-flex align-items-start gap-2 mb-3">
-        <p className="flex-grow-1 mb-0 fs-6 fw-semibold">{currentQuestion.question}</p>
-        <button
-          onClick={() => onAlternarFavorito(currentQuestion.id)}
-          className="btn btn-link p-1 rounded-circle"
-          title={favoritos.includes(currentQuestion.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-        >
-          <CIcon icon={cilStar} style={{ color: favoritos.includes(currentQuestion.id) ? '#f59e0b' : isDark ? '#5d7290' : '#94a3b8' }} width={22} height={22} />
-        </button>
+      <div className="mb-4 pt-1">
+        <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+          <div className="px-3 py-1 rounded-pill bg-body-tertiary border d-flex align-items-center gap-2 shadow-sm">
+            <CIcon icon={cilCheckCircle} className="text-primary" size="sm" />
+            <span className="fw-bold text-uppercase" style={{ fontSize: 10, letterSpacing: '0.05em' }}>Concurso</span>
+          </div>
+          {[currentQuestion.banca, currentQuestion.ano, currentQuestion.orgao, currentQuestion.cargo]
+            .filter(Boolean).map((tag, idx) => (
+              <CBadge key={idx} color="info" variant="outline" shape="rounded-pill" className="px-3 py-2 fw-medium border-info bg-info bg-opacity-10 text-info" style={{ fontSize: 11 }}>
+                {tag}
+              </CBadge>
+            ))}
+        </div>
+        <div className="d-flex align-items-start gap-3">
+          <div className="flex-grow-1">
+            <p className="mb-0 fs-5 fw-bold leading-relaxed" style={{ lineHeight: 1.5, color: 'var(--color-text-primary)' }}>
+              {currentQuestion.question}
+            </p>
+          </div>
+          <button
+            onClick={() => onAlternarFavorito(currentQuestion.id)}
+            className="btn btn-secondary shadow-sm p-2 rounded-circle border d-flex align-items-center justify-content-center"
+            style={{ width: 40, height: 40, transition: '0.2s', backgroundColor: 'var(--color-bg-elevated)' }}
+            title={favoritos.includes(currentQuestion.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+          >
+            <CIcon icon={cilStar} style={{ color: favoritos.includes(currentQuestion.id) ? '#f59e0b' : '#94a3b8' }} width={20} height={20} />
+          </button>
+        </div>
       </div>
 
       <div className="d-grid gap-2 mb-4">
@@ -372,13 +498,13 @@ const QuizRunning = ({
                     <div key={i} className={`${i < currentQuestion.comentarios_publicos.length - 1 ? 'mb-3' : ''}`}>
                       <div className="d-flex justify-content-between">
                         <strong className="text-success small">{c.nome_aluno}</strong>
-                        <small className="text-muted">{new Date(c.data_criacao).toLocaleDateString('pt-BR')}</small>
+                        <small className="text-body-secondary">{new Date(c.data_criacao).toLocaleDateString('pt-BR')}</small>
                       </div>
                       <p className="small fst-italic mt-1 mb-0">"{c.texto}"</p>
                       {c.resposta_professor && (
                         <div className="mt-2 ms-3 p-2 bg-primary bg-opacity-10 border-start border-primary border-3 rounded-end">
                           <small className="fw-bold text-primary">👨‍🏫 Professor:</small>{' '}
-                          <small className="text-muted">{c.resposta_professor}</small>
+                          <small className="text-body-secondary">{c.resposta_professor}</small>
                         </div>
                       )}
                     </div>
@@ -386,16 +512,16 @@ const QuizRunning = ({
                 </div>
               </div>
             )}
-            <div className="bg-light bg-opacity-50 rounded-3 p-3">
+            <div className="bg-body-tertiary rounded-3 p-3">
               <div className="d-flex justify-content-between mb-2">
-                <small className="fw-bold text-muted">💬 Feedback</small>
+                <small className="fw-bold text-body-secondary">💬 Feedback</small>
                 <CButton color="warning" size="sm" variant={isConfusing ? undefined : 'outline'} onClick={() => setIsConfusing(!isConfusing)} disabled={commentStatus === 'sent'}>
                   {isConfusing ? '⚠️ Confusa' : 'Marcar confusa'}
                 </CButton>
               </div>
               <CFormTextarea value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Descreva sua dúvida..." maxLength={300} disabled={commentStatus === 'sent'} />
               <div className="d-flex justify-content-between mt-2">
-                <small className="text-muted">{commentText.length}/300</small>
+                <small className="text-body-secondary">{commentText.length}/300</small>
                 {commentStatus === 'sent' ? (
                   <CButton color="success" size="sm" disabled>✅ Enviado</CButton>
                 ) : (
@@ -424,31 +550,31 @@ const FinishedScreen = ({
     {activeTab === 'stats' && (
       <div className="text-center">
         <CBadge color={gradeColor} className="fs-2 px-4 py-2 mb-2">{grade.grade}</CBadge>
-        {grade.remarks && <p className="text-muted mb-3">{grade.remarks}</p>}
+        {grade.remarks && <p className="text-body-secondary mb-3">{grade.remarks}</p>}
 
         <CRow className="g-3 mb-4">
           <CCol xs={6} md={3}>
-            <div className="bg-light bg-opacity-50 rounded-3 p-3">
+            <div className="bg-body-tertiary rounded-3 p-3">
               <div className="fs-2 fw-bold text-primary">{finalScore}%</div>
-              <small className="text-muted">Percentual</small>
+              <small className="text-body-secondary">Percentual</small>
             </div>
           </CCol>
           <CCol xs={6} md={3}>
-            <div className="bg-light bg-opacity-50 rounded-3 p-3">
+            <div className="bg-body-tertiary rounded-3 p-3">
               <div className="fs-2 fw-bold text-success">{score}</div>
-              <small className="text-muted">Acertos</small>
+              <small className="text-body-secondary">Acertos</small>
             </div>
           </CCol>
           <CCol xs={6} md={3}>
-            <div className="bg-light bg-opacity-50 rounded-3 p-3">
+            <div className="bg-body-tertiary rounded-3 p-3">
               <div className="fs-2 fw-bold text-danger">{totalAnswered - score}</div>
-              <small className="text-muted">Erros</small>
+              <small className="text-body-secondary">Erros</small>
             </div>
           </CCol>
           <CCol xs={6} md={3}>
-            <div className="bg-light bg-opacity-50 rounded-3 p-3">
+            <div className="bg-body-tertiary rounded-3 p-3">
               <div className="fs-2 fw-bold text-warning">{Math.floor(elapsedSeconds / 60)}m {elapsedSeconds % 60}s</div>
-              <small className="text-muted">Tempo</small>
+              <small className="text-body-secondary">Tempo</small>
             </div>
           </CCol>
         </CRow>
@@ -510,13 +636,10 @@ const Quiz = () => {
   const matricula = sessionStorage.getItem('matricula')
 
   // Theme detection
+  const { isDark: themeIsDark } = useTheme()
   useEffect(() => {
-    const check = () => setIsDark(document.documentElement.getAttribute('data-coreui-theme') === 'dark')
-    check()
-    const obs = new MutationObserver(check)
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-coreui-theme'] })
-    return () => obs.disconnect()
-  }, [])
+    setIsDark(themeIsDark)
+  }, [themeIsDark])
 
   // Fullscreen
   const toggleFullscreen = useCallback(() => {
@@ -849,7 +972,6 @@ const Quiz = () => {
 
               {status === 'ready' && (
                 <ReadyScreen
-                  T={{}} // not used anymore
                   materias={materias}
                   materiasSelected={materiasSelected}
                   setMateriasSelected={setMateriasSelected}
@@ -935,7 +1057,7 @@ const Quiz = () => {
 
             {status === 'finished' && (
               <div className="d-flex justify-content-between align-items-center px-3 py-2 border-top">
-                <small className={saved ? 'text-success' : 'text-muted'}>
+                <small className={saved ? 'text-success' : 'text-body-secondary'}>
                   {saved ? '✅ Sessão salva' : saving ? '⏳ Salvando...' : ''}
                 </small>
                 <CButton color="primary" size="sm" onClick={handleSaveSession} disabled={saving || saved}>

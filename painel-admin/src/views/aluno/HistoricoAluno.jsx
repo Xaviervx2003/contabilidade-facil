@@ -16,6 +16,7 @@ import {
     CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 import { API_URL } from '../../config'
+import { useTheme } from '../../context/themeContext'
 
 /* ─── Helpers ─── */
 const formatarTempo = (seg) => {
@@ -79,14 +80,17 @@ const Toast = ({ mensagem, tipo = 'success', onClose }) => {
     return (
         <div style={{
             position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-            background: '#1e2a38', color: '#fff', borderLeft: `4px solid ${cor}`,
-            borderRadius: 10, padding: '14px 20px', maxWidth: 320,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.3)', display: 'flex',
-            alignItems: 'center', gap: 10, fontSize: 14,
+            background: 'var(--color-bg-elevated)',
+            color: 'var(--color-text-primary)',
+            borderLeft: `4px solid ${cor}`,
+            borderRadius: 12, padding: '16px 20px', maxWidth: 350,
+            boxShadow: 'var(--color-shadow-lg)', display: 'flex',
+            alignItems: 'center', gap: 12, fontSize: 14,
+            backdropFilter: 'blur(12px)',
         }}>
             <span style={{ fontSize: 18 }}>{tipo === 'success' ? '🎉' : tipo === 'warning' ? '⚠️' : 'ℹ️'}</span>
-            <span>{mensagem}</span>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', marginLeft: 'auto', fontSize: 16 }}>×</button>
+            <span className="fw-medium">{mensagem}</span>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--color-text-tertiary)', cursor: 'pointer', marginLeft: 'auto', fontSize: 18 }}>×</button>
         </div>
     )
 }
@@ -94,16 +98,14 @@ const Toast = ({ mensagem, tipo = 'success', onClose }) => {
 const Skeleton = ({ h = 20, w = '100%', radius = 6, style = {} }) => (
     <div style={{
         height: h, width: w, borderRadius: radius,
-        background: 'linear-gradient(90deg, #1e2a38 25%, #253447 50%, #1e2a38 75%)',
+        background: 'var(--color-skeleton-bg)',
         backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite',
         ...style
     }} />
 )
-const SkeletonCard = ({ isDark }) => {
-    const bg = isDark ? '#1a2535' : '#f8fafc'
-    const borderColor = isDark ? '#2d3f52' : '#e2e8f0'
+const SkeletonCard = () => {
     return (
-        <CCard style={{ background: bg, border: `1px solid ${borderColor}`, borderRadius: 10, height: 120 }}>
+        <CCard style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: 10, height: 120 }}>
             <CCardBody>
                 <Skeleton h={12} w="60%" style={{ marginBottom: 10 }} />
                 <Skeleton h={28} w="40%" style={{ marginBottom: 8 }} />
@@ -114,7 +116,8 @@ const SkeletonCard = ({ isDark }) => {
 }
 
 /* ─── Heatmap de Contribuição (ocupa 100% da largura) ─── */
-const Heatmap = ({ data, isDark }) => {
+const Heatmap = ({ data }) => {
+    const { isDark } = useTheme()
     const [tooltip, setTooltip] = useState(null)
     const containerRef = useRef(null)
 
@@ -149,11 +152,11 @@ const Heatmap = ({ data, isDark }) => {
     }, [data])
 
     const getColor = (qtd) => {
-        if (qtd === 0) return isDark ? '#1a2535' : '#ebedf0'
-        if (qtd <= 5) return isDark ? '#0e4429' : '#9be9a8'
-        if (qtd <= 15) return isDark ? '#006d32' : '#40c463'
-        if (qtd <= 30) return isDark ? '#26a641' : '#30a14e'
-        return isDark ? '#39d353' : '#216e39'
+        if (qtd === 0) return 'var(--color-heatmap-0)'
+        if (qtd <= 5) return 'var(--color-heatmap-1)'
+        if (qtd <= 15) return 'var(--color-heatmap-2)'
+        if (qtd <= 30) return 'var(--color-heatmap-3)'
+        return 'var(--color-heatmap-4)'
     }
 
     const handleMouseEnter = (e, dia, qtd) => {
@@ -170,7 +173,7 @@ const Heatmap = ({ data, isDark }) => {
                     <div key={i} style={{
                         width: CELL_SIZE, height: CELL_SIZE, fontSize: 10,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: isDark ? '#5d7290' : '#94a3b8',
+                        color: 'var(--color-text-tertiary)',
                     }}>
                         {i % 2 === 0 ? d.charAt(0) : ''}
                     </div>
@@ -189,7 +192,7 @@ const Heatmap = ({ data, isDark }) => {
                                     style={{
                                         width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4,
                                         background: getColor(cell.questoes),
-                                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+                                        border: `1px solid var(--color-border-subtle)`,
                                         cursor: 'pointer', transition: 'background .2s',
                                     }}
                                     onMouseEnter={e => handleMouseEnter(e, cell.dia, cell.questoes)}
@@ -201,22 +204,22 @@ const Heatmap = ({ data, isDark }) => {
                 ))}
             </div>
             <div style={{ display: 'flex', gap: CELL_GAP, marginTop: 8, alignItems: 'center', justifyContent: 'flex-end', paddingRight: 16 }}>
-                <span style={{ fontSize: 10, color: isDark ? '#5d7290' : '#94a3b8', marginRight: 4 }}>Menos</span>
+                <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)', marginRight: 4 }}>Menos</span>
                 {[0, 5, 15, 30, 50].map((nivel, i) => (
                     <div key={i} style={{ width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4, background: getColor(nivel + 1) }} />
                 ))}
-                <span style={{ fontSize: 10, color: isDark ? '#5d7290' : '#94a3b8', marginLeft: 4 }}>Mais</span>
+                <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)', marginLeft: 4 }}>Mais</span>
             </div>
             {tooltip && (
                 <div style={{
                     position: 'fixed', left: tooltip.x, top: tooltip.y,
                     transform: 'translate(-50%, -100%)',
-                    background: isDark ? '#1e2a38' : '#fff',
-                    border: `1px solid ${isDark ? '#2d3f52' : '#d1dbe8'}`,
+                    background: 'var(--color-bg-elevated)',
+                    border: `1px solid var(--color-border)`,
                     borderRadius: 6, padding: '4px 10px', fontSize: 12,
-                    color: isDark ? '#e0e8f0' : '#1f2937',
+                    color: 'var(--color-text-primary)',
                     pointerEvents: 'none', whiteSpace: 'nowrap', zIndex: 1060,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    boxShadow: 'var(--color-shadow-md)',
                 }}>
                     {tooltip.dia} — <strong>{tooltip.qtd} questões</strong>
                 </div>
@@ -226,13 +229,18 @@ const Heatmap = ({ data, isDark }) => {
 }
 
 /* ─── Tooltip customizado ─── */
-const TooltipCustom = ({ active, payload, label, isDark }) => {
+const TooltipCustom = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null
-    const bg = isDark ? '#1e2a38' : '#ffffff'
-    const border = isDark ? '#2d3f52' : '#d1dbe8'
-    const textColor = isDark ? '#e0e8f0' : '#1f2937'
     return (
-        <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: 8, padding: '10px 14px', color: textColor, fontSize: 13 }}>
+        <div style={{
+            background: 'var(--color-bg-elevated)',
+            border: `1px solid var(--color-border)`,
+            borderRadius: 8, padding: '10px 14px',
+            color: 'var(--color-text-primary)',
+            fontSize: 13,
+            boxShadow: 'var(--color-shadow-md)',
+            backdropFilter: 'blur(8px)',
+        }}>
             <p style={{ margin: 0, fontWeight: 700, marginBottom: 4 }}>{label}</p>
             {payload.map((p, i) => (
                 <p key={i} style={{ margin: 0, color: p.color }}>
@@ -244,27 +252,26 @@ const TooltipCustom = ({ active, payload, label, isDark }) => {
 }
 
 /* ─── StatCard ─── */
-const StatCard = ({ icon, titulo, valor, sub, cor = '#7eb8f7', isDark, children, loading }) => {
-    const bg = isDark ? '#1a2535' : '#f8fafc'
-    const borderColor = isDark ? '#2d3f52' : '#e2e8f0'
-    if (loading) return <SkeletonCard isDark={isDark} />
+const StatCard = ({ icon, titulo, valor, sub, cor = 'primary', children, loading }) => {
+    if (loading) return <SkeletonCard />
     return (
-        <CCard style={{ background: bg, border: `1px solid ${borderColor}`, borderLeft: `4px solid ${cor}`, borderRadius: 10, height: '100%' }}>
-            <CCardBody className="d-flex flex-column">
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                    <CIcon icon={icon} style={{ color: cor }} size="lg" />
-                    {children}
-                </div>
-                <div style={{ color: isDark ? '#8a9bb0' : '#64748b', fontSize: 11, marginBottom: 2 }}>{titulo}</div>
-                <div style={{ color: cor, fontSize: 24, fontWeight: 800, lineHeight: 1 }}>{valor}</div>
-                {sub && <div style={{ color: isDark ? '#5d7290' : '#94a3b8', fontSize: 11, marginTop: 4 }}>{sub}</div>}
-            </CCardBody>
-        </CCard>
+        <div className="stat-box h-100 fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <div className={`stat-icon-wrapper ${cor}`}>
+                <CIcon icon={icon} size="lg" />
+            </div>
+            <div className="stat-info flex-grow-1">
+                <div className="stat-value">{valor}</div>
+                <div className="stat-desc">{titulo}</div>
+                {sub && <div className="text-body-tertiary small mt-1">{sub}</div>}
+            </div>
+            {children}
+        </div>
     )
 }
 
 /* ─── Modal de Sessões ─── */
-const ModalSessoes = ({ matricula, isDark, onClose }) => {
+const ModalSessoes = ({ matricula, onClose }) => {
+    const { isDark } = useTheme()
     const [sessoes, setSessoes] = useState([])
     const [loading, setLoading] = useState(true)
     const [pagina, setPagina] = useState(1)
@@ -282,19 +289,19 @@ const ModalSessoes = ({ matricula, isDark, onClose }) => {
 
     return (
         <CModal visible size="lg" onClose={onClose} scrollable>
-            <CModalHeader style={{ background: bg }}>
-                <CModalTitle style={{ color: isDark ? '#7eb8f7' : '#1a6fb5' }}>
+            <CModalHeader style={{ background: 'var(--color-bg-elevated)', borderBottom: '1px solid var(--color-border)' }}>
+                <CModalTitle style={{ color: 'var(--color-primary)' }}>
                     <CIcon icon={cilHistory} className="me-2" />Histórico de Sessões
                 </CModalTitle>
             </CModalHeader>
-            <CModalBody style={{ background: bg }}>
+            <CModalBody style={{ background: 'var(--color-bg-elevated)' }}>
                 {loading ? (
                     <div className="text-center py-4"><CSpinner color="primary" /></div>
                 ) : sessoes.length === 0 ? (
                     <CAlert color="secondary">Nenhuma sessão encontrada.</CAlert>
                 ) : (
                     <>
-                        <CTable responsive hover {...(isDark ? { color: 'dark' } : {})}>
+                        <CTable responsive hover>
                             <CTableHead>
                                 <CTableRow>
                                     <CTableHeaderCell>Data</CTableHeaderCell>
@@ -346,15 +353,10 @@ const HistoricoAluno = () => {
     const [dados, setDados] = useState(null)
     const [loading, setLoading] = useState(true)
     const [erro, setErro] = useState(null)
-    const [isDark, setIsDark] = useState(false)
-    const [metaDiaria, setMetaDiaria] = useState(10)
-    const [metaSemanal, setMetaSemanal] = useState(70)
-    const [mostrarFinalizados, setMostrarFinalizados] = useState(false)
-    const [progressoGeral, setProgressoGeral] = useState({ respondidas: 0, total: 0, percentual: 0 })
-    const [ranking, setRanking] = useState(null)
     const [toast, setToast] = useState(null)
     const [modalSessoes, setModalSessoes] = useState(false)
     const metaJaCelebrada = useRef(false)
+    const { isDark } = useTheme()
 
     const getParamURL = (key) => new URLSearchParams(window.location.hash.split('?')[1] || '').get(key) || ''
     const [dataInicio, setDataInicio] = useState(getParamURL('data_inicio'))
@@ -366,6 +368,12 @@ const HistoricoAluno = () => {
     const matriculaUrl = getParamURL('matricula')
     const matricula = matriculaUrl || sessionStorage.getItem('matricula')
     const nome = matriculaUrl ? `Aluno (${matriculaUrl})` : (sessionStorage.getItem('nome') || 'Aluno')
+
+    const [progressoGeral, setProgressoGeral] = useState(null)
+    const [ranking, setRanking] = useState(null)
+    const [metaSemanal, setMetaSemanal] = useState(100)
+    const [metaDiaria, setMetaDiaria] = useState(20)
+    const [mostrarFinalizados, setMostrarFinalizados] = useState(false)
 
     // Sincronizar filtros com URL
     useEffect(() => {
@@ -380,14 +388,7 @@ const HistoricoAluno = () => {
         window.history.replaceState(null, '', novaHash)
     }, [dataInicio, dataFim, filtroMateria, filtroAcerto])
 
-    // Detecção de tema
-    useEffect(() => {
-        const check = () => setIsDark(document.documentElement.getAttribute('data-coreui-theme') === 'dark')
-        check()
-        const obs = new MutationObserver(check)
-        obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-coreui-theme'] })
-        return () => obs.disconnect()
-    }, [])
+    // Detecção de tema - removida pois agora usamos useTheme() no topo do componente
 
     // Carregar matérias
     useEffect(() => {
@@ -584,9 +585,12 @@ const HistoricoAluno = () => {
         }
     }
 
-    const bgCard = isDark ? '#1a2535' : '#ffffff'
-    const borderCard = isDark ? '#2d3f52' : '#e2e8f0'
-    const cardStyle = { background: bgCard, border: `1px solid ${borderCard}`, borderRadius: 10 }
+    const cardStyle = {
+        background: 'var(--color-bg-elevated)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 10,
+        boxShadow: 'var(--color-shadow-sm)'
+    }
 
     /* ─── Retornos condicionais ─── */
     if (erro) return <CAlert color="danger">{erro}</CAlert>
@@ -595,17 +599,17 @@ const HistoricoAluno = () => {
     const ultima = resumo?.ultima_sessao ? new Date(resumo.ultima_sessao).toLocaleDateString('pt-BR') : '—'
 
     return (
-        <div style={{ padding: '24px', background: isDark ? '#111b27' : '#f4f7fa', minHeight: '100vh' }}>
+        <div style={{ padding: '24px', background: 'var(--color-bg-primary)', minHeight: '100vh' }}>
             <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
 
             {toast && <Toast mensagem={toast.mensagem} tipo={toast.tipo} onClose={() => setToast(null)} />}
-            {modalSessoes && <ModalSessoes matricula={matricula} isDark={isDark} onClose={() => setModalSessoes(false)} />}
+            {modalSessoes && <ModalSessoes matricula={matricula} onClose={() => setModalSessoes(false)} />}
 
             {/* Cabeçalho */}
             <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                 <div>
-                    <h2 style={{ color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 800, margin: 0 }}>Meu Histórico de Aprendizado</h2>
-                    <p style={{ color: isDark ? '#5d7290' : '#64748b', margin: '4px 0 0', fontSize: 13 }}>
+                    <h2 style={{ color: 'var(--color-primary)', fontWeight: 800, margin: 0 }}>Meu Histórico de Aprendizado</h2>
+                    <p className="text-body-secondary" style={{ margin: '4px 0 0', fontSize: 13 }}>
                         {loading ? 'Carregando...' : `Última sessão: ${ultima}`}
                     </p>
                 </div>
@@ -624,7 +628,7 @@ const HistoricoAluno = () => {
 
             {/* Filtros */}
             <CCard className="mb-4" style={cardStyle}>
-                <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>
+                <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>
                     <CIcon icon={cilFilter} className="me-2" /> Filtros
                     {temFiltros && <CBadge color="primary" className="ms-2">Ativos</CBadge>}
                 </CCardHeader>
@@ -664,61 +668,62 @@ const HistoricoAluno = () => {
 
             {/* Ranking da Turma */}
             {ranking && !loading && (
-                <CCard className="mb-4" style={{ ...cardStyle, borderLeft: `4px solid #f9b115` }}>
-                    <CCardBody className="d-flex align-items-center gap-3 flex-wrap">
-                        <CIcon icon={cilStar} style={{ color: '#f9b115' }} size="xl" />
-                        <div style={{ flex: 1 }}>
-                            <div style={{ color: isDark ? '#8a9bb0' : '#64748b', fontSize: 12, marginBottom: 2 }}>Seu Ranking na Turma</div>
-                            <div style={{ color: isDark ? '#e0e8f0' : '#1f2937', fontSize: 16, fontWeight: 700 }}>
-                                {ranking.posicao}º lugar de {ranking.total_alunos} alunos
-                            </div>
-                            <CProgress value={100 - ((ranking.posicao - 1) / ranking.total_alunos * 100)} color="warning" height={8} className="mt-2 rounded-pill" />
+                <div className="stat-box mb-4 fade-in-up" style={{ animationDelay: '0.15s', borderLeft: '4px solid #f9b115' }}>
+                    <div className="stat-icon-wrapper warning">
+                        <CIcon icon={cilStar} />
+                    </div>
+                    <div className="stat-info flex-grow-1">
+                        <div className="stat-desc">Seu Ranking na Turma</div>
+                        <div className="stat-value">
+                            {ranking.posicao}º lugar <small className="fw-normal text-body-tertiary">de {ranking.total_alunos} alunos</small>
                         </div>
-                        <CBadge color={ranking.percentil >= 80 ? 'success' : ranking.percentil >= 50 ? 'warning' : 'danger'} shape="rounded-pill" className="fs-6 px-3 py-2">
-                            Top {100 - ranking.percentil}%
-                        </CBadge>
-                    </CCardBody>
-                </CCard>
+                        <CProgress value={100 - ((ranking.posicao - 1) / ranking.total_alunos * 100)} color="warning" className="mt-2" />
+                    </div>
+                    <CBadge color={ranking.percentil >= 80 ? 'success' : ranking.percentil >= 50 ? 'warning' : 'danger'} shape="rounded-pill" className="fs-6 px-3 py-2 ms-auto">
+                        Top {100 - ranking.percentil}%
+                    </CBadge>
+                </div>
             )}
 
             {/* Progresso Geral */}
-            <CCard className="mb-4" style={cardStyle}>
-                <CCardBody className="d-flex align-items-center gap-3">
+            <div className="premium-card mb-4 fade-in-up" style={{ animationDelay: '0.2s' }}>
+                <div className="d-flex align-items-center gap-3">
                     {loading ? <Skeleton h={40} /> : (
                         <>
-                            <div style={{ flex: 1 }}>
-                                <h5 style={{ color: isDark ? '#e0e8f0' : '#1f2937', marginBottom: 8 }}>📊 Progresso no Edital</h5>
-                                <CProgress value={progressoGeral.percentual} color="success" height={24} className="rounded-pill">
-                                    {progressoGeral.percentual}% ({progressoGeral.respondidas} de {progressoGeral.total} questões)
-                                </CProgress>
+                            <div className="flex-grow-1">
+                                <h5 className="mb-2">📊 Progresso no Edital</h5>
+                                <CProgress value={progressoGeral?.percentual || 0} color="success" />
+                                <div className="d-flex justify-content-between mt-2">
+                                    <small className="text-body-tertiary">{progressoGeral?.respondidas || 0} de {progressoGeral?.total || 0} questões</small>
+                                    <span className="fw-bold text-success">{progressoGeral?.percentual || 0}%</span>
+                                </div>
                             </div>
-                            <CBadge color="success" shape="rounded-pill" className="fs-6 px-3 py-2">{progressoGeral.percentual}%</CBadge>
                         </>
                     )}
-                </CCardBody>
-            </CCard>
+                </div>
+            </div>
 
             {/* Mapa de Calor (Heatmap) */}
             <CCard className="mb-4" style={cardStyle}>
-                <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>
+                <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>
                     🔥 Mapa de Contribuição de Estudos
                 </CCardHeader>
                 <CCardBody style={{ overflowX: 'auto', padding: '16px 24px' }}>
-                    {loading ? <Skeleton h={160} /> : <Heatmap data={dados?.por_dia} isDark={isDark} />}
+                    {loading ? <Skeleton h={160} /> : <Heatmap data={dados?.por_dia} />}
                 </CCardBody>
             </CCard>
 
             {/* Cards principais */}
             <CRow className="g-3 mb-4">
                 <CCol xs={6} md={4} lg={3}>
-                    <StatCard loading={loading} icon={cilChartLine} titulo="Constância nos Estudos" valor={`${constancia.dias} dias`} sub={`Recorde: ${constancia.recorde} dias`} cor="#2eb85c" isDark={isDark}>
+                    <StatCard loading={loading} icon={cilChartLine} titulo="Constância nos Estudos" valor={`${constancia.dias} dias`} sub={`Recorde: ${constancia.recorde} dias`} cor="#2eb85c">
                         <CBadge color="success" shape="rounded-pill">{constancia.dias >= 7 ? '🔥 Excelente!' : '💪 Continue!'}</CBadge>
                     </StatCard>
                 </CCol>
                 <CCol xs={6} md={4} lg={3}>
-                    <StatCard loading={loading} icon={cilCalendar} titulo="Estudo do Dia" valor={`${questoesHoje} questões`} sub={`Meta: ${metaDiaria} questões/dia`} cor="#7eb8f7" isDark={isDark}>
+                    <StatCard loading={loading} icon={cilCalendar} titulo="Estudo do Dia" valor={`${questoesHoje} questões`} sub={`Meta: ${metaDiaria} questões/dia`} cor="#7eb8f7">
                         <div className="d-flex align-items-center gap-2 mt-2">
-                            <CButton color="link" size="sm" className="p-0" onClick={() => setMostrarFinalizados(!mostrarFinalizados)}>
+                            <CButton color="link" size="sm" className="p-0 text-decoration-none fw-bold" onClick={() => setMostrarFinalizados(!mostrarFinalizados)}>
                                 {mostrarFinalizados ? 'OCULTAR' : 'MOSTRAR'}
                             </CButton>
                             {mostrarFinalizados && (
@@ -731,10 +736,10 @@ const HistoricoAluno = () => {
                     </StatCard>
                 </CCol>
                 <CCol xs={6} md={4} lg={3}>
-                    <StatCard loading={loading} icon={cilClock} titulo="Tempo de Estudo" valor={formatarTempo((resumo?.tempo_medio_seg || 0) * (resumo?.total_sessoes || 0))} sub={`Média por sessão: ${formatarTempo(resumo?.tempo_medio_seg || 0)}`} cor="#f9b115" isDark={isDark} />
+                    <StatCard loading={loading} icon={cilClock} titulo="Tempo de Estudo" valor={formatarTempo((resumo?.tempo_medio_seg || 0) * (resumo?.total_sessoes || 0))} sub={`Média por sessão: ${formatarTempo(resumo?.tempo_medio_seg || 0)}`} cor="#f9b115" />
                 </CCol>
                 <CCol xs={6} md={4} lg={3}>
-                    <StatCard loading={loading} icon={cilLibrary} titulo="Questões Respondidas" valor={resumo?.total_questoes || 0} sub={`Média: ${resumo?.media_geral || 0}%`} cor="#9d7ef7" isDark={isDark}>
+                    <StatCard loading={loading} icon={cilLibrary} titulo="Questões Respondidas" valor={resumo?.total_questoes || 0} sub={`Média: ${resumo?.media_geral || 0}%`} cor="#9d7ef7">
                         <span style={{ fontSize: 20 }}>{medalha(resumo?.media_geral || 0)}</span>
                     </StatCard>
                 </CCol>
@@ -752,13 +757,13 @@ const HistoricoAluno = () => {
                                 <CCol key={i} xs={12} md={6}>
                                     <div style={{
                                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                        background: isDark ? '#1e2a38' : '#fff5f5',
-                                        border: `1px solid ${isDark ? '#3d2020' : '#fecaca'}`,
+                                        background: 'var(--color-bg-tertiary)',
+                                        border: `1px solid var(--color-border)`,
                                         borderRadius: 8, padding: '10px 14px', gap: 10
                                     }}>
                                         <div>
-                                            <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#e0e8f0' : '#1f2937' }}>{a.assunto}</div>
-                                            <CBadge color="danger">{a.media_acerto}% de acerto</CBadge>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>{a.assunto}</div>
+                                            <CBadge color="danger" variant="outline">{a.media_acerto}% de acerto</CBadge>
                                         </div>
                                         <CButton color="danger" size="sm" variant="outline" onClick={() => window.location.href = `/#/quiz?assunto=${encodeURIComponent(a.assunto)}`}>Praticar</CButton>
                                     </div>
@@ -773,7 +778,7 @@ const HistoricoAluno = () => {
             <CRow className="g-3 mb-4">
                 <CCol md={6}>
                     <CCard style={cardStyle}>
-                        <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>📋 Planejamento do Dia</CCardHeader>
+                        <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>📋 Planejamento do Dia</CCardHeader>
                         <CCardBody>
                             <div className="d-flex align-items-center gap-3 mb-3">
                                 <CFormLabel style={{ minWidth: 80 }}>Meta diária</CFormLabel>
@@ -792,7 +797,7 @@ const HistoricoAluno = () => {
                 </CCol>
                 <CCol md={6}>
                     <CCard style={cardStyle}>
-                        <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>🎯 Meta Semanal</CCardHeader>
+                        <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>🎯 Meta Semanal</CCardHeader>
                         <CCardBody>
                             <div className="d-flex align-items-center gap-3 mb-3">
                                 <CFormLabel style={{ minWidth: 80 }}>Meta semanal</CFormLabel>
@@ -808,16 +813,16 @@ const HistoricoAluno = () => {
 
             {/* Estudo Semanal */}
             <CCard className="mb-4" style={cardStyle}>
-                <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>📅 Estudo Semanal</CCardHeader>
+                <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>📅 Estudo Semanal</CCardHeader>
                 <CCardBody>
                     {loading ? <Skeleton h={200} /> : ultimos7Dias.length > 0 ? (
                         <ResponsiveContainer width="100%" height={200}>
                             <BarChart data={ultimos7Dias}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d3f52' : '#e2e8f0'} />
-                                <XAxis dataKey="dia" stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} />
-                                <YAxis stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} />
-                                <Tooltip content={<TooltipCustom isDark={isDark} />} />
-                                <Bar dataKey="questoes" name="Questões" fill="#7eb8f7" radius={[4, 4, 0, 0]} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                                <XAxis dataKey="dia" stroke="var(--color-text-tertiary)" tick={{ fontSize: 12 }} />
+                                <YAxis stroke="var(--color-text-tertiary)" tick={{ fontSize: 12 }} />
+                                <Tooltip content={<TooltipCustom />} />
+                                <Bar dataKey="questoes" name="Questões" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
@@ -829,14 +834,14 @@ const HistoricoAluno = () => {
             {/* Gráfico de evolução */}
             {!loading && dadosGraficoEvolucao.length > 0 && (
                 <CCard className="mb-4" style={cardStyle}>
-                    <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700 }}>📈 Evolução da Taxa de Acerto</CCardHeader>
+                    <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>📈 Evolução da Taxa de Acerto</CCardHeader>
                     <CCardBody>
                         <ResponsiveContainer width="100%" height={220}>
                             <LineChart data={dadosGraficoEvolucao}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d3f52' : '#e2e8f0'} />
-                                <XAxis dataKey="label" stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} />
-                                <YAxis domain={[0, 100]} stroke={isDark ? '#5d7290' : '#64748b'} tick={{ fontSize: 12 }} tickFormatter={v => `${v}%`} />
-                                <Tooltip content={<TooltipCustom isDark={isDark} />} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                                <XAxis dataKey="label" stroke="var(--color-text-tertiary)" tick={{ fontSize: 12 }} />
+                                <YAxis domain={[0, 100]} stroke="var(--color-text-tertiary)" tick={{ fontSize: 12 }} tickFormatter={v => `${v}%`} />
+                                <Tooltip content={<TooltipCustom />} />
                                 <Line type="monotone" dataKey="media_acerto" name="Acerto (%)" stroke="#2eb85c" strokeWidth={2} dot={{ r: 3 }} />
                             </LineChart>
                         </ResponsiveContainer>
@@ -847,12 +852,12 @@ const HistoricoAluno = () => {
             {/* Tabela Desempenho por Assunto */}
             {!loading && por_assunto && por_assunto.length > 0 && (
                 <CCard style={cardStyle}>
-                    <CCardHeader style={{ background: 'transparent', border: 'none', color: isDark ? '#7eb8f7' : '#1a6fb5', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span>📚 Desempenho por Assunto</span>
                         <CBadge color="secondary">{por_assunto.length} assuntos</CBadge>
                     </CCardHeader>
                     <CCardBody>
-                        <CTable responsive hover {...(isDark ? { color: 'dark' } : {})}>
+                        <CTable responsive hover>
                             <CTableHead>
                                 <CTableRow>
                                     <CTableHeaderCell>Assunto</CTableHeaderCell>
@@ -863,7 +868,7 @@ const HistoricoAluno = () => {
                             </CTableHead>
                             <CTableBody>
                                 {por_assunto.map((a, i) => (
-                                    <CTableRow key={i} style={a.media_acerto < 60 ? { background: isDark ? '#1e1520' : '#fff5f5' } : {}}>
+                                    <CTableRow key={i} style={a.media_acerto < 60 ? { background: 'var(--color-bg-danger-subtle)' } : {}}>
                                         <CTableDataCell>{a.assunto}</CTableDataCell>
                                         <CTableDataCell className="text-center">{a.questoes}</CTableDataCell>
                                         <CTableDataCell className="text-center">
@@ -884,7 +889,7 @@ const HistoricoAluno = () => {
 
             {loading && dados && (
                 <div style={{ textAlign: 'center', padding: 20 }}>
-                    <CSpinner color="primary" size="sm" /> <span style={{ fontSize: 13, color: isDark ? '#5d7290' : '#94a3b8' }}>Atualizando...</span>
+                    <CSpinner color="primary" size="sm" /> <span style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>Atualizando...</span>
                 </div>
             )}
         </div>

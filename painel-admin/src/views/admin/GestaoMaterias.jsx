@@ -228,11 +228,11 @@ const GestaoMaterias = () => {
           </CButton>
         </CCardHeader>
         <CCardBody>
-          <div className="bg-light p-3 rounded mb-4 border">
+          <div className="bg-body-tertiary p-3 rounded mb-4 border">
             <h6 className="mb-3 fw-bold">Criar Nova Categoria / Subcategoria</h6>
             <CRow className="g-3 align-items-end">
               <CCol md={5}>
-                <label className="form-label small text-muted text-uppercase">Nome da Categoria</label>
+                <label className="form-label small text-body-secondary text-uppercase">Nome da Categoria</label>
                 <CFormInput
                   placeholder="Ex: Introdução à Administração"
                   value={novaMateria}
@@ -240,7 +240,7 @@ const GestaoMaterias = () => {
                 />
               </CCol>
               <CCol md={5}>
-                <label className="form-label small text-muted text-uppercase">Categoria Pai (Opcional)</label>
+                <label className="form-label small text-body-secondary text-uppercase">Categoria Pai (Opcional)</label>
                 <CFormSelect value={parentID} onChange={(e) => setParentID(e.target.value)}>
                   <option value="">Nenhuma (Raiz)</option>
                   {flattenedList.map(m => (
@@ -263,7 +263,7 @@ const GestaoMaterias = () => {
           ) : (
             <div className="table-responsive">
               <CTable align="middle" hover bordered className="mb-0">
-                <CTableHead className="table-light">
+                <CTableHead>
                   <CTableRow>
                     <CTableHeaderCell style={{ width: '60%' }}>Hierarquia</CTableHeaderCell>
                     <CTableHeaderCell className="text-center">Questões</CTableHeaderCell>
@@ -273,7 +273,7 @@ const GestaoMaterias = () => {
                 <CTableBody>
                   {currentItems.length === 0 ? (
                     <CTableRow>
-                      <CTableDataCell colSpan={3} className="text-center py-4 text-muted">
+                      <CTableDataCell colSpan={3} className="text-center py-4 text-body-secondary">
                         Nenhuma categoria encontrada nesta página.
                       </CTableDataCell>
                     </CTableRow>
@@ -281,7 +281,7 @@ const GestaoMaterias = () => {
                     <CTableRow key={m.id} className={m.depth === 0 ? 'fw-bold' : ''}>
                       <CTableDataCell className="text-nowrap">
                         <div style={{ paddingLeft: m.depth * 30, display: 'flex', alignItems: 'center' }}>
-                          {m.depth > 0 && <CIcon icon={cilChevronRight} className="text-muted me-2" style={{ width: 12 }} />}
+                          {m.depth > 0 && <CIcon icon={cilChevronRight} className="text-body-secondary me-2" style={{ width: 12 }} />}
 
                           {editandoId === m.id ? (
                             <div className="d-flex flex-column gap-2 w-100">

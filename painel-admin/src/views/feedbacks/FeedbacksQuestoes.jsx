@@ -226,7 +226,7 @@ const FeedbacksQuestoes = () => {
                                         ✅ Resolvidos
                                     </CButton>
                                     <CButton
-                                        color={filtroStatus === 'todos' ? 'primary' : 'light'}
+                                        color={filtroStatus === 'todos' ? 'primary' : 'body'}
                                         onClick={() => setFiltroStatus('todos')}
                                     >
                                         📋 Todos
@@ -266,7 +266,7 @@ const FeedbacksQuestoes = () => {
                                 </div>
                             ) : (
                                 <CTable hover responsive align="middle" className="border">
-                                    <CTableHead color="light">
+                                    <CTableHead>
                                         <CTableRow>
                                             <CTableHeaderCell>Data</CTableHeaderCell>
                                             <CTableHeaderCell>Aluno</CTableHeaderCell>
@@ -282,8 +282,8 @@ const FeedbacksQuestoes = () => {
                                             <CTableRow
                                                 key={item.id}
                                                 style={{
-                                                    ...(item.resolvido ? { opacity: 0.6 } : {}),
-                                                    ...(item.impacto >= 5 && !item.resolvido ? { backgroundColor: '#fff5f5' } : {})
+                                                    ...(item.resolvido ? { opacity: 0.7 } : {}),
+                                                    ...(item.impacto >= 5 && !item.resolvido ? { backgroundColor: 'rgba(229, 83, 83, 0.15)' } : {})
                                                 }}
                                             >
                                                 {/* Data */}
@@ -311,7 +311,7 @@ const FeedbacksQuestoes = () => {
                                                                 </CBadge>
                                                             )}
                                                         </div>
-                                                        <div className="small text-muted" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                                                        <div className="small text-body-secondary" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
                                                             {item.enunciado_questao
                                                                 ? (item.enunciado_questao.length > 120
                                                                     ? item.enunciado_questao.substring(0, 120) + '...'
@@ -327,12 +327,12 @@ const FeedbacksQuestoes = () => {
                                                         {item.texto ? (
                                                             <span className="fst-italic">"{item.texto}"</span>
                                                         ) : (
-                                                            <span className="text-muted fst-italic small">Sem comentário em texto</span>
+                                                            <span className="text-body-secondary fst-italic small">Sem comentário em texto</span>
                                                         )}
                                                         
                                                         {/* Exibição da Resposta do Professor */}
                                                         {item.resposta_professor ? (
-                                                            <div className="p-2 bg-light border-start border-4 border-info small">
+                                                            <div className="p-2 bg-body-tertiary border-start border-4 border-info small">
                                                                 <strong>Sua resposta:</strong> {item.resposta_professor}
                                                             </div>
                                                         ) : !item.resolvido && (
@@ -347,7 +347,7 @@ const FeedbacksQuestoes = () => {
                                                                         }
                                                                     }}
                                                                 />
-                                                                <small className="text-muted" style={{ fontSize: '0.75rem' }}>Pressione Enter para enviar e resolver</small>
+                                                                <small className="text-body-secondary" style={{ fontSize: '0.75rem' }}>Pressione Enter para enviar e resolver</small>
                                                             </div>
                                                         )}
                                                     </div>

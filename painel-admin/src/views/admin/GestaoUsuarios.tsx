@@ -292,7 +292,7 @@ const GestaoUsuarios = () => {
                     ) : (
                         <>
                             <CTable align="middle" hover responsive bordered className="mb-0">
-                                <CTableHead className="table-light">
+                                <CTableHead>
                                     <CTableRow>
                                         <CTableHeaderCell>#</CTableHeaderCell>
                                         <CTableHeaderCell>Nome</CTableHeaderCell>
@@ -307,7 +307,7 @@ const GestaoUsuarios = () => {
                                 <CTableBody>
                                     {dadosPaginados.length === 0 ? (
                                         <CTableRow>
-                                            <CTableDataCell colSpan={7} className="text-center py-4 text-muted">
+                                            <CTableDataCell colSpan={7} className="text-center py-4 text-body-secondary">
                                                 {busca ? 'Nenhum usuário corresponde à busca.' : 'Nenhum usuário encontrado.'}
                                             </CTableDataCell>
                                         </CTableRow>
@@ -315,17 +315,17 @@ const GestaoUsuarios = () => {
                                         const badge = PAPEL_BADGE[u.papel] || { color: 'secondary', label: u.papel }
                                         return (
                                             <CTableRow key={u.id}>
-                                                <CTableDataCell className="text-muted">{(paginaAtual - 1) * itensPorPagina + idx + 1}</CTableDataCell>
+                                                <CTableDataCell className="text-body-secondary">{(paginaAtual - 1) * itensPorPagina + idx + 1}</CTableDataCell>
                                                 <CTableDataCell><strong>{u.nome}</strong></CTableDataCell>
                                                 <CTableDataCell><code>{u.matricula}</code></CTableDataCell>
-                                                <CTableDataCell>{u.email || <span className="text-muted">—</span>}</CTableDataCell>
+                                                <CTableDataCell>{u.email || <span className="text-body-secondary">—</span>}</CTableDataCell>
                                                 <CTableDataCell className="text-center">
                                                     <CBadge color={badge.color}>{badge.label}</CBadge>
                                                 </CTableDataCell>
                                                 <CTableDataCell>
                                                     {u.papel === 'professor'
                                                         ? Array.isArray(u.materias_ensinadas) ? u.materias_ensinadas.join(', ') : u.materias_ensinadas
-                                                        : <span className="text-muted">—</span>}
+                                                        : <span className="text-body-secondary">—</span>}
                                                 </CTableDataCell>
                                                 <CTableDataCell>
                                                     <div className="d-flex flex-wrap justify-content-center gap-1">
@@ -429,7 +429,7 @@ const GestaoUsuarios = () => {
 
                         <CRow className="mb-3">
                             <CCol md={6}>
-                                <CFormLabel>E-mail <span className="text-muted">(opcional)</span></CFormLabel>
+                                <CFormLabel>E-mail <span className="text-body-secondary">(opcional)</span></CFormLabel>
                                 <CFormInput
                                     type="email"
                                     value={formData.email}
@@ -474,7 +474,7 @@ const GestaoUsuarios = () => {
                                     <CFormLabel>Matérias que este professor ensina <span className="text-danger">*</span></CFormLabel>
                                     <div className="d-flex flex-wrap gap-2 mt-1">
                                         {materias.length === 0 ? (
-                                            <span className="text-muted">Nenhuma matéria cadastrada.</span>
+                                            <span className="text-body-secondary">Nenhuma matéria cadastrada.</span>
                                         ) : materias.map(m => {
                                             const selecionado = formData.materia_ids.includes(m.id)
                                             return (

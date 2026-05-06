@@ -6,7 +6,7 @@
 * Copyright (c) 2026 creativeLabs Łukasz Holeczek
 * Licensed under MIT (https://github.com/coreui/coreui-free-react-admin-template/blob/main/LICENSE)
 -->
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -14,16 +14,39 @@
     <meta name="description" content="Contabilidade Fácil - Plataforma de Estudos">
     <meta name="author" content="Contabilidade Fácil">
     <meta name="keyword" content="Contabilidade, Estudos, Quiz, AVA, Dashboard">
+    <meta name="theme-color" content="#000000">
+    <meta name="color-scheme" content="light dark">
     <title>Contabilidade Fácil - Ambiente de Aprendizagem</title>
     <link rel="manifest" href="/manifest.json">
     <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+      /* Prevenir flash de tema errado ao carregar */
+      html { transition: none !important; }
+      html.theme-loaded {
+        transition: background-color 200ms ease, color 200ms ease;
+      }
+    </style>
   </head>
   <body>
     <noscript>
-      You need to enable JavaScript to run this app
+      Você precisa ativar o JavaScript para executar este aplicativo
     </noscript>
     <div id="root"></div>
     <script type="module" src="/src/index.jsx"></script>
+    <!-- Anti-flash: aplica tema ANTES do React carregar -->
+    <script>
+      (function() {
+        var theme = localStorage.getItem('theme-mode');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var shouldBeDark = theme ? theme === 'dark' : prefersDark;
+        document.documentElement.setAttribute('data-theme', shouldBeDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-coreui-theme', shouldBeDark ? 'dark' : 'light');
+        document.documentElement.classList.add('theme-loaded');
+      })();
+    </script>
     <!-- built files will be auto injected -->
   </body>
 </html>

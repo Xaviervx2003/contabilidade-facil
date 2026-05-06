@@ -5,17 +5,12 @@
  * Features include:
  * - Sidebar toggle button
  * - Primary navigation links
- * - Notification and action icons
- * - Theme switcher (light/dark/auto)
- * - User dropdown menu
+ * - Theme toggle (light/dark) via ThemeContext
+ * - Logout button
  * - Breadcrumb navigation
  * - Sticky positioning with scroll shadow effect
  *
  * @component
- * @example
- * return (
- *   <AppHeader />
- * )
  */
 
 import React, { useEffect, useRef } from 'react'
@@ -23,21 +18,15 @@ import { NavLink } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   CContainer,
-  CDropdown,
-  CDropdownItem,
-  CDropdownMenu,
-  CDropdownToggle,
   CHeader,
   CHeaderNav,
   CHeaderToggler,
   CNavLink,
   CNavItem,
-  useColorModes,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
   cilAccountLogout,
-  cilContrast,
   cilMenu,
   cilMoon,
   cilSun,
@@ -45,21 +34,11 @@ import {
 
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
+import { useTheme } from '../context/themeContext'
 
-/**
- * AppHeader functional component
- *
- * Manages header UI including:
- * - Redux integration for sidebar state
- * - Theme management with CoreUI useColorModes hook
- * - Scroll-based shadow effect
- * - Responsive navigation
- *
- * @returns {React.ReactElement} Header component with navigation and controls
- */
 const AppHeader = () => {
   const headerRef = useRef()
-  const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
+  const { isDark, toggleTheme } = useTheme()
 
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
@@ -111,46 +90,17 @@ const AppHeader = () => {
           <li className="nav-item py-1">
             <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
           </li>
-          <CDropdown variant="nav-item" placement="bottom-end">
-            <CDropdownToggle caret={false}>
-              {colorMode === 'dark' ? (
-                <CIcon icon={cilMoon} size="lg" />
-              ) : colorMode === 'auto' ? (
-                <CIcon icon={cilContrast} size="lg" />
-              ) : (
-                <CIcon icon={cilSun} size="lg" />
-              )}
-            </CDropdownToggle>
-            <CDropdownMenu>
-              <CDropdownItem
-                active={colorMode === 'light'}
-                className="d-flex align-items-center"
-                as="button"
-                type="button"
-                onClick={() => setColorMode('light')}
-              >
-                <CIcon className="me-2" icon={cilSun} size="lg" /> Light
-              </CDropdownItem>
-              <CDropdownItem
-                active={colorMode === 'dark'}
-                className="d-flex align-items-center"
-                as="button"
-                type="button"
-                onClick={() => setColorMode('dark')}
-              >
-                <CIcon className="me-2" icon={cilMoon} size="lg" /> Dark
-              </CDropdownItem>
-              <CDropdownItem
-                active={colorMode === 'auto'}
-                className="d-flex align-items-center"
-                as="button"
-                type="button"
-                onClick={() => setColorMode('auto')}
-              >
-                <CIcon className="me-2" icon={cilContrast} size="lg" /> Auto
-              </CDropdownItem>
-            </CDropdownMenu>
-          </CDropdown>
+          {/* Theme Toggle Button */}
+          <CNavItem className="d-flex align-items-center">
+            <button
+              className="theme-toggle"
+              onClick={toggleTheme}
+              title={isDark ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+              aria-label="Alternar tema"
+            >
+              <CIcon icon={isDark ? cilSun : cilMoon} size="lg" />
+            </button>
+          </CNavItem>
           <li className="nav-item py-1">
             <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
           </li>
@@ -165,3 +115,4 @@ const AppHeader = () => {
 }
 
 export default AppHeader
+

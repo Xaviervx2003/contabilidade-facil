@@ -12,8 +12,11 @@ import {
   cilChartLine,
   cilListRich,
   cilStar,
+  cilMoon,
+  cilSun,
 } from '@coreui/icons'
 import { CNavItem, CNavTitle } from '@coreui/react'
+import { useTheme } from './context/themeContext'
 
 const getNavItens = () => {
   const papelUsuario = sessionStorage.getItem('papel') || 'aluno'
@@ -149,6 +152,22 @@ const getNavItens = () => {
   }
 
   return itens
+}
+
+// Componente de Toggle do Tema
+export const ThemeToggle = () => {
+  const { isDark, toggleTheme } = useTheme()
+
+  return (
+    <button
+      onClick={toggleTheme}
+      className="theme-toggle"
+      aria-label={isDark ? 'Ativar modo claro' : 'Ativar modo escuro'}
+      title={isDark ? 'Modo claro' : 'Modo escuro'}
+    >
+      <CIcon icon={isDark ? cilSun : cilMoon} customClassName="theme-toggle-icon" />
+    </button>
+  )
 }
 
 export default getNavItens

@@ -20,11 +20,13 @@ import { sygnet } from 'src/assets/brand/sygnet'
 import getNavItens from '../_nav'
 
 import { API_URL } from '../config'
+import { useTheme } from '../context/themeContext'
 
 const AppSidebar = () => {
   const dispatch = useDispatch()
   const unfoldable = useSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.sidebarShow)
+  const { isDark } = useTheme()
 
   const [pendentes, setPendentes] = React.useState(0)
   const [navItensState, setNavItensState] = React.useState([])
@@ -70,7 +72,7 @@ const AppSidebar = () => {
   return (
     <CSidebar
       className="border-end"
-      colorScheme="dark"
+      colorScheme={isDark ? 'dark' : 'light'}
       position="fixed"
       unfoldable={unfoldable}
       visible={sidebarShow}
@@ -80,8 +82,8 @@ const AppSidebar = () => {
     >
       <CSidebarHeader className="border-bottom">
         <CSidebarBrand to="/" style={{ textDecoration: 'none' }}>
-          <h5 className="sidebar-brand-full m-0 fw-bold text-white">Contabilidade Fácil</h5>
-          <h5 className="sidebar-brand-narrow m-0 fw-bold text-white">CF</h5>
+          <h5 className="sidebar-brand-full m-0 fw-bold" style={{ color: 'var(--color-text-primary)' }}>Contabilidade Fácil</h5>
+          <h5 className="sidebar-brand-narrow m-0 fw-bold" style={{ color: 'var(--color-text-primary)' }}>CF</h5>
         </CSidebarBrand>
         <CCloseButton
           className="d-lg-none"

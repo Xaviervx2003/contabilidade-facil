@@ -331,7 +331,7 @@ const GestaoQuestoes = () => {
             </div>
 
             {/* Filtros Avançados */}
-            <CRow className="g-2 bg-light p-2 rounded mx-0 border">
+            <CRow className="g-2 bg-body-tertiary p-2 rounded mx-0 border">
               <CCol xs="12" md="3">
                 <CFormSelect
                   size="sm"
@@ -377,7 +377,7 @@ const GestaoQuestoes = () => {
 
           <CCardBody>
             <CTable align="middle" className="mb-0 border" hover responsive>
-              <CTableHead color="light">
+              <CTableHead>
                 <CTableRow>
                   <CTableHeaderCell>ID</CTableHeaderCell>
                   <CTableHeaderCell>Matérias</CTableHeaderCell>
@@ -391,7 +391,7 @@ const GestaoQuestoes = () => {
                 {loading ? (
                   <CTableRow><CTableDataCell colSpan="5" className="text-center py-4"><CSpinner color="primary" /></CTableDataCell></CTableRow>
                 ) : questoes.length === 0 ? (
-                  <CTableRow><CTableDataCell colSpan="5" className="text-center py-4 text-muted">Nenhuma questão encontrada.</CTableDataCell></CTableRow>
+                  <CTableRow><CTableDataCell colSpan="5" className="text-center py-4 text-body-secondary">Nenhuma questão encontrada.</CTableDataCell></CTableRow>
                 ) : questoes.map((q) => (
                   <CTableRow key={q.id}>
                     <CTableDataCell>
@@ -401,7 +401,7 @@ const GestaoQuestoes = () => {
                       {q.materias_nomes ? (
                         <span className="small text-primary fw-medium">{q.materias_nomes}</span>
                       ) : (
-                        <span className="small text-muted fst-italic">{q.assunto || 'Multi-Matéria'}</span>
+                        <span className="small text-body-secondary fst-italic">{q.assunto || 'Multi-Matéria'}</span>
                       )}
                     </CTableDataCell>
                     <CTableDataCell>
@@ -413,7 +413,7 @@ const GestaoQuestoes = () => {
                     <CTableDataCell className="text-center">
                       {q.link_video
                         ? <CBadge color="danger" title={q.link_video}>▶ Vídeo</CBadge>
-                        : <span className="text-muted small">—</span>
+                        : <span className="text-body-secondary small">—</span>
                       }
                     </CTableDataCell>
                     <CTableDataCell className="text-center">
@@ -431,7 +431,7 @@ const GestaoQuestoes = () => {
 
             {totalPages > 1 && (
               <div className="d-flex justify-content-between align-items-center mt-3">
-                <small className="text-muted">
+                <small className="text-body-secondary">
                   Mostrando {(currentPage - 1) * PER_PAGE + 1}–{Math.min(currentPage * PER_PAGE, totalQuestoes)} de {totalQuestoes}
                 </small>
                 <CPagination size="sm" aria-label="Navegação de questões">
@@ -477,7 +477,7 @@ const GestaoQuestoes = () => {
         <CModalBody>
           <CForm>
             {/* CHECKBOXES DE MATÉRIAS */}
-            <div className="mb-4 p-3 border rounded bg-light">
+            <div className="mb-4 p-3 border rounded bg-body-tertiary">
               <label className="fw-bold mb-2">Vincular a quais matérias?</label>
               <MateriaMultiSelect
                 materias={materiasDisponiveis}
@@ -486,7 +486,7 @@ const GestaoQuestoes = () => {
               />
             </div>
 
-            <div className="mb-4 p-3 border rounded bg-light">
+            <div className="mb-4 p-3 border rounded bg-body-tertiary">
               <label className="fw-bold mb-3 d-block text-primary">Metadados do Concurso</label>
               <CRow className="g-3">
                 <CCol md={4}>
@@ -549,7 +549,7 @@ const GestaoQuestoes = () => {
 
             <div className="mb-3">
               <label className="fw-bold form-label">
-                Opção E <span className="text-muted fw-normal">(opcional — deixe em branco para questões com 4 alternativas)</span>
+                Opção E <span className="text-body-secondary fw-normal">(opcional — deixe em branco para questões com 4 alternativas)</span>
               </label>
               <CFormInput
                 value={formData.opcao_e}
@@ -585,10 +585,10 @@ const GestaoQuestoes = () => {
             </CRow>
 
             {/* ✅ FASE 1: Campo de Link do Vídeo */}
-            <div className="mb-3 p-3 border rounded" style={{ borderColor: '#e55353', backgroundColor: '#fff5f5' }}>
-              <label className="fw-bold form-label" style={{ color: '#c41a1a' }}>
+            <div className="mb-3 p-3 border-start border-start-4 border-danger rounded bg-body-tertiary">
+              <label className="fw-bold form-label text-danger">
                 🎬 Link do Vídeo{' '}
-                <span className="text-muted fw-normal" style={{ color: '#666' }}>
+                <span className="text-body-secondary fw-normal">
                   (opcional — YouTube ou Vimeo)
                 </span>
               </label>
@@ -597,7 +597,7 @@ const GestaoQuestoes = () => {
                 onChange={(e) => setFormData({ ...formData, link_video: e.target.value })}
                 placeholder="Ex: https://www.youtube.com/watch?v=XXXXXXXXXXX"
               />
-              <small className="text-muted mt-1 d-block">
+              <small className="text-body-secondary mt-1 d-block">
                 Cole o link normal do YouTube ou Vimeo. O sistema converte automaticamente para o player embutido.
               </small>
             </div>
