@@ -7,6 +7,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
   const [filhosCache, setFilhosCache] = useState({})
   const [loadingId, setLoadingId] = useState(null)
   const [busca, setBusca] = useState('')
+  const [expandedNodes, setExpandedNodes] = useState(new Set())
   const ref = useRef(null)
 
   // Fecha ao clicar fora
@@ -22,6 +23,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
   useEffect(() => {
     setFilhosCache({})
     setActiveRootId(null)
+    setExpandedNodes(new Set())
   }, [esconderVazias])
 
   // Disciplinas raiz ordenadas
@@ -62,41 +64,47 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
     )
   }, [selected, onChange])
 
-  // Toggle de raiz: carrega filhos se necessário, depois seleciona/deseleciona todos
+  // Expansão recursiva de sub-nós na coluna direita
+  const toggleExpand = useCallback(async (e, node) => {
+    e.stopPropagation()
+    const id = node.id
+    if (expandedNodes.has(id)) {
+      setExpandedNodes(prev => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    } else {
+      setExpandedNodes(prev => new Set(prev).add(id))
+      if (filhosCache[id] === undefined) {
+        setLoadingId(id)
+        try {
+          const res = await fetch(`${API_URL}/api/admin/materias/${id}/filhos?esconder_vazias=${esconderVazias}`)
+          const data = await res.json()
+          setFilhosCache(prev => ({ ...prev, [id]: Array.isArray(data) ? data : [] }))
+        } catch {
+          setFilhosCache(prev => ({ ...prev, [id]: [] }))
+        }
+        setLoadingId(null)
+      }
+    }
+  }, [expandedNodes, filhosCache, esconderVazias])
+
+  // Toggle de raiz (marca/desmarca toda a raiz - apenas superficial ou se filhos existirem)
   const toggleRaiz = useCallback(async (raiz) => {
     const s = String(raiz.id)
-    const filhos = filhosCache[raiz.id]
     const isSelected = selected.includes(s)
-
-    // Se filhos ainda não foram carregados, carrega antes de selecionar
-    if (!filhos) {
-      setLoadingId(raiz.id)
-      try {
-        const res = await fetch(`${API_URL}/api/admin/materias/${raiz.id}/filhos?esconder_vazias=${esconderVazias}`)
-        const data = await res.json()
-        const loaded = Array.isArray(data) ? data : []
-        setFilhosCache(prev => ({ ...prev, [raiz.id]: loaded }))
-        const filhosIds = loaded.map(f => String(f.id))
-        onChange(isSelected
-          ? selected.filter(x => x !== s && !filhosIds.includes(x))
-          : [...new Set([...selected, s, ...filhosIds])]
-        )
-      } catch {
-        setFilhosCache(prev => ({ ...prev, [raiz.id]: [] }))
-        toggleItem(raiz.id)
-      }
-      setLoadingId(null)
+    
+    // Se quiser desmarcar, remove o id
+    if (isSelected) {
+      onChange(selected.filter(x => x !== s))
       return
     }
+    // Se quiser marcar, adiciona o id (sem forçar carregar filhos pra não pesar)
+    onChange([...selected, s])
+  }, [selected, onChange])
 
-    const filhosIds = filhos.map(f => String(f.id))
-    onChange(isSelected
-      ? selected.filter(x => x !== s && !filhosIds.includes(x))
-      : [...new Set([...selected, s, ...filhosIds])]
-    )
-  }, [filhosCache, selected, onChange, toggleItem, esconderVazias])
-
-  // Quantos filhos de uma raiz estão selecionados
+  // Quantos filhos de uma raiz estão selecionados (apenas primeiro nível)
   const countFilhosSelecionados = (parentId) => {
     const filhos = filhosCache[parentId]
     if (!filhos) return null
@@ -185,67 +193,77 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
     )
   }
 
-  // ── Render item filho ────────────────────────────────────────────────────────
-  const renderFilho = (filho) => {
-    const isSelected = selected.includes(String(filho.id))
-    const level = filho.indice ? (filho.indice.split('.').length - 1) : 0
-    const paddingLeft = level * 20 + 12
+  // ── Render item recursivo (TreeNode) ───────────────────────────────────────
+  const TreeNode = ({ node, level = 0 }) => {
+    const isSelected = selected.includes(String(node.id))
+    const isExpanded = expandedNodes.has(node.id)
+    const paddingLeft = level * 16 + 12
+    const temFilhos = node.tem_filhos
+    const isLoading = loadingId === node.id
 
     return (
-      <div
-        key={filho.id}
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: 8,
-          padding: `7px 12px 7px ${paddingLeft}px`,
-          borderBottom: '1px solid var(--cui-border-color-translucent)',
-          cursor: 'pointer',
-          background: isSelected ? 'rgba(79,142,247,0.07)' : 'transparent',
-          transition: 'background 0.15s',
-          position: 'relative',
-        }}
-        onClick={() => toggleItem(filho.id)}
-      >
-        {/* Conector "L" */}
-        {level > 0 && (
-          <div style={{
-            position: 'absolute',
-            left: paddingLeft - 14,
-            top: 0,
-            bottom: '50%',
-            width: 10,
-            borderLeft: '1.5px solid #cbd5e1',
-            borderBottom: '1.5px solid #cbd5e1',
-            borderBottomLeftRadius: 3,
-          }} />
-        )}
+      <div key={node.id}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 6,
+            padding: `7px 12px 7px ${paddingLeft}px`,
+            borderBottom: '1px solid var(--cui-border-color-translucent)',
+            cursor: 'pointer',
+            background: isSelected ? 'rgba(79,142,247,0.07)' : 'transparent',
+            transition: 'background 0.15s',
+            position: 'relative',
+          }}
+          onClick={() => toggleItem(node.id)}
+        >
+          {/* Seta de expansão */}
+          {temFilhos ? (
+            <button
+              onClick={(e) => toggleExpand(e, node)}
+              style={{
+                background: 'transparent', border: 'none', padding: '0 4px',
+                cursor: 'pointer', color: 'var(--cui-secondary-color)',
+                fontSize: 10, outline: 'none', marginTop: 3, flexShrink: 0
+              }}
+            >
+              {isLoading ? '⏳' : isExpanded ? '▼' : '▶'}
+            </button>
+          ) : (
+            <div style={{ width: 15, flexShrink: 0 }} />
+          )}
 
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={(e) => { e.stopPropagation(); toggleItem(filho.id) }}
-          style={{ width: 14, height: 14, accentColor: '#4f8ef7', cursor: 'pointer', flexShrink: 0, marginTop: 2 }}
-        />
-        <span style={{
-          fontSize: 13,
-          fontWeight: level === 0 ? 600 : 400,
-          color: 'var(--cui-body-color)',
-          lineHeight: 1.4,
-          wordBreak: 'break-word',
-          flex: 1,
-        }}>
-          {filho.indice && (
-            <span style={{ color: '#4f8ef7', fontWeight: 700, marginRight: 5, fontSize: 11, fontFamily: 'monospace' }}>
-              {filho.indice}
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={(e) => { e.stopPropagation(); toggleItem(node.id) }}
+            style={{ width: 14, height: 14, accentColor: '#4f8ef7', cursor: 'pointer', flexShrink: 0, marginTop: 2 }}
+          />
+          <span style={{
+            fontSize: 13,
+            color: 'var(--cui-body-color)',
+            lineHeight: 1.4,
+            wordBreak: 'break-word',
+            flex: 1,
+          }}>
+            {node.indice && (
+              <span style={{ color: '#4f8ef7', fontWeight: 700, marginRight: 5, fontSize: 11, fontFamily: 'monospace' }}>
+                {node.indice}
+              </span>
+            )}
+            {node.nome}
+          </span>
+          {node.total_questoes > 0 && (
+            <span style={{ fontSize: 11, color: '#888', flexShrink: 0, marginTop: 2 }}>
+              {node.total_questoes}Q
             </span>
           )}
-          {filho.nome}
-        </span>
-        {filho.total_questoes > 0 && (
-          <span style={{ fontSize: 11, color: '#888', flexShrink: 0, marginTop: 2 }}>
-            {filho.total_questoes}Q
-          </span>
+        </div>
+        
+        {isExpanded && filhosCache[node.id] && (
+          <div style={{ background: 'rgba(0,0,0,0.015)' }}>
+            {filhosCache[node.id].map(f => <TreeNode key={f.id} node={f} level={level + 1} />)}
+          </div>
         )}
       </div>
     )
@@ -401,7 +419,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
                     Nenhum assunto encontrado.
                   </div>
                 ) : (
-                  filhosAtivos.map(renderFilho)
+                  filhosAtivos.map(node => <TreeNode key={node.id} node={node} level={0} />)
                 )}
               </div>
             </div>

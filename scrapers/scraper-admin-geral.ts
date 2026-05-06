@@ -1,6 +1,7 @@
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
+import { eq } from "drizzle-orm";
 import { Client } from "pg";
 import { questoes, materias, questoesMaterias } from "./schema";
 import * as fs from "fs/promises";
@@ -8,12 +9,12 @@ import * as fs from "fs/promises";
 puppeteer.use(StealthPlugin());
 
 // ── Configuração ──────────────────────────────────────────────────────────────
-const DB_URL = "postgres://joao_xavier:sua_senha_segura12@localhost:5433/plataforma_questoes";
+const DB_URL = "postgres://neondb_owner:npg_am9VruRGh2jD@ep-aged-lake-ac521a8u.sa-east-1.aws.neon.tech:5432/neondb?sslmode=require";
 const API_BASE = "https://rota-api.grancursosonline.com.br";
 const USER_DATA_DIR = "C:\\projetos\\contabilidade facil\\chrome-perfil";
 const QUESTOES_POR_PAG = 100;
-const PAUSA_MIN_MS = 1500;
-const PAUSA_MAX_MS = 3000;
+const PAUSA_MIN_MS = 0;
+const PAUSA_MAX_MS = 0;
 
 // O ID EXATO DE ADMINISTRAÇÃO GERAL
 const DISCIPLINA_ALVO_ID = 404571;
@@ -208,27 +209,42 @@ async function processarQuestao(
   db: NodePgDatabase<Record<string, unknown>>,
   item: QuestaoApi,
   materiaIdMap: Map<number, number>
-): Promise<"inserida" | "pulada"> {
+): Promise<"inserida" | "pulada" | "repetida"> {
   const itens = item.itens || [];
   const alt = { a: "", b: "", c: "", d: "", e: null as string | null };
-  for (const i of itens) {
-    const letra = lerLetra(i);
-    const texto = lerTexto(i);
-    if (letra === "a") alt.a = texto;
-    if (letra === "b") alt.b = texto;
-    if (letra === "c") alt.c = texto;
-    if (letra === "d") alt.d = texto;
-    if (letra === "e") alt.e = texto;
+  let gabarito = "A";
+
+  if (itens.length > 0) {
+    const letrasMap = ["a", "b", "c", "d", "e"];
+    const isCertoErrado = itens.length === 2;
+
+    for (let index = 0; index < itens.length; index++) {
+      const i = itens[index];
+      const letraLida = lerLetra(i);
+      
+      // Se for Certo/Errado, forçamos index 0 -> a, 1 -> b.
+      // Se não, usamos a letra oficial. Se for inválida, fallback pro index.
+      const letraFinal = isCertoErrado ? letrasMap[index] : (letrasMap.includes(letraLida) ? letraLida : (letrasMap[index] || "e"));
+      
+      const texto = lerTexto(i) || (i.rotulo || i.letra || "").trim() || letraFinal.toUpperCase();
+
+      if (letraFinal === "a") alt.a = texto;
+      if (letraFinal === "b") alt.b = texto;
+      if (letraFinal === "c") alt.c = texto;
+      if (letraFinal === "d") alt.d = texto;
+      if (letraFinal === "e") alt.e = texto;
+
+      if (i.id === item.resposta || i.correta === true) {
+        gabarito = letraFinal.toUpperCase();
+      }
+    }
   }
-  if (!alt.a || !alt.b || !alt.c || !alt.d) return "pulada";
+
+  // Agora basta ter 2 alternativas preenchidas para não ser pulada
+  if (!alt.a || !alt.b) return "pulada";
 
   const enunciado = (item.enunciado_clean || item.enunciado || "").trim();
   if (!enunciado || !item.id) return "pulada";
-
-  const itemCorreto = itens.find(i => i.id === item.resposta || i.correta === true);
-  const gabarito = itemCorreto
-    ? (itemCorreto.rotulo || itemCorreto.letra || "A").charAt(0).toUpperCase()
-    : "A";
 
   const prova = item.provas?.[0];
   const banca = (item.bancas || []).map(b => b.nome).join(" / ") || null;
@@ -239,44 +255,57 @@ async function processarQuestao(
   const modalidade = item.tipo || null;
   const assuntoNome = (item.assuntos?.[0]?.nome || "Sem Assunto").slice(0, 255);
 
-  const [questao] = await db
-    .insert(questoes)
-    .values({
-      assunto: assuntoNome,
-      enunciado,
-      opcao_a: alt.a,
-      opcao_b: alt.b,
-      opcao_c: alt.c,
-      opcao_d: alt.d,
-      opcao_e: alt.e,
-      resposta_correta: gabarito,
-      explicacao: null,
-      tentativas: 0,
-      acertos: 0,
-      link_video: null,
-      id_externo: item.id,
-      banca: banca?.slice(0, 255),
-      orgao: orgao?.slice(0, 255),
-      cargo: cargo?.slice(0, 255),
-      ano,
-      escolaridade: escolaridade?.slice(0, 255),
-      modalidade: modalidade?.slice(0, 255),
-    })
-    .onConflictDoUpdate({
-      target: questoes.id_externo,
-      set: {
+  const [existente] = await db.select({ id: questoes.id }).from(questoes).where(eq(questoes.id_externo, item.id));
+
+  let questaoId: number;
+
+  if (existente) {
+    questaoId = existente.id;
+    await db.update(questoes).set({
         assunto: assuntoNome,
+        enunciado,
+        opcao_a: alt.a || null,
+        opcao_b: alt.b || null,
+        opcao_c: alt.c || null,
+        opcao_d: alt.d || null,
+        opcao_e: alt.e || null,
+        resposta_correta: gabarito,
         banca: banca?.slice(0, 255),
         orgao: orgao?.slice(0, 255),
         cargo: cargo?.slice(0, 255),
         ano,
         escolaridade: escolaridade?.slice(0, 255),
         modalidade: modalidade?.slice(0, 255),
-      },
-    })
-    .returning({ id: questoes.id });
-
-  if (!questao?.id) return "pulada";
+      }).where(eq(questoes.id, existente.id));
+  } else {
+    const [nova] = await db
+      .insert(questoes)
+      .values({
+        assunto: assuntoNome,
+        enunciado,
+        opcao_a: alt.a || null,
+        opcao_b: alt.b || null,
+        opcao_c: alt.c || null,
+        opcao_d: alt.d || null,
+        opcao_e: alt.e || null,
+        resposta_correta: gabarito,
+        explicacao: null,
+        tentativas: 0,
+        acertos: 0,
+        link_video: null,
+        id_externo: item.id,
+        banca: banca?.slice(0, 255),
+        orgao: orgao?.slice(0, 255),
+        cargo: cargo?.slice(0, 255),
+        ano,
+        escolaridade: escolaridade?.slice(0, 255),
+        modalidade: modalidade?.slice(0, 255),
+      })
+      .returning({ id: questoes.id });
+      
+    if (!nova?.id) return "pulada";
+    questaoId = nova.id;
+  }
 
   for (const assunto of item.assuntos || []) {
     let mid = materiaIdMap.get(assunto.id);
@@ -293,10 +322,10 @@ async function processarQuestao(
       if (mid) materiaIdMap.set(assunto.id, mid);
     }
     if (mid) {
-      await db.insert(questoesMaterias).values({ questao_id: questao.id, materia_id: mid }).onConflictDoNothing();
+      await db.insert(questoesMaterias).values({ questao_id: questaoId, materia_id: mid }).onConflictDoNothing();
     }
   }
-  return "inserida";
+  return existente ? "repetida" : "inserida";
 }
 
 // ── 5. Extrair questões de uma matéria folha ─────────────────────────────────
@@ -306,8 +335,8 @@ async function extrairQuestoesDaMateria(
   materiaId: number,
   materiaNome: string,
   materiaIdMap: Map<number, number>
-): Promise<{ inseridas: number; puladas: number; expirado: boolean }> {
-  let inseridas = 0, puladas = 0, pagina = 1;
+): Promise<{ inseridas: number; repetidas: number; puladas: number; expirado: boolean }> {
+  let inseridas = 0, repetidas = 0, puladas = 0, pagina = 1;
   while (true) {
     const params = new URLSearchParams({
       perPage: String(QUESTOES_POR_PAG),
@@ -321,7 +350,7 @@ async function extrairQuestoesDaMateria(
     const resp = await fetch(url, { headers });
     if (resp.status === 401 || resp.status === 403) {
       console.error("\n⚠️  Sessão expirada! Será necessário re-autenticar.");
-      return { inseridas, puladas, expirado: true };
+      return { inseridas, repetidas, puladas, expirado: true };
     }
     if (!resp.ok) break;
     const json: any = await resp.json();
@@ -330,14 +359,16 @@ async function extrairQuestoesDaMateria(
     if (rows.length === 0) break;
     for (const q of rows) {
       const r = await processarQuestao(db, q, materiaIdMap);
-      if (r === "inserida") inseridas++; else puladas++;
+      if (r === "inserida") inseridas++; 
+      else if (r === "repetida") repetidas++;
+      else puladas++;
     }
-    console.log(`    📄 Pág ${pagina}/${totalPages} → +${rows.length} (✓${inseridas} ✗${puladas})`);
+    console.log(`    📄 Pág ${pagina}/${totalPages} → +${rows.length} (✓${inseridas} 🔄${repetidas} ✗${puladas})`);
     if (pagina >= totalPages) break;
     pagina++;
     await pausaAleatoria();
   }
-  return { inseridas, puladas, expirado: false };
+  return { inseridas, repetidas, puladas, expirado: false };
 }
 
 // ── MAIN ──────────────────────────────────────────────────────────────────────
@@ -375,15 +406,16 @@ async function main() {
   console.log(`\n🎯 ${folhas.length} assuntos folhas encontrados para extração de questões.\n`);
 
   console.log(`\n🚀 Iniciando extração...\n`);
-  let totalInseridas = 0, totalPuladas = 0;
+  let totalInseridas = 0, totalRepetidas = 0, totalPuladas = 0;
 
   let i = 0;
   while (i < folhas.length) {
     const mat = folhas[i];
     const pct = ((i + 1) / folhas.length * 100).toFixed(1);
     console.log(`\n[${i + 1}/${folhas.length}] (${pct}%) ${mat.nome}`);
-    const { inseridas, puladas, expirado } = await extrairQuestoesDaMateria(db, headers, mat.id, mat.nome, materiaIdMap);
+    const { inseridas, repetidas, puladas, expirado } = await extrairQuestoesDaMateria(db, headers, mat.id, mat.nome, materiaIdMap);
     totalInseridas += inseridas;
+    totalRepetidas += repetidas;
     totalPuladas += puladas;
 
     if (expirado) {
@@ -393,7 +425,7 @@ async function main() {
       continue; // Repete
     }
 
-    console.log(`  ✓ +${inseridas} inseridas | ${puladas} puladas | acumulado: ${totalInseridas}`);
+    console.log(`  ✓ +${inseridas} inseridas | 🔄 ${repetidas} atualizadas | ✗ ${puladas} puladas | Total Novas: ${totalInseridas}`);
     i++;
     await pausaAleatoria();
   }
