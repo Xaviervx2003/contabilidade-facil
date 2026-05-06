@@ -389,13 +389,36 @@ const ReadyScreen = ({
         </CRow>
       </ChecklistItem>
 
-      <div className="mt-4 pt-3 border-top d-grid gap-2">
-        <CButton color="primary" size="lg" className="fw-bold rounded-pill shadow-sm" onClick={onStartPersonalizado} disabled={!steps[0].completed}>
-          🚀 Iniciar Quiz Personalizado
+      <div className="mt-4 pt-3 border-top">
+        <CButton 
+          color="primary" 
+          size="lg" 
+          className="w-100 fw-bold rounded-4 shadow-sm mb-3 py-3 d-flex align-items-center justify-content-center gap-2" 
+          onClick={onStartPersonalizado} 
+          disabled={!steps[0].completed}
+          style={{ letterSpacing: '0.5px' }}
+        >
+          🚀 Iniciar Treino Personalizado
         </CButton>
-        <CButton color="link" size="sm" className="text-body-secondary text-decoration-none" onClick={onStartSimuladoRapido}>
-          Ou inicie um Simulado Rápido (10 questões · 10 min)
-        </CButton>
+
+        <div 
+          className="rounded-4 p-3 border d-flex align-items-center gap-3 cursor-pointer transition-all hover-shadow"
+          style={{ 
+            cursor: 'pointer', 
+            background: 'linear-gradient(135deg, rgba(var(--cui-info-rgb), 0.05) 0%, rgba(var(--cui-primary-rgb), 0.05) 100%)',
+            border: '1px dashed var(--cui-info)'
+          }}
+          onClick={onStartSimuladoRapido}
+        >
+          <div className="rounded-circle bg-info text-white d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 48, height: 48, fontSize: 24 }}>
+            ⚡
+          </div>
+          <div className="flex-1">
+            <h6 className="mb-0 fw-bold text-info">Simulado Relâmpago</h6>
+            <small className="text-body-secondary">10 questões aleatórias · 15 minutos</small>
+          </div>
+          <div className="text-info fw-bold">Ir ›</div>
+        </div>
       </div>
     </div>
   )
