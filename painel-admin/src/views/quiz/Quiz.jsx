@@ -716,7 +716,6 @@ const Quiz = () => {
   const [favoritos, setFavoritos] = useState([])
   const [disciplinaPai, setDisciplinaPai] = useState(null) // ID da disciplina raiz selecionada
   const [filtrosDisponiveis, setFiltrosDisponiveis] = useState({ bancas: [], orgaos: [], cargos: [], anos: [] })
-  const [filtrosDisponiveis, setFiltrosDisponiveis] = useState({ bancas: [], orgaos: [], cargos: [], anos: [] })
 
   const nomeAluno = sessionStorage.getItem('nome') || 'Aluno'
   const matricula = sessionStorage.getItem('matricula')
