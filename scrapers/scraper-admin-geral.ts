@@ -9,7 +9,8 @@ import * as fs from "fs/promises";
 puppeteer.use(StealthPlugin());
 
 // ── Configuração ──────────────────────────────────────────────────────────────
-const DB_URL = "postgres://neondb_owner:npg_am9VruRGh2jD@ep-aged-lake-ac521a8u.sa-east-1.aws.neon.tech:5432/neondb?sslmode=require";
+import 'dotenv/config';
+const DB_URL = process.env.DATABASE_URL;
 const API_BASE = "https://rota-api.grancursosonline.com.br";
 const USER_DATA_DIR = "C:\\projetos\\contabilidade facil\\chrome-perfil";
 const QUESTOES_POR_PAG = 100;
