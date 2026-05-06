@@ -114,8 +114,8 @@ const SkeletonQuiz = ({ isDark }) => {
 
 /* ─── Tabela de revisão ──────────────────────────────────────────────────────── */
 const ReviewTable = ({ questionsAndAnswers, isDark }) => (
-  <div className="overflow-auto" style={{ animation: 'fade-up .35s ease' }}>
-    <table className="w-100" style={{ fontSize: 13, borderCollapse: 'collapse' }}>
+  <div className="table-responsive" style={{ animation: 'fade-up .35s ease' }}>
+    <table className="table table-borderless w-100 m-0" style={{ fontSize: 13 }}>
       <thead>
         <tr className="bg-opacity-10">
           {['#', 'Pergunta', 'Sua resposta', 'Correta', ''].map(h => (
@@ -429,7 +429,7 @@ const QuizRunning = ({
             <CButton key={val} color={color} variant={variant}
               disabled={isAnswerConfirmed}
               onClick={() => !isAnswerConfirmed && onSelectOption(val)}
-              className={`text-start py-3 ${isSelected || isAnswerConfirmed ? 'fw-bold' : ''}`}
+              className={`text-start py-3 text-wrap text-break lh-base ${isSelected || isAnswerConfirmed ? 'fw-bold' : ''}`}
             >
               <strong>{val}.</strong> {option}
             </CButton>
@@ -449,22 +449,24 @@ const QuizRunning = ({
         </CAlert>
       )}
 
-      <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 sticky-bottom bg-body py-2" style={{ zIndex: 1 }}>
-        <div className="d-flex gap-2">
+      <div className="d-flex flex-column flex-md-row justify-content-md-between align-items-stretch align-items-md-center gap-2 mt-3 sticky-bottom bg-body py-3 border-top" style={{ zIndex: 1 }}>
+        <div className="d-flex gap-2 order-2 order-md-1 justify-content-center">
           <CButton color="danger" variant="outline" size="sm" onClick={onFinishEarly} disabled={totalAnswered === 0}>⛔ Encerrar</CButton>
           {!isAnswerConfirmed && queue.length > 1 && (
             <CButton color="secondary" variant="outline" size="sm" onClick={onSkip}>⏭ Pular</CButton>
           )}
         </div>
-        {!isAnswerConfirmed ? (
-          <CButton color="success" disabled={!selectedOption} onClick={onConfirmAnswer} className="fw-bold px-4">
-            Confirmar resposta
-          </CButton>
-        ) : (
-          <CButton color="primary" onClick={onNextQuestion} className="fw-bold px-4">
-            {queue.length <= 1 ? 'Finalizar Quiz ✓' : 'Próxima →'}
-          </CButton>
-        )}
+        <div className="order-1 order-md-2 w-100" style={{ maxWidth: '400px', margin: '0 auto' }}>
+          {!isAnswerConfirmed ? (
+            <CButton color="success" disabled={!selectedOption} onClick={onConfirmAnswer} className="fw-bold px-4 py-2 w-100">
+              Confirmar resposta
+            </CButton>
+          ) : (
+            <CButton color="primary" onClick={onNextQuestion} className="fw-bold px-4 py-2 w-100">
+              {queue.length <= 1 ? 'Finalizar Quiz ✓' : 'Próxima →'}
+            </CButton>
+          )}
+        </div>
       </div>
 
       {isAnswerConfirmed && (
