@@ -195,6 +195,7 @@ const ChecklistItem = ({ icon, title, subtitle, children, isOpen, onToggle, isCo
 
 const ReadyScreen = ({
   materias, materiasSelected, setMateriasSelected,
+  filtrosDisponiveis,
   bancaSelecionada, setBancaSelecionada,
   orgaoSelecionado, setOrgaoSelecionado,
   cargoSelecionado, setCargoSelecionado,
@@ -256,19 +257,31 @@ const ReadyScreen = ({
         <CRow className="g-3">
           <CCol xs={12} sm={6}>
             <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>Banca</label>
-            <input type="text" className="form-control form-control-sm rounded-3" placeholder="Ex: FGV, CESPE..." value={bancaSelecionada} onChange={e => setBancaSelecionada(e.target.value)} />
+            <CFormSelect size="sm" className="rounded-3" value={bancaSelecionada} onChange={e => setBancaSelecionada(e.target.value)}>
+              <option value="">Todas as Bancas</option>
+              {filtrosDisponiveis.bancas.map(b => <option key={b} value={b}>{b}</option>)}
+            </CFormSelect>
           </CCol>
           <CCol xs={12} sm={6}>
             <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>Órgão</label>
-            <input type="text" className="form-control form-control-sm rounded-3" placeholder="Ex: Receita Federal" value={orgaoSelecionado} onChange={e => setOrgaoSelecionado(e.target.value)} />
+            <CFormSelect size="sm" className="rounded-3" value={orgaoSelecionado} onChange={e => setOrgaoSelecionado(e.target.value)}>
+              <option value="">Todos os Órgãos</option>
+              {filtrosDisponiveis.orgaos.map(o => <option key={o} value={o}>{o}</option>)}
+            </CFormSelect>
           </CCol>
           <CCol xs={12} sm={6}>
             <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>Cargo</label>
-            <input type="text" className="form-control form-control-sm rounded-3" placeholder="Ex: Auditor" value={cargoSelecionado} onChange={e => setCargoSelecionado(e.target.value)} />
+            <CFormSelect size="sm" className="rounded-3" value={cargoSelecionado} onChange={e => setCargoSelecionado(e.target.value)}>
+              <option value="">Todos os Cargos</option>
+              {filtrosDisponiveis.cargos.map(c => <option key={c} value={c}>{c}</option>)}
+            </CFormSelect>
           </CCol>
           <CCol xs={12} sm={6}>
             <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>Ano</label>
-            <input type="number" className="form-control form-control-sm rounded-3" placeholder="Ex: 2024" value={anoSelecionado} onChange={e => setAnoSelecionado(e.target.value)} />
+            <CFormSelect size="sm" className="rounded-3" value={anoSelecionado} onChange={e => setAnoSelecionado(e.target.value)}>
+              <option value="">Todos os Anos</option>
+              {filtrosDisponiveis.anos.map(a => <option key={a} value={a}>{a}</option>)}
+            </CFormSelect>
           </CCol>
         </CRow>
       </ChecklistItem>
@@ -633,6 +646,7 @@ const Quiz = () => {
   const [cargoSelecionado, setCargoSelecionado] = useState('')
   const [anoSelecionado, setAnoSelecionado] = useState('')
   const [favoritos, setFavoritos] = useState([])
+  const [filtrosDisponiveis, setFiltrosDisponiveis] = useState({ bancas: [], orgaos: [], cargos: [], anos: [] })
 
   const nomeAluno = sessionStorage.getItem('nome') || 'Aluno'
   const matricula = sessionStorage.getItem('matricula')
@@ -689,11 +703,16 @@ const Quiz = () => {
     }
   }
 
-  // Fetch materias
+  // Fetch materias and unique filters
   useEffect(() => {
     fetch(`${API_URL}/api/admin/materias`)
       .then(r => r.json())
       .then(d => setMaterias(Array.isArray(d) ? d : []))
+      .catch(() => { })
+
+    fetch(`${API_URL}/api/questoes/valores-unicos`)
+      .then(r => r.json())
+      .then(d => setFiltrosDisponiveis(d))
       .catch(() => { })
   }, [])
 
@@ -981,6 +1000,7 @@ const Quiz = () => {
                   materias={materias}
                   materiasSelected={materiasSelected}
                   setMateriasSelected={setMateriasSelected}
+                  filtrosDisponiveis={filtrosDisponiveis}
                   bancaSelecionada={bancaSelecionada}
                   setBancaSelecionada={setBancaSelecionada}
                   orgaoSelecionado={orgaoSelecionado}

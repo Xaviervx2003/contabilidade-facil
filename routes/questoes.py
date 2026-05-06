@@ -19,6 +19,40 @@ logger = setup_logger(__name__)
 router = APIRouter(prefix="/api", tags=["Questões"])
 
 
+@router.get("/questoes/valores-unicos")
+def obter_valores_unicos():
+    """Retorna listas de valores únicos para preencher dropdowns de filtro."""
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            
+            # Bancas
+            cursor.execute("SELECT DISTINCT banca FROM questoes WHERE banca IS NOT NULL AND banca != '' ORDER BY banca;")
+            bancas = [r[0] for r in cursor.fetchall()]
+            
+            # Órgãos
+            cursor.execute("SELECT DISTINCT orgao FROM questoes WHERE orgao IS NOT NULL AND orgao != '' ORDER BY orgao;")
+            orgaos = [r[0] for r in cursor.fetchall()]
+            
+            # Cargos
+            cursor.execute("SELECT DISTINCT cargo FROM questoes WHERE cargo IS NOT NULL AND cargo != '' ORDER BY cargo;")
+            cargos = [r[0] for r in cursor.fetchall()]
+            
+            # Anos
+            cursor.execute("SELECT DISTINCT ano FROM questoes WHERE ano IS NOT NULL ORDER BY ano DESC;")
+            anos = [r[0] for r in cursor.fetchall()]
+            
+        return {
+            "bancas": bancas,
+            "orgaos": orgaos,
+            "cargos": cargos,
+            "anos": anos
+        }
+    except Exception as e:
+        logger.error(f"Erro ao obter valores únicos: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar filtros.")
+
+
 @router.get("/questoes")
 def obter_questoes(
     usuario_id: Optional[int] = Query(None),
