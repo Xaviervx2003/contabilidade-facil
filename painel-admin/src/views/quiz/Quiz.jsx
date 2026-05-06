@@ -239,7 +239,7 @@ const ReadyScreen = ({
         ctaLabel="Confirmar Disciplinas"
         onCta={() => setActiveStep(1)}
       >
-        <MateriaMultiSelect materias={materias} selected={materiasSelected} onChange={setMateriasSelected} esconderVazias={true} />
+        <MateriaMultiSelect materias={materias} selected={materiasSelected} onChange={setMateriasSelected} esconderVazias={true} inline={true} />
       </ChecklistItem>
 
       {/* Passo 2: Dados do Concurso */}

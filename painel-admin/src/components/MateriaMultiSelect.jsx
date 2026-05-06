@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { API_URL } from '../config'
 
-const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = true }) => {
+const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = true, inline = false }) => {
   const [open, setOpen] = useState(false)
   const [activeRootId, setActiveRootId] = useState(null)
   const [filhosCache, setFilhosCache] = useState({})
@@ -302,48 +302,50 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
   return (
     <div ref={ref} style={{ position: 'relative' }}>
 
-      {/* Botão trigger */}
-      <button
-        type="button"
-        className="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center"
-        onClick={() => setOpen(o => !o)}
-        style={{ textAlign: 'left', overflow: 'hidden', height: 38 }}
-      >
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
-          {label}
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-          {selected.length > 0 && (
-            <span
-              role="button"
-              title="Limpar seleção"
-              onClick={(e) => { e.stopPropagation(); onChange([]) }}
-              style={{ fontSize: 14, color: '#888', lineHeight: 1, cursor: 'pointer', padding: '0 2px' }}
-            >
-              ×
-            </span>
-          )}
-          <span style={{ fontSize: 12 }}>{open ? '▲' : '▼'}</span>
-        </div>
-      </button>
+      {/* Botão trigger - Oculto em modo inline */}
+      {!inline && (
+        <button
+          type="button"
+          className="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center"
+          onClick={() => setOpen(o => !o)}
+          style={{ textAlign: 'left', overflow: 'hidden', height: 38 }}
+        >
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
+            {label}
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            {selected.length > 0 && (
+              <span
+                role="button"
+                title="Limpar seleção"
+                onClick={(e) => { e.stopPropagation(); onChange([]) }}
+                style={{ fontSize: 14, color: '#888', lineHeight: 1, cursor: 'pointer', padding: '0 2px' }}
+              >
+                ×
+              </span>
+            )}
+            <span style={{ fontSize: 12 }}>{open ? '▲' : '▼'}</span>
+          </div>
+        </button>
+      )}
 
-      {/* Dropdown */}
-      {open && (
+      {/* Dropdown / Inline Container */}
+      {(open || inline) && (
         <div style={{
-          position: 'absolute',
+          position: inline ? 'relative' : 'absolute',
           zIndex: 1050,
-          width: 520,
-          maxWidth: 'calc(100vw - 32px)',
-          top: '100%',
+          width: '100%',
+          maxWidth: inline ? 'none' : 'calc(100vw - 32px)',
+          top: inline ? '0' : '100%',
           left: 0,
-          marginTop: 4,
+          marginTop: inline ? 0 : 4,
           background: 'var(--cui-body-bg)',
-          border: '1px solid var(--cui-border-color)',
+          border: inline ? 'none' : '1px solid var(--cui-border-color)',
           borderRadius: 8,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+          boxShadow: inline ? 'none' : '0 8px 32px rgba(0,0,0,0.18)',
           display: 'flex',
           flexDirection: 'column',
-          maxHeight: 460,
+          maxHeight: inline ? 'none' : 460,
           overflow: 'hidden',
         }}>
 
