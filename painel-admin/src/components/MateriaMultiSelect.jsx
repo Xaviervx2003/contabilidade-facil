@@ -3,12 +3,13 @@ import { API_URL } from '../config'
 
 const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = true, inline = false }) => {
   const [open, setOpen] = useState(false)
-  const [activeRootId, setActiveRootId] = useState(null)
   const [filhosCache, setFilhosCache] = useState({})
   const [loadingId, setLoadingId] = useState(null)
   const [busca, setBusca] = useState('')
-  const [expandedNodes, setExpandedNodes] = useState(new Set())
+  const [history, setHistory] = useState([]) // Pilha de navegação: [ {id, nome}, ... ]
   const ref = useRef(null)
+
+  const currentParent = history.length > 0 ? history[history.length - 1] : null
 
   // Remove o primeiro número do índice (ex: 4.1. -> 1.)
   const formatIndice = useCallback((indice) => {
@@ -25,42 +26,58 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // Invalida cache quando esconderVazias muda
+  // Invalida cache e reseta navegação quando esconderVazias muda
   useEffect(() => {
     setFilhosCache({})
-    setActiveRootId(null)
-    setExpandedNodes(new Set())
+    setHistory([])
   }, [esconderVazias])
 
-  // Disciplinas raiz ordenadas
-  const raizes = useMemo(() => {
+  // Itens visíveis no nível atual
+  const visibleItems = useMemo(() => {
+    let items = []
+    if (!currentParent) {
+      // Nível Raiz
+      items = materias.filter(m => !m.parent_id)
+    } else {
+      // Nível de Assunto
+      items = filhosCache[currentParent.id] || []
+    }
+
     const termo = busca.toLowerCase().trim()
-    return materias
-      .filter(m => !m.parent_id)
+    return items
       .filter(m => !esconderVazias || m.total_questoes > 0 || m.tem_filhos)
       .filter(m => !termo || m.nome.toLowerCase().includes(termo))
       .sort((a, b) =>
         (a.indice || '').localeCompare(b.indice || '', undefined, { numeric: true }) ||
         a.nome.localeCompare(b.nome)
       )
-  }, [materias, esconderVazias, busca])
+  }, [materias, currentParent, filhosCache, esconderVazias, busca])
 
-  // Carrega filhos sob demanda
-  const loadFilhos = useCallback(async (parentId) => {
-    setActiveRootId(parentId)
-    if (filhosCache[parentId] !== undefined) return
-    setLoadingId(parentId)
-    try {
-      const res = await fetch(`${API_URL}/api/admin/materias/${parentId}/filhos?esconder_vazias=${esconderVazias}`)
-      const data = await res.json()
-      setFilhosCache(prev => ({ ...prev, [parentId]: Array.isArray(data) ? data : [] }))
-    } catch {
-      setFilhosCache(prev => ({ ...prev, [parentId]: [] }))
+  // Navegar para dentro
+  const navigateTo = useCallback(async (node) => {
+    if (!node.tem_filhos) return
+    
+    // Adiciona ao histórico
+    setHistory(prev => [...prev, { id: node.id, nome: node.nome }])
+
+    // Carrega filhos se necessário
+    if (filhosCache[node.id] === undefined) {
+      setLoadingId(node.id)
+      try {
+        const res = await fetch(`${API_URL}/api/admin/materias/${node.id}/filhos?esconder_vazias=${esconderVazias}`)
+        const data = await res.json()
+        setFilhosCache(prev => ({ ...prev, [node.id]: Array.isArray(data) ? data : [] }))
+      } catch {
+        setFilhosCache(prev => ({ ...prev, [node.id]: [] }))
+      }
+      setLoadingId(null)
     }
-    setLoadingId(null)
   }, [filhosCache, esconderVazias])
 
-  // Toggle de um item individual
+  // Voltar um nível
+  const navigateBack = () => setHistory(prev => prev.slice(0, -1))
+
+  // Toggle de seleção
   const toggleItem = useCallback((id) => {
     const s = String(id)
     onChange(
@@ -70,338 +87,205 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
     )
   }, [selected, onChange])
 
-  // Expansão recursiva de sub-nós na coluna direita
-  const toggleExpand = useCallback(async (e, node) => {
-    e.stopPropagation()
-    const id = node.id
-    if (expandedNodes.has(id)) {
-      setExpandedNodes(prev => {
-        const next = new Set(prev)
-        next.delete(id)
-        return next
-      })
-    } else {
-      setExpandedNodes(prev => new Set(prev).add(id))
-      if (filhosCache[id] === undefined) {
-        setLoadingId(id)
-        try {
-          const res = await fetch(`${API_URL}/api/admin/materias/${id}/filhos?esconder_vazias=${esconderVazias}`)
-          const data = await res.json()
-          setFilhosCache(prev => ({ ...prev, [id]: Array.isArray(data) ? data : [] }))
-        } catch {
-          setFilhosCache(prev => ({ ...prev, [id]: [] }))
-        }
-        setLoadingId(null)
-      }
-    }
-  }, [expandedNodes, filhosCache, esconderVazias])
-
-  // Toggle de raiz (marca/desmarca toda a raiz - apenas superficial ou se filhos existirem)
-  const toggleRaiz = useCallback(async (raiz) => {
-    const s = String(raiz.id)
-    const isSelected = selected.includes(s)
-    
-    // Se quiser desmarcar, remove o id
-    if (isSelected) {
-      onChange(selected.filter(x => x !== s))
-      return
-    }
-    // Se quiser marcar, adiciona o id (sem forçar carregar filhos pra não pesar)
-    onChange([...selected, s])
-  }, [selected, onChange])
-
-  // Quantos filhos de uma raiz estão selecionados (apenas primeiro nível)
-  const countFilhosSelecionados = (parentId) => {
-    const filhos = filhosCache[parentId]
-    if (!filhos) return null
-    return filhos.filter(f => selected.includes(String(f.id))).length
-  }
-
   // Label do botão
   const label = useMemo(() => {
     if (selected.length === 0) return 'Todas as disciplinas'
-    if (selected.length === 1) return materias.find(m => String(m.id) === selected[0])?.nome ?? '1 selecionada'
+    if (selected.length === 1) {
+      const m = materias.find(x => String(x.id) === selected[0])
+      return m ? m.nome : '1 selecionada'
+    }
     return `${selected.length} selecionados`
   }, [selected, materias])
 
-  // ── Render item raiz ────────────────────────────────────────────────────────
-  const renderRaiz = (raiz) => {
-    const isActive = activeRootId === raiz.id
-    const isSelected = selected.includes(String(raiz.id))
-    const filhosCount = countFilhosSelecionados(raiz.id)
-    const isLoading = loadingId === raiz.id
+  // Componente de Item Individual (renderiza 100% de largura)
+  const ListItem = ({ node }) => {
+    const isSelected = selected.includes(String(node.id))
+    const canGoDeeper = node.tem_filhos
+    const isLoading = loadingId === node.id
 
     return (
       <div
-        key={raiz.id}
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
-          padding: '8px 12px',
+          gap: 12,
+          padding: '12px 16px',
           borderBottom: '1px solid var(--cui-border-color-translucent)',
           cursor: 'pointer',
-          background: isActive
-            ? 'rgba(79,142,247,0.15)'
-            : isSelected
-              ? 'rgba(79,142,247,0.06)'
-              : 'transparent',
+          background: isSelected ? 'rgba(79,142,247,0.06)' : 'transparent',
           transition: 'background 0.15s',
         }}
-        onClick={() => loadFilhos(raiz.id)}
+        onClick={() => canGoDeeper ? navigateTo(node) : toggleItem(node.id)}
       >
         <input
           type="checkbox"
           checked={isSelected}
-          disabled={isLoading}
-          onChange={(e) => { e.stopPropagation(); toggleRaiz(raiz) }}
-          style={{ width: 15, height: 15, accentColor: '#4f8ef7', cursor: 'pointer', flexShrink: 0 }}
+          onChange={(e) => { e.stopPropagation(); toggleItem(node.id) }}
+          style={{ width: 18, height: 18, accentColor: '#4f8ef7', cursor: 'pointer', flexShrink: 0 }}
         />
-        <span style={{
-          flex: 1,
-          fontSize: 13,
-          fontWeight: 700,
-          color: 'var(--cui-body-color)',
-          lineHeight: 1.4,
-          wordBreak: 'break-word',
-        }}>
-          {raiz.indice && (
-            <span style={{ color: '#4f8ef7', fontWeight: 800, marginRight: 5, fontSize: 11, fontFamily: 'monospace' }}>
-              {formatIndice(raiz.indice)}
-            </span>
-          )}
-          {raiz.nome}
-        </span>
-
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0, gap: 2 }}>
-          <span style={{ fontSize: 11, color: '#4f8ef7', fontWeight: 700 }}>
-            {raiz.total_questoes || 0}Q
-          </span>
-          {filhosCount !== null && filhosCount > 0 && (
-            <span style={{
-              fontSize: 10,
-              background: '#4f8ef7',
-              color: '#fff',
-              borderRadius: 10,
-              padding: '1px 6px',
-              fontWeight: 700,
-              lineHeight: 1.5,
-            }}>
-              {filhosCount} ✓
-            </span>
-          )}
-        </div>
-
-        <span style={{ fontSize: 12, color: 'var(--cui-secondary-color)', flexShrink: 0, transform: isActive ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>
-          {isLoading ? '⏳' : '›'}
-        </span>
-
-      {/* Renderização dos filhos aninhados */}
-      {isActive && (
-        <div style={{ background: 'rgba(0,0,0,0.015)' }}>
-          {isLoading ? (
-            <div style={{ padding: 16, textAlign: 'center', fontSize: 13, color: 'var(--cui-secondary-color)' }}>Carregando...</div>
-          ) : filhosAtivos.length === 0 ? (
-            <div style={{ padding: 16, textAlign: 'center', fontSize: 13, color: 'var(--cui-secondary-color)' }}>Nenhum assunto encontrado.</div>
-          ) : (
-            filhosAtivos.map(node => <TreeNode key={node.id} node={node} level={0} />)
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-  // ── Render item recursivo (TreeNode) ───────────────────────────────────────
-  const TreeNode = ({ node, level = 0 }) => {
-    const isSelected = selected.includes(String(node.id))
-    const isExpanded = expandedNodes.has(node.id)
-    const paddingLeft = level * 16 + 12
-    const temFilhos = node.tem_filhos
-    const isLoading = loadingId === node.id
-
-    return (
-      <div key={node.id}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 6,
-            padding: `7px 12px 7px ${paddingLeft}px`,
-            borderBottom: '1px solid var(--cui-border-color-translucent)',
-            cursor: 'pointer',
-            background: isSelected ? 'rgba(79,142,247,0.07)' : 'transparent',
-            transition: 'background 0.15s',
-            position: 'relative',
-          }}
-          onClick={() => toggleItem(node.id)}
-        >
-          {/* Seta de expansão */}
-          {temFilhos ? (
-            <button
-              onClick={(e) => toggleExpand(e, node)}
-              style={{
-                background: 'transparent', border: 'none', padding: '0 4px',
-                cursor: 'pointer', color: 'var(--cui-secondary-color)',
-                fontSize: 10, outline: 'none', marginTop: 3, flexShrink: 0
-              }}
-            >
-              {isLoading ? '⏳' : isExpanded ? '▼' : '▶'}
-            </button>
-          ) : (
-            <div style={{ width: 15, flexShrink: 0 }} />
-          )}
-
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={(e) => { e.stopPropagation(); toggleItem(node.id) }}
-            style={{ width: 14, height: 14, accentColor: '#4f8ef7', cursor: 'pointer', flexShrink: 0, marginTop: 2 }}
-          />
-          <span style={{
-            fontSize: 13,
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: 14,
+            fontWeight: canGoDeeper ? 700 : 400,
             color: 'var(--cui-body-color)',
             lineHeight: 1.4,
-            wordBreak: 'break-word',
-            flex: 1,
+            wordBreak: 'break-word'
           }}>
             {node.indice && (
-              <span style={{ color: '#4f8ef7', fontWeight: 700, marginRight: 5, fontSize: 11, fontFamily: 'monospace' }}>
+              <span style={{ color: '#4f8ef7', fontWeight: 800, marginRight: 6, fontSize: 12, fontFamily: 'monospace' }}>
                 {formatIndice(node.indice)}
               </span>
             )}
             {node.nome}
-          </span>
+          </div>
           {node.total_questoes > 0 && (
-            <span style={{ fontSize: 11, color: '#888', flexShrink: 0, marginTop: 2 }}>
-              {node.total_questoes}Q
-            </span>
+            <div style={{ fontSize: 11, color: 'var(--cui-secondary-color)', marginTop: 2 }}>
+              {node.total_questoes} questões disponíveis
+            </div>
           )}
         </div>
-        
-        {isExpanded && filhosCache[node.id] && (
-          <div style={{ background: 'rgba(0,0,0,0.015)' }}>
-            {filhosCache[node.id].map(f => <TreeNode key={f.id} node={f} level={level + 1} />)}
+        {canGoDeeper && (
+          <div style={{ color: '#4f8ef7', fontSize: 18, fontWeight: 'bold', flexShrink: 0 }}>
+            {isLoading ? '⏳' : '›'}
           </div>
         )}
       </div>
     )
   }
 
-  // ── Filhos ordenados da disciplina ativa ─────────────────────────────────────
-  const filhosAtivos = useMemo(() => {
-    if (!activeRootId) return []
-    return (filhosCache[activeRootId] || []).sort(
-      (a, b) =>
-        (a.indice || '').localeCompare(b.indice || '', undefined, { numeric: true }) ||
-        a.nome.localeCompare(b.nome)
-    )
-  }, [filhosCache, activeRootId])
-
-  // ── JSX ─────────────────────────────────────────────────────────────────────
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-
-      {/* Botão trigger - Oculto em modo inline */}
       {!inline && (
         <button
           type="button"
           className="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center"
           onClick={() => setOpen(o => !o)}
-          style={{ textAlign: 'left', overflow: 'hidden', height: 38 }}
+          style={{ textAlign: 'left', overflow: 'hidden', height: 42 }}
         >
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14 }}>
             {label}
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
             {selected.length > 0 && (
               <span
                 role="button"
-                title="Limpar seleção"
                 onClick={(e) => { e.stopPropagation(); onChange([]) }}
-                style={{ fontSize: 14, color: '#888', lineHeight: 1, cursor: 'pointer', padding: '0 2px' }}
+                style={{ fontSize: 18, color: '#888', lineHeight: 1, cursor: 'pointer', padding: '0 4px' }}
               >
                 ×
               </span>
             )}
-            <span style={{ fontSize: 12 }}>{open ? '▲' : '▼'}</span>
+            <span>{open ? '▲' : '▼'}</span>
           </div>
         </button>
       )}
 
-      {/* Dropdown / Inline Container */}
       {(open || inline) && (
         <div style={{
           position: inline ? 'relative' : 'absolute',
           zIndex: 1050,
           width: '100%',
-          maxWidth: inline ? 'none' : 'calc(100vw - 32px)',
           top: inline ? '0' : '100%',
           left: 0,
           marginTop: inline ? 0 : 4,
           background: 'var(--cui-body-bg)',
-          border: inline ? 'none' : '1px solid var(--cui-border-color)',
-          borderRadius: 8,
-          boxShadow: inline ? 'none' : '0 8px 32px rgba(0,0,0,0.18)',
+          border: inline ? '1px solid var(--cui-border-color)' : '1px solid var(--cui-border-color)',
+          borderRadius: 12,
+          boxShadow: inline ? 'none' : '0 10px 40px rgba(0,0,0,0.2)',
           display: 'flex',
           flexDirection: 'column',
-          maxHeight: inline ? 'none' : 460,
+          maxHeight: 500,
           overflow: 'hidden',
+          animation: inline ? 'none' : 'fade-up 0.2s ease-out'
         }}>
+          {/* Header de Navegação */}
+          <div style={{ 
+            padding: '12px 16px', 
+            background: 'var(--cui-tertiary-bg)', 
+            borderBottom: '1px solid var(--cui-border-color)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12
+          }}>
+            {history.length > 0 ? (
+              <button 
+                type="button"
+                onClick={navigateBack}
+                className="btn btn-sm btn-primary rounded-pill px-3"
+              >
+                ⬅ Voltar
+              </button>
+            ) : (
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4f8ef7' }} />
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--cui-secondary-color)', fontWeight: 700, letterSpacing: '0.5px' }}>
+                {history.length === 0 ? 'Disciplinas' : 'Assuntos'}
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {currentParent ? currentParent.nome : 'Selecione o que estudar'}
+              </div>
+            </div>
+          </div>
 
           {/* Busca */}
-          <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--cui-border-color)' }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--cui-border-color)' }}>
             <input
               type="text"
-              placeholder="Buscar disciplina..."
+              placeholder={`Buscar em ${currentParent ? 'assuntos' : 'disciplinas'}...`}
               value={busca}
               onChange={e => setBusca(e.target.value)}
               style={{
                 width: '100%',
-                fontSize: 13,
-                padding: '5px 10px',
+                fontSize: 14,
+                padding: '8px 12px',
                 border: '1px solid var(--cui-border-color)',
-                borderRadius: 6,
+                borderRadius: 8,
                 background: 'var(--cui-body-bg)',
                 color: 'var(--cui-body-color)',
                 outline: 'none',
-                boxSizing: 'border-box',
               }}
               onClick={e => e.stopPropagation()}
             />
           </div>
 
-          {/* Corpo do Menu (Coluna Única) */}
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-            <div style={{ overflowY: 'auto', flex: 1 }}>
-              {raizes.length === 0
-                ? <div style={{ padding: 16, fontSize: 13, color: 'var(--cui-secondary-color)', textAlign: 'center' }}>Nenhuma disciplina encontrada.</div>
-                : raizes.map(renderRaiz)
-              }
-            </div>
+          {/* Lista de Itens */}
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            {loadingId === currentParent?.id && (
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--cui-secondary-color)' }}>
+                <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                Carregando assuntos...
+              </div>
+            )}
+            
+            {loadingId !== currentParent?.id && visibleItems.length === 0 ? (
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--cui-secondary-color)', fontSize: 14 }}>
+                {busca ? 'Nenhum resultado para sua busca.' : 'Nenhum item encontrado neste nível.'}
+              </div>
+            ) : (
+              loadingId !== currentParent?.id && visibleItems.map(node => <ListItem key={node.id} node={node} />)
+            )}
           </div>
 
-          {/* Rodapé com contador e ação */}
+          {/* Rodapé */}
           {selected.length > 0 && (
             <div style={{
-              padding: '6px 12px',
+              padding: '12px 16px',
+              background: 'rgba(79,142,247,0.05)',
               borderTop: '1px solid var(--cui-border-color)',
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center',
-              background: 'var(--cui-tertiary-bg)',
-              fontSize: 12,
+              alignItems: 'center'
             }}>
-              <span style={{ color: 'var(--cui-secondary-color)' }}>
-                {selected.length} {selected.length === 1 ? 'item selecionado' : 'itens selecionados'}
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#4f8ef7' }}>
+                {selected.length} selecionados
               </span>
               <button
                 type="button"
-                className="btn btn-sm btn-link p-0"
-                style={{ fontSize: 12, color: '#dc3545', textDecoration: 'none' }}
+                className="btn btn-sm btn-link text-danger text-decoration-none p-0 fw-bold"
                 onClick={() => onChange([])}
               >
-                Limpar tudo
+                Limpar Tudo
               </button>
             </div>
           )}
