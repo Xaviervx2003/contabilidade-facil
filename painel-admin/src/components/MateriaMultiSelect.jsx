@@ -195,7 +195,6 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
         <span style={{ fontSize: 12, color: 'var(--cui-secondary-color)', flexShrink: 0, transform: isActive ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>
           {isLoading ? '⏳' : '›'}
         </span>
-      </div>
 
       {/* Renderização dos filhos aninhados */}
       {isActive && (
