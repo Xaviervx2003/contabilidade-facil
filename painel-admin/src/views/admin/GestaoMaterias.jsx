@@ -91,6 +91,11 @@ const GestaoMaterias = () => {
     )
   }, [tree, busca])
 
+  const formatIndice = (indice) => {
+    if (!indice) return ''
+    return indice.replace(/^\d+\./, '')
+  }
+
   const criar = async () => {
     if (!novaMateria.trim()) return
     setError('')
@@ -277,7 +282,7 @@ const GestaoMaterias = () => {
                               </div>
                             ) : (
                               <div className="d-flex align-items-center overflow-hidden">
-                                {m.indice && <span className="badge bg-secondary-subtle text-secondary me-2 border border-secondary-subtle">{m.indice}</span>}
+                                {m.indice && <span className="badge bg-secondary-subtle text-secondary me-2 border border-secondary-subtle">{formatIndice(m.indice)}</span>}
                                 <span className="text-truncate" title={m.nome}>{m.nome}</span>
                               </div>
                             )}

@@ -10,6 +10,12 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
   const [expandedNodes, setExpandedNodes] = useState(new Set())
   const ref = useRef(null)
 
+  // Remove o primeiro número do índice (ex: 4.1. -> 1.)
+  const formatIndice = useCallback((indice) => {
+    if (!indice) return ''
+    return indice.replace(/^\d+\./, '')
+  }, [])
+
   // Fecha ao clicar fora
   useEffect(() => {
     const handler = (e) => {
@@ -161,7 +167,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
         }}>
           {raiz.indice && (
             <span style={{ color: '#4f8ef7', fontWeight: 800, marginRight: 5, fontSize: 11, fontFamily: 'monospace' }}>
-              {raiz.indice}
+              {formatIndice(raiz.indice)}
             </span>
           )}
           {raiz.nome}
@@ -248,7 +254,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
           }}>
             {node.indice && (
               <span style={{ color: '#4f8ef7', fontWeight: 700, marginRight: 5, fontSize: 11, fontFamily: 'monospace' }}>
-                {node.indice}
+                {formatIndice(node.indice)}
               </span>
             )}
             {node.nome}
