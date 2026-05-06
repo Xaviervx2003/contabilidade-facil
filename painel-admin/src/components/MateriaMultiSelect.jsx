@@ -320,6 +320,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
           position: 'absolute',
           zIndex: 1050,
           width: 520,
+          maxWidth: 'calc(100vw - 32px)',
           top: '100%',
           left: 0,
           marginTop: 4,
