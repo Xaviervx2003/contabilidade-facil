@@ -195,6 +195,7 @@ const ChecklistItem = ({ icon, title, subtitle, children, isOpen, onToggle, isCo
 
 const ReadyScreen = ({
   materias, materiasSelected, setMateriasSelected,
+  disciplinaPai, setDisciplinaPai,
   filtrosDisponiveis,
   bancaSelecionada, setBancaSelecionada,
   orgaoSelecionado, setOrgaoSelecionado,
@@ -207,13 +208,17 @@ const ReadyScreen = ({
   const [activeStep, setActiveStep] = useState(0)
 
   const steps = [
-    { id: 0, title: 'Conteúdo', icon: '1', completed: materiasSelected.length > 0 },
-    { id: 1, title: 'Filtros', icon: '2', completed: !!(bancaSelecionada || orgaoSelecionado || cargoSelecionado || anoSelecionado) },
-    { id: 2, title: 'Regras', icon: '3', completed: true },
-    { id: 3, title: 'Foco', icon: '4', completed: true }
+    { id: 0, title: 'Disciplina', icon: '1', completed: !!disciplinaPai },
+    { id: 1, title: 'Assuntos', icon: '2', completed: materiasSelected.length > 0 },
+    { id: 2, title: 'Filtros', icon: '3', completed: !!(bancaSelecionada || orgaoSelecionado || cargoSelecionado || anoSelecionado) },
+    { id: 3, title: 'Regras', icon: '4', completed: true },
+    { id: 4, title: 'Foco', icon: '5', completed: true }
   ]
 
   const progressValue = (steps.filter(s => s.completed).length / steps.length) * 100
+
+  const raizes = materias.filter(m => !m.parent_id)
+  const disciplinaNome = disciplinaPai ? raizes.find(r => r.id === disciplinaPai)?.nome : ''
 
   return (
     <div style={{ animation: 'fade-up .35s ease' }}>
@@ -229,18 +234,60 @@ const ReadyScreen = ({
         </div>
       </div>
 
-      {/* Passo 1: Conteúdo */}
+      {/* Passo 0: Disciplina */}
       <ChecklistItem
         icon="📚"
-        title="O que você quer estudar?"
-        subtitle={materiasSelected.length ? `${materiasSelected.length} matérias selecionadas` : 'Selecione as disciplinas para o quiz'}
+        title="O que você quer estudar hoje?"
+        subtitle={disciplinaPai ? `Disciplina: ${disciplinaNome}` : 'Selecione a matéria principal'}
         isOpen={activeStep === 0}
         onToggle={() => setActiveStep(activeStep === 0 ? -1 : 0)}
         isCompleted={steps[0].completed}
-        ctaLabel="Confirmar Disciplinas"
+        ctaLabel="Confirmar Disciplina"
         onCta={() => setActiveStep(1)}
       >
-        <MateriaMultiSelect materias={materias} selected={materiasSelected} onChange={setMateriasSelected} esconderVazias={true} inline={true} />
+        <div className="d-flex flex-column gap-2">
+          {raizes.map(r => (
+            <div 
+              key={r.id} 
+              className={`p-3 rounded-3 border cursor-pointer transition-all ${disciplinaPai === r.id ? 'border-primary bg-primary-subtle' : 'bg-body-tertiary'}`}
+              style={{ cursor: 'pointer' }}
+              onClick={() => { setDisciplinaPai(r.id); setActiveStep(1) }}
+            >
+              <div className="d-flex justify-content-between align-items-center">
+                <span className="fw-bold">{r.nome}</span>
+                <span className="badge bg-primary rounded-pill">{r.total_questoes}Q</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ChecklistItem>
+
+      {/* Passo 1: Assuntos */}
+      <ChecklistItem
+        icon="🔍"
+        title="Quais assuntos específicos?"
+        subtitle={materiasSelected.length ? `${materiasSelected.length} tópicos selecionados` : `Escolha os assuntos de ${disciplinaNome || '...'}`}
+        isOpen={activeStep === 1}
+        onToggle={() => {
+          if (!disciplinaPai) { alert('Selecione uma disciplina primeiro!'); setActiveStep(0); return }
+          setActiveStep(activeStep === 1 ? -1 : 1)
+        }}
+        isCompleted={steps[1].completed}
+        ctaLabel="Confirmar Assuntos"
+        onCta={() => setActiveStep(2)}
+      >
+        {!disciplinaPai ? (
+          <div className="text-center py-4 text-body-secondary">Selecione uma disciplina no passo anterior primeiro.</div>
+        ) : (
+          <MateriaMultiSelect 
+            materias={materias} 
+            selected={materiasSelected} 
+            onChange={setMateriasSelected} 
+            esconderVazias={true} 
+            inline={true} 
+            rootId={disciplinaPai} 
+          />
+        )}
       </ChecklistItem>
 
       {/* Passo 2: Dados do Concurso */}
@@ -248,11 +295,11 @@ const ReadyScreen = ({
         icon="🏛️"
         title="Dados do Concurso (Opcional)"
         subtitle="Filtre por banca, órgão ou ano específico"
-        isOpen={activeStep === 1}
-        onToggle={() => setActiveStep(activeStep === 1 ? -1 : 1)}
-        isCompleted={steps[1].completed}
+        isOpen={activeStep === 2}
+        onToggle={() => setActiveStep(activeStep === 2 ? -1 : 2)}
+        isCompleted={steps[2].completed}
         ctaLabel="Continuar"
-        onCta={() => setActiveStep(2)}
+        onCta={() => setActiveStep(3)}
       >
         <CRow className="g-3">
           <CCol xs={12} sm={6}>
@@ -643,9 +690,9 @@ const Quiz = () => {
   const [modoEstudo, setModoEstudo] = useState('todas')
   const [bancaSelecionada, setBancaSelecionada] = useState('')
   const [orgaoSelecionado, setOrgaoSelecionado] = useState('')
-  const [cargoSelecionado, setCargoSelecionado] = useState('')
-  const [anoSelecionado, setAnoSelecionado] = useState('')
   const [favoritos, setFavoritos] = useState([])
+  const [disciplinaPai, setDisciplinaPai] = useState(null) // ID da disciplina raiz selecionada
+  const [filtrosDisponiveis, setFiltrosDisponiveis] = useState({ bancas: [], orgaos: [], cargos: [], anos: [] })
   const [filtrosDisponiveis, setFiltrosDisponiveis] = useState({ bancas: [], orgaos: [], cargos: [], anos: [] })
 
   const nomeAluno = sessionStorage.getItem('nome') || 'Aluno'
@@ -1000,6 +1047,8 @@ const Quiz = () => {
                   materias={materias}
                   materiasSelected={materiasSelected}
                   setMateriasSelected={setMateriasSelected}
+                  disciplinaPai={disciplinaPai}
+                  setDisciplinaPai={setDisciplinaPai}
                   filtrosDisponiveis={filtrosDisponiveis}
                   bancaSelecionada={bancaSelecionada}
                   setBancaSelecionada={setBancaSelecionada}

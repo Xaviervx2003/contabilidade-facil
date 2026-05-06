@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { API_URL } from '../config'
 
-const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = true, inline = false }) => {
+const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = true, inline = false, rootId = null }) => {
   const [open, setOpen] = useState(false)
   const [filhosCache, setFilhosCache] = useState({})
   const [loadingId, setLoadingId] = useState(null)
@@ -26,11 +26,29 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // Invalida cache e reseta navegação quando esconderVazias muda
+  // Invalida cache e reseta navegação quando esconderVazias ou rootId muda
   useEffect(() => {
     setFilhosCache({})
-    setHistory([])
-  }, [esconderVazias])
+    if (rootId) {
+      const rootNode = materias.find(m => m.id === rootId)
+      if (rootNode) {
+        setHistory([{ id: rootNode.id, nome: rootNode.nome }])
+        // Carrega os filhos da raiz se necessário
+        const load = async () => {
+          setLoadingId(rootId)
+          try {
+            const res = await fetch(`${API_URL}/api/admin/materias/${rootId}/filhos?esconder_vazias=${esconderVazias}`)
+            const data = await res.json()
+            setFilhosCache(prev => ({ ...prev, [rootId]: Array.isArray(data) ? data : [] }))
+          } catch {}
+          setLoadingId(null)
+        }
+        load()
+      }
+    } else {
+      setHistory([])
+    }
+  }, [esconderVazias, rootId, materias])
 
   // Itens visíveis no nível atual
   const visibleItems = useMemo(() => {
@@ -207,7 +225,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
             alignItems: 'center',
             gap: 12
           }}>
-            {history.length > 0 ? (
+            {history.length > (rootId ? 1 : 0) ? (
               <button 
                 type="button"
                 onClick={navigateBack}
@@ -220,7 +238,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--cui-secondary-color)', fontWeight: 700, letterSpacing: '0.5px' }}>
-                {history.length === 0 ? 'Disciplinas' : 'Assuntos'}
+                {history.length <= (rootId ? 1 : 0) ? 'Assuntos' : 'Sub-assuntos'}
               </div>
               <div style={{ fontSize: 14, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {currentParent ? currentParent.nome : 'Selecione o que estudar'}
