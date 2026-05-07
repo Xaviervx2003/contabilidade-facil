@@ -96,6 +96,7 @@ class ModuloCreate(BaseModel):
     link_video: Optional[str] = None
     texto_teorico: Optional[str] = None
     materia_id: Optional[int] = None
+    questoes_selecionadas: Optional[List[int]] = None
 
 class TrilhaCreate(BaseModel):
     nome: str
@@ -110,6 +111,7 @@ class ModuloUpdate(BaseModel):
     link_video: Optional[str] = None
     texto_teorico: Optional[str] = None
     materia_id: Optional[int] = None
+    questoes_selecionadas: Optional[List[int]] = None
 
 class TrilhaUpdate(BaseModel):
     nome: Optional[str] = None

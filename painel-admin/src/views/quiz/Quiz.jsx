@@ -811,6 +811,12 @@ const Quiz = () => {
     const raw = sessionStorage.getItem(SESSION_KEY)
     if (raw) {
       try { setSavedSnapshot(JSON.parse(raw)) } catch { sessionStorage.removeItem(SESSION_KEY) }
+    } else {
+      // Se não houver snapshot, verificamos se veio por Estudo Dirigido (IDs específicos)
+      const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
+      if (params.get('ids')) {
+        fetchAndStart()
+      }
     }
   }, [])
 
@@ -876,20 +882,26 @@ const Quiz = () => {
   const fetchAndStart = async () => {
     setError(''); setFeedback(''); setStatus('loading')
     try {
-      const params = new URLSearchParams()
-      if (materiasSelected.length > 0) {
-        materiasSelected.forEach(id => params.append('materia_id', id))
-      } else if (disciplinaPai) {
-        params.append('materia_id', disciplinaPai)
+      const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
+      const explicitIds = params.get('ids')
+      
+      if (explicitIds) {
+        params.set('ids', explicitIds)
+      } else {
+        if (materiasSelected.length > 0) {
+          materiasSelected.forEach(id => params.append('materia_id', id))
+        } else if (disciplinaPai) {
+          params.append('materia_id', disciplinaPai)
+        }
+        if (matricula) {
+          params.set('matricula', matricula)
+          params.set('modo_estudo', modoEstudo)
+        }
+        if (bancaSelecionada) params.set('banca', bancaSelecionada)
+        if (orgaoSelecionado) params.set('orgao', orgaoSelecionado)
+        if (cargoSelecionado) params.set('cargo', cargoSelecionado)
+        if (anoSelecionado) params.set('ano', anoSelecionado)
       }
-      if (matricula) {
-        params.set('matricula', matricula)
-        params.set('modo_estudo', modoEstudo)
-      }
-      if (bancaSelecionada) params.set('banca', bancaSelecionada)
-      if (orgaoSelecionado) params.set('orgao', orgaoSelecionado)
-      if (cargoSelecionado) params.set('cargo', cargoSelecionado)
-      if (anoSelecionado) params.set('ano', anoSelecionado)
       const maxNeeded = quantidade > 0 ? Math.min(quantidade * 3, 500) : 500
       params.set('limit', String(maxNeeded))
 

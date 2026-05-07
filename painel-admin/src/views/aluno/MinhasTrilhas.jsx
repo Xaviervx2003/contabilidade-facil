@@ -60,14 +60,20 @@ const MinhasTrilhas = () => {
   }
 
   const handleAcessarModulo = (m) => {
-    // Se for quiz, redireciona para a tela de quiz filtrada pela matéria
-    if (m.materia_id) {
+    // Se houver questões específicas (Estudo Dirigido)
+    if (m.questoes_selecionadas && m.questoes_selecionadas.length > 0) {
+      // Passa os IDs como parâmetro para o quiz
+      const ids = m.questoes_selecionadas.join(',')
+      navigate(`/quiz?ids=${ids}`)
+    }
+    // Se for quiz por matéria
+    else if (m.materia_id) {
       navigate(`/quiz?materia_id=${m.materia_id}`)
     } else if (m.link_video) {
-      // Abre o vídeo em nova aba por enquanto (ou podemos tocar no modal futuro)
+      // Abre o vídeo em nova aba por enquanto
       window.open(m.link_video, '_blank')
     }
-    // Depois de acessar, marca como concluído automaticamente para facilitar
+    // Depois de acessar, marca como concluído automaticamente
     marcarConcluido(m.id)
   }
 

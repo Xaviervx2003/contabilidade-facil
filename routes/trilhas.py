@@ -49,9 +49,9 @@ def criar_trilha(trilha: TrilhaCreate, usuario_id: int = Query(...)):
 
             for mod in trilha.modulos:
                 cursor.execute("""
-                    INSERT INTO modulos (trilha_id, nome, descricao, ordem, link_video, texto_teorico, materia_id)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """, (trilha_id, mod.nome, mod.descricao, mod.ordem, mod.link_video, mod.texto_teorico, mod.materia_id))
+                    INSERT INTO modulos (trilha_id, nome, descricao, ordem, link_video, texto_teorico, materia_id, questoes_selecionadas)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (trilha_id, mod.nome, mod.descricao, mod.ordem, mod.link_video, mod.texto_teorico, mod.materia_id, mod.questoes_selecionadas))
             
             conn.commit()
             return {"sucesso": True, "mensagem": "Trilha criada com sucesso", "trilha_id": trilha_id}
@@ -108,9 +108,9 @@ def adicionar_modulo(trilha_id: int, mod: ModuloCreate):
         with get_conexao() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO modulos (trilha_id, nome, descricao, ordem, link_video, texto_teorico, materia_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id
-            """, (trilha_id, mod.nome, mod.descricao, mod.ordem, mod.link_video, mod.texto_teorico, mod.materia_id))
+                INSERT INTO modulos (trilha_id, nome, descricao, ordem, link_video, texto_teorico, materia_id, questoes_selecionadas)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
+            """, (trilha_id, mod.nome, mod.descricao, mod.ordem, mod.link_video, mod.texto_teorico, mod.materia_id, mod.questoes_selecionadas))
             conn.commit()
             return {"sucesso": True, "mensagem": "Módulo adicionado", "modulo_id": cursor.fetchone()[0]}
     except Exception as e:

@@ -3,31 +3,48 @@ routes/progresso.py – Progresso individual do aluno no edital de questões.
 """
 
 from fastapi import APIRouter, HTTPException
+from typing import Optional
 from database import get_conexao
 
 router = APIRouter(prefix="/api", tags=["Progresso"])
 
 
 @router.get("/aluno/progresso/{matricula}")
-def progresso_aluno(matricula: str):
+def progresso_aluno(matricula: str, materia_id: Optional[int] = None):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
             # Total de questões distintas que o aluno já respondeu
-            cursor.execute("""
-                SELECT COUNT(DISTINCT sq.questao_id) AS respondidas,
-                       (SELECT COUNT(*) FROM questoes) AS total
+            query_respondidas = """
+                SELECT COUNT(DISTINCT sq.questao_id)
                 FROM sessoes_estudo s
                 JOIN sessoes_questoes sq ON sq.sessao_id = s.id
                 WHERE COALESCE(s.matricula_aluno, s.nome_aluno) = %s
-            """, (matricula,))
-            row = cursor.fetchone()
-            if not row:
-                return {"respondidas": 0, "total": 0, "percentual": 0}
+            """
+            
+            # Total de questões existentes no edital (total ou por matéria)
+            query_total = "SELECT COUNT(*) FROM questoes"
+            
+            params_res = [matricula]
+            params_tot = []
+            
+            if materia_id:
+                query_respondidas += """ AND EXISTS (
+                    SELECT 1 FROM questoes_materias qm 
+                    WHERE qm.questao_id = sq.questao_id AND qm.materia_id = %s
+                )"""
+                params_res.append(materia_id)
+                
+                query_total = "SELECT COUNT(*) FROM questoes_materias WHERE materia_id = %s"
+                params_tot.append(materia_id)
 
-            respondidas = row[0] or 0
-            total = row[1] or 1  # evita divisão por zero
-            percentual = round((respondidas / total) * 100, 1)
+            cursor.execute(query_respondidas, tuple(params_res))
+            respondidas = cursor.fetchone()[0] or 0
+            
+            cursor.execute(query_total, tuple(params_tot))
+            total = cursor.fetchone()[0] or 0
+            
+            percentual = round((respondidas / total) * 100, 1) if total > 0 else 0
 
             return {
                 "respondidas": respondidas,

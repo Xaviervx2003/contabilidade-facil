@@ -121,9 +121,9 @@ const Heatmap = ({ data }) => {
     const [tooltip, setTooltip] = useState(null)
     const containerRef = useRef(null)
 
-    const CELL_SIZE = 16
-    const CELL_GAP = 4
-    const TOTAL_WEEKS = 20
+    const CELL_SIZE = 14
+    const CELL_GAP = 3
+    const TOTAL_WEEKS = 16 // Diminuído de 20 para 16 para ocupar menos espaço
 
     const grid = useMemo(() => {
         if (!data || data.length === 0) return []
@@ -428,7 +428,7 @@ const HistoricoAluno = () => {
 
             Promise.all([
                 fetchJSON(`${API_URL}/api/aluno/historico-filtrado/${matricula}${qs}`),
-                fetchJSON(`${API_URL}/api/aluno/progresso/${matricula}`)
+                fetchJSON(`${API_URL}/api/aluno/progresso/${matricula}${qs}`) // Agora passa os filtros para o progresso também
             ])
                 .then(([filtrado, progresso]) => {
                     setDados(filtrado)
@@ -561,8 +561,16 @@ const HistoricoAluno = () => {
 
     const assuntosReforcar = useMemo(() => {
         if (!dados?.por_assunto) return []
-        return dados.por_assunto.filter(a => a.media_acerto < 60).slice(0, 5)
-    }, [dados])
+        // Se houver filtro de matéria, priorizamos esse assunto se ele estiver ruim
+        let lista = dados.por_assunto
+        if (filtroMateria) {
+            const mNome = materias.find(m => m.id === parseInt(filtroMateria))?.nome
+            if (mNome) {
+                lista = lista.filter(a => a.assunto.toLowerCase().includes(mNome.toLowerCase()))
+            }
+        }
+        return lista.filter(a => a.media_acerto < 60).slice(0, 5)
+    }, [dados, filtroMateria, materias])
 
     const handleExportarCSV = () => {
         if (!dados) return

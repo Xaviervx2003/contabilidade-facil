@@ -51,7 +51,8 @@ const GestaoTrilhas = () => {
     tipo: 'video', // video, texto, quiz
     link_video: '',
     texto_teorico: '',
-    materia_id: ''
+    materia_id: '',
+    questoes_selecionadas: ''
   })
 
   const userId = sessionStorage.getItem('userId')
@@ -133,7 +134,8 @@ const GestaoTrilhas = () => {
       tipo: 'video',
       link_video: '',
       texto_teorico: '',
-      materia_id: ''
+      materia_id: '',
+      questoes_selecionadas: ''
     })
     setModalModulo(true)
   }
@@ -146,7 +148,8 @@ const GestaoTrilhas = () => {
         ordem: parseInt(formModulo.ordem),
         link_video: formModulo.tipo === 'video' ? formModulo.link_video : null,
         texto_teorico: formModulo.tipo === 'texto' ? formModulo.texto_teorico : null,
-        materia_id: formModulo.tipo === 'quiz' ? parseInt(formModulo.materia_id) : null
+        materia_id: formModulo.tipo === 'quiz' ? parseInt(formModulo.materia_id) : null,
+        questoes_selecionadas: formModulo.questoes_selecionadas ? formModulo.questoes_selecionadas.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)) : null
       }
 
       await fetch(`${API_URL}/api/trilhas/${trilhaAtiva.id}/modulos`, {
@@ -243,6 +246,7 @@ const GestaoTrilhas = () => {
                                 {m.link_video && <CBadge color="danger"><CIcon icon={cilVideo} /> Vídeo</CBadge>}
                                 {m.texto_teorico && <CBadge color="secondary" className="ms-1"><CIcon icon={cilDescription} /> Texto</CBadge>}
                                 {m.materia_id && <CBadge color="primary" className="ms-1"><CIcon icon={cilCheck} /> Quiz ({m.materia_nome})</CBadge>}
+                                {m.questoes_selecionadas?.length > 0 && <CBadge color="dark" className="ms-1"><CIcon icon={cilCheck} /> {m.questoes_selecionadas.length} Questões Específicas</CBadge>}
                               </CTableDataCell>
                               <CTableDataCell>
                                 <CButton size="sm" color="danger" variant="ghost" onClick={() => deletarModulo(m.id)}>
@@ -336,14 +340,22 @@ const GestaoTrilhas = () => {
               )}
 
               {formModulo.tipo === 'quiz' && (
-                <div>
+                <div className="mb-3">
                   <label className="form-label">Vincular a qual Matéria de Questões?</label>
-                  <CFormSelect value={formModulo.materia_id} onChange={e => setFormModulo({...formModulo, materia_id: e.target.value})}>
+                  <CFormSelect value={formModulo.materia_id} onChange={e => setFormModulo({...formModulo, materia_id: e.target.value})} className="mb-3">
                     <option value="">Selecione uma matéria...</option>
                     {materias.map(m => (
                       <option key={m.id} value={m.id}>{m.nome}</option>
                     ))}
                   </CFormSelect>
+                  
+                  <label className="form-label fw-bold text-primary">Ou selecione Questões Específicas (IDs)</label>
+                  <CFormInput 
+                    value={formModulo.questoes_selecionadas} 
+                    onChange={e => setFormModulo({...formModulo, questoes_selecionadas: e.target.value})} 
+                    placeholder="Ex: 12, 45, 89 (Separe por vírgula)"
+                  />
+                  <small className="text-body-secondary">Se você colocar IDs aqui, o aluno fará apenas essas questões específicas nesta aula.</small>
                 </div>
               )}
             </div>

@@ -59,6 +59,7 @@ def obter_valores_unicos():
 def obter_questoes(
     usuario_id: Optional[int] = Query(None),
     materia_id: Optional[List[int]] = Query(None),
+    ids: Optional[List[int]] = Query(None, description="Filtrar por IDs específicos"),
     limit: Optional[int] = Query(None, ge=1, le=500, description="Limita o número de questões retornadas"),
     matricula: Optional[str] = Query(None, description="Matrícula do aluno para filtros de histórico"),
     modo_estudo: Optional[str] = Query("todas", description="Modo de estudo: todas, nao_respondidas, erros"),
@@ -109,6 +110,10 @@ def obter_questoes(
                     )
                 """)
                 params.append(materia_id)
+
+            if ids:
+                conditions.append("q.id = ANY(%s)")
+                params.append(ids)
 
             # Filtros de Histórico (Baseado na matrícula do aluno)
             if matricula:

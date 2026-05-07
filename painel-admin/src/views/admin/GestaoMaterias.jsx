@@ -36,6 +36,7 @@ const GestaoMaterias = () => {
   const [editandoId, setEditandoId] = useState(null)
   const [editandoNome, setEditandoNome] = useState('')
   const [editandoParentId, setEditandoParentId] = useState('')
+  const [editandoIndice, setEditandoIndice] = useState('')
   const [limpando, setLimpando] = useState(false)
   const [draggedId, setDraggedId] = useState(null)
   const [dragOverId, setDragOverId] = useState(null)
@@ -425,9 +426,12 @@ const GestaoMaterias = () => {
                               ) : (
                                 <div className="d-flex align-items-center overflow-hidden">
                                   <span className="me-2 text-muted" style={{ cursor: 'grab' }}>⠿</span>
-                                  {m.depth === 0 && m.indice && (
-                                    <span className="badge bg-primary text-white me-2 shadow-sm" style={{ minWidth: '24px' }}>
-                                      {m.indice}
+                                  {m.indice && (
+                                    <span 
+                                      className={`badge ${m.depth === 0 ? 'bg-primary text-white' : 'bg-secondary-subtle text-secondary border border-secondary-subtle'} me-2 shadow-sm`} 
+                                      style={{ minWidth: '24px' }}
+                                    >
+                                      {m.depth === 0 ? m.indice : formatIndice(m.indice)}
                                     </span>
                                   )}
                                   <span className="text-truncate" title={m.nome}>{m.nome}</span>
