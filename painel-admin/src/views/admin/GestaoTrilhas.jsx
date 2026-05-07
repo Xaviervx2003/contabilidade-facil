@@ -142,26 +142,36 @@ const GestaoTrilhas = () => {
 
   const salvarModulo = async () => {
     try {
+      const ordemVal = parseInt(formModulo.ordem)
+      const materiaVal = formModulo.tipo === 'quiz' && formModulo.materia_id ? parseInt(formModulo.materia_id) : null
+
       const payload = {
         nome: formModulo.nome,
         descricao: formModulo.descricao,
-        ordem: parseInt(formModulo.ordem),
+        ordem: isNaN(ordemVal) ? 0 : ordemVal,
         link_video: formModulo.tipo === 'video' ? formModulo.link_video : null,
         texto_teorico: formModulo.tipo === 'texto' ? formModulo.texto_teorico : null,
-        materia_id: formModulo.tipo === 'quiz' ? parseInt(formModulo.materia_id) : null,
+        materia_id: isNaN(materiaVal) ? null : materiaVal,
         questoes_selecionadas: formModulo.questoes_selecionadas ? formModulo.questoes_selecionadas.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)) : null
       }
 
-      await fetch(`${API_URL}/api/trilhas/${trilhaAtiva.id}/modulos`, {
+      const res = await fetch(`${API_URL}/api/trilhas/${trilhaAtiva.id}/modulos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.detail || 'Erro na API')
+      }
+
       setSuccess('Módulo adicionado!')
       setModalModulo(false)
       carregarDados()
     } catch (e) {
-      setError('Erro ao salvar módulo.')
+      console.error(e)
+      setError(`Erro ao salvar módulo: ${e.message}`)
     }
   }
 
