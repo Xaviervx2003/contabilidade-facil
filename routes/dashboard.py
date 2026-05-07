@@ -100,12 +100,12 @@ def sessoes_por_mes(usuario_id: int = Query(..., description="ID do usuário log
                 params.append(matricula)
 
             cursor.execute(f"""
-                SELECT TO_CHAR(DATE_TRUNC('month', s.data_sessao), 'Mon/YY') as mes,
+                SELECT TO_CHAR(DATE_TRUNC('month', s.criado_em), 'Mon/YY') as mes,
                        COUNT(s.id) as total, ROUND(AVG(s.taxa_acerto)::numeric, 1) as media
                 FROM sessoes_estudo s
-                WHERE s.data_sessao >= NOW() - INTERVAL '7 months' {filtro}
-                GROUP BY DATE_TRUNC('month', s.data_sessao)
-                ORDER BY DATE_TRUNC('month', s.data_sessao)
+                WHERE s.criado_em >= NOW() - INTERVAL '7 months' {filtro}
+                GROUP BY DATE_TRUNC('month', s.criado_em)
+                ORDER BY DATE_TRUNC('month', s.criado_em)
             """, params)
             
             rows = cursor.fetchall()
@@ -132,10 +132,10 @@ def visao_geral(usuario_id: int = Query(..., description="ID do usuário logado"
 
             cursor.execute(f"""
                 SELECT COALESCE(u.nome, s.matricula_aluno), s.assunto_estudado, s.questoes_respondidas, 
-                       s.taxa_acerto, s.data_sessao
+                       s.taxa_acerto, s.criado_em
                 FROM sessoes_estudo s
                 LEFT JOIN usuarios u ON u.matricula = s.matricula_aluno
-                WHERE 1=1 {filtro} ORDER BY s.data_sessao DESC LIMIT 5
+                WHERE 1=1 {filtro} ORDER BY s.criado_em DESC LIMIT 5
             """, params)
             
             ultimas = [{"aluno": r[0], "assunto": r[1], "questoes": r[2], "acerto": r[3], "data": r[4].isoformat() if r[4] else None} for r in cursor.fetchall()]

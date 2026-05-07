@@ -142,7 +142,7 @@ def questoes_respondidas(
                     q.assunto,
                     sq.acertou,
                     s.assunto_estudado,
-                    s.criado_em AS data_sessao,
+                    s.criado_em AS criado_em,
                     ARRAY_TO_STRING(ARRAY_AGG(DISTINCT m.nome), ', ') AS materias
                 FROM sessoes_questoes sq
                 JOIN sessoes_estudo s ON s.id = sq.sessao_id
@@ -172,7 +172,7 @@ def questoes_respondidas(
             # Paginação
             query = f"""
                 SELECT * FROM ({base}) sub
-                ORDER BY sub.data_sessao DESC
+                ORDER BY sub.criado_em DESC
                 LIMIT %(limit)s OFFSET %(offset)s
             """
             params["limit"] = por_pagina

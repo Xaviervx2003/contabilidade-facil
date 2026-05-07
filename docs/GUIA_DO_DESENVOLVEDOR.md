@@ -252,7 +252,7 @@ Para que as alterações feitas no seu computador (localhost) apareçam no site 
 | Problema Original | Solução Aplicada | Motivo Técnico |
 | :--- | :--- | :--- |
 | `column s.usuario_id does not exist` | Trocado por `s.matricula_aluno = u.matricula` | O banco usa `matricula` como chave estrangeira, não `usuario_id`. |
-| `column s.data_criacao does not exist` | Trocado por `s.data_sessao` | Alinhamento com o nome real da coluna de timestamp. |
+| `column s.data_criacao does not exist` | Trocado por `s.criado_em` | Alinhamento com o nome real da coluna de timestamp. |
 | `aggregate function calls cannot be nested` | Dividido em 2 CTEs: `erros_base` → `erros_por_assunto` | PostgreSQL não permite `SUM()` dentro de `jsonb_object_agg()`. |
 | Inconsistência de identificadores | Padronizado tudo para `matricula` | Alinha com favoritos, sessões e rotas de aluno. |
 | Assuntos vazios gerando chaves NULL | `COALESCE(NULLIF(TRIM(assunto), ''), 'Sem assunto')` | Garante chaves JSON válidas para o frontend. |
@@ -271,6 +271,6 @@ Pré-calcular métricas (média, total de questões, erros por matéria) uma vez
 - **Requisito**: Índice único em `matricula` para permitir atualização concorrente (sem travar a leitura).
 
 ### 🐛 Erros Comuns & Soluções
-- **`column does not exist`**: Sempre verifique se está usando `matricula_aluno` e `data_sessao`.
+- **`column does not exist`**: Sempre verifique se está usando `matricula_aluno` e `criado_em`.
 - **`null value not allowed for key`**: Acontece se o `assunto_estudado` estiver vazio. Use o `COALESCE` conforme seção 10.
 

@@ -147,8 +147,11 @@ ALTER TABLE feedbacks_questoes
 -- ─── 6b. ÍNDICES ESTRATÉGICOS (desempenho) ────────────────────
 CREATE INDEX IF NOT EXISTS idx_sessoes_nome_aluno   ON sessoes_estudo (nome_aluno);
 CREATE INDEX IF NOT EXISTS idx_sessoes_criado_em    ON sessoes_estudo (criado_em DESC);
+CREATE INDEX IF NOT EXISTS idx_sessoes_nome_criado_em ON sessoes_estudo (nome_aluno, criado_em DESC);
+CREATE INDEX IF NOT EXISTS idx_sessoes_eh_teste_criado_em ON sessoes_estudo (eh_teste_professor, criado_em DESC);
 CREATE INDEX IF NOT EXISTS idx_feedbacks_resolvido  ON feedbacks_questoes (resolvido);
 CREATE INDEX IF NOT EXISTS idx_favoritos_questao ON favoritos_aluno(questao_id);
+CREATE INDEX IF NOT EXISTS idx_questoes_ano ON questoes(ano);
 
 -- ─── 8. TRILHAS DE APRENDIZAGEM (Cursos e Módulos) ────────────
 CREATE TABLE IF NOT EXISTS trilhas (

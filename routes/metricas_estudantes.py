@@ -95,10 +95,10 @@ def obter_desempenho_estudantes(
                 filtros_adicionais.append("AND qm.materia_id = %(materia_id)s")
                 params_base["materia_id"] = materia_id
             if data_inicio:
-                filtros_adicionais.append("AND s.data_sessao >= %(data_inicio)s")
+                filtros_adicionais.append("AND s.criado_em >= %(data_inicio)s")
                 params_base["data_inicio"] = data_inicio
             if data_fim:
-                filtros_adicionais.append("AND s.data_sessao <= %(data_fim)s")
+                filtros_adicionais.append("AND s.criado_em <= %(data_fim)s")
                 params_base["data_fim"] = data_fim
             
             filtro_professor = ""
@@ -110,7 +110,7 @@ def obter_desempenho_estudantes(
             query = """
                 WITH sessoes_filtradas AS (
                     SELECT u.nome, u.matricula, s.id AS sessao_id, s.questoes_respondidas,
-                           s.taxa_acerto, s.tempo_gasto_segundos, s.data_sessao, qm.materia_id,
+                           s.taxa_acerto, s.tempo_gasto_segundos, s.criado_em, qm.materia_id,
                            COALESCE(NULLIF(TRIM(s.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado
                     FROM usuarios u
                     INNER JOIN sessoes_estudo s ON s.matricula_aluno = u.matricula
@@ -122,7 +122,7 @@ def obter_desempenho_estudantes(
                     SELECT nome, matricula, COUNT(DISTINCT sessao_id) AS sessoes,
                            SUM(questoes_respondidas) AS total_q,
                            ROUND(AVG(taxa_acerto)::numeric, 1) AS media,
-                           AVG(tempo_gasto_segundos) AS tempo_m, MAX(data_sessao) AS ultima
+                           AVG(tempo_gasto_segundos) AS tempo_m, MAX(criado_em) AS ultima
                     FROM sessoes_filtradas GROUP BY nome, matricula
                 ),
                 erros AS (
@@ -177,7 +177,7 @@ def obter_metricas_individual(
             query = """
                 WITH sessoes_aluno AS (
                     SELECT u.nome, u.matricula, s.id AS sessao_id, s.questoes_respondidas,
-                           s.taxa_acerto, s.tempo_gasto_segundos, s.data_sessao,
+                           s.taxa_acerto, s.tempo_gasto_segundos, s.criado_em,
                            COALESCE(NULLIF(TRIM(s.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado
                     FROM usuarios u
                     INNER JOIN sessoes_estudo s ON s.matricula_aluno = u.matricula
@@ -187,7 +187,7 @@ def obter_metricas_individual(
                     SELECT nome, matricula, COUNT(sessao_id) AS sessoes,
                            SUM(questoes_respondidas) AS total_q,
                            ROUND(AVG(taxa_acerto)::numeric, 1) AS media,
-                           AVG(tempo_gasto_segundos) AS tempo_m, MAX(data_sessao) AS ultima
+                           AVG(tempo_gasto_segundos) AS tempo_m, MAX(criado_em) AS ultima
                     FROM sessoes_aluno GROUP BY nome, matricula
                 ),
                 erros AS (
