@@ -4,6 +4,7 @@ routes/auth.py — Autenticação: login, registro, verificação de identidade,
 """
 
 from fastapi import APIRouter, HTTPException, Request
+from psycopg import errors as pg_errors
 from database import get_conexao
 from models import (
     LoginRequest,
@@ -62,23 +63,52 @@ def fazer_login(credenciais: LoginRequest, request: Request):
 @router.post("/register")
 def registrar_usuario(dados: RegistroRequest):
     try:
+        nome = (dados.nome or "").strip()
+        matricula = (dados.matricula or "").strip().lower()
+        senha = (dados.senha or "").strip()
+
+        if not nome or not matricula or not senha:
+            return api_response(sucesso=False, mensagem="Preencha nome, matrícula e senha.", status_code=400)
+        if len(senha) < 6:
+            return api_response(sucesso=False, mensagem="A senha deve ter pelo menos 6 caracteres.", status_code=400)
+
         with get_conexao() as conn:
             cursor = conn.cursor()
             
-            cursor.execute("SELECT id FROM usuarios WHERE matricula = %s;", (dados.matricula,))
+            cursor.execute("SELECT id FROM usuarios WHERE matricula = %s;", (matricula,))
             if cursor.fetchone():
                 return api_response(sucesso=False, mensagem="Esta matrícula já está cadastrada.", status_code=400)
 
             # Hashing da senha antes de salvar
-            senha_hash = get_password_hash(dados.senha)
+            senha_hash = get_password_hash(senha)
+            email = matricula if "@" in matricula else None
             cursor.execute(
-                "INSERT INTO usuarios (nome, matricula, senha, papel) VALUES (%s, %s, %s, 'aluno');",
-                (dados.nome, dados.matricula, senha_hash),
+                "INSERT INTO usuarios (nome, matricula, senha, email, papel) VALUES (%s, %s, %s, %s, 'aluno');",
+                (nome, matricula, senha_hash, email),
             )
             conn.commit()
         
-        logger.info(f"Novo usuário registrado: {dados.matricula}")
+        logger.info(f"Novo usuário registrado: {matricula}")
         return api_response(sucesso=True, mensagem="Conta criada com sucesso!")
+    except pg_errors.UniqueViolation:
+        return api_response(
+            sucesso=False,
+            mensagem="Já existe conta com esta matrícula ou e-mail.",
+            status_code=400,
+        )
+    except pg_errors.NotNullViolation as e:
+        logger.exception("Schema incompatível no cadastro")
+        return api_response(
+            sucesso=False,
+            mensagem=f"Configuração do banco incompatível para cadastro ({e.diag.column_name or 'coluna obrigatória'}).",
+            status_code=500,
+        )
+    except pg_errors.StringDataRightTruncation:
+        return api_response(
+            sucesso=False,
+            mensagem="Matrícula/nome excede o limite permitido.",
+            status_code=400,
+        )
     except Exception as e:
         logger.exception("Erro no registro de usuário")
         return api_response(sucesso=False, mensagem="Erro ao criar conta.", status_code=500)

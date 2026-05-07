@@ -2,10 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react'
 import {
   CAlert,
   CBadge,
+  CButton,
   CCard,
   CCardBody,
-  CCardHeader,
   CCol,
+  CFormSelect,
+  CProgress,
   CRow,
   CSpinner,
   CTable,
@@ -14,7 +16,11 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CPagination,
+  CPaginationItem,
 } from '@coreui/react'
+import CIcon from '@coreui/icons-react'
+import { cilFilter, cilWarning } from '@coreui/icons'
 import { API_URL } from '../../config'
 
 const classificarRisco = (churn) => {
@@ -27,6 +33,10 @@ const CentralRisco = () => {
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState('')
   const [estudantes, setEstudantes] = useState([])
+  const [filtroRisco, setFiltroRisco] = useState('todos')
+  const [pagina, setPagina] = useState(1)
+  const [totalPaginas, setTotalPaginas] = useState(1)
+  const [total, setTotal] = useState(0)
 
   useEffect(() => {
     const carregar = async () => {
@@ -34,13 +44,15 @@ const CentralRisco = () => {
       setErro('')
       try {
         const userId = sessionStorage.getItem('userId')
-        const params = new URLSearchParams({ pagina: '1', por_pagina: '100' })
+        const params = new URLSearchParams({ pagina: String(pagina), por_pagina: '20' })
         if (userId) params.append('usuario_id', userId)
 
-        const res = await fetch(`${API_URL}/api/metricas-estudantes/desempenho?${params.toString()}`)
+        const res = await fetch(`${API_URL}/api/metricas-estudantes/central-risco?${params.toString()}`)
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const json = await res.json()
         setEstudantes(Array.isArray(json.estudantes) ? json.estudantes : [])
+        setTotalPaginas(Number(json.total_paginas || 1))
+        setTotal(Number(json.total || 0))
       } catch (e) {
         setErro(`Falha ao carregar central de risco: ${e.message}`)
       } finally {
@@ -49,7 +61,7 @@ const CentralRisco = () => {
     }
 
     carregar()
-  }, [])
+  }, [pagina])
 
   const resumo = useMemo(() => {
     const base = { alto: 0, medio: 0, baixo: 0 }
@@ -67,6 +79,27 @@ const CentralRisco = () => {
     [estudantes],
   )
 
+  const filtrados = useMemo(() => {
+    if (filtroRisco === 'todos') return ordenados
+    return ordenados.filter((e) => classificarRisco(Number(e.churn_risco_percentual || 0)).nivel.toLowerCase() === filtroRisco)
+  }, [ordenados, filtroRisco])
+
+  const exportarCsv = () => {
+    if (!filtrados.length) return
+    const header = 'Nome,Matrícula,Sessoes,Sem atividade,Churn,Retencao 30d,Conclusao simulado,Nivel risco\n'
+    const rows = filtrados.map((e) => {
+      const risco = classificarRisco(Number(e.churn_risco_percentual || 0)).nivel
+      return `"${String(e.nome || '').replace(/"/g, '""')}",${e.matricula},${e.sessoes},${e.sem_atividade ? 'Sim' : 'Nao'},${Number(e.churn_risco_percentual || 0).toFixed(1)},${Number(e.retencao_30d_percentual || 0).toFixed(1)},${Number(e.conclusao_simulado_percentual || 0).toFixed(1)},${risco}`
+    })
+    const blob = new Blob([header + rows.join('\n')], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `central_risco_p${pagina}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
   if (loading) return <CSpinner />
   if (erro) return <CAlert color="danger">{erro}</CAlert>
 
@@ -74,14 +107,45 @@ const CentralRisco = () => {
     <div className="p-3 p-md-4">
       <h4 className="mb-3">Central de Risco</h4>
       <CRow className="g-3 mb-4">
-        <CCol md={4}><CCard><CCardBody><strong>Risco Alto:</strong> {resumo.alto}</CCardBody></CCard></CCol>
-        <CCol md={4}><CCard><CCardBody><strong>Risco Médio:</strong> {resumo.medio}</CCardBody></CCard></CCol>
-        <CCol md={4}><CCard><CCardBody><strong>Risco Baixo:</strong> {resumo.baixo}</CCardBody></CCard></CCol>
+        <CCol xs={12} md={4}>
+          <CCard className="border-0 shadow-sm">
+            <CCardBody><strong>Risco Alto:</strong> {resumo.alto}</CCardBody>
+          </CCard>
+        </CCol>
+        <CCol xs={12} md={4}>
+          <CCard className="border-0 shadow-sm">
+            <CCardBody><strong>Risco Médio:</strong> {resumo.medio}</CCardBody>
+          </CCard>
+        </CCol>
+        <CCol xs={12} md={4}>
+          <CCard className="border-0 shadow-sm">
+            <CCardBody><strong>Risco Baixo:</strong> {resumo.baixo}</CCardBody>
+          </CCard>
+        </CCol>
       </CRow>
 
-      <CCard>
-        <CCardHeader>Prioridade de acompanhamento</CCardHeader>
+      <CCard className="border-0 shadow-sm">
         <CCardBody>
+          <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div className="fw-semibold d-flex align-items-center gap-2">
+              <CIcon icon={cilWarning} />
+              Prioridade de acompanhamento ({total} alunos)
+            </div>
+            <div className="d-flex align-items-center gap-2">
+              <CIcon icon={cilFilter} className="text-body-secondary" />
+              <CFormSelect
+                value={filtroRisco}
+                onChange={(e) => setFiltroRisco(e.target.value)}
+                style={{ minWidth: 180 }}
+              >
+                <option value="todos">Todos os níveis</option>
+                <option value="alto">Somente alto risco</option>
+                <option value="médio">Somente risco médio</option>
+                <option value="baixo">Somente baixo risco</option>
+              </CFormSelect>
+            </div>
+          </div>
+
           <CTable hover responsive>
             <CTableHead>
               <CTableRow>
@@ -93,7 +157,7 @@ const CentralRisco = () => {
               </CTableRow>
             </CTableHead>
             <CTableBody>
-              {ordenados.map((e) => {
+              {filtrados.map((e) => {
                 const churn = Number(e.churn_risco_percentual || 0)
                 const risco = classificarRisco(churn)
                 return (
@@ -102,12 +166,54 @@ const CentralRisco = () => {
                     <CTableDataCell>{churn.toFixed(1)}%</CTableDataCell>
                     <CTableDataCell>{Number(e.retencao_30d_percentual || 0).toFixed(1)}%</CTableDataCell>
                     <CTableDataCell>{Number(e.conclusao_simulado_percentual || 0).toFixed(1)}%</CTableDataCell>
-                    <CTableDataCell><CBadge color={risco.color}>{risco.nivel}</CBadge></CTableDataCell>
+                    <CTableDataCell>
+                      <CBadge color={risco.color}>{risco.nivel}</CBadge>
+                      {e.sem_atividade && <CBadge color="dark" className="ms-2">Sem atividade</CBadge>}
+                    </CTableDataCell>
                   </CTableRow>
                 )
               })}
+              {filtrados.length === 0 && (
+                <CTableRow>
+                  <CTableDataCell colSpan={5} className="text-center text-body-secondary py-4">
+                    Nenhum aluno encontrado para este filtro.
+                  </CTableDataCell>
+                </CTableRow>
+              )}
             </CTableBody>
           </CTable>
+
+          <div className="mt-3">
+            <div className="small text-body-secondary mb-1">Carga de risco geral da turma</div>
+            <CProgress
+              value={estudantes.length ? Math.round((resumo.alto / estudantes.length) * 100) : 0}
+              color={resumo.alto > 0 ? 'danger' : 'success'}
+            />
+          </div>
+
+          <div className="d-flex justify-content-end mt-3">
+            <CButton color="primary" variant="outline" size="sm" onClick={exportarCsv}>
+              Exportar lista priorizada
+            </CButton>
+          </div>
+
+          {totalPaginas > 1 && (
+            <div className="d-flex justify-content-center mt-3">
+              <CPagination>
+                <CPaginationItem disabled={pagina === 1} onClick={() => setPagina((p) => p - 1)}>
+                  Anterior
+                </CPaginationItem>
+                {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((p) => (
+                  <CPaginationItem key={p} active={p === pagina} onClick={() => setPagina(p)}>
+                    {p}
+                  </CPaginationItem>
+                ))}
+                <CPaginationItem disabled={pagina === totalPaginas} onClick={() => setPagina((p) => p + 1)}>
+                  Próxima
+                </CPaginationItem>
+              </CPagination>
+            </div>
+          )}
         </CCardBody>
       </CCard>
     </div>

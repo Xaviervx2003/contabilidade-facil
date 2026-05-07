@@ -51,6 +51,24 @@ class MetricasPaginadasResponse(BaseModel):
     total_paginas: int
     tempo_consulta_ms: Optional[float] = None
 
+class CentralRiscoItem(BaseModel):
+    matricula: str
+    nome: str
+    sessoes: int
+    ultima_atividade: Optional[datetime] = None
+    retencao_30d_percentual: float
+    churn_risco_percentual: float
+    conclusao_simulado_percentual: float
+    nivel_risco: str
+    sem_atividade: bool
+
+class CentralRiscoPaginadaResponse(BaseModel):
+    estudantes: List[CentralRiscoItem]
+    total: int
+    pagina: int
+    por_pagina: int
+    total_paginas: int
+
 # --- Funções Auxiliares ---
 def _formatar_tempo(segundos: float) -> str:
     if not segundos or segundos < 60: return f"{int(segundos or 0)}s"
@@ -308,6 +326,151 @@ def obter_metricas_individual(
             )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/central-risco", response_model=CentralRiscoPaginadaResponse)
+def obter_central_risco(
+    usuario_id: Optional[int] = Query(None),
+    pagina: int = Query(1, ge=1),
+    por_pagina: int = Query(20, ge=1, le=100),
+):
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            papel = _get_papel_usuario(cursor, usuario_id) if usuario_id else None
+            incluir_sem_atividade = papel != "professor"
+
+            filtro_professor = ""
+            params = {"uid": usuario_id, "limit": por_pagina, "offset": (pagina - 1) * por_pagina}
+            if papel == "professor" and usuario_id:
+                filtro_professor = """
+                    AND EXISTS (
+                        SELECT 1
+                        FROM sessoes_questoes sqp
+                        JOIN questoes qp ON qp.id = sqp.questao_id
+                        WHERE sqp.sessao_id = s.id AND qp.criado_por = %(uid)s
+                    )
+                """
+
+            query = """
+                WITH sessoes_base AS (
+                    SELECT
+                        u.nome,
+                        u.matricula,
+                        s.id AS sessao_id,
+                        s.questoes_respondidas,
+                        s.criado_em,
+                        COUNT(DISTINCT sq.questao_id) AS questoes_detalhadas
+                    FROM usuarios u
+                    LEFT JOIN sessoes_estudo s
+                        ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
+                        AND s.eh_teste_professor IS NOT TRUE
+                    LEFT JOIN sessoes_questoes sq ON sq.sessao_id = s.id
+                    WHERE u.papel = 'aluno' {filtro_professor}
+                    GROUP BY u.nome, u.matricula, s.id, s.questoes_respondidas, s.criado_em
+                ),
+                agregados AS (
+                    SELECT
+                        nome,
+                        matricula,
+                        COUNT(sessao_id) FILTER (WHERE sessao_id IS NOT NULL) AS sessoes,
+                        MAX(criado_em) AS ultima_atividade,
+                        ROUND(
+                            CASE
+                                WHEN SUM(CASE WHEN criado_em >= NOW() - INTERVAL '60 days' AND criado_em < NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END) > 0
+                                     AND SUM(CASE WHEN criado_em >= NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END) > 0
+                                THEN 100.0 ELSE 0.0
+                            END
+                        , 1) AS retencao_30d_percentual,
+                        ROUND(
+                            CASE
+                                WHEN MAX(criado_em) IS NULL THEN 100.0
+                                WHEN MAX(criado_em) < NOW() - INTERVAL '30 days' THEN 100.0
+                                WHEN MAX(criado_em) < NOW() - INTERVAL '14 days' THEN 70.0
+                                WHEN MAX(criado_em) < NOW() - INTERVAL '7 days' THEN 40.0
+                                ELSE 0.0
+                            END
+                        , 1) AS churn_risco_percentual,
+                        ROUND(
+                            AVG(
+                                CASE
+                                    WHEN questoes_respondidas > 0
+                                        THEN LEAST(100.0, (questoes_detalhadas * 100.0) / questoes_respondidas)
+                                    ELSE 0.0
+                                END
+                            )::numeric
+                        , 1) AS conclusao_simulado_percentual
+                    FROM sessoes_base
+                    GROUP BY nome, matricula
+                )
+                SELECT
+                    nome,
+                    matricula,
+                    COALESCE(sessoes, 0) AS sessoes,
+                    ultima_atividade,
+                    COALESCE(retencao_30d_percentual, 0.0) AS retencao_30d_percentual,
+                    COALESCE(churn_risco_percentual, 100.0) AS churn_risco_percentual,
+                    COALESCE(conclusao_simulado_percentual, 0.0) AS conclusao_simulado_percentual
+                FROM agregados
+                {filtro_sem_atividade}
+                ORDER BY churn_risco_percentual DESC, ultima_atividade ASC NULLS FIRST
+                LIMIT %(limit)s OFFSET %(offset)s;
+            """.replace("{filtro_professor}", filtro_professor).replace(
+                "{filtro_sem_atividade}",
+                "" if incluir_sem_atividade else "WHERE sessoes > 0",
+            )
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+
+            count_query = """
+                WITH sessoes_base AS (
+                    SELECT
+                        u.matricula,
+                        s.id AS sessao_id
+                    FROM usuarios u
+                    LEFT JOIN sessoes_estudo s
+                        ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
+                        AND s.eh_teste_professor IS NOT TRUE
+                    WHERE u.papel = 'aluno' {filtro_professor}
+                    GROUP BY u.matricula, s.id
+                ),
+                agregados AS (
+                    SELECT matricula, COUNT(sessao_id) FILTER (WHERE sessao_id IS NOT NULL) AS sessoes
+                    FROM sessoes_base
+                    GROUP BY matricula
+                )
+                SELECT COUNT(*) FROM agregados {filtro_sem_atividade};
+            """.replace("{filtro_professor}", filtro_professor).replace(
+                "{filtro_sem_atividade}",
+                "" if incluir_sem_atividade else "WHERE sessoes > 0",
+            )
+            cursor.execute(count_query, {"uid": usuario_id})
+            total = cursor.fetchone()[0]
+
+            estudantes = []
+            for nome, matricula, sessoes, ultima, ret30, churn, concl in rows:
+                nivel = "alto" if churn >= 70 else "médio" if churn >= 40 else "baixo"
+                estudantes.append(CentralRiscoItem(
+                    nome=nome,
+                    matricula=matricula,
+                    sessoes=int(sessoes or 0),
+                    ultima_atividade=ultima,
+                    retencao_30d_percentual=float(ret30 or 0),
+                    churn_risco_percentual=float(churn or 0),
+                    conclusao_simulado_percentual=float(concl or 0),
+                    nivel_risco=nivel,
+                    sem_atividade=int(sessoes or 0) == 0,
+                ))
+
+            return CentralRiscoPaginadaResponse(
+                estudantes=estudantes,
+                total=total,
+                pagina=pagina,
+                por_pagina=por_pagina,
+                total_paginas=-(-total // por_pagina),
+            )
+    except Exception as e:
+        logger.error(f"Erro central de risco: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Erro interno ao processar central de risco.")
 
 @router.get("/ranking")
 def obter_ranking_turma(limite: int = Query(50, ge=1, le=100)):
