@@ -1,6 +1,75 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { API_URL } from '../config'
 
+// Componente de Item Individual (renderiza 100% de largura)
+const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatIndice }) => {
+  const isSelected = selected.includes(String(node.id))
+  const canGoDeeper = node.tem_filhos
+  const isLoading = loadingId === node.id
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '12px 16px',
+        borderBottom: '1px solid var(--cui-border-color-translucent)',
+        cursor: 'pointer',
+        background: isSelected ? 'rgba(79,142,247,0.06)' : 'transparent',
+        transition: 'background 0.15s',
+      }}
+      onClick={() => (canGoDeeper ? navigateTo(node) : toggleItem(node.id))}
+    >
+      <input
+        type="checkbox"
+        checked={isSelected}
+        onChange={(e) => {
+          e.stopPropagation()
+          toggleItem(node.id)
+        }}
+        style={{ width: 18, height: 18, accentColor: '#4f8ef7', cursor: 'pointer', flexShrink: 0 }}
+      />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: canGoDeeper ? 700 : 400,
+            color: 'var(--cui-body-color)',
+            lineHeight: 1.4,
+            wordBreak: 'break-word',
+          }}
+        >
+          {node.indice && (
+            <span
+              style={{
+                color: '#4f8ef7',
+                fontWeight: 800,
+                marginRight: 6,
+                fontSize: 12,
+                fontFamily: 'monospace',
+              }}
+            >
+              {formatIndice(node.indice)}
+            </span>
+          )}
+          {node.nome}
+        </div>
+        {node.total_questoes > 0 && (
+          <div style={{ fontSize: 11, color: 'var(--cui-secondary-color)', marginTop: 2 }}>
+            {node.total_questoes} questões disponíveis
+          </div>
+        )}
+      </div>
+      {canGoDeeper && (
+        <div style={{ color: '#4f8ef7', fontSize: 18, fontWeight: 'bold', flexShrink: 0 }}>
+          {isLoading ? '⏳' : '›'}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = true, inline = false, rootId = null }) => {
   const [open, setOpen] = useState(false)
   const [filhosCache, setFilhosCache] = useState({})
@@ -115,62 +184,6 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
     return `${selected.length} selecionados`
   }, [selected, materias])
 
-  // Componente de Item Individual (renderiza 100% de largura)
-  const ListItem = ({ node }) => {
-    const isSelected = selected.includes(String(node.id))
-    const canGoDeeper = node.tem_filhos
-    const isLoading = loadingId === node.id
-
-    return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          padding: '12px 16px',
-          borderBottom: '1px solid var(--cui-border-color-translucent)',
-          cursor: 'pointer',
-          background: isSelected ? 'rgba(79,142,247,0.06)' : 'transparent',
-          transition: 'background 0.15s',
-        }}
-        onClick={() => canGoDeeper ? navigateTo(node) : toggleItem(node.id)}
-      >
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={(e) => { e.stopPropagation(); toggleItem(node.id) }}
-          style={{ width: 18, height: 18, accentColor: '#4f8ef7', cursor: 'pointer', flexShrink: 0 }}
-        />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: 14,
-            fontWeight: canGoDeeper ? 700 : 400,
-            color: 'var(--cui-body-color)',
-            lineHeight: 1.4,
-            wordBreak: 'break-word'
-          }}>
-            {node.indice && (
-              <span style={{ color: '#4f8ef7', fontWeight: 800, marginRight: 6, fontSize: 12, fontFamily: 'monospace' }}>
-                {formatIndice(node.indice)}
-              </span>
-            )}
-            {node.nome}
-          </div>
-          {node.total_questoes > 0 && (
-            <div style={{ fontSize: 11, color: 'var(--cui-secondary-color)', marginTop: 2 }}>
-              {node.total_questoes} questões disponíveis
-            </div>
-          )}
-        </div>
-        {canGoDeeper && (
-          <div style={{ color: '#4f8ef7', fontSize: 18, fontWeight: 'bold', flexShrink: 0 }}>
-            {isLoading ? '⏳' : '›'}
-          </div>
-        )}
-      </div>
-    )
-  }
-
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       {!inline && (
@@ -187,7 +200,10 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
             {selected.length > 0 && (
               <span
                 role="button"
-                onClick={(e) => { e.stopPropagation(); onChange([]) }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onChange([])
+                }}
                 style={{ fontSize: 18, color: '#888', lineHeight: 1, cursor: 'pointer', padding: '0 4px' }}
               >
                 ×
@@ -281,7 +297,18 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
                 {busca ? 'Nenhum resultado para sua busca.' : 'Nenhum item encontrado neste nível.'}
               </div>
             ) : (
-              loadingId !== currentParent?.id && visibleItems.map(node => <ListItem key={node.id} node={node} />)
+              loadingId !== currentParent?.id &&
+              visibleItems.map((node) => (
+                <ListItem
+                  key={node.id}
+                  node={node}
+                  selected={selected}
+                  loadingId={loadingId}
+                  navigateTo={navigateTo}
+                  toggleItem={toggleItem}
+                  formatIndice={formatIndice}
+                />
+              ))
             )}
           </div>
 

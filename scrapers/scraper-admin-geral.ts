@@ -2,7 +2,7 @@ import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
-import { Client } from "pg";
+import { Pool } from "pg";
 import { questoes, materias, questoesMaterias } from "./schema";
 import * as fs from "fs/promises";
 
@@ -378,9 +378,14 @@ async function main() {
   console.log(`║ SCRAPER FOCADO: ${DISCIPLINA_ALVO_NOME} ║`);
   console.log("╚══════════════════════════════════════════════════════╝\n");
 
-  const client = new Client({ connectionString: DB_URL });
-  await client.connect();
-  const db = drizzle(client) as NodePgDatabase<Record<string, unknown>>;
+  // Usar Pool em vez de Client para gerenciar reconexões automáticas
+  const pool = new Pool({ 
+    connectionString: DB_URL,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+  });
+  const db = drizzle(pool) as NodePgDatabase<Record<string, unknown>>;
 
   let headers = await capturarHeaders();
 
@@ -414,24 +419,34 @@ async function main() {
     const mat = folhas[i];
     const pct = ((i + 1) / folhas.length * 100).toFixed(1);
     console.log(`\n[${i + 1}/${folhas.length}] (${pct}%) ${mat.nome}`);
-    const { inseridas, repetidas, puladas, expirado } = await extrairQuestoesDaMateria(db, headers, mat.id, mat.nome, materiaIdMap);
-    totalInseridas += inseridas;
-    totalRepetidas += repetidas;
-    totalPuladas += puladas;
+    
+    try {
+      const { inseridas, repetidas, puladas, expirado } = await extrairQuestoesDaMateria(db, headers, mat.id, mat.nome, materiaIdMap);
+      totalInseridas += inseridas;
+      totalRepetidas += repetidas;
+      totalPuladas += puladas;
 
-    if (expirado) {
-      console.log(`\n🔄 Re-autenticando... (progresso salvo)`);
-      headers = await capturarHeaders();
-      console.log("✅ Re-autenticado! Continuando extração...\n");
-      continue; // Repete
+      if (expirado) {
+        console.log(`\n🔄 Re-autenticando... (progresso salvo)`);
+        headers = await capturarHeaders();
+        console.log("✅ Re-autenticado! Continuando extração...\n");
+        continue; // Repete
+      }
+
+      console.log(`  ✓ +${inseridas} inseridas | 🔄 ${repetidas} atualizadas | ✗ ${puladas} puladas | Total Novas: ${totalInseridas}`);
+      i++;
+    } catch (err: any) {
+      console.error(`  ❌ Erro ao processar '${mat.nome}': ${err.message}`);
+      console.log("  ⏳ Aguardando 10 segundos antes de tentar o próximo assunto...");
+      await pausa(10000); // Pausa maior em caso de erro de conexão
+      // Tenta o próximo (não incrementa o i se quiser repetir, mas aqui vamos pular para não travar o script)
+      i++; 
     }
-
-    console.log(`  ✓ +${inseridas} inseridas | 🔄 ${repetidas} atualizadas | ✗ ${puladas} puladas | Total Novas: ${totalInseridas}`);
-    i++;
+    
     await pausaAleatoria();
   }
 
-  await client.end();
+  await pool.end();
   console.log("\n╔══════════════════════════════════════════════════════╗");
   console.log("║                 EXTRAÇÃO CONCLUÍDA                  ║");
   console.log("╠══════════════════════════════════════════════════════╣");
