@@ -229,7 +229,19 @@ const Relatorios = () => {
       .then((data) => setMaterias(Array.isArray(data) ? data : []))
       .catch(() => { })
 
-    if (papelUsuario === 'admin' || papelUsuario === 'professor') {
+    if (papelUsuario === 'admin') {
+      fetch(`${API_URL}/api/admin/usuarios`)
+        .then((res) => res.json())
+        .then((data) => {
+          const lista = Array.isArray(data)
+            ? data
+              .filter((u) => u.papel === 'aluno')
+              .map((u) => ({ nome: u.nome, matricula: u.matricula }))
+            : []
+          setAlunos(lista)
+        })
+        .catch(() => { })
+    } else if (papelUsuario === 'professor') {
       fetch(`${API_URL}/api/metricas-estudantes/desempenho?por_pagina=100&pagina=1`)
         .then((res) => res.json())
         .then((data) => {

@@ -25,6 +25,8 @@ const GestaoTrilhas = React.lazy(() => import('./views/admin/GestaoTrilhas'))
 const MinhasTrilhas = React.lazy(() => import('./views/aluno/MinhasTrilhas'))
 const Conquistas = React.lazy(() => import('./views/gamificacao/Conquistas'))
 const DashboardAluno = React.lazy(() => import('./views/aluno/DashboardAluno'))
+const CentralRisco = React.lazy(() => import('./views/admin/CentralRisco'))
+const MeuRiscoPlano = React.lazy(() => import('./views/aluno/MeuRiscoPlano'))
 
 export const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -83,7 +85,14 @@ export const routes = [
     element: GestaoTrilhas,
     allowedRoles: ['admin', 'professor'],
   },
+  {
+    path: '/admin/central-risco',
+    name: 'Central de Risco',
+    element: CentralRisco,
+    allowedRoles: ['admin', 'professor'],
+  },
   { path: '/aluno/historico', name: 'Meu Histórico', element: HistoricoAluno },
+  { path: '/aluno/meu-risco-plano', name: 'Meu Risco + Plano', element: MeuRiscoPlano },
   { path: '/aluno/trilhas', name: 'Minhas Trilhas', element: MinhasTrilhas },
   { path: '/conquistas', name: 'Minhas Conquistas', element: Conquistas },
 ]

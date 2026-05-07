@@ -14,6 +14,7 @@ import {
   cilStar,
   cilMoon,
   cilSun,
+  cilWarning,
 } from '@coreui/icons'
 import { CNavItem, CNavTitle } from '@coreui/react'
 import { useTheme } from './context/themeContext'
@@ -56,6 +57,12 @@ const getNavItens = () => {
       name: 'Meu Histórico',
       to: '/aluno/historico',
       icon: <CIcon icon={cilHistory} customClassName="nav-icon" />,
+    },
+    {
+      component: CNavItem,
+      name: 'Meu Risco + Plano',
+      to: '/aluno/meu-risco-plano',
+      icon: <CIcon icon={cilWarning} customClassName="nav-icon" />,
     },
     {
       component: CNavItem,
@@ -132,6 +139,12 @@ const getNavItens = () => {
         name: 'Desempenho dos Alunos',
         to: '/admin/desempenho',
         icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Central de Risco',
+        to: '/admin/central-risco',
+        icon: <CIcon icon={cilWarning} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
