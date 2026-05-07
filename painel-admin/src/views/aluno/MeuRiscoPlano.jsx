@@ -11,7 +11,7 @@ import {
   CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilArrowRight, cilCheckCircle, cilFire, cilTarget } from '@coreui/icons'
+import { cilArrowRight, cilCheckCircle, cilFire, cilFlagAlt } from '@coreui/icons'
 import { useNavigate } from 'react-router-dom'
 import { API_URL } from '../../config'
 
@@ -148,7 +148,7 @@ const MeuRiscoPlano = () => {
           <StatBox icon={cilFire} label="Risco de Churn" value={`${churn.toFixed(1)}%`} tone="danger" />
         </CCol>
         <CCol xs={12} md={4}>
-          <StatBox icon={cilTarget} label="Retenção 30d" value={`${Number(dados.retencao_30d_percentual || 0).toFixed(1)}%`} tone="success" />
+          <StatBox icon={cilFlagAlt} label="Retenção 30d" value={`${Number(dados.retencao_30d_percentual || 0).toFixed(1)}%`} tone="success" />
         </CCol>
         <CCol xs={12} md={4}>
           <StatBox icon={cilCheckCircle} label="Conclusão Simulados" value={`${Number(dados.conclusao_simulado_percentual || 0).toFixed(1)}%`} tone="primary" />

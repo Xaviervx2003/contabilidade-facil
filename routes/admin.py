@@ -120,8 +120,8 @@ def editar_materia(materia_id: int, materia: MateriaRequest):
         with get_conexao() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "UPDATE materias SET nome = %s, parent_id = %s, id_externo = %s WHERE id = %s;",
-                (materia.nome, materia.parent_id, materia.id_externo, materia_id)
+                "UPDATE materias SET nome = %s, parent_id = %s, id_externo = %s, indice = %s WHERE id = %s;",
+                (materia.nome, materia.parent_id, materia.id_externo, materia.indice, materia_id)
             )
             conn.commit()
         return {"sucesso": True, "mensagem": "Matéria atualizada!"}
@@ -174,6 +174,89 @@ def limpar_materias_vazias():
         return {"sucesso": True, "mensagem": f"Faxina concluída! {total_removido} matérias vazias removidas."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro na faxina: {str(e)}")
+
+
+# ══════════════════════════════════════════════════════════════
+# 1.1 SOLICITAÇÕES DE REORGANIZAÇÃO
+# ══════════════════════════════════════════════════════════════
+
+@router.post("/materias/solicitar-mover")
+def solicitar_mover(dados: dict):
+    """Cria uma solicitação de mudança de hierarquia (para professores)."""
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO solicitacoes_reorganizacao (materia_id, novo_parent_id, solicitado_por)
+                VALUES (%s, %s, %s)
+                RETURNING id;
+            """, (dados.get("materia_id"), dados.get("novo_parent_id"), dados.get("usuario_id")))
+            conn.commit()
+        return {"sucesso": True, "mensagem": "Solicitação enviada ao Admin!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/materias/solicitacoes-pendentes")
+def listar_solicitacoes_pendentes():
+    """Lista solicitações aguardando aprovação do admin."""
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT s.id, m.nome as materia_nome, p.nome as novo_parent_nome, 
+                       u.nome as solicitante, s.criado_em, s.materia_id, s.novo_parent_id
+                FROM solicitacoes_reorganizacao s
+                JOIN materias m ON s.materia_id = m.id
+                LEFT JOIN materias p ON s.novo_parent_id = p.id
+                JOIN usuarios u ON s.solicitado_por = u.id
+                WHERE s.status = 'pendente'
+                ORDER BY s.criado_em DESC;
+            """)
+            linhas = cursor.fetchall()
+        return [{
+            "id": l[0], "materia_nome": l[1], "novo_parent_nome": l[2] or "Raiz",
+            "solicitante": l[3], "criado_em": l[4], "materia_id": l[5], "novo_parent_id": l[6]
+        } for l in linhas]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/materias/processar-solicitacao/{solicitacao_id}")
+def processar_solicitacao(solicitacao_id: int, dados: dict):
+    """Aprova ou rejeita uma solicitação. Se aprovada, executa o movimento."""
+    try:
+        status = dados.get("status") # 'aprovado' ou 'rejeitado'
+        admin_id = dados.get("usuario_id")
+
+        if status not in ('aprovado', 'rejeitado'):
+            raise HTTPException(status_code=400, detail="Status inválido")
+
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            
+            # 1. Atualiza a solicitação
+            cursor.execute("""
+                UPDATE solicitacoes_reorganizacao 
+                SET status = %s, processado_em = NOW(), processado_por = %s
+                WHERE id = %s RETURNING materia_id, novo_parent_id;
+            """, (status, admin_id, solicitacao_id))
+            
+            resultado = cursor.fetchone()
+            if not resultado:
+                raise HTTPException(status_code=404, detail="Solicitação não encontrada")
+
+            materia_id, novo_parent_id = resultado
+
+            # 2. Se aprovado, executa o movimento
+            if status == 'aprovado':
+                cursor.execute(
+                    "UPDATE materias SET parent_id = %s WHERE id = %s;",
+                    (novo_parent_id, materia_id)
+                )
+            
+            conn.commit()
+        return {"sucesso": True, "mensagem": f"Solicitação {status} com sucesso!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ══════════════════════════════════════════════════════════════

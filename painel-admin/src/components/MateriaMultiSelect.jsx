@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { API_URL } from '../config'
 
-// Componente de Item Individual (renderiza 100% de largura)
+
 const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatIndice }) => {
   const isSelected = selected.includes(String(node.id))
   const canGoDeeper = node.tem_filhos
@@ -19,7 +19,10 @@ const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatInd
         background: isSelected ? 'rgba(79,142,247,0.06)' : 'transparent',
         transition: 'background 0.15s',
       }}
-      onClick={() => (canGoDeeper ? navigateTo(node) : toggleItem(node.id))}
+      onClick={() => {
+        if (canGoDeeper) navigateTo(node)
+        else toggleItem(node.id)
+      }}
     >
       <input
         type="checkbox"
@@ -57,13 +60,13 @@ const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatInd
         </div>
         {node.total_questoes > 0 && (
           <div style={{ fontSize: 11, color: 'var(--cui-secondary-color)', marginTop: 2 }}>
-            {node.total_questoes} questões disponíveis
+            {node.total_questoes} questoes disponiveis
           </div>
         )}
       </div>
       {canGoDeeper && (
         <div style={{ color: '#4f8ef7', fontSize: 18, fontWeight: 'bold', flexShrink: 0 }}>
-          {isLoading ? '⏳' : '›'}
+          {isLoading ? '...' : '>'}
         </div>
       )}
     </div>
@@ -75,18 +78,18 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
   const [filhosCache, setFilhosCache] = useState({})
   const [loadingId, setLoadingId] = useState(null)
   const [busca, setBusca] = useState('')
-  const [history, setHistory] = useState([]) // Pilha de navegação: [ {id, nome}, ... ]
+  const [history, setHistory] = useState([]) 
   const ref = useRef(null)
 
   const currentParent = history.length > 0 ? history[history.length - 1] : null
 
-  // Remove o primeiro número do índice (ex: 4.1. -> 1.)
+  
   const formatIndice = useCallback((indice) => {
     if (!indice) return ''
     return indice.replace(/^\d+\./, '')
   }, [])
 
-  // Fecha ao clicar fora
+  
   useEffect(() => {
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false)
@@ -95,14 +98,14 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // Invalida cache e reseta navegação quando esconderVazias ou rootId muda
+  
   useEffect(() => {
     setFilhosCache({})
     if (rootId) {
       const rootNode = materias.find(m => m.id === rootId)
       if (rootNode) {
         setHistory([{ id: rootNode.id, nome: rootNode.nome }])
-        // Carrega os filhos da raiz se necessário
+        
         const load = async () => {
           setLoadingId(rootId)
           try {
@@ -119,14 +122,14 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
     }
   }, [esconderVazias, rootId, materias])
 
-  // Itens visíveis no nível atual
+  
   const visibleItems = useMemo(() => {
     let items = []
     if (!currentParent) {
-      // Nível Raiz
+      
       items = materias.filter(m => !m.parent_id)
     } else {
-      // Nível de Assunto
+      
       items = filhosCache[currentParent.id] || []
     }
 
@@ -140,14 +143,14 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
       )
   }, [materias, currentParent, filhosCache, esconderVazias, busca])
 
-  // Navegar para dentro
+  
   const navigateTo = useCallback(async (node) => {
     if (!node.tem_filhos) return
     
-    // Adiciona ao histórico
+    
     setHistory(prev => [...prev, { id: node.id, nome: node.nome }])
 
-    // Carrega filhos se necessário
+    
     if (filhosCache[node.id] === undefined) {
       setLoadingId(node.id)
       try {
@@ -161,10 +164,10 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
     }
   }, [filhosCache, esconderVazias])
 
-  // Voltar um nível
+  
   const navigateBack = () => setHistory(prev => prev.slice(0, -1))
 
-  // Toggle de seleção
+  
   const toggleItem = useCallback((id) => {
     const s = String(id)
     onChange(
@@ -174,7 +177,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
     )
   }, [selected, onChange])
 
-  // Label do botão
+  
   const label = useMemo(() => {
     if (selected.length === 0) return 'Todas as disciplinas'
     if (selected.length === 1) {
@@ -206,15 +209,15 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
                 }}
                 style={{ fontSize: 18, color: '#888', lineHeight: 1, cursor: 'pointer', padding: '0 4px' }}
               >
-                ×
+                x
               </span>
             )}
-            <span>{open ? '▲' : '▼'}</span>
+            <span>{open ? '^' : 'v'}</span>
           </div>
         </button>
       )}
 
-      {(open || inline) && (
+      {(open || inline) ? (
         <div style={{
           position: inline ? 'relative' : 'absolute',
           zIndex: 1050,
@@ -229,10 +232,9 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
           display: 'flex',
           flexDirection: 'column',
           maxHeight: 500,
-          overflow: 'hidden',
-          animation: inline ? 'none' : 'fade-up 0.2s ease-out'
+          overflow: 'hidden'
         }}>
-          {/* Header de Navegação */}
+          {/* Header de Navegacao */}
           <div style={{ 
             padding: '12px 16px', 
             background: 'var(--cui-tertiary-bg)', 
@@ -247,7 +249,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
                 onClick={navigateBack}
                 className="btn btn-sm btn-primary rounded-pill px-3"
               >
-                ⬅ Voltar
+                Voltar
               </button>
             ) : (
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4f8ef7' }} />
@@ -335,7 +337,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
             </div>
           )}
         </div>
-      )}
+      ) : null}
     </div>
   )
 }

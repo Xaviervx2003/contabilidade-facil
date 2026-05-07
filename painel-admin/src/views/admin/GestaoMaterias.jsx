@@ -36,9 +36,15 @@ const GestaoMaterias = () => {
   const [editandoId, setEditandoId] = useState(null)
   const [editandoNome, setEditandoNome] = useState('')
   const [editandoParentId, setEditandoParentId] = useState('')
-  const [editandoIndice, setEditandoIndice] = useState('')
-
   const [limpando, setLimpando] = useState(false)
+  const [draggedId, setDraggedId] = useState(null)
+  const [dragOverId, setDragOverId] = useState(null)
+  const [solicitacoes, setSolicitacoes] = useState([])
+  const [loadingSolicitacoes, setLoadingSolicitacoes] = useState(false)
+
+  const userId = parseInt(sessionStorage.getItem('userId'), 10)
+  const userPapel = sessionStorage.getItem('userPapel') || 'aluno'
+  const isAdmin = userPapel === 'admin'
 
   const carregar = async () => {
     setLoading(true)
@@ -46,10 +52,26 @@ const GestaoMaterias = () => {
       const res = await fetch(`${API_URL}/api/admin/materias`)
       const data = await res.json()
       setMaterias(Array.isArray(data) ? data : [])
+      
+      if (isAdmin) {
+        carregarSolicitacoes()
+      }
     } catch {
       setError('Erro ao carregar matérias.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const carregarSolicitacoes = async () => {
+    setLoadingSolicitacoes(true)
+    try {
+      const res = await fetch(`${API_URL}/api/admin/materias/solicitacoes-pendentes`)
+      if (res.ok) setSolicitacoes(await res.json())
+    } catch (e) {
+      console.error("Erro ao carregar solicitações", e)
+    } finally {
+      setLoadingSolicitacoes(false)
     }
   }
 
@@ -169,6 +191,89 @@ const GestaoMaterias = () => {
     }
   }
 
+  const moverMateria = async (id, novoParentId) => {
+    const materia = materias.find(m => m.id === id)
+    if (!materia) return
+
+    if (!isAdmin) {
+      // Professor: Envia solicitação
+      try {
+        const res = await fetch(`${API_URL}/api/admin/materias/solicitar-mover`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            materia_id: id,
+            novo_parent_id: novoParentId,
+            usuario_id: userId
+          }),
+        })
+        if (!res.ok) throw new Error('Erro ao enviar solicitação')
+        setSuccess('Solicitação enviada ao Admin!')
+        setTimeout(() => setSuccess(''), 3000)
+      } catch (e) {
+        setError(e.message)
+      }
+      return
+    }
+
+    // Admin: Move diretamente
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/api/admin/materias/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: materia.nome,
+          parent_id: novoParentId,
+          indice: materia.indice || ''
+        }),
+      })
+      if (!res.ok) throw new Error('Erro ao mover matéria')
+      setSuccess('Hierarquia atualizada!')
+      carregar()
+      setTimeout(() => setSuccess(''), 2000)
+    } catch (e) {
+      setError(e.message)
+      setLoading(false)
+    }
+  }
+
+  const processarSolicitacao = async (sid, status) => {
+    try {
+      const res = await fetch(`${API_URL}/api/admin/materias/processar-solicitacao/${sid}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, usuario_id: userId })
+      })
+      if (!res.ok) throw new Error('Erro ao processar')
+      setSuccess(`Solicitação ${status}!`)
+      carregar()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
+  const onDragStart = (e, id) => {
+    setDraggedId(id)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const onDragOver = (e, id) => {
+    e.preventDefault()
+    if (id !== draggedId) setDragOverId(id)
+  }
+
+  const onDrop = (e, targetId) => {
+    e.preventDefault()
+    const sourceId = draggedId
+    setDraggedId(null)
+    setDragOverId(null)
+
+    if (!sourceId || sourceId === targetId) return
+    moverMateria(sourceId, targetId)
+  }
+
   // Componente para desenhar as linhas da árvore
   const TreeLine = ({ depth }) => {
     if (depth === 0) return null
@@ -198,7 +303,31 @@ const GestaoMaterias = () => {
         </CCardHeader>
         <CCardBody className="p-4">
           
-          {/* Barra de Criação e Busca */}
+          {/* Solicitações Pendentes (Somente Admin) */}
+          {isAdmin && solicitacoes.length > 0 && (
+            <div className="mb-4 p-3 border border-warning rounded-3 bg-warning-subtle shadow-sm">
+              <h6 className="fw-bold text-warning-emphasis d-flex align-items-center gap-2 mb-3">
+                <CIcon icon={cilCheckAlt} /> Solicitações de Reorganização ({solicitacoes.length})
+              </h6>
+              <div className="table-responsive">
+                <CTable small align="middle" className="mb-0">
+                  <CTableBody>
+                    {solicitacoes.map(s => (
+                      <CTableRow key={s.id}>
+                        <CTableDataCell className="small">
+                          <strong>{s.solicitante}</strong> propôs mover <code>{s.materia_nome}</code> para <code>{s.novo_parent_nome}</code>
+                        </CTableDataCell>
+                        <CTableDataCell className="text-end">
+                          <CButton color="success" size="sm" className="me-1" onClick={() => processarSolicitacao(s.id, 'aprovado')}>Aceitar</CButton>
+                          <CButton color="danger" size="sm" onClick={() => processarSolicitacao(s.id, 'rejeitado')}>Rejeitar</CButton>
+                        </CTableDataCell>
+                      </CTableRow>
+                    ))}
+                  </CTableBody>
+                </CTable>
+              </div>
+            </div>
+          )}
           <CRow className="mb-4 g-3">
             <CCol lg={8}>
               <div className="p-3 bg-light rounded-3 border">
@@ -265,51 +394,77 @@ const GestaoMaterias = () => {
                           Nenhum assunto encontrado.
                         </CTableDataCell>
                       </CTableRow>
-                    ) : flattenedList.map((m) => (
-                      <CTableRow key={m.id} className={m.depth === 0 ? 'bg-light fw-bold' : ''}>
-                        <CTableDataCell className="ps-4 py-3">
-                          <div style={{ paddingLeft: m.depth * 20, display: 'flex', alignItems: 'center' }}>
-                            <TreeLine depth={m.depth} />
-                            
-                            {editandoId === m.id ? (
-                              <div className="d-flex flex-column gap-2 w-100 me-3">
-                                <CFormInput size="sm" value={editandoIndice} onChange={e => setEditandoIndice(e.target.value)} placeholder="Índice (ex: 3.1)" />
-                                <CInputGroup size="sm">
-                                  <CFormInput value={editandoNome} onChange={e => setEditandoNome(e.target.value)} autoFocus />
-                                  <CButton color="success" variant="outline" onClick={salvarEdicao}><CIcon icon={cilCheckAlt} /></CButton>
-                                  <CButton color="secondary" variant="outline" onClick={() => setEditandoId(null)}><CIcon icon={cilX} /></CButton>
-                                </CInputGroup>
-                              </div>
-                            ) : (
-                              <div className="d-flex align-items-center overflow-hidden">
-                                {m.indice && <span className="badge bg-secondary-subtle text-secondary me-2 border border-secondary-subtle">{formatIndice(m.indice)}</span>}
-                                <span className="text-truncate" title={m.nome}>{m.nome}</span>
-                              </div>
+                    ) : flattenedList.map((m) => {
+                      const isOver = dragOverId === m.id
+                      const isDragged = draggedId === m.id
+
+                      return (
+                        <CTableRow 
+                          key={m.id} 
+                          className={`${m.depth === 0 ? 'bg-light fw-bold' : ''} ${isOver ? 'bg-primary-subtle border-primary' : ''}`}
+                          draggable
+                          onDragStart={(e) => onDragStart(e, m.id)}
+                          onDragOver={(e) => onDragOver(e, m.id)}
+                          onDrop={(e) => onDrop(e, m.id)}
+                          onDragEnd={() => { setDraggedId(null); setDragOverId(null); }}
+                          style={{ cursor: 'grab', opacity: isDragged ? 0.4 : 1, transition: 'all 0.2s' }}
+                        >
+                          <CTableDataCell className="ps-4 py-3">
+                            <div style={{ paddingLeft: m.depth * 20, display: 'flex', alignItems: 'center' }}>
+                              <TreeLine depth={m.depth} />
+                              
+                              {editandoId === m.id ? (
+                                <div className="d-flex flex-column gap-2 w-100 me-3">
+                                  <CFormInput size="sm" value={editandoIndice} onChange={e => setEditandoIndice(e.target.value)} placeholder="Índice (ex: 3.1)" />
+                                  <CInputGroup size="sm">
+                                    <CFormInput value={editandoNome} onChange={e => setEditandoNome(e.target.value)} autoFocus />
+                                    <CButton color="success" variant="outline" onClick={salvarEdicao}><CIcon icon={cilCheckAlt} /></CButton>
+                                    <CButton color="secondary" variant="outline" onClick={() => setEditandoId(null)}><CIcon icon={cilX} /></CButton>
+                                  </CInputGroup>
+                                </div>
+                              ) : (
+                                <div className="d-flex align-items-center overflow-hidden">
+                                  <span className="me-2 text-muted" style={{ cursor: 'grab' }}>⠿</span>
+                                  {m.depth === 0 && m.indice && (
+                                    <span className="badge bg-primary text-white me-2 shadow-sm" style={{ minWidth: '24px' }}>
+                                      {m.indice}
+                                    </span>
+                                  )}
+                                  <span className="text-truncate" title={m.nome}>{m.nome}</span>
+                                </div>
+                              )}
+                            </div>
+                          </CTableDataCell>
+                          <CTableDataCell className="text-center">
+                            <CBadge color={m.total_questoes > 0 ? 'info' : 'secondary'} shape="rounded-pill" className="px-3 py-2">
+                              {m.total_questoes || 0}
+                            </CBadge>
+                          </CTableDataCell>
+                          <CTableDataCell className="text-center pe-4">
+                            {m.parent_id && (
+                              <CButton color="info" size="sm" variant="ghost" className="me-1 rounded-circle" 
+                                title="Mover para Raiz"
+                                onClick={() => moverMateria(m.id, null)}>
+                                <CIcon icon={cilPlus} size="sm" style={{ transform: 'rotate(45deg)' }} />
+                              </CButton>
                             )}
-                          </div>
-                        </CTableDataCell>
-                        <CTableDataCell className="text-center">
-                          <CBadge color={m.total_questoes > 0 ? 'info' : 'secondary'} shape="rounded-pill" className="px-3 py-2">
-                            {m.total_questoes || 0}
-                          </CBadge>
-                        </CTableDataCell>
-                        <CTableDataCell className="text-center pe-4">
-                          <CButton color="warning" size="sm" variant="ghost" className="me-1 rounded-circle" 
-                            onClick={() => {
-                              setEditandoId(m.id)
-                              setEditandoNome(m.nome)
-                              setEditandoParentId(m.parent_id || '')
-                              setEditandoIndice(m.indice || '')
-                            }}>
-                            <CIcon icon={cilPencil} size="sm" />
-                          </CButton>
-                          <CButton color="danger" size="sm" variant="ghost" className="rounded-circle" 
-                            onClick={() => deletar(m.id, m.nome)}>
-                            <CIcon icon={cilTrash} size="sm" />
-                          </CButton>
-                        </CTableDataCell>
-                      </CTableRow>
-                    ))}
+                            <CButton color="warning" size="sm" variant="ghost" className="me-1 rounded-circle" 
+                              onClick={() => {
+                                setEditandoId(m.id)
+                                setEditandoNome(m.nome)
+                                setEditandoParentId(m.parent_id || '')
+                                setEditandoIndice(m.indice || '')
+                              }}>
+                              <CIcon icon={cilPencil} size="sm" />
+                            </CButton>
+                            <CButton color="danger" size="sm" variant="ghost" className="rounded-circle" 
+                              onClick={() => deletar(m.id, m.nome)}>
+                              <CIcon icon={cilTrash} size="sm" />
+                            </CButton>
+                          </CTableDataCell>
+                        </CTableRow>
+                      )
+                    })}
                   </CTableBody>
                 </CTable>
               </div>
