@@ -36,6 +36,9 @@ class MetricasEstudanteResponse(BaseModel):
     progresso_edital: Optional[float] = None
     ranking_percentil: Optional[float] = None
     streak_dias: Optional[int] = None
+    retencao_30d_percentual: Optional[float] = None
+    churn_risco_percentual: Optional[float] = None
+    conclusao_simulado_percentual: Optional[float] = None
 
     class Config:
         from_attributes = True
@@ -119,12 +122,14 @@ def obter_desempenho_estudantes(
                 WITH sessoes_filtradas AS (
                     SELECT u.nome, u.matricula, s.id AS sessao_id, s.questoes_respondidas,
                            s.taxa_acerto, s.tempo_gasto_segundos, s.criado_em, qm.materia_id,
-                           COALESCE(NULLIF(TRIM(s.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado
+                           COALESCE(NULLIF(TRIM(s.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado,
+                           COUNT(DISTINCT sq_idx.questao_id) AS questoes_detalhadas
                     FROM usuarios u
                     INNER JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
                     LEFT JOIN sessoes_questoes sq_idx ON sq_idx.sessao_id = s.id
                     LEFT JOIN questoes_materias qm ON qm.questao_id = sq_idx.questao_id
                     WHERE u.papel = 'aluno' AND s.eh_teste_professor IS NOT TRUE {filtro_p} {filtros_a}
+                    GROUP BY u.nome, u.matricula, s.id, s.questoes_respondidas, s.taxa_acerto, s.tempo_gasto_segundos, s.criado_em, qm.materia_id, s.assunto_estudado
                 ),
                 resumo AS (
                     SELECT nome, matricula, COUNT(DISTINCT sessao_id) AS sessoes,
@@ -133,14 +138,52 @@ def obter_desempenho_estudantes(
                            AVG(tempo_gasto_segundos) AS tempo_m, MAX(criado_em) AS ultima
                     FROM sessoes_filtradas GROUP BY nome, matricula
                 ),
+                kpis_v2 AS (
+                    SELECT
+                        matricula,
+                        ROUND(
+                            CASE
+                                WHEN SUM(CASE WHEN criado_em >= NOW() - INTERVAL '60 days' AND criado_em < NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END) > 0
+                                     AND SUM(CASE WHEN criado_em >= NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END) > 0
+                                THEN 100.0
+                                ELSE 0.0
+                            END
+                        , 1) AS retencao_30d_percentual,
+                        ROUND(
+                            CASE
+                                WHEN MAX(criado_em) IS NULL THEN 100.0
+                                WHEN MAX(criado_em) < NOW() - INTERVAL '30 days' THEN 100.0
+                                WHEN MAX(criado_em) < NOW() - INTERVAL '14 days' THEN 70.0
+                                WHEN MAX(criado_em) < NOW() - INTERVAL '7 days' THEN 40.0
+                                ELSE 0.0
+                            END
+                        , 1) AS churn_risco_percentual,
+                        ROUND(
+                            AVG(
+                                CASE
+                                    WHEN questoes_respondidas > 0 THEN LEAST(100.0, (questoes_detalhadas * 100.0) / questoes_respondidas)
+                                    ELSE 0.0
+                                END
+                            )::numeric
+                        , 1) AS conclusao_simulado_percentual
+                    FROM sessoes_filtradas
+                    GROUP BY matricula
+                ),
                 erros AS (
                     SELECT matricula, jsonb_object_agg(assunto_estudado, jsonb_build_object('total', t_q, 'erros', t_e)) AS erros_mat
                     FROM (SELECT matricula, assunto_estudado, SUM(questoes_respondidas) as t_q, 
                                  SUM(ROUND(questoes_respondidas * (100 - taxa_acerto) / 100.0)) as t_e
                           FROM sessoes_filtradas GROUP BY matricula, assunto_estudado) sub GROUP BY matricula
                 )
-                SELECT r.*, COALESCE(e.erros_mat, '{}'::jsonb) FROM resumo r 
+                SELECT
+                    r.*,
+                    COALESCE(e.erros_mat, '{}'::jsonb) AS erros_mat,
+                    COALESCE(k.retencao_30d_percentual, 0.0) AS retencao_30d_percentual,
+                    COALESCE(k.churn_risco_percentual, 0.0) AS churn_risco_percentual,
+                    COALESCE(k.conclusao_simulado_percentual, 0.0) AS conclusao_simulado_percentual
+                FROM resumo r
                 LEFT JOIN erros e ON e.matricula = r.matricula
+                LEFT JOIN kpis_v2 k ON k.matricula = r.matricula
                 ORDER BY r.media DESC LIMIT %(limit)s OFFSET %(offset)s;
             """.replace("{filtro_p}", filtro_professor).replace("{filtros_a}", filtros_str)
             
@@ -157,12 +200,15 @@ def obter_desempenho_estudantes(
             
             resultados = []
             for row in linhas:
-                nome, matricula, sessoes, total_q, media, tempo_m, ultima, erros_mat = row
+                nome, matricula, sessoes, total_q, media, tempo_m, ultima, erros_mat, retencao_30d, churn_risco, conclusao_simulado = row
                 resultados.append(MetricasEstudanteResponse(
                     matricula=matricula, nome=nome, sessoes=int(sessoes), questoes=int(total_q),
                     media_numero=float(media or 0), media_formatada=f"{media or 0}%",
                     tempo_medio_segundos=float(tempo_m or 0), tempo_medio_formatado=_formatar_tempo(tempo_m),
-                    erros_por_materia=erros_mat or {}, ultima_atividade=ultima
+                    erros_por_materia=erros_mat or {}, ultima_atividade=ultima,
+                    retencao_30d_percentual=float(retencao_30d or 0),
+                    churn_risco_percentual=float(churn_risco or 0),
+                    conclusao_simulado_percentual=float(conclusao_simulado or 0)
                 ))
             
             return MetricasPaginadasResponse(
@@ -186,10 +232,13 @@ def obter_metricas_individual(
                 WITH sessoes_aluno AS (
                     SELECT u.nome, u.matricula, s.id AS sessao_id, s.questoes_respondidas,
                            s.taxa_acerto, s.tempo_gasto_segundos, s.criado_em,
-                           COALESCE(NULLIF(TRIM(s.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado
+                           COALESCE(NULLIF(TRIM(s.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado,
+                           COUNT(DISTINCT sq.questao_id) AS questoes_detalhadas
                     FROM usuarios u
                     INNER JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
+                    LEFT JOIN sessoes_questoes sq ON sq.sessao_id = s.id
                     WHERE u.matricula = %(matricula)s AND s.eh_teste_professor IS NOT TRUE
+                    GROUP BY u.nome, u.matricula, s.id, s.questoes_respondidas, s.taxa_acerto, s.tempo_gasto_segundos, s.criado_em, s.assunto_estudado
                 ),
                 resumo AS (
                     SELECT nome, matricula, COUNT(sessao_id) AS sessoes,
@@ -198,24 +247,64 @@ def obter_metricas_individual(
                            AVG(tempo_gasto_segundos) AS tempo_m, MAX(criado_em) AS ultima
                     FROM sessoes_aluno GROUP BY nome, matricula
                 ),
+                kpis_v2 AS (
+                    SELECT
+                        ROUND(
+                            CASE
+                                WHEN SUM(CASE WHEN criado_em >= NOW() - INTERVAL '60 days' AND criado_em < NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END) > 0
+                                     AND SUM(CASE WHEN criado_em >= NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END) > 0
+                                THEN 100.0
+                                ELSE 0.0
+                            END
+                        , 1) AS retencao_30d_percentual,
+                        ROUND(
+                            CASE
+                                WHEN MAX(criado_em) IS NULL THEN 100.0
+                                WHEN MAX(criado_em) < NOW() - INTERVAL '30 days' THEN 100.0
+                                WHEN MAX(criado_em) < NOW() - INTERVAL '14 days' THEN 70.0
+                                WHEN MAX(criado_em) < NOW() - INTERVAL '7 days' THEN 40.0
+                                ELSE 0.0
+                            END
+                        , 1) AS churn_risco_percentual,
+                        ROUND(
+                            AVG(
+                                CASE
+                                    WHEN questoes_respondidas > 0 THEN LEAST(100.0, (questoes_detalhadas * 100.0) / questoes_respondidas)
+                                    ELSE 0.0
+                                END
+                            )::numeric
+                        , 1) AS conclusao_simulado_percentual
+                    FROM sessoes_aluno
+                ),
                 erros AS (
                     SELECT jsonb_object_agg(assunto_estudado, jsonb_build_object('total', t_q, 'erros', t_e)) AS erros_mat
                     FROM (SELECT assunto_estudado, SUM(questoes_respondidas) as t_q, 
                                  SUM(ROUND(questoes_respondidas * (100 - taxa_acerto) / 100.0)) as t_e
                           FROM sessoes_aluno GROUP BY assunto_estudado) sub
                 )
-                SELECT r.*, e.erros_mat FROM resumo r, erros e;
+                SELECT
+                    r.*,
+                    e.erros_mat,
+                    COALESCE(k.retencao_30d_percentual, 0.0) AS retencao_30d_percentual,
+                    COALESCE(k.churn_risco_percentual, 0.0) AS churn_risco_percentual,
+                    COALESCE(k.conclusao_simulado_percentual, 0.0) AS conclusao_simulado_percentual
+                FROM resumo r
+                CROSS JOIN erros e
+                CROSS JOIN kpis_v2 k;
             """
             cursor.execute(query, {"matricula": matricula})
             row = cursor.fetchone()
             if not row: raise HTTPException(status_code=404, detail="Estudante não encontrado")
 
-            nome, matricula, sessoes, total_q, media, tempo_m, ultima, erros_mat = row
+            nome, matricula, sessoes, total_q, media, tempo_m, ultima, erros_mat, retencao_30d, churn_risco, conclusao_simulado = row
             return MetricasEstudanteResponse(
                 matricula=matricula, nome=nome, sessoes=int(sessoes), questoes=int(total_q),
                 media_numero=float(media or 0), media_formatada=f"{media or 0}%",
                 tempo_medio_segundos=float(tempo_m or 0), tempo_medio_formatado=_formatar_tempo(tempo_m),
-                erros_por_materia=erros_mat or {}, ultima_atividade=ultima
+                erros_por_materia=erros_mat or {}, ultima_atividade=ultima,
+                retencao_30d_percentual=float(retencao_30d or 0),
+                churn_risco_percentual=float(churn_risco or 0),
+                conclusao_simulado_percentual=float(conclusao_simulado or 0)
             )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
