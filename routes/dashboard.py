@@ -6,8 +6,29 @@ Focado em resumo de questões, gráficos de evolução e últimas atividades.
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 from database import get_conexao
+import time
 
 router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
+_cache_store = {}
+_CACHE_TTL_SECONDS = 60
+
+
+def _cache_get(key: str):
+    entry = _cache_store.get(key)
+    if not entry:
+        return None
+    if time.time() - entry["ts"] > _CACHE_TTL_SECONDS:
+        _cache_store.pop(key, None)
+        return None
+    return entry["value"]
+
+
+def _cache_set(key: str, value):
+    _cache_store[key] = {"ts": time.time(), "value": value}
+
+
+def invalidate_dashboard_cache():
+    _cache_store.clear()
 
 def _get_papel_usuario(cursor, usuario_id: int) -> Optional[str]:
     cursor.execute("SELECT papel FROM usuarios WHERE id = %s", (usuario_id,))
@@ -23,6 +44,11 @@ def _get_matricula(cursor, usuario_id: int) -> Optional[str]:
 def resumo_dashboard(usuario_id: int = Query(..., description="ID do usuário logado")):
     """Métricas principais para os cards do dashboard."""
     try:
+        cache_key = f"dashboard:resumo:{usuario_id}"
+        cached = _cache_get(cache_key)
+        if cached is not None:
+            return cached
+
         with get_conexao() as conn:
             cursor = conn.cursor()
             papel = _get_papel_usuario(cursor, usuario_id)
@@ -71,12 +97,14 @@ def resumo_dashboard(usuario_id: int = Query(..., description="ID do usuário lo
                 cursor.execute("SELECT COUNT(*) FROM questoes")
                 total_questoes_banco = cursor.fetchone()[0] or 0
 
-        return {
+        payload = {
             "alunos_ativos": int(dados[0] or 0),
             "total_questoes_resolvidas": int(dados[1] or 0),
             "tempo_medio_minutos": round(float(dados[2] or 0), 1),
             "total_questoes_banco": int(total_questoes_banco)
         }
+        _cache_set(cache_key, payload)
+        return payload
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -84,6 +112,11 @@ def resumo_dashboard(usuario_id: int = Query(..., description="ID do usuário lo
 def sessoes_por_mes(usuario_id: int = Query(..., description="ID do usuário logado")):
     """Dados para o gráfico de evolução mensal."""
     try:
+        cache_key = f"dashboard:sessoes_por_mes:{usuario_id}"
+        cached = _cache_get(cache_key)
+        if cached is not None:
+            return cached
+
         with get_conexao() as conn:
             cursor = conn.cursor()
             papel = _get_papel_usuario(cursor, usuario_id)
@@ -109,7 +142,9 @@ def sessoes_por_mes(usuario_id: int = Query(..., description="ID do usuário log
             """, params)
             
             rows = cursor.fetchall()
-            return [{"mes": r[0], "sessoes": int(r[1]), "media_acerto": float(r[2] or 0)} for r in rows]
+            payload = [{"mes": r[0], "sessoes": int(r[1]), "media_acerto": float(r[2] or 0)} for r in rows]
+            _cache_set(cache_key, payload)
+            return payload
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -117,6 +152,11 @@ def sessoes_por_mes(usuario_id: int = Query(..., description="ID do usuário log
 def visao_geral(usuario_id: int = Query(..., description="ID do usuário logado")):
     """Últimas atividades e média geral."""
     try:
+        cache_key = f"dashboard:visao_geral:{usuario_id}"
+        cached = _cache_get(cache_key)
+        if cached is not None:
+            return cached
+
         with get_conexao() as conn:
             cursor = conn.cursor()
             papel = _get_papel_usuario(cursor, usuario_id)
@@ -148,6 +188,8 @@ def visao_geral(usuario_id: int = Query(..., description="ID do usuário logado"
             """, params)
             media_geral = cursor.fetchone()[0] or 0
             
-            return {"ultimas_sessoes": ultimas, "media_questoes_por_aluno": float(media_geral)}
+            payload = {"ultimas_sessoes": ultimas, "media_questoes_por_aluno": float(media_geral)}
+            _cache_set(cache_key, payload)
+            return payload
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

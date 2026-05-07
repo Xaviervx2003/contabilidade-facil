@@ -3,7 +3,7 @@ routes/questoes.py – CRUD completo de questões com suporte a matérias (N:N) 
 FASE 1: Suporte a link_video em todas as rotas.
 """
 
-from fastapi import APIRouter, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Request
 from typing import Optional, List
 from database import get_conexao
 from models import QuestaoRequest, FeedbackRequest
@@ -12,6 +12,8 @@ import io
 from utils.logger import setup_logger
 from utils.responses import api_response
 from utils.cache import cache
+from utils.rate_limit import rate_limiter
+from routes.dashboard import invalidate_dashboard_cache
 
 # Configuração de Logs (Fator XI - Doze Fatores)
 logger = setup_logger(__name__)
@@ -361,6 +363,7 @@ def criar_questao(questao: QuestaoRequest):
                 )
 
             conn.commit()
+        invalidate_dashboard_cache()
         return {"sucesso": True, "mensagem": "Questão adicionada!", "id": nova_id}
 
     except Exception as e:
@@ -428,6 +431,7 @@ def atualizar_questao(questao_id: int, questao: QuestaoRequest):
 
             conn.commit()
             linhas_afetadas = cursor.rowcount
+        invalidate_dashboard_cache()
 
         if linhas_afetadas > 0:
             return {"sucesso": True, "mensagem": "Questão atualizada com sucesso!"}
@@ -447,6 +451,7 @@ def deletar_questao(questao_id: int):
             cursor.execute("DELETE FROM questoes WHERE id = %s;", (questao_id,))
             conn.commit()
             linhas_afetadas = cursor.rowcount
+        invalidate_dashboard_cache()
 
         if linhas_afetadas > 0:
             return {"sucesso": True, "mensagem": "Questão excluída com sucesso!"}
@@ -476,6 +481,7 @@ def criar_feedback(feedback: FeedbackRequest):
             ))
             novo_id = cursor.fetchone()[0]
             conn.commit()
+        invalidate_dashboard_cache()
         return {"sucesso": True, "mensagem": "Feedback salvo com sucesso!", "id": novo_id}
 
     except Exception as e:
@@ -483,7 +489,12 @@ def criar_feedback(feedback: FeedbackRequest):
 
 
 @router.get("/feedbacks_questoes")
-def listar_feedbacks(status: Optional[str] = Query(None), busca: Optional[str] = Query(None)):
+def listar_feedbacks(
+    status: Optional[str] = Query(None),
+    busca: Optional[str] = Query(None),
+    page: Optional[int] = Query(None, ge=1, description="Página da listagem"),
+    per_page: Optional[int] = Query(None, ge=1, le=100, description="Itens por página"),
+):
     """Lista feedbacks com filtro por status (pendente/resolvido) e busca textual."""
     try:
         with get_conexao() as conn:
@@ -506,6 +517,24 @@ def listar_feedbacks(status: Optional[str] = Query(None), busca: Optional[str] =
             if conditions:
                 filtro = "WHERE " + " AND ".join(conditions)
 
+            use_pagination = page is not None
+            if use_pagination:
+                pg = page or 1
+                pp = per_page or 20
+                cursor.execute(f"""
+                    SELECT COUNT(*)
+                    FROM feedbacks_questoes f
+                    JOIN questoes q ON f.questao_id = q.id
+                    {filtro}
+                """, tuple(params))
+                total = cursor.fetchone()[0] or 0
+                offset = (pg - 1) * pp
+                limit_sql = "LIMIT %s OFFSET %s"
+                params_query = tuple(params + [pp, offset])
+            else:
+                limit_sql = ""
+                params_query = tuple(params)
+
             cursor.execute(f"""
                 SELECT
                     f.id, f.questao_id, q.enunciado,
@@ -516,11 +545,12 @@ def listar_feedbacks(status: Optional[str] = Query(None), busca: Optional[str] =
                 FROM feedbacks_questoes f
                 JOIN questoes q ON f.questao_id = q.id
                 {filtro}
-                ORDER BY f.resolvido ASC, impacto DESC, f.data_criacao DESC;
-            """, tuple(params))
+                ORDER BY f.resolvido ASC, impacto DESC, f.data_criacao DESC
+                {limit_sql};
+            """, params_query)
             linhas = cursor.fetchall()
 
-        return [
+        dados = [
             {
                 "id":                linha[0],
                 "questao_id":        linha[1],
@@ -537,6 +567,15 @@ def listar_feedbacks(status: Optional[str] = Query(None), busca: Optional[str] =
             }
             for linha in linhas
         ]
+        if use_pagination:
+            return {
+                "data": dados,
+                "total": int(total),
+                "page": int(pg),
+                "per_page": int(pp),
+                "total_pages": -(-int(total) // int(pp)) if pp else 0,
+            }
+        return dados
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar feedbacks: {str(e)}")
@@ -568,6 +607,7 @@ def resolver_feedback(feedback_id: int):
             """, (feedback_id,))
             conn.commit()
             afetadas = cursor.rowcount
+        invalidate_dashboard_cache()
         if afetadas > 0:
             return {"sucesso": True, "mensagem": "Feedback marcado como resolvido!"}
         return {"sucesso": False, "mensagem": "Feedback nao encontrado."}
@@ -588,6 +628,7 @@ def responder_feedback(feedback_id: int, dados: dict):
                 WHERE id = %s;
             """, (resposta, feedback_id))
             conn.commit()
+        invalidate_dashboard_cache()
         return {"sucesso": True, "mensagem": "Resposta enviada e feedback marcado como resolvido!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -613,6 +654,7 @@ def alternar_publicacao_feedback(feedback_id: int):
                 WHERE id = %s;
             """, (novo_status, feedback_id))
             conn.commit()
+        invalidate_dashboard_cache()
         return {
             "sucesso": True,
             "mensagem": f"Comentário {'publicado' if novo_status else 'ocultado'} com sucesso!",
@@ -623,7 +665,7 @@ def alternar_publicacao_feedback(feedback_id: int):
 
 
 @router.post("/questoes/importar-csv")
-async def importar_csv(arquivo: UploadFile = File(...)):
+async def importar_csv(request: Request, arquivo: UploadFile = File(...)):
     """
     Importa questões em massa via CSV.
     Colunas esperadas: enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao,link_video
@@ -633,6 +675,12 @@ async def importar_csv(arquivo: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Envie um arquivo .csv")
 
     try:
+        host = request.client.host if request.client else "unknown"
+        rate_key = f"import_csv:{host}"
+        allowed, retry_after = rate_limiter.allow(rate_key, limit=5, window_seconds=300)
+        if not allowed:
+            raise HTTPException(status_code=429, detail=f"Muitos uploads em sequência. Tente novamente em {retry_after}s.")
+
         conteudo = await arquivo.read()
         texto = conteudo.decode("utf-8-sig")
         leitor = csv.DictReader(io.StringIO(texto), delimiter=";")
@@ -709,6 +757,7 @@ async def importar_csv(arquivo: UploadFile = File(...)):
                     erros.append(f"Linha {i}: {str(row_err)}")
 
             conn.commit()
+        invalidate_dashboard_cache()
 
         return {
             "sucesso": True,

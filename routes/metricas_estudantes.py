@@ -8,10 +8,11 @@ from typing import Optional, List
 import logging
 import time
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from database import get_conexao
+from utils.rate_limit import rate_limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/metricas-estudantes", tags=["Métricas Estudantes"])
@@ -75,6 +76,7 @@ def _contar_total_filtrado(cursor, papel: Optional[str], usuario_id: Optional[in
 # --- Rota Principal ---
 @router.get("/desempenho", response_model=MetricasPaginadasResponse)
 def obter_desempenho_estudantes(
+    request: Request,
     usuario_id: Optional[int] = Query(None),
     pagina: int = Query(1, ge=1),
     por_pagina: int = Query(10, ge=1, le=100),
@@ -84,6 +86,12 @@ def obter_desempenho_estudantes(
 ):
     start_time = time.time()
     try:
+        host = request.client.host if request.client else "unknown"
+        rate_key = f"metricas_desempenho:{host}:{usuario_id or 'anon'}"
+        allowed, retry_after = rate_limiter.allow(rate_key, limit=30, window_seconds=60)
+        if not allowed:
+            raise HTTPException(status_code=429, detail=f"Limite temporário excedido. Tente novamente em {retry_after}s.")
+
         with get_conexao() as conn:
             cursor = conn.cursor()
             papel = _get_papel_usuario(cursor, usuario_id) if usuario_id else None

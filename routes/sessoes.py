@@ -5,6 +5,7 @@ routes/sessoes.py — Sessões de estudo + Histórico individual do aluno.
 from fastapi import APIRouter, HTTPException
 from database import get_conexao
 from models import SessaoEstudo
+from routes.dashboard import invalidate_dashboard_cache
 
 router = APIRouter(prefix="/api", tags=["Sessões"])
 
@@ -66,6 +67,7 @@ def salvar_sessao(sessao: SessaoEstudo):
                     )
 
             conn.commit()
+        invalidate_dashboard_cache()
         return {"status": "Dados salvos com sucesso!", "id": sessao_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao salvar sessão: {str(e)}")

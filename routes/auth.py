@@ -3,7 +3,7 @@ routes/auth.py — Autenticação: login, registro, verificação de identidade,
                  redefinição e alteração de senha.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from database import get_conexao
 from models import (
     LoginRequest,
@@ -15,14 +15,25 @@ from models import (
 from utils.security import get_password_hash, verify_password
 from utils.responses import api_response
 from utils.logger import setup_logger
+from utils.rate_limit import rate_limiter
 
 logger = setup_logger(__name__)
 router = APIRouter(prefix="/api", tags=["Autenticação"])
 
 
 @router.post("/login")
-def fazer_login(credenciais: LoginRequest):
+def fazer_login(credenciais: LoginRequest, request: Request):
     try:
+        host = request.client.host if request.client else "unknown"
+        rate_key = f"login:{host}:{credenciais.matricula}"
+        allowed, retry_after = rate_limiter.allow(rate_key, limit=10, window_seconds=60)
+        if not allowed:
+            return api_response(
+                sucesso=False,
+                mensagem=f"Muitas tentativas de login. Tente novamente em {retry_after}s.",
+                status_code=429,
+            )
+
         with get_conexao() as conn:
             cursor = conn.cursor()
             # Agora buscamos apenas pela matrícula, a verificação de senha é via hash
