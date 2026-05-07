@@ -68,7 +68,7 @@ def resumo_dashboard(usuario_id: int = Query(..., description="ID do usuário lo
                     )
                 """
                 cursor.execute(f"""
-                    SELECT COUNT(DISTINCT s.matricula_aluno) as alunos_ativos,
+                    SELECT COUNT(DISTINCT COALESCE(s.matricula_aluno, s.nome_aluno)) as alunos_ativos,
                            SUM(s.questoes_respondidas) as total_questoes,
                            AVG(s.tempo_gasto_segundos) / 60.0 as tempo_medio
                     FROM sessoes_estudo s
@@ -84,11 +84,11 @@ def resumo_dashboard(usuario_id: int = Query(..., description="ID do usuário lo
                 if papel == "aluno":
                     cursor.execute("""
                         SELECT 1, SUM(questoes_respondidas), AVG(tempo_gasto_segundos) / 60.0
-                        FROM sessoes_estudo WHERE matricula_aluno = %s
+                        FROM sessoes_estudo WHERE COALESCE(matricula_aluno, nome_aluno) = %s
                     """, (matricula,))
                 else: # admin
                     cursor.execute("""
-                        SELECT COUNT(DISTINCT matricula_aluno), SUM(questoes_respondidas), 
+                        SELECT COUNT(DISTINCT COALESCE(matricula_aluno, nome_aluno)), SUM(questoes_respondidas), 
                                AVG(tempo_gasto_segundos) / 60.0
                         FROM sessoes_estudo WHERE eh_teste_professor IS NOT TRUE
                     """)
@@ -129,7 +129,7 @@ def sessoes_por_mes(usuario_id: int = Query(..., description="ID do usuário log
                 params.append(usuario_id)
             elif papel == "aluno":
                 matricula = _get_matricula(cursor, usuario_id)
-                filtro = "AND s.matricula_aluno = %s"
+                filtro = "AND COALESCE(s.matricula_aluno, s.nome_aluno) = %s"
                 params.append(matricula)
 
             cursor.execute(f"""
@@ -168,13 +168,13 @@ def visao_geral(usuario_id: int = Query(..., description="ID do usuário logado"
                 params["uid"] = usuario_id
             elif papel == "aluno":
                 params["mat"] = _get_matricula(cursor, usuario_id)
-                filtro = "AND s.matricula_aluno = %(mat)s"
+                filtro = "AND COALESCE(s.matricula_aluno, s.nome_aluno) = %(mat)s"
 
             cursor.execute(f"""
-                SELECT COALESCE(u.nome, s.matricula_aluno), s.assunto_estudado, s.questoes_respondidas, 
+                SELECT COALESCE(u.nome, s.nome_aluno_snapshot, s.matricula_aluno, s.nome_aluno), s.assunto_estudado, s.questoes_respondidas, 
                        s.taxa_acerto, s.criado_em
                 FROM sessoes_estudo s
-                LEFT JOIN usuarios u ON u.matricula = s.matricula_aluno
+                LEFT JOIN usuarios u ON u.matricula = COALESCE(s.matricula_aluno, s.nome_aluno)
                 WHERE 1=1 {filtro} ORDER BY s.criado_em DESC LIMIT 5
             """, params)
             
@@ -182,8 +182,8 @@ def visao_geral(usuario_id: int = Query(..., description="ID do usuário logado"
             
             cursor.execute(f"""
                 SELECT ROUND(AVG(total_q), 1) FROM (
-                    SELECT matricula_aluno, SUM(questoes_respondidas) as total_q
-                    FROM sessoes_estudo s WHERE 1=1 {filtro} GROUP BY matricula_aluno
+                    SELECT COALESCE(matricula_aluno, nome_aluno), SUM(questoes_respondidas) as total_q
+                    FROM sessoes_estudo s WHERE 1=1 {filtro} GROUP BY COALESCE(matricula_aluno, nome_aluno)
                 ) sub
             """, params)
             media_geral = cursor.fetchone()[0] or 0

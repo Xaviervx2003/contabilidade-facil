@@ -174,7 +174,7 @@ def _buscar_metricas_aluno(matricula: str) -> dict:
                 COALESCE(SUM(tempo_gasto_segundos), 0) AS tempo_total_seg,
                 MAX(criado_em) AS ultima_sessao
             FROM sessoes_estudo
-            WHERE nome_aluno = %s
+            WHERE COALESCE(matricula_aluno, nome_aluno) = %s
               AND eh_teste_professor IS NOT TRUE;
         """, (matricula,))
         metricas = cursor.fetchone()
@@ -183,7 +183,7 @@ def _buscar_metricas_aluno(matricula: str) -> dict:
         cursor.execute("""
             SELECT DISTINCT DATE(criado_em) AS dia
             FROM sessoes_estudo
-            WHERE nome_aluno = %s
+            WHERE COALESCE(matricula_aluno, nome_aluno) = %s
               AND eh_teste_professor IS NOT TRUE
             ORDER BY dia DESC;
         """, (matricula,))
@@ -356,7 +356,7 @@ def get_leaderboard(
                         u.matricula,
                         COALESCE(SUM(s.questoes_respondidas), 0) AS total_q
                     FROM usuarios u
-                    JOIN sessoes_estudo s ON s.nome_aluno = u.matricula
+                    JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
                     WHERE u.papel = 'aluno'
                       AND s.eh_teste_professor IS NOT TRUE
                     GROUP BY u.nome, u.matricula
@@ -384,7 +384,7 @@ def get_leaderboard(
                         u.matricula,
                         ARRAY_AGG(DISTINCT DATE(s.criado_em) ORDER BY DATE(s.criado_em) DESC) AS datas
                     FROM usuarios u
-                    JOIN sessoes_estudo s ON s.nome_aluno = u.matricula
+                    JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
                     WHERE u.papel = 'aluno'
                       AND s.eh_teste_professor IS NOT TRUE
                     GROUP BY u.nome, u.matricula;

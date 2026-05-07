@@ -80,7 +80,9 @@ CREATE TABLE IF NOT EXISTS questoes_materias (
 -- ─── 5. SESSÕES DE ESTUDO ─────────────────────────────────────
 CREATE TABLE IF NOT EXISTS sessoes_estudo (
     id                      SERIAL PRIMARY KEY,
-    nome_aluno              VARCHAR(255) NOT NULL,
+    matricula_aluno         VARCHAR(50)  REFERENCES usuarios(matricula),
+    nome_aluno              VARCHAR(255),
+    nome_aluno_snapshot     VARCHAR(255),
     assunto_estudado        VARCHAR(255) NOT NULL,
     questoes_respondidas    INT          NOT NULL,
     taxa_acerto             FLOAT        NOT NULL,
@@ -135,6 +137,8 @@ ALTER TABLE questoes
     ADD COLUMN IF NOT EXISTS link_video  TEXT DEFAULT NULL;
 
 ALTER TABLE sessoes_estudo
+    ADD COLUMN IF NOT EXISTS matricula_aluno VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS nome_aluno_snapshot VARCHAR(255),
     ADD COLUMN IF NOT EXISTS eh_teste_professor BOOLEAN DEFAULT FALSE,
     ADD COLUMN IF NOT EXISTS criado_em TIMESTAMP DEFAULT NOW();
 
@@ -148,8 +152,10 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- ─── 6b. ÍNDICES ESTRATÉGICOS (desempenho) ────────────────────
 CREATE INDEX IF NOT EXISTS idx_sessoes_nome_aluno   ON sessoes_estudo (nome_aluno);
+CREATE INDEX IF NOT EXISTS idx_sessoes_matricula_aluno ON sessoes_estudo (matricula_aluno);
 CREATE INDEX IF NOT EXISTS idx_sessoes_criado_em    ON sessoes_estudo (criado_em DESC);
 CREATE INDEX IF NOT EXISTS idx_sessoes_nome_criado_em ON sessoes_estudo (nome_aluno, criado_em DESC);
+CREATE INDEX IF NOT EXISTS idx_sessoes_matricula_criado_em ON sessoes_estudo (matricula_aluno, criado_em DESC);
 CREATE INDEX IF NOT EXISTS idx_sessoes_eh_teste_criado_em ON sessoes_estudo (eh_teste_professor, criado_em DESC);
 CREATE INDEX IF NOT EXISTS idx_feedbacks_resolvido  ON feedbacks_questoes (resolvido);
 CREATE INDEX IF NOT EXISTS idx_favoritos_questao ON favoritos_aluno(questao_id);

@@ -11,7 +11,11 @@ class DetalheQuestaoSessao(BaseModel):
     acertou: bool
 
 class SessaoEstudo(BaseModel):
-    nome_aluno: str
+    matricula_aluno: Optional[str] = None
+    # Compatibilidade com payload legado
+    nome_aluno: Optional[str] = None
+    # Snapshot opcional para auditoria/exibicao historica
+    nome_aluno_snapshot: Optional[str] = None
     assunto_estudado: str
     questoes_respondidas: int
     taxa_acerto: float

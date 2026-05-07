@@ -48,7 +48,7 @@ def dashboard_aluno(matricula: str):
                     COALESCE(SUM(tempo_gasto_segundos), 0) AS tempo_hoje_seg,
                     ROUND(AVG(taxa_acerto)::numeric, 1) AS media_hoje
                 FROM sessoes_estudo
-                WHERE nome_aluno = %s
+                WHERE COALESCE(matricula_aluno, nome_aluno) = %s
                   AND DATE(criado_em) = CURRENT_DATE
                   AND eh_teste_professor IS NOT TRUE;
             """, (matricula,))
@@ -63,7 +63,7 @@ def dashboard_aluno(matricula: str):
                     ROUND(AVG(taxa_acerto)::numeric, 1) AS media_semana,
                     COUNT(DISTINCT DATE(criado_em)) AS dias_estudados
                 FROM sessoes_estudo
-                WHERE nome_aluno = %s
+                WHERE COALESCE(matricula_aluno, nome_aluno) = %s
                   AND criado_em >= CURRENT_DATE - INTERVAL '6 days'
                   AND eh_teste_professor IS NOT TRUE;
             """, (matricula,))
@@ -78,7 +78,7 @@ def dashboard_aluno(matricula: str):
                     ROUND(AVG(taxa_acerto)::numeric, 1) AS media_geral,
                     MAX(criado_em) AS ultima_sessao
                 FROM sessoes_estudo
-                WHERE nome_aluno = %s
+                WHERE COALESCE(matricula_aluno, nome_aluno) = %s
                   AND eh_teste_professor IS NOT TRUE;
             """, (matricula,))
             geral = cursor.fetchone()
@@ -87,7 +87,7 @@ def dashboard_aluno(matricula: str):
             cursor.execute("""
                 SELECT DISTINCT DATE(criado_em) AS dia
                 FROM sessoes_estudo
-                WHERE nome_aluno = %s
+                WHERE COALESCE(matricula_aluno, nome_aluno) = %s
                   AND eh_teste_professor IS NOT TRUE
                 ORDER BY dia DESC;
             """, (matricula,))
@@ -112,7 +112,7 @@ def dashboard_aluno(matricula: str):
                     (SELECT COUNT(*) FROM questoes) AS total_banco
                 FROM sessoes_estudo s
                 JOIN sessoes_questoes sq ON sq.sessao_id = s.id
-                WHERE s.nome_aluno = %s;
+                WHERE COALESCE(s.matricula_aluno, s.nome_aluno) = %s;
             """, (matricula,))
             progresso_row = cursor.fetchone()
             respondidas = int(progresso_row[0] or 0)
@@ -128,7 +128,7 @@ def dashboard_aluno(matricula: str):
                          / NULLIF(SUM(s.questoes_respondidas), 0) * 100)::numeric
                     , 1) AS media_acerto
                 FROM sessoes_estudo s
-                WHERE s.nome_aluno = %s
+                WHERE COALESCE(s.matricula_aluno, s.nome_aluno) = %s
                   AND s.eh_teste_professor IS NOT TRUE
                 GROUP BY 1
                 HAVING SUM(s.questoes_respondidas) >= 3
@@ -150,7 +150,7 @@ def dashboard_aluno(matricula: str):
                          / NULLIF(SUM(s.questoes_respondidas), 0) * 100)::numeric
                     , 1) AS media_acerto
                 FROM sessoes_estudo s
-                WHERE s.nome_aluno = %s
+                WHERE COALESCE(s.matricula_aluno, s.nome_aluno) = %s
                   AND s.eh_teste_professor IS NOT TRUE
                 GROUP BY 1
                 HAVING SUM(s.questoes_respondidas) >= 3
@@ -171,7 +171,7 @@ def dashboard_aluno(matricula: str):
                     tempo_gasto_segundos,
                     criado_em
                 FROM sessoes_estudo
-                WHERE nome_aluno = %s
+                WHERE COALESCE(matricula_aluno, nome_aluno) = %s
                   AND eh_teste_professor IS NOT TRUE
                 ORDER BY criado_em DESC
                 LIMIT 5;
@@ -201,7 +201,7 @@ def dashboard_aluno(matricula: str):
                         DATE(criado_em) AS dia,
                         COALESCE(SUM(questoes_respondidas), 0) AS questoes
                     FROM sessoes_estudo
-                    WHERE nome_aluno = %s
+                    WHERE COALESCE(matricula_aluno, nome_aluno) = %s
                       AND criado_em >= CURRENT_DATE - INTERVAL '6 days'
                       AND eh_teste_professor IS NOT TRUE
                     GROUP BY DATE(criado_em)

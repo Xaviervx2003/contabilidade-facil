@@ -119,7 +119,7 @@ def obter_questoes(
                             SELECT sq.questao_id 
                             FROM sessoes_questoes sq
                             JOIN sessoes_estudo se ON sq.sessao_id = se.id
-                            WHERE se.nome_aluno = %s
+                            WHERE COALESCE(se.matricula_aluno, se.nome_aluno) = %s
                         )
                     """)
                     params.append(matricula)
@@ -129,7 +129,7 @@ def obter_questoes(
                             SELECT sq.questao_id 
                             FROM sessoes_questoes sq
                             JOIN sessoes_estudo se ON sq.sessao_id = se.id
-                            WHERE se.nome_aluno = %s AND sq.acertou = FALSE
+                            WHERE COALESCE(se.matricula_aluno, se.nome_aluno) = %s AND sq.acertou = FALSE
                         )
                     """)
                     params.append(matricula)

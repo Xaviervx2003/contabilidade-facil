@@ -13,19 +13,29 @@ router = APIRouter(prefix="/api", tags=["Sessões"])
 @router.post("/sessoes")
 def salvar_sessao(sessao: SessaoEstudo):
     try:
+        matricula_aluno = (sessao.matricula_aluno or sessao.nome_aluno or "").strip()
+        if not matricula_aluno:
+            raise HTTPException(status_code=422, detail="matricula_aluno é obrigatória.")
+
         with get_conexao() as conn:
             cursor = conn.cursor()
+            nome_snapshot = sessao.nome_aluno_snapshot
+            if not nome_snapshot:
+                cursor.execute("SELECT nome FROM usuarios WHERE matricula = %s", (matricula_aluno,))
+                row = cursor.fetchone()
+                nome_snapshot = row[0] if row else matricula_aluno
             
             # 1. Salvar a sessão principal
             cursor.execute(
                 """
                 INSERT INTO sessoes_estudo 
-                (nome_aluno, assunto_estudado, questoes_respondidas, taxa_acerto, tempo_gasto_segundos, eh_teste_professor)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                (matricula_aluno, nome_aluno_snapshot, assunto_estudado, questoes_respondidas, taxa_acerto, tempo_gasto_segundos, eh_teste_professor)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 RETURNING id;
                 """,
                 (
-                    sessao.nome_aluno,
+                    matricula_aluno,
+                    nome_snapshot,
                     sessao.assunto_estudado,
                     sessao.questoes_respondidas,
                     sessao.taxa_acerto,
@@ -84,7 +94,7 @@ def obter_historico_aluno(matricula: str):
                 SELECT id, assunto_estudado, questoes_respondidas, taxa_acerto, 
                        tempo_gasto_segundos, criado_em
                 FROM sessoes_estudo 
-                WHERE nome_aluno = %s
+                WHERE COALESCE(matricula_aluno, nome_aluno) = %s
                 ORDER BY criado_em DESC
                 LIMIT 200;
             """,

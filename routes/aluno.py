@@ -39,7 +39,7 @@ def historico_grafico(matricula: str):
                         ROUND(AVG(taxa_acerto)::numeric, 1) AS media_acerto,
                         ROUND(AVG(tempo_gasto_segundos)::numeric, 0) AS tempo_medio_seg
                     FROM sessoes_estudo
-                    WHERE nome_aluno = %s
+                    WHERE COALESCE(matricula_aluno, nome_aluno) = %s
                       AND criado_em >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months'
                     GROUP BY DATE_TRUNC('month', criado_em)::date
                 )
@@ -67,7 +67,7 @@ def historico_grafico(matricula: str):
                              / NULLIF(SUM(questoes_respondidas), 0) * 100)::numeric
                         , 1) AS media_pond
                     FROM sessoes_estudo
-                    WHERE nome_aluno = %s
+                    WHERE COALESCE(matricula_aluno, nome_aluno) = %s
                     GROUP BY COALESCE(NULLIF(TRIM(assunto_estudado), ''), 'Sem assunto')
                 )
                 SELECT assunto, total_q, media_pond
@@ -86,7 +86,7 @@ def historico_grafico(matricula: str):
                     ROUND(AVG(tempo_gasto_segundos)::numeric, 0) AS tempo_medio_seg,
                     MAX(criado_em) AS ultima_sessao
                 FROM sessoes_estudo
-                WHERE nome_aluno = %s;
+                WHERE COALESCE(matricula_aluno, nome_aluno) = %s;
             """, (matricula,))
 
             resumo = cursor.fetchone()
@@ -149,7 +149,7 @@ def questoes_respondidas(
                 JOIN questoes q ON q.id = sq.questao_id
                 LEFT JOIN questoes_materias qm ON qm.questao_id = q.id
                 LEFT JOIN materias m ON m.id = qm.materia_id
-                WHERE s.nome_aluno = %(matricula)s
+                WHERE COALESCE(s.matricula_aluno, s.nome_aluno) = %(matricula)s
             """
             params = {"matricula": matricula}
 
@@ -281,7 +281,7 @@ def historico_diario(matricula: str, dias: int = 30):
                         COUNT(s.id) AS sessoes,
                         COALESCE(SUM(s.questoes_respondidas), 0) AS questoes
                     FROM sessoes_estudo s
-                    WHERE s.nome_aluno = %(matricula)s
+                    WHERE COALESCE(s.matricula_aluno, s.nome_aluno) = %(matricula)s
                       AND s.criado_em >= CURRENT_DATE - INTERVAL '1 day' * %(dias)s
                     GROUP BY DATE(s.criado_em)
                 )
@@ -328,7 +328,7 @@ def historico_filtrado(
                 SELECT s.id, s.assunto_estudado, s.questoes_respondidas,
                        s.taxa_acerto, s.tempo_gasto_segundos, s.criado_em
                 FROM sessoes_estudo s
-                WHERE s.nome_aluno = %(matricula)s
+                WHERE COALESCE(s.matricula_aluno, s.nome_aluno) = %(matricula)s
             """
             if data_inicio:
                 base += " AND s.criado_em >= %(data_inicio)s::date"
@@ -407,7 +407,7 @@ def ranking_aluno(matricula: str):
                         u.matricula,
                         ROUND(AVG(s.taxa_acerto)::numeric, 1) AS media_geral
                     FROM sessoes_estudo s
-                    JOIN usuarios u ON u.matricula = s.nome_aluno AND u.papel = 'aluno'
+                    JOIN usuarios u ON u.matricula = COALESCE(s.matricula_aluno, s.nome_aluno) AND u.papel = 'aluno'
                     WHERE s.eh_teste_professor IS NOT TRUE
                     GROUP BY u.matricula
                 ),
@@ -461,7 +461,7 @@ def listar_sessoes(matricula: str):
                     taxa_acerto AS percentual_acerto,
                     tempo_gasto_segundos AS tempo_seg
                 FROM sessoes_estudo
-                WHERE nome_aluno = %s
+                WHERE COALESCE(matricula_aluno, nome_aluno) = %s
                 ORDER BY criado_em DESC
                 LIMIT 100
             """, (matricula,))

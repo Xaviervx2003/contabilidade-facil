@@ -72,7 +72,7 @@ def relatorio_estudo(
                 params["materia_id"] = materia_id
 
             if aluno_matricula:
-                filtros += " AND s.nome_aluno = %(aluno_matricula)s "
+                filtros += " AND COALESCE(s.matricula_aluno, s.nome_aluno) = %(aluno_matricula)s "
                 params["aluno_matricula"] = aluno_matricula
 
             # Série diária
@@ -113,7 +113,7 @@ def relatorio_estudo(
                     COALESCE(SUM(s.questoes_respondidas), 0)               AS total_questoes,
                     COALESCE(ROUND(AVG(s.taxa_acerto)::numeric, 1), 0)     AS media_acerto,
                     COALESCE(SUM(s.tempo_gasto_segundos), 0)               AS tempo_total_segundos,
-                    COALESCE(COUNT(DISTINCT s.nome_aluno), 0)              AS alunos_ativos
+                    COALESCE(COUNT(DISTINCT COALESCE(s.matricula_aluno, s.nome_aluno)), 0) AS alunos_ativos
                 FROM sessoes_estudo s
                 WHERE EXTRACT(MONTH FROM s.criado_em) = %(mes)s
                   AND EXTRACT(YEAR FROM s.criado_em) = %(ano)s

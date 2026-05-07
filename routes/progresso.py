@@ -19,7 +19,7 @@ def progresso_aluno(matricula: str):
                        (SELECT COUNT(*) FROM questoes) AS total
                 FROM sessoes_estudo s
                 JOIN sessoes_questoes sq ON sq.sessao_id = s.id
-                WHERE s.nome_aluno = %s
+                WHERE COALESCE(s.matricula_aluno, s.nome_aluno) = %s
             """, (matricula,))
             row = cursor.fetchone()
             if not row:

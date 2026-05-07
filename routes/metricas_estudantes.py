@@ -63,7 +63,7 @@ def _contar_total_filtrado(cursor, papel: Optional[str], usuario_id: Optional[in
     if papel == "professor" and usuario_id:
         query = """
             SELECT COUNT(DISTINCT u.id) FROM usuarios u
-            INNER JOIN sessoes_estudo s ON s.matricula_aluno = u.matricula
+            INNER JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
             INNER JOIN sessoes_questoes sq ON sq.sessao_id = s.id
             INNER JOIN questoes q ON q.id = sq.questao_id
             WHERE u.papel = 'aluno' AND s.eh_teste_professor IS NOT TRUE AND q.criado_por = %(uid)s
@@ -121,7 +121,7 @@ def obter_desempenho_estudantes(
                            s.taxa_acerto, s.tempo_gasto_segundos, s.criado_em, qm.materia_id,
                            COALESCE(NULLIF(TRIM(s.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado
                     FROM usuarios u
-                    INNER JOIN sessoes_estudo s ON s.matricula_aluno = u.matricula
+                    INNER JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
                     LEFT JOIN sessoes_questoes sq_idx ON sq_idx.sessao_id = s.id
                     LEFT JOIN questoes_materias qm ON qm.questao_id = sq_idx.questao_id
                     WHERE u.papel = 'aluno' AND s.eh_teste_professor IS NOT TRUE {filtro_p} {filtros_a}
@@ -188,7 +188,7 @@ def obter_metricas_individual(
                            s.taxa_acerto, s.tempo_gasto_segundos, s.criado_em,
                            COALESCE(NULLIF(TRIM(s.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado
                     FROM usuarios u
-                    INNER JOIN sessoes_estudo s ON s.matricula_aluno = u.matricula
+                    INNER JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
                     WHERE u.matricula = %(matricula)s AND s.eh_teste_professor IS NOT TRUE
                 ),
                 resumo AS (
@@ -229,7 +229,7 @@ def obter_ranking_turma(limite: int = Query(50, ge=1, le=100)):
                 SELECT u.nome, u.matricula, ROUND(AVG(s.taxa_acerto)::numeric, 1) as media,
                        SUM(s.questoes_respondidas) as total_q
                 FROM usuarios u
-                JOIN sessoes_estudo s ON s.matricula_aluno = u.matricula
+                JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
                 WHERE u.papel = 'aluno'
                 GROUP BY u.nome, u.matricula
                 HAVING SUM(s.questoes_respondidas) > 0
