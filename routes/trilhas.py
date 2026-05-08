@@ -234,6 +234,8 @@ def listar_trilhas_aluno(matricula: str):
                 t["media_acertos"] = round(sum(somas_acertos) / len(somas_acertos), 1) if somas_acertos else None
                 
             return trilhas
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -258,6 +260,8 @@ def marcar_modulo_concluido(modulo_id: int, progresso: ProgressoModulo):
             
             conn.commit()
             return {"sucesso": True, "mensagem": "Módulo marcado como concluído"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -290,6 +294,8 @@ def duplicar_trilha(trilha_id: int, usuario_id: int = Query(...)):
             
             conn.commit()
             return {"sucesso": True, "trilha_id": nova_id, "mensagem": "Trilha duplicada com sucesso!"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -363,6 +369,8 @@ def criar_duvida(duvida: DuvidaTrilhaCreate):
             """, (duvida.modulo_id, usuario_id, duvida.texto))
             conn.commit()
             return {"sucesso": True, "duvida_id": cursor.fetchone()[0]}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
