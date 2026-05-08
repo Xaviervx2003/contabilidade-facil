@@ -21,9 +21,20 @@ const MinhasTrilhas = () => {
   const navigate = useNavigate()
 
   const matricula = getMatricula()
+  const papel = sessionStorage.getItem('papel') || localStorage.getItem('papel')
+  const matriculaNormalizada = matricula?.trim().toLowerCase()
+  const podeCarregarTrilhas = Boolean(matriculaNormalizada) &&
+    !['admin', 'professor'].includes(matriculaNormalizada) &&
+    papel !== 'admin' &&
+    papel !== 'professor'
 
   const carregarTrilhas = useCallback(async () => {
-    if (!matricula) return
+    if (!podeCarregarTrilhas) {
+      setTrilhas([])
+      setLoading(false)
+      setError('Esta area e exclusiva para alunos com matricula ativa.')
+      return
+    }
     setLoading(true)
     setError('')
     try {
@@ -36,7 +47,7 @@ const MinhasTrilhas = () => {
     } finally {
       setLoading(false)
     }
-  }, [matricula])
+  }, [matricula, podeCarregarTrilhas])
 
   useEffect(() => {
     carregarTrilhas()

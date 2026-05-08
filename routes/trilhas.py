@@ -85,7 +85,7 @@ def editar_trilha(trilha_id: int, trilha: TrilhaUpdate):
             
             # Se a trilha foi publicada, notifica todos os alunos
             if trilha.status == 'publicado':
-                cursor.execute("SELECT id FROM usuarios WHERE tipo = 'aluno'")
+                cursor.execute("SELECT id FROM usuarios WHERE papel = 'aluno'")
                 alunos = cursor.fetchall()
                 for aluno in alunos:
                     cursor.execute("""
@@ -187,10 +187,12 @@ def listar_trilhas_aluno(matricula: str):
         with get_conexao() as conn:
             cursor = conn.cursor(row_factory=dict_row)
             
-            cursor.execute("SELECT id FROM usuarios WHERE matricula = %s", (matricula,))
+            cursor.execute("SELECT id, papel FROM usuarios WHERE matricula = %s", (matricula,))
             row = cursor.fetchone()
             if not row:
                 raise HTTPException(status_code=404, detail="Aluno não encontrado")
+            if row["papel"] != "aluno":
+                raise HTTPException(status_code=403, detail="Esta rota e exclusiva para alunos")
             usuario_id = row["id"]
             
             cursor.execute("""

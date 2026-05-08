@@ -65,6 +65,20 @@ const GestaoTrilhas = () => {
 
   const userId = sessionStorage.getItem('userId')
 
+  const totalModulos = trilhas.reduce((total, trilha) => total + (trilha.modulos?.length || 0), 0)
+  const trilhasPublicadas = trilhas.filter(trilha => trilha.status === 'publicado').length
+  const trilhasRascunho = trilhas.length - trilhasPublicadas
+
+  const getTipoModulo = (modulo) => {
+    if (modulo.materia_id || modulo.questoes_selecionadas?.length > 0) {
+      return { label: 'Quiz', color: 'primary', icon: cilCheck }
+    }
+    if (modulo.link_video) {
+      return { label: 'Video', color: 'danger', icon: cilVideo }
+    }
+    return { label: 'Texto', color: 'secondary', icon: cilDescription }
+  }
+
   const carregarDados = async () => {
     setLoading(true)
     setError('')
@@ -212,7 +226,7 @@ const GestaoTrilhas = () => {
       carregarDados()
     } catch (e) {
       console.error(e)
-      setError(`Erro ao deletar: ${e.message}`)
+      setError(`Erro ao salvar modulo: ${e.message}`)
     }
   }
 
@@ -278,10 +292,17 @@ const GestaoTrilhas = () => {
         {error && <CAlert color="danger" dismissible onClose={() => setError('')}>{error}</CAlert>}
         {success && <CAlert color="success" dismissible onClose={() => setSuccess('')}>{success}</CAlert>}
 
-        <CCard className="mb-4">
-          <CCardHeader className="d-flex justify-content-between align-items-center">
-            <strong>Gestão de Trilhas de Aprendizagem (Cursos)</strong>
-            <div className="d-flex gap-2">
+        <CCard className="mb-4 border-0 shadow-sm">
+          <CCardHeader className="bg-body border-0 pb-0">
+            <div className="d-flex flex-column flex-lg-row justify-content-between gap-3">
+              <div>
+                <div className="text-uppercase text-body-secondary small fw-semibold">Cursos guiados</div>
+                <h3 className="mb-1 fw-bold">Gestao de Trilhas</h3>
+                <div className="text-body-secondary small">
+                  Organize cursos, modulos, exercicios e materiais de apoio em um unico fluxo.
+                </div>
+              </div>
+              <div className="d-flex gap-2 align-items-start">
               <CButton color="warning" variant="outline" className="position-relative" onClick={() => setModalDuvidas(true)}>
                 <CIcon icon={cilChatBubble} className="me-1" /> Dúvidas Alunos
                 {duvidasPendentes.length > 0 && (
@@ -297,10 +318,32 @@ const GestaoTrilhas = () => {
               }}>
                 <CIcon icon={cilPlus} className="me-1" /> Nova Trilha
               </CButton>
+              </div>
             </div>
           </CCardHeader>
 
           <CCardBody>
+            <CRow className="g-3 mb-4">
+              <CCol md={4}>
+                <div className="p-3 rounded border bg-body-tertiary h-100">
+                  <div className="text-body-secondary small">Trilhas cadastradas</div>
+                  <div className="fs-3 fw-bold">{trilhas.length}</div>
+                </div>
+              </CCol>
+              <CCol md={4}>
+                <div className="p-3 rounded border bg-body-tertiary h-100">
+                  <div className="text-body-secondary small">Publicadas / rascunhos</div>
+                  <div className="fs-3 fw-bold">{trilhasPublicadas} / {trilhasRascunho}</div>
+                </div>
+              </CCol>
+              <CCol md={4}>
+                <div className="p-3 rounded border bg-body-tertiary h-100">
+                  <div className="text-body-secondary small">Modulos no total</div>
+                  <div className="fs-3 fw-bold">{totalModulos}</div>
+                </div>
+              </CCol>
+            </CRow>
+
             {loading ? (
               <div className="text-center py-5"><CSpinner /></div>
             ) : trilhas.length === 0 ? (
@@ -309,88 +352,93 @@ const GestaoTrilhas = () => {
               </div>
             ) : (
               trilhas.map(t => (
-                <CCard key={t.id} className="mb-4 border-info">
-                  <CCardHeader className="d-flex justify-content-between align-items-center bg-body-tertiary">
-                    <div className="d-flex align-items-center gap-3">
+                <CCard key={t.id} className="mb-4 border shadow-sm overflow-hidden">
+                  <CCardHeader className="bg-body-tertiary border-bottom">
+                    <div className="d-flex flex-column flex-xl-row justify-content-between gap-3">
+                      <div className="d-flex align-items-start gap-3">
                       {t.capa_url && (
                         <img src={t.capa_url} alt="capa" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 8 }} />
                       )}
                       <div>
-                        <h5 className="mb-1">{t.nome}</h5>
-                        <div className="small text-body-secondary">{t.descricao}</div>
-                        <div className="d-flex gap-2 mt-1">
+                        <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
+                          <h5 className="mb-0 fw-bold">{t.nome}</h5>
                           <CBadge color={t.status === 'publicado' ? 'success' : 'warning'}>
-                            {t.status.toUpperCase()}
+                            {t.status === 'publicado' ? 'Publicado' : 'Rascunho'}
                           </CBadge>
                           {t.nivel && <CBadge color="info" variant="outline">{t.nivel}</CBadge>}
+                          <CBadge color="secondary" variant="outline">{t.modulos?.length || 0} modulos</CBadge>
+                        </div>
+                        <div className="small text-body-secondary" style={{ maxWidth: 720 }}>
+                          {t.descricao || 'Sem descricao cadastrada.'}
                         </div>
                       </div>
                     </div>
-                    <div>
-                      <CButton color="info" variant="outline" size="sm" className="me-1" onClick={() => verEngajamento(t)} title="Ver Engajamento">
-                        <CIcon icon={cilChart} />
+                    <div className="d-flex flex-wrap gap-2 justify-content-xl-end">
+                      <CButton color="success" variant="outline" size="sm" onClick={() => abrirModalModulo(t)}>
+                        <CIcon icon={cilPlus} className="me-1" /> Modulo
                       </CButton>
-                      <CButton color="secondary" variant="outline" size="sm" className="me-1" onClick={() => duplicarTrilha(t.id)} title="Duplicar Trilha">
-                        <CIcon icon={cilCopy} />
+                      <CButton color="info" variant="outline" size="sm" onClick={() => verEngajamento(t)} title="Ver Engajamento">
+                        <CIcon icon={cilChart} className="me-1" /> Engajamento
                       </CButton>
-                      <CButton color="info" variant="outline" size="sm" className="me-1" onClick={() => { setTrilhaAtiva(t); setFormTrilha({ ...t, capa_url: t.capa_url || '', nivel: t.nivel || '' }); setModalTrilha(true) }}>
-                        <CIcon icon={cilPencil} />
+                      <CButton color="secondary" variant="outline" size="sm" onClick={() => duplicarTrilha(t.id)} title="Duplicar Trilha">
+                        <CIcon icon={cilCopy} className="me-1" /> Duplicar
                       </CButton>
-                      <CButton color="danger" variant="outline" size="sm" onClick={() => deletarTrilha(t.id)}>
+                      <CButton color="primary" variant="outline" size="sm" onClick={() => { setTrilhaAtiva(t); setFormTrilha({ ...t, capa_url: t.capa_url || '', nivel: t.nivel || '' }); setModalTrilha(true) }}>
+                        <CIcon icon={cilPencil} className="me-1" /> Editar
+                      </CButton>
+                      <CButton color="danger" variant="ghost" size="sm" onClick={() => deletarTrilha(t.id)}>
                         <CIcon icon={cilTrash} />
                       </CButton>
                     </div>
+                    </div>
                   </CCardHeader>
                   <CCardBody>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <strong>Módulos ({t.modulos?.length || 0})</strong>
-                      <CButton size="sm" color="success" variant="outline" onClick={() => abrirModalModulo(t)}>
-                        + Adicionar Módulo
-                      </CButton>
-                    </div>
-
                     {t.modulos?.length > 0 ? (
-                      <CTable small hover bordered responsive className="mb-0">
-                        <CTableHead>
-                          <CTableRow>
-                            <CTableHeaderCell>#</CTableHeaderCell>
-                            <CTableHeaderCell>Nome</CTableHeaderCell>
-                            <CTableHeaderCell>Conteúdo</CTableHeaderCell>
-                            <CTableHeaderCell>Ações</CTableHeaderCell>
-                          </CTableRow>
-                        </CTableHead>
-                        <CTableBody>
-                          {t.modulos.map(m => (
-                            <CTableRow key={m.id}>
-                              <CTableDataCell className="fw-bold">{m.ordem}</CTableDataCell>
-                              <CTableDataCell>
-                                {m.nome}
-                                <div className="small text-body-secondary">{m.descricao}</div>
-                                {m.duracao_minutos && (
-                                  <span className="small text-body-secondary">⏱️ {m.duracao_minutos} min</span>
-                                )}
-                              </CTableDataCell>
-                              <CTableDataCell>
-                                {m.link_video && <CBadge color="danger"><CIcon icon={cilVideo} /> Vídeo</CBadge>}
-                                {m.texto_teorico && <CBadge color="secondary" className="ms-1"><CIcon icon={cilDescription} /> Texto</CBadge>}
-                                {m.materia_id && <CBadge color="primary" className="ms-1"><CIcon icon={cilCheck} /> Quiz ({m.materia_nome})</CBadge>}
-                                {m.questoes_selecionadas?.length > 0 && <CBadge color="dark" className="ms-1"><CIcon icon={cilCheck} /> {m.questoes_selecionadas.length} Questões</CBadge>}
-                                {m.material_apoio_url && <CBadge color="warning" className="ms-1">📎 Material</CBadge>}
-                              </CTableDataCell>
-                              <CTableDataCell>
-                                <CButton size="sm" color="info" variant="ghost" onClick={() => abrirModalModulo(t, m)} title="Editar Módulo">
+                      <div className="d-flex flex-column gap-2">
+                        {t.modulos.map(m => {
+                          const tipo = getTipoModulo(m)
+                          return (
+                            <div key={m.id} className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 p-3 rounded border bg-body">
+                              <div className="d-flex gap-3">
+                                <div className="rounded-circle bg-body-tertiary border d-flex align-items-center justify-content-center fw-bold" style={{ width: 40, height: 40, flex: '0 0 40px' }}>
+                                  {m.ordem}
+                                </div>
+                                <div>
+                                  <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                    <strong>{m.nome}</strong>
+                                    <CBadge color={tipo.color} variant="outline">
+                                      <CIcon icon={tipo.icon} className="me-1" /> {tipo.label}
+                                    </CBadge>
+                                    {m.duracao_minutos && <CBadge color="light" className="text-body">{m.duracao_minutos} min</CBadge>}
+                                  </div>
+                                  <div className="small text-body-secondary mb-2">
+                                    {m.descricao || 'Sem descricao rapida.'}
+                                  </div>
+                                  <div className="d-flex flex-wrap gap-2">
+                                    {m.link_video && <CBadge color="danger"><CIcon icon={cilVideo} className="me-1" /> Video</CBadge>}
+                                    {m.texto_teorico && <CBadge color="secondary"><CIcon icon={cilDescription} className="me-1" /> Texto</CBadge>}
+                                    {m.materia_id && <CBadge color="primary"><CIcon icon={cilCheck} className="me-1" /> {m.materia_nome || 'Quiz'}</CBadge>}
+                                    {m.questoes_selecionadas?.length > 0 && <CBadge color="dark">{m.questoes_selecionadas.length} questoes</CBadge>}
+                                    {m.material_apoio_url && <CBadge color="warning">Material</CBadge>}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="d-flex gap-1 justify-content-end">
+                                <CButton size="sm" color="primary" variant="ghost" onClick={() => abrirModalModulo(t, m)} title="Editar modulo">
                                   <CIcon icon={cilPencil} />
                                 </CButton>
-                                <CButton size="sm" color="danger" variant="ghost" onClick={() => deletarModulo(m.id)} title="Remover Módulo">
+                                <CButton size="sm" color="danger" variant="ghost" onClick={() => deletarModulo(m.id)} title="Remover modulo">
                                   <CIcon icon={cilTrash} />
                                 </CButton>
-                              </CTableDataCell>
-                            </CTableRow>
-                          ))}
-                        </CTableBody>
-                      </CTable>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
                     ) : (
-                      <div className="text-body-secondary small">Nenhum módulo nesta trilha.</div>
+                      <div className="text-center text-body-secondary small py-4 border rounded bg-body-tertiary">
+                        Nenhum modulo nesta trilha. Use o botao "Modulo" para adicionar a primeira aula.
+                      </div>
                     )}
                   </CCardBody>
                 </CCard>
