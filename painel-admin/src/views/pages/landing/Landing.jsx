@@ -121,37 +121,37 @@ const Landing = () => {
                         className="absolute inset-0 w-full h-full object-cover" 
                     />
                     <div className="absolute inset-0 noise-overlay opacity-[0.7] mix-blend-overlay pointer-events-none" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40" />
 
-                    <nav className="absolute top-0 left-1/2 -translate-x-1/2 bg-black rounded-b-2xl md:rounded-b-3xl px-4 py-2 md:px-8 z-10 flex items-center justify-center gap-3 sm:gap-6 md:gap-12 lg:gap-14 shadow-2xl">
+                    <nav className="absolute top-0 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md rounded-b-2xl md:rounded-b-3xl px-6 py-3 md:px-10 z-20 flex items-center justify-center gap-4 sm:gap-8 md:gap-14 shadow-2xl border-x border-b border-white/5">
                         {['Metodologia', 'Módulos', 'Trilhas', 'Planos', 'Suporte'].map(link => (
                             <a 
                                 href="#" 
                                 key={link} 
-                                className="text-[10px] sm:text-xs md:text-sm font-light tracking-wide transition-colors duration-300 no-underline" 
-                                style={{ color: 'rgba(225,224,204,0.8)' }} 
+                                className="text-[10px] sm:text-xs md:text-sm font-light tracking-widest uppercase transition-all duration-300 no-underline hover:text-white hover:scale-105" 
+                                style={{ color: 'rgba(225,224,204,0.7)' }} 
                             >
                                 {link}
                             </a>
                         ))}
                     </nav>
 
-                    <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 lg:p-12 z-10">
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-end">
-                            <div className="md:col-span-8">
+                    <div className="absolute inset-0 p-6 md:p-12 lg:p-16 flex flex-col justify-end z-10">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end max-w-[1600px] mx-auto w-full">
+                            <div className="lg:col-span-8">
                                 <WordsPullUp 
                                     text="Contabilidade Fácil" 
                                     showAsterisk 
-                                    className="text-[12vw] sm:text-[10vw] md:text-[9vw] lg:text-[8vw] xl:text-[7vw] 2xl:text-[6vw] font-normal leading-[0.85] tracking-[-0.07em] text-primary" 
+                                    className="text-[14vw] sm:text-[11vw] md:text-[9vw] lg:text-[8vw] xl:text-[7.5vw] font-normal leading-[0.8] tracking-[-0.08em] text-primary" 
                                 />
                             </div>
-                            <div className="md:col-span-4 flex flex-col items-start gap-5 md:gap-6 md:pb-4 lg:pb-6">
+                            <div className="lg:col-span-4 flex flex-col items-start gap-6 md:pb-4 lg:pb-8">
                                 <motion.p 
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.5, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                                    className="text-primary/70 text-xs sm:text-sm md:text-base font-light tracking-wide max-w-sm"
-                                    style={{ lineHeight: 1.2 }}
+                                    className="text-primary/70 text-sm md:text-base lg:text-lg font-light tracking-wide max-w-sm border-l-2 border-primary/20 pl-4"
+                                    style={{ lineHeight: 1.3 }}
                                 >
                                     A plataforma definitiva para dominar as Ciências Contábeis na UEA. Conteúdo de elite, simulados reais e suporte direto.
                                 </motion.p>
@@ -161,11 +161,11 @@ const Landing = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.7, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                                     onClick={() => navigate('/login')}
-                                    className="group border-0 flex items-center gap-2 hover:gap-3 bg-primary rounded-full py-1 pl-5 pr-1 transition-all duration-300 text-black font-normal text-sm sm:text-base cursor-pointer"
+                                    className="group border-0 flex items-center gap-3 hover:gap-5 bg-primary rounded-full py-1.5 pl-6 pr-1.5 transition-all duration-500 text-black font-medium text-sm md:text-base cursor-pointer shadow-[0_0_30px_rgba(222,219,200,0.2)] hover:shadow-[0_0_50px_rgba(222,219,200,0.4)]"
                                 >
-                                    Começar agora
-                                    <div className="bg-black rounded-full w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                        <Icon icon="solar:arrow-right-linear" className="text-primary text-lg sm:text-xl" />
+                                    Acessar Plataforma
+                                    <div className="bg-black rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                                        <Icon icon="solar:arrow-right-linear" className="text-primary text-xl md:text-2xl" />
                                     </div>
                                 </motion.button>
                             </div>
