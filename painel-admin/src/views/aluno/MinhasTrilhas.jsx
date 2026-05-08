@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
   CAlert,
   CButton,
@@ -24,6 +24,7 @@ import CIcon from '@coreui/icons-react'
 import { cilCheckCircle, cilMediaPlay, cilDescription, cilPenAlt, cilChevronRight } from '@coreui/icons'
 import { API_URL } from '../../config'
 import { useNavigate } from 'react-router-dom'
+import { getMatricula } from '../../utils/auth'
 
 const MinhasTrilhas = () => {
   const [trilhas, setTrilhas] = useState([])
@@ -31,12 +32,16 @@ const MinhasTrilhas = () => {
   const [error, setError] = useState('')
   const [modalAula, setModalAula] = useState(false)
   const [moduloAtivo, setModuloAtivo] = useState(null)
+  const [salvando, setSalvando] = useState(null)
+  const [toastErro, setToastErro] = useState('')
   const navigate = useNavigate()
 
-  const matricula = sessionStorage.getItem('matricula')
+  const matricula = getMatricula()
 
-  const carregarTrilhas = async () => {
+  const carregarTrilhas = useCallback(async () => {
+    if (!matricula) return
     setLoading(true)
+    setError('')
     try {
       const res = await fetch(`${API_URL}/api/trilhas/aluno/${matricula}`)
       if (!res.ok) throw new Error('Erro ao carregar')
@@ -47,22 +52,30 @@ const MinhasTrilhas = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [matricula])
 
   useEffect(() => {
     carregarTrilhas()
-  }, [])
+  }, [carregarTrilhas])
 
   const marcarConcluido = async (moduloId) => {
+    setSalvando(moduloId)
+    setToastErro('')
     try {
-      await fetch(`${API_URL}/api/trilhas/progresso/${moduloId}`, {
+      const res = await fetch(`${API_URL}/api/trilhas/progresso/${moduloId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matricula })
       })
-      carregarTrilhas() // Atualiza a barra de progresso
+      if (!res.ok) throw new Error(`Erro ${res.status}`)
+      
+      await carregarTrilhas() // Atualiza a barra de progresso apenas em caso de sucesso
     } catch (e) {
       console.error(e)
+      setToastErro('Não foi possível salvar seu progresso. Tente novamente.')
+      setTimeout(() => setToastErro(''), 4000)
+    } finally {
+      setSalvando(null)
     }
   }
 
@@ -81,15 +94,15 @@ const MinhasTrilhas = () => {
   }
 
   const handleAcessarModulo = (m) => {
-    // Se for quiz, vai direto
+    // Se for quiz, vai direto (agora passando o modulo_id para marcar ao terminar)
     if (m.materia_id || (m.questoes_selecionadas && m.questoes_selecionadas.length > 0)) {
       if (m.questoes_selecionadas && m.questoes_selecionadas.length > 0) {
         const ids = m.questoes_selecionadas.join(',')
-        navigate(`/quiz?ids=${ids}`)
+        navigate(`/quiz?ids=${ids}&modulo_id=${m.id}`)
       } else {
-        navigate(`/quiz?materia_id=${m.materia_id}`)
+        navigate(`/quiz?materia_id=${m.materia_id}&modulo_id=${m.id}`)
       }
-      marcarConcluido(m.id)
+      // REMOVIDO: marcarConcluido(m.id) - Agora é feito no final do quiz
     } else {
       // Se for vídeo ou texto, abre o modal integrado
       setModuloAtivo(m)
@@ -108,6 +121,7 @@ const MinhasTrilhas = () => {
         </div>
 
         {error && <CAlert color="danger">{error}</CAlert>}
+        {toastErro && <CAlert color="warning" className="py-2 small">{toastErro}</CAlert>}
 
         {trilhas.length === 0 ? (
           <CAlert color="info">Nenhuma trilha disponível no momento.</CAlert>
@@ -144,22 +158,24 @@ const MinhasTrilhas = () => {
                               <span className={`fw-bold ${m.concluido ? 'text-success' : 'text-body'}`}>
                                 {m.ordem}. {m.nome}
                               </span>
-                              {m.concluido ? (
-                                <CIcon icon={cilCheckCircle} className="text-success" />
-                              ) : (
-                                <CButton size="sm" color="light" onClick={() => marcarConcluido(m.id)} title="Marcar como concluído manualmente">
-                                  <CIcon icon={cilCheckCircle} className="text-muted" />
-                                </CButton>
-                              )}
+                                {m.concluido ? (
+                                  <CIcon icon={cilCheckCircle} className="text-success" />
+                                ) : (
+                                  <CButton 
+                                    size="sm" 
+                                    color="light" 
+                                    onClick={() => marcarConcluido(m.id)} 
+                                    disabled={salvando === m.id}
+                                    title="Marcar como concluído manualmente"
+                                  >
+                                    {salvando === m.id ? <CSpinner size="sm" /> : <CIcon icon={cilCheckCircle} className="text-muted" />}
+                                  </CButton>
+                                )}
                             </div>
                             
                             <p className="small text-body-secondary mb-3">{m.descricao}</p>
                             
-                            {m.texto_teorico && (
-                              <div className="small text-body bg-body-tertiary p-2 rounded mb-3" style={{ whiteSpace: 'pre-wrap' }}>
-                                {m.texto_teorico}
-                              </div>
-                            )}
+                            {/* REMOVIDO: texto_teorico inline (já aparece no modal) */}
 
                             <CButton 
                               color={m.concluido ? "secondary" : "primary"} 
@@ -237,8 +253,13 @@ const MinhasTrilhas = () => {
           <div>
             <CButton color="secondary" variant="ghost" onClick={() => setModalAula(false)} className="me-2">Fechar</CButton>
             {!moduloAtivo?.concluido && (
-              <CButton color="success" onClick={() => { marcarConcluido(moduloAtivo.id); setModalAula(false); }}>
-                <CIcon icon={cilCheckCircle} className="me-2" /> Marcar como Concluído
+              <CButton 
+                color="success" 
+                disabled={salvando === moduloAtivo?.id}
+                onClick={() => { marcarConcluido(moduloAtivo.id); setModalAula(false); }}
+              >
+                {salvando === moduloAtivo?.id ? <CSpinner size="sm" className="me-2"/> : <CIcon icon={cilCheckCircle} className="me-2" />}
+                Marcar como Concluído
               </CButton>
             )}
           </div>

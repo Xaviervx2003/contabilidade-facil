@@ -27,10 +27,9 @@ import {
   cilFullscreenExit,
   cilStar,
 } from '@coreui/icons'
-import { API_URL } from '../../config'
-import { calculateScore, calculateGrade, formatSeconds, shuffle } from '../../utils/quizUtils'
 import MateriaMultiSelect from '../../components/MateriaMultiSelect'
 import { useTheme } from '../../context/themeContext'
+import { getMatricula } from '../../utils/auth'
 
 /* ─── Constantes e tokens ────────────────────────────────────────────────────── */
 
@@ -739,7 +738,7 @@ const Quiz = () => {
   const [filtrosDisponiveis, setFiltrosDisponiveis] = useState({ bancas: [], orgaos: [], cargos: [], anos: [] })
 
   const nomeAluno = sessionStorage.getItem('nome') || 'Aluno'
-  const matricula = sessionStorage.getItem('matricula')
+  const matricula = getMatricula()
 
   // Theme detection
   const { isDark: themeIsDark } = useTheme()
@@ -1031,6 +1030,22 @@ const Quiz = () => {
         }),
       })
       if (!res.ok) throw new Error()
+      
+      // Se veio de uma trilha (Módulo), marca como concluído automaticamente
+      const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
+      const moduloId = params.get('modulo_id')
+      if (moduloId && matricula) {
+        try {
+          await fetch(`${API_URL}/api/trilhas/progresso/${moduloId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matricula })
+          })
+        } catch (e) {
+          console.error('Erro ao marcar progresso do módulo:', e)
+        }
+      }
+
       setSaved(true); setFeedback('Sessão salva com sucesso no dashboard.')
     } catch { setError('Não foi possível salvar a sessão.') } finally { setSaving(false) }
   }, [status, saved, questionsAndAnswers, score, matricula, nomeAluno, materiasSelected, materias, elapsedSeconds])

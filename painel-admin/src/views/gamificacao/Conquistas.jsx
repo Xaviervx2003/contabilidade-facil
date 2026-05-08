@@ -11,6 +11,8 @@ import {
     CSpinner,
 } from '@coreui/react'
 import './Conquistas.scss'
+import { getMatricula } from '../../utils/auth'
+import { API_URL } from '../../config'
 
 const Conquistas = () => {
     const [conquistas, setConquistas] = useState(null)
@@ -21,8 +23,8 @@ const Conquistas = () => {
     useEffect(() => {
         const carregarConquistas = async () => {
             try {
-                // Obter matrícula do sessionStorage ou localStorage
-                const matricula = sessionStorage.getItem('matricula') || localStorage.getItem('matricula')
+                // Obter matrícula usando o utilitário padrão
+                const matricula = getMatricula()
 
                 if (!matricula) {
                     setError('❌ Matrícula não encontrada. Faça login novamente.')
@@ -32,8 +34,7 @@ const Conquistas = () => {
 
                 console.log('✅ Matrícula carregada:', matricula)
 
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-                const url = `${apiUrl}/api/aluno/conquistas/${matricula}`
+                const url = `${API_URL}/api/aluno/conquistas/${matricula}`
 
                 console.log('📍 Buscando de:', url)
 
