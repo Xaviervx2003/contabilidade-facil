@@ -28,10 +28,16 @@ import {
   cilStar,
 } from '@coreui/icons'
 import { API_URL } from '../../config'
-import { calculateScore, calculateGrade, formatSeconds, shuffle } from '../../utils/quizUtils'
+import { calculateGrade, formatSeconds, shuffle } from '../../utils/quizUtils'
 import MateriaMultiSelect from '../../components/MateriaMultiSelect'
 import { useTheme } from '../../context/themeContext'
 import { getMatricula } from '../../utils/auth'
+
+/* ─── Utilitários Locais (Bulletproof) ───────────────────────────────────────── */
+const calculateScore = (total, correct) => {
+  if (!total || total === 0) return 0
+  return Number(((correct * 100) / total).toFixed(2))
+}
 
 /* ─── Constantes e tokens ────────────────────────────────────────────────────── */
 
