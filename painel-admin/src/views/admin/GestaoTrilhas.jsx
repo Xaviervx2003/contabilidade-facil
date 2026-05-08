@@ -48,6 +48,7 @@ const GestaoTrilhas = () => {
   const [formTrilha, setFormTrilha] = useState({ nome: '', descricao: '', status: 'rascunho', modulos: [] })
   
   const [formModulo, setFormModulo] = useState({
+    id: null,
     nome: '',
     descricao: '',
     ordem: 1,
@@ -128,18 +129,38 @@ const GestaoTrilhas = () => {
   }
 
   // ── Módulos ──
-  const abrirModalModulo = (trilha) => {
+  const abrirModalModulo = (trilha, modulo = null) => {
     setTrilhaAtiva(trilha)
-    setFormModulo({
-      nome: '',
-      descricao: '',
-      ordem: (trilha.modulos?.length || 0) + 1,
-      tipo: 'video',
-      link_video: '',
-      texto_teorico: '',
-      materia_id: '',
-      questoes_selecionadas: ''
-    })
+    if (modulo) {
+      // Determinar o tipo baseado no que tem preenchido
+      let tipo = 'video'
+      if (modulo.materia_id || (modulo.questoes_selecionadas && modulo.questoes_selecionadas.length > 0)) tipo = 'quiz'
+      else if (modulo.texto_teorico && !modulo.link_video) tipo = 'texto'
+
+      setFormModulo({
+        id: modulo.id,
+        nome: modulo.nome || '',
+        descricao: modulo.descricao || '',
+        ordem: modulo.ordem,
+        tipo: tipo,
+        link_video: modulo.link_video || '',
+        texto_teorico: modulo.texto_teorico || '',
+        materia_id: modulo.materia_id || '',
+        questoes_selecionadas: modulo.questoes_selecionadas ? modulo.questoes_selecionadas.join(', ') : ''
+      })
+    } else {
+      setFormModulo({
+        id: null,
+        nome: '',
+        descricao: '',
+        ordem: (trilha.modulos?.length || 0) + 1,
+        tipo: 'video',
+        link_video: '',
+        texto_teorico: '',
+        materia_id: '',
+        questoes_selecionadas: ''
+      })
+    }
     setModalModulo(true)
   }
 
@@ -152,14 +173,22 @@ const GestaoTrilhas = () => {
         nome: formModulo.nome,
         descricao: formModulo.descricao,
         ordem: isNaN(ordemVal) ? 0 : ordemVal,
-        link_video: formModulo.tipo === 'video' ? formModulo.link_video : null,
-        texto_teorico: formModulo.tipo === 'texto' ? formModulo.texto_teorico : null,
+        link_video: formModulo.link_video || null,
+        texto_teorico: formModulo.texto_teorico || null,
         materia_id: isNaN(materiaVal) ? null : materiaVal,
         questoes_selecionadas: formModulo.questoes_selecionadas ? formModulo.questoes_selecionadas.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)) : null
       }
 
-      const res = await fetch(`${API_URL}/api/trilhas/${trilhaAtiva.id}/modulos`, {
-        method: 'POST',
+      let url = `${API_URL}/api/trilhas/${trilhaAtiva.id}/modulos`
+      let method = 'POST'
+
+      if (formModulo.id) {
+        url = `${API_URL}/api/trilhas/modulos/${formModulo.id}`
+        method = 'PUT'
+      }
+
+      const res = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
@@ -169,7 +198,7 @@ const GestaoTrilhas = () => {
         throw new Error(errorData.detail || 'Erro na API')
       }
 
-      setSuccess('Módulo adicionado!')
+      setSuccess(formModulo.id ? 'Módulo atualizado!' : 'Módulo adicionado!')
       setModalModulo(false)
       carregarDados()
     } catch (e) {
@@ -297,7 +326,10 @@ const GestaoTrilhas = () => {
                                 {m.questoes_selecionadas?.length > 0 && <CBadge color="dark" className="ms-1"><CIcon icon={cilCheck} /> {m.questoes_selecionadas.length} Questões Específicas</CBadge>}
                               </CTableDataCell>
                               <CTableDataCell>
-                                <CButton size="sm" color="danger" variant="ghost" onClick={() => deletarModulo(m.id)}>
+                                <CButton size="sm" color="info" variant="ghost" onClick={() => abrirModalModulo(t, m)} title="Editar Módulo">
+                                  <CIcon icon={cilPencil} />
+                                </CButton>
+                                <CButton size="sm" color="danger" variant="ghost" onClick={() => deletarModulo(m.id)} title="Remover Módulo">
                                   <CIcon icon={cilTrash} />
                                 </CButton>
                               </CTableDataCell>
@@ -346,7 +378,7 @@ const GestaoTrilhas = () => {
 
       {/* MODAL MÓDULO */}
       <CModal visible={modalModulo} onClose={() => setModalModulo(false)} backdrop="static" size="lg">
-        <CModalHeader><CModalTitle>Adicionar Módulo na Trilha: {trilhaAtiva?.nome}</CModalTitle></CModalHeader>
+        <CModalHeader><CModalTitle>{formModulo.id ? 'Editar Módulo' : 'Adicionar Módulo'}: {trilhaAtiva?.nome}</CModalTitle></CModalHeader>
         <CModalBody>
           <CForm>
             <CRow className="mb-3">
@@ -368,23 +400,24 @@ const GestaoTrilhas = () => {
             <div className="mb-3 p-3 bg-body-tertiary border rounded">
               <label className="form-label fw-bold">Tipo de Conteúdo Primário</label>
               <CFormSelect value={formModulo.tipo} onChange={e => setFormModulo({...formModulo, tipo: e.target.value})} className="mb-3">
-                <option value="video">🎥 Vídeo-Aula (Teoria)</option>
-                <option value="texto">📄 Texto / Leitura</option>
+                <option value="video">🎥 Vídeo + Teoria (Padrão)</option>
+                <option value="texto">📄 Apenas Texto / Leitura</option>
                 <option value="quiz">📝 Quiz Prático (Exercícios)</option>
               </CFormSelect>
 
-              {formModulo.tipo === 'video' && (
-                <div>
-                  <label className="form-label">Link do YouTube / Vimeo</label>
-                  <CFormInput value={formModulo.link_video} onChange={e => setFormModulo({...formModulo, link_video: e.target.value})} placeholder="https://youtube.com/watch?v=..." />
-                </div>
-              )}
-
-              {formModulo.tipo === 'texto' && (
-                <div>
-                  <label className="form-label">Conteúdo Teórico</label>
-                  <CFormTextarea value={formModulo.texto_teorico} onChange={e => setFormModulo({...formModulo, texto_teorico: e.target.value})} rows={5} placeholder="Escreva aqui o conteúdo da aula..." />
-                </div>
+              {/* Sempre permitir editar link_video e texto_teorico se não for quiz puro */}
+              {formModulo.tipo !== 'quiz' && (
+                <>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">Link do YouTube / Vimeo</label>
+                    <CFormInput value={formModulo.link_video} onChange={e => setFormModulo({...formModulo, link_video: e.target.value})} placeholder="https://youtube.com/watch?v=..." />
+                    <small className="text-body-secondary">O vídeo aparecerá no topo do modal para o aluno.</small>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">Conteúdo Teórico (Apoio)</label>
+                    <CFormTextarea value={formModulo.texto_teorico} onChange={e => setFormModulo({...formModulo, texto_teorico: e.target.value})} rows={5} placeholder="Escreva aqui o conteúdo da aula..." />
+                  </div>
+                </>
               )}
 
               {formModulo.tipo === 'quiz' && (
@@ -411,7 +444,7 @@ const GestaoTrilhas = () => {
         </CModalBody>
         <CModalFooter>
           <CButton color="secondary" variant="ghost" onClick={() => setModalModulo(false)}>Cancelar</CButton>
-          <CButton color="success" onClick={salvarModulo}>Adicionar Módulo</CButton>
+          <CButton color="success" onClick={salvarModulo}>{formModulo.id ? 'Salvar Alterações' : 'Adicionar Módulo'}</CButton>
         </CModalFooter>
       </CModal>
 

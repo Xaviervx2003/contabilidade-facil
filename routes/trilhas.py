@@ -116,6 +116,47 @@ def adicionar_modulo(trilha_id: int, mod: ModuloCreate):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.put("/modulos/{modulo_id}")
+def editar_modulo(modulo_id: int, mod: ModuloUpdate):
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            
+            campos = []
+            valores = []
+            if mod.nome is not None:
+                campos.append("nome = %s")
+                valores.append(mod.nome)
+            if mod.descricao is not None:
+                campos.append("descricao = %s")
+                valores.append(mod.descricao)
+            if mod.ordem is not None:
+                campos.append("ordem = %s")
+                valores.append(mod.ordem)
+            if mod.link_video is not None:
+                campos.append("link_video = %s")
+                valores.append(mod.link_video)
+            if mod.texto_teorico is not None:
+                campos.append("texto_teorico = %s")
+                valores.append(mod.texto_teorico)
+            if mod.materia_id is not None:
+                campos.append("materia_id = %s")
+                valores.append(mod.materia_id)
+            if mod.questoes_selecionadas is not None:
+                campos.append("questoes_selecionadas = %s")
+                valores.append(mod.questoes_selecionadas)
+
+            if not campos:
+                return {"sucesso": False, "mensagem": "Nenhum dado para atualizar."}
+
+            valores.append(modulo_id)
+            query = f"UPDATE modulos SET {', '.join(campos)} WHERE id = %s"
+            cursor.execute(query, tuple(valores))
+            conn.commit()
+            return {"sucesso": True, "mensagem": "Módulo atualizado com sucesso"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.delete("/modulos/{modulo_id}")
 def deletar_modulo(modulo_id: int):
     try:
