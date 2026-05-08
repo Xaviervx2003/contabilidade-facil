@@ -94,19 +94,19 @@ const MinhasTrilhas = () => {
   }
 
   const handleAcessarModulo = (m) => {
-    // Se for quiz, vai direto (agora passando o modulo_id para marcar ao terminar)
-    if (m.materia_id || (m.questoes_selecionadas && m.questoes_selecionadas.length > 0)) {
+    // REGRA: Se tiver vídeo ou texto, prioriza o Modal de Aula (Cinema)
+    if (m.link_video || m.texto_teorico) {
+      setModuloAtivo(m)
+      setModalAula(true)
+    } 
+    // Se for APENAS quiz, vai direto para o quiz
+    else if (m.materia_id || (m.questoes_selecionadas && m.questoes_selecionadas.length > 0)) {
       if (m.questoes_selecionadas && m.questoes_selecionadas.length > 0) {
         const ids = m.questoes_selecionadas.join(',')
         navigate(`/quiz?ids=${ids}&modulo_id=${m.id}`)
       } else {
         navigate(`/quiz?materia_id=${m.materia_id}&modulo_id=${m.id}`)
       }
-      // REMOVIDO: marcarConcluido(m.id) - Agora é feito no final do quiz
-    } else {
-      // Se for vídeo ou texto, abre o modal integrado
-      setModuloAtivo(m)
-      setModalAula(true)
     }
   }
 
@@ -207,8 +207,18 @@ const MinhasTrilhas = () => {
 
       {/* MODAL DE AULA INTEGRADA */}
       <CModal visible={modalAula} onClose={() => setModalAula(false)} size="xl" backdrop="static">
-        <CModalHeader className="bg-body-tertiary">
-          <CModalTitle className="fw-bold">{moduloAtivo?.nome}</CModalTitle>
+        <CModalHeader className="bg-body-tertiary border-bottom-0 pb-0">
+          <div className="w-100">
+            <div className="d-flex align-items-center gap-2 mb-1">
+              <CBadge color="primary" variant="outline" className="text-uppercase" style={{ fontSize: '10px' }}>
+                {moduloAtivo?.ordem}º Módulo
+              </CBadge>
+              <span className="text-body-secondary" style={{ fontSize: '12px' }}>
+                Aula de Contabilidade Fácil
+              </span>
+            </div>
+            <CModalTitle className="fw-bold fs-4">{moduloAtivo?.nome}</CModalTitle>
+          </div>
         </CModalHeader>
         <CModalBody className="p-0">
           <CRow className="g-0">
@@ -252,6 +262,30 @@ const MinhasTrilhas = () => {
           </div>
           <div>
             <CButton color="secondary" variant="ghost" onClick={() => setModalAula(false)} className="me-2">Fechar</CButton>
+            
+            {/* Regra de Exercícios: Só mostra botão se houver questões ou matéria vinculada */}
+            {(moduloAtivo?.materia_id || (moduloAtivo?.questoes_selecionadas && moduloAtivo?.questoes_selecionadas.length > 0)) ? (
+              <CButton 
+                color="info" 
+                className="me-2 fw-bold text-white"
+                onClick={() => {
+                  if (moduloAtivo.questoes_selecionadas && moduloAtivo.questoes_selecionadas.length > 0) {
+                    const ids = moduloAtivo.questoes_selecionadas.join(',')
+                    navigate(`/quiz?ids=${ids}&modulo_id=${moduloAtivo.id}`)
+                  } else {
+                    navigate(`/quiz?materia_id=${moduloAtivo.materia_id}&modulo_id=${moduloAtivo.id}`)
+                  }
+                  setModalAula(false)
+                }}
+              >
+                <CIcon icon={cilPenAlt} className="me-2" /> Praticar Exercícios
+              </CButton>
+            ) : (
+              <div className="me-3 d-inline-block text-body-secondary small fst-italic">
+                <CIcon icon={cilPenAlt} className="me-1" /> Exercícios sendo preparados...
+              </div>
+            )}
+
             {!moduloAtivo?.concluido && (
               <CButton 
                 color="success" 
