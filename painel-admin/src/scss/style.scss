@@ -34,8 +34,9 @@ h1, h2, h3, h4, .words-pull-up {
 // FONTES
 // ════════════════════════════════════════════════════════════════════════════════
 
-$font-family-sans: 'Almarai', sans-serif;
+$font-family-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif;
 $font-family-serif: 'Instrument Serif', serif;
+$font-family-premium: 'Almarai', sans-serif;
 
 // ════════════════════════════════════════════════════════════════════════════════
 // CSS VARIABLES — LIGHT MODE (PADRÃO)
