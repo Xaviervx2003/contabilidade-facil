@@ -1,26 +1,32 @@
+```gitignore
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Dependencies
+.venv/
+venv/
+env/
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Environment variables
 .env
-node_modules/
-dist/
-build/
+.env.local
+*.env.*
+
+# Coverage reports
+.coverage
+coverage/
+htmlcov/
+
+# IDE
 .vscode/
 .idea/
-.pytest_cache/
-.vite/
-scratch/
-
-# Perfil do Puppeteer
-chrome-perfil/
-
-# Dados físicos do PostgreSQL
-dados_banco/
-
-# Backups pesados (manter local, não versionar)
-backups/
-*.dump
-backup_questoes.sql
-sample_questoes*.json
-
-# Scratch
-scratch_script.sql
+*.swp
+*.swo
+```

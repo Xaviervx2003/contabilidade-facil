@@ -185,14 +185,28 @@ def obter_questoes(
                 total = cursor.fetchone()[0]
 
                 offset = (pg - 1) * pp
-                limite_sql = f"LIMIT {pp} OFFSET {offset}"
+                # Seguro: pp e offset são inteiros validados pelo Pydantic
+                limite_sql = "LIMIT %s OFFSET %s"
+                params_count = list(params) + [pp, offset]
             else:
                 # Modo legado: retorna array simples (compatível com quiz do aluno)
                 limite_sql = ""
                 if limit is not None:
-                    limite_sql = f"LIMIT {int(limit)}"
+                    # Conversão segura para inteiro
+                    limite_int = int(limit) if limit is not None else None
+                    if limite_int is not None:
+                        limite_sql = "LIMIT %s"
 
             # ✅ FASE 1: Inclui q.link_video no SELECT
+            # Monta os parâmetros corretamente baseado no modo (paginação ou legado)
+            if paginate:
+                params_final = tuple(params_count)
+            else:
+                if limit is not None and limite_int is not None:
+                    params_final = tuple(list(params) + [limite_int])
+                else:
+                    params_final = tuple(params)
+                    
             cursor.execute(f"""
                 WITH feedbacks_agrupados AS (
                     SELECT 
@@ -244,7 +258,7 @@ def obter_questoes(
                 {filtro_where}
                 ORDER BY q.id ASC
                 {limite_sql};
-            """, tuple(params))
+            """, params_final)
             linhas = cursor.fetchall()
 
         resultado = []

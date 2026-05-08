@@ -4,6 +4,7 @@ from psycopg.rows import dict_row
 
 from database import get_conexao
 from models import TrilhaCreate, TrilhaUpdate, ModuloCreate, ModuloUpdate, ProgressoModulo, DuvidaTrilhaCreate, RespostaDuvida
+from utils.security import get_password_hash
 
 router = APIRouter(prefix="/api/trilhas", tags=["Trilhas de Aprendizagem"])
 
@@ -64,8 +65,11 @@ def editar_trilha(trilha_id: int, trilha: TrilhaUpdate):
         with get_conexao() as conn:
             cursor = conn.cursor()
             
+            # Lista branca de colunas permitidas para atualizar
+            colunas_permitidas = {"nome", "descricao", "status", "capa_url", "nivel"}
             campos = []
             valores = []
+            
             if trilha.nome is not None:
                 campos.append("nome = %s"); valores.append(trilha.nome)
             if trilha.descricao is not None:
@@ -81,6 +85,7 @@ def editar_trilha(trilha_id: int, trilha: TrilhaUpdate):
                 return {"sucesso": False, "mensagem": "Nenhum dado para atualizar."}
                 
             valores.append(trilha_id)
+            # Seguro: os nomes das colunas vêm de uma lista fixa, não de input do usuário
             cursor.execute(f"UPDATE trilhas SET {', '.join(campos)} WHERE id = %s", tuple(valores))
             
             # Se a trilha foi publicada, notifica todos os alunos
@@ -136,8 +141,12 @@ def editar_modulo(modulo_id: int, mod: ModuloUpdate):
         with get_conexao() as conn:
             cursor = conn.cursor()
             
+            # Lista branca de colunas permitidas para atualizar
+            colunas_permitidas = {"nome", "descricao", "ordem", "link_video", "texto_teorico", 
+                                  "materia_id", "questoes_selecionadas", "duracao_minutos", "material_apoio_url"}
             campos = []
             valores = []
+            
             if mod.nome is not None:
                 campos.append("nome = %s"); valores.append(mod.nome)
             if mod.descricao is not None:
@@ -161,6 +170,7 @@ def editar_modulo(modulo_id: int, mod: ModuloUpdate):
                 return {"sucesso": False, "mensagem": "Nenhum dado para atualizar."}
 
             valores.append(modulo_id)
+            # Seguro: os nomes das colunas vêm de uma lista fixa, não de input do usuário
             cursor.execute(f"UPDATE modulos SET {', '.join(campos)} WHERE id = %s", tuple(valores))
             conn.commit()
             return {"sucesso": True, "mensagem": "Módulo atualizado com sucesso"}

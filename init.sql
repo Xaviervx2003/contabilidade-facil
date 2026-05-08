@@ -196,6 +196,18 @@ CREATE TABLE IF NOT EXISTS progresso_trilhas (
     UNIQUE(usuario_id, modulo_id)
 );
 
+-- ─── 5e. VÍDEOS ASSISTIDOS (Analytics de Alunos) ───────────────
+CREATE TABLE IF NOT EXISTS videos_assistidos (
+    id              SERIAL PRIMARY KEY,
+    matricula_aluno VARCHAR(50)  NOT NULL REFERENCES usuarios(matricula),
+    video_id        INT          NOT NULL,  -- ID da questão ou módulo com vídeo
+    tipo_video      VARCHAR(20)  DEFAULT 'questao' CHECK (tipo_video IN ('questao', 'modulo', 'externo')),
+    assistido_em    TIMESTAMP    DEFAULT NOW(),
+    UNIQUE (matricula_aluno, video_id)
+);
+CREATE INDEX IF NOT EXISTS idx_videos_assistidos_matricula ON videos_assistidos(matricula_aluno);
+CREATE INDEX IF NOT EXISTS idx_videos_assistidos_video ON videos_assistidos(video_id);
+
 CREATE INDEX IF NOT EXISTS idx_qm_materia_id        ON questoes_materias (materia_id);
 CREATE INDEX IF NOT EXISTS idx_qm_questao_id        ON questoes_materias (questao_id);
 CREATE INDEX IF NOT EXISTS idx_pm_usuario_id        ON professores_materias (usuario_id);
