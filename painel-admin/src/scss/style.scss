@@ -5,6 +5,18 @@
 
 @tailwind utilities;
 
+// Resets essenciais para compatibilidade Tailwind + CoreUI
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
 // Failsafe para o design Premium
 .text-primary { color: #DEDBC8 !important; }
 .bg-primary { background-color: #DEDBC8 !important; }
