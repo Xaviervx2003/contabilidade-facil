@@ -81,6 +81,22 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                             CREATE INDEX IF NOT EXISTS idx_sq_questao_id
                             ON sessoes_questoes (questao_id);
                         """)
+
+                        # Migrações para Estudo Dirigido e Trilhas
+                        cursor.execute("SELECT to_regclass('public.modulos') IS NOT NULL;")
+                        if cursor.fetchone()[0]:
+                            cursor.execute("ALTER TABLE modulos ADD COLUMN IF NOT EXISTS questoes_selecionadas INT[] DEFAULT NULL;")
+                        
+                        cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS progresso_trilhas (
+                                id SERIAL PRIMARY KEY,
+                                usuario_id INT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+                                modulo_id INT NOT NULL REFERENCES modulos(id) ON DELETE CASCADE,
+                                concluido BOOLEAN DEFAULT FALSE,
+                                concluido_em TIMESTAMP DEFAULT NULL,
+                                UNIQUE(usuario_id, modulo_id)
+                            );
+                        """)
             return
         except Exception as erro:
             ultimo_erro = erro

@@ -63,8 +63,13 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Configuração de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[
+        "*", 
+        "https://contabilidade-facil-chi.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:5173"
+    ],
+    allow_credentials=True, # Alterado para True para suportar cookies/auth se necessário
     allow_methods=["*"],
     allow_headers=["*"],
 )
