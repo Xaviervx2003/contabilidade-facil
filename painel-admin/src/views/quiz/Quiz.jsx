@@ -27,6 +27,8 @@ import {
   cilFullscreenExit,
   cilStar,
 } from '@coreui/icons'
+import { API_URL } from '../../config'
+import { calculateScore, calculateGrade, formatSeconds, shuffle } from '../../utils/quizUtils'
 import MateriaMultiSelect from '../../components/MateriaMultiSelect'
 import { useTheme } from '../../context/themeContext'
 import { getMatricula } from '../../utils/auth'
