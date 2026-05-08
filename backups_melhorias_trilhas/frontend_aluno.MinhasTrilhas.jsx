@@ -21,7 +21,7 @@ import {
   CModalFooter
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilCheckCircle, cilMediaPlay, cilDescription, cilPenAlt, cilChevronRight, cilClock, cilCloudDownload } from '@coreui/icons'
+import { cilCheckCircle, cilMediaPlay, cilDescription, cilPenAlt, cilChevronRight } from '@coreui/icons'
 import { API_URL } from '../../config'
 import { useNavigate } from 'react-router-dom'
 import { getMatricula } from '../../utils/auth'
@@ -129,35 +129,15 @@ const MinhasTrilhas = () => {
           <CRow>
             {trilhas.map(t => (
               <CCol xs={12} lg={6} xl={4} key={t.id} className="mb-4">
-                <CCard className="h-100 shadow-sm border-0 overflow-hidden">
-                  {t.capa_url ? (
-                    <div style={{ height: '160px', overflow: 'hidden', position: 'relative' }}>
-                      <img src={t.capa_url} alt={t.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <div style={{ position: 'absolute', bottom: '10px', left: '10px' }}>
-                        {t.nivel && (
-                          <CBadge color="dark" style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                            {t.nivel}
-                          </CBadge>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <CCardHeader className="bg-primary text-white py-4">
-                       <div className="d-flex justify-content-between align-items-center">
-                          <h5 className="fw-bold mb-0">{t.nome}</h5>
-                          {t.nivel && <CBadge color="light" text="dark">{t.nivel}</CBadge>}
-                       </div>
-                    </CCardHeader>
-                  )}
-                  <CCardHeader className="bg-body-tertiary border-bottom-0 pt-3 pb-0">
+                <CCard className="h-100 shadow-sm">
+                  <CCardHeader className="bg-body-tertiary border-bottom-0 pt-4 pb-0">
                     <div className="d-flex justify-content-between align-items-start mb-2">
-                      {!t.capa_url && <h5 className="fw-bold mb-0">{t.nome}</h5>}
-                      {t.capa_url && <h5 className="fw-bold mb-0">{t.nome}</h5>}
+                      <h5 className="fw-bold mb-0">{t.nome}</h5>
                       <CBadge color={t.progresso_percentual === 100 ? "success" : "primary"}>
                         {t.progresso_percentual}%
                       </CBadge>
                     </div>
-                    <div className="text-body-secondary small mb-2">{t.descricao}</div>
+                    <div className="text-body-secondary small">{t.descricao}</div>
                   </CCardHeader>
                   <CCardBody>
                     <div className="mb-4 mt-2">
@@ -175,17 +155,9 @@ const MinhasTrilhas = () => {
                         {t.modulos.map((m, idx) => (
                           <div key={m.id} className={`p-3 rounded border ${m.concluido ? 'bg-body-tertiary border-success' : 'bg-body-elevated'}`}>
                             <div className="d-flex justify-content-between align-items-center mb-2">
-                              <div className="d-flex flex-column">
-                                <span className={`fw-bold ${m.concluido ? 'text-success' : 'text-body'}`}>
-                                  {m.ordem}. {m.nome}
-                                </span>
-                                {m.duracao_minutos && (
-                                  <span className="text-body-tertiary" style={{ fontSize: '11px' }}>
-                                    <CIcon icon={cilClock} size="sm" className="me-1" />
-                                    {m.duracao_minutos} min
-                                  </span>
-                                )}
-                              </div>
+                              <span className={`fw-bold ${m.concluido ? 'text-success' : 'text-body'}`}>
+                                {m.ordem}. {m.nome}
+                              </span>
                                 {m.concluido ? (
                                   <CIcon icon={cilCheckCircle} className="text-success" />
                                 ) : (
@@ -272,32 +244,13 @@ const MinhasTrilhas = () => {
             </CCol>
 
             {/* Texto Teórico Lateral/Abaixo */}
-            {(moduloAtivo?.texto_teorico || moduloAtivo?.material_apoio_url) && (
+            {moduloAtivo?.texto_teorico && (
               <CCol xs={12} lg={4} className="border-start bg-body-elevated">
                 <div className="p-4" style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
-                  {moduloAtivo?.material_apoio_url && (
-                    <div className="mb-4 p-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded">
-                      <h6 className="fw-bold text-primary mb-2">Material de Estudo</h6>
-                      <CButton 
-                        color="primary" 
-                        size="sm" 
-                        className="w-100 text-white fw-bold"
-                        href={moduloAtivo.material_apoio_url}
-                        target="_blank"
-                      >
-                        <CIcon icon={cilCloudDownload} className="me-2" /> Baixar PDF / Slides
-                      </CButton>
-                    </div>
-                  )}
-
-                  {moduloAtivo?.texto_teorico && (
-                    <>
-                      <h6 className="fw-bold text-uppercase small text-body-secondary mb-3">Resumo da Aula</h6>
-                      <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.95rem' }}>
-                        {moduloAtivo.texto_teorico}
-                      </div>
-                    </>
-                  )}
+                  <h6 className="fw-bold text-uppercase small text-body-secondary mb-3">Material de Apoio</h6>
+                  <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.95rem' }}>
+                    {moduloAtivo.texto_teorico}
+                  </div>
                 </div>
               </CCol>
             )}

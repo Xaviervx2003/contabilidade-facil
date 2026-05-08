@@ -1,5 +1,6 @@
 """
 models.py – Modelos Pydantic centralizados.
+Definem a estrutura de dados que a API aceita e valida automaticamente.
 """
 from pydantic import BaseModel
 from typing import Optional, List
@@ -11,7 +12,9 @@ class DetalheQuestaoSessao(BaseModel):
 
 class SessaoEstudo(BaseModel):
     matricula_aluno: Optional[str] = None
+    # Compatibilidade com payload legado
     nome_aluno: Optional[str] = None
+    # Snapshot opcional para auditoria/exibicao historica
     nome_aluno_snapshot: Optional[str] = None
     assunto_estudado: str
     questoes_respondidas: int
@@ -75,7 +78,7 @@ class QuestaoRequest(BaseModel):
     opcao_e: Optional[str] = None
     resposta_correta: str
     explicacao: Optional[str] = None
-    link_video: Optional[str] = None
+    link_video: Optional[str] = None   # ← FASE 1: Link YouTube/Vimeo opcional
     banca: Optional[str] = None
     orgao: Optional[str] = None
     cargo: Optional[str] = None
@@ -94,16 +97,12 @@ class ModuloCreate(BaseModel):
     texto_teorico: Optional[str] = None
     materia_id: Optional[int] = None
     questoes_selecionadas: Optional[List[int]] = None
-    duracao_minutos: Optional[int] = None          # NOVO
-    material_apoio_url: Optional[str] = None       # NOVO
 
 class TrilhaCreate(BaseModel):
     nome: str
     descricao: Optional[str] = None
     status: str = "rascunho"
     modulos: List[ModuloCreate] = []
-    capa_url: Optional[str] = None                 # NOVO
-    nivel: Optional[str] = None                    # NOVO
 
 class ModuloUpdate(BaseModel):
     nome: Optional[str] = None
@@ -113,15 +112,11 @@ class ModuloUpdate(BaseModel):
     texto_teorico: Optional[str] = None
     materia_id: Optional[int] = None
     questoes_selecionadas: Optional[List[int]] = None
-    duracao_minutos: Optional[int] = None          # NOVO
-    material_apoio_url: Optional[str] = None       # NOVO
 
 class TrilhaUpdate(BaseModel):
     nome: Optional[str] = None
     descricao: Optional[str] = None
     status: Optional[str] = None
-    capa_url: Optional[str] = None                 # NOVO
-    nivel: Optional[str] = None                    # NOVO
 
 class ProgressoModulo(BaseModel):
     matricula: str

@@ -1,5 +1,6 @@
 """
 database.py – Pool de conexões PostgreSQL com psycopg (v3).
+Substitui o get_conexao() antigo por um sistema de pool mais eficiente.
 """
 
 import os
@@ -9,8 +10,10 @@ import psycopg
 from psycopg_pool import ConnectionPool
 from contextlib import contextmanager
 
+# Carrega o .env na raiz do projeto
 load_dotenv()
 
+# Configurações vindas do seu arquivo antigo
 DB_CONFIG = {
     "host":     os.getenv("DB_HOST", "localhost"),
     "port":     int(os.getenv("DB_PORT", 5432)),
@@ -19,11 +22,14 @@ DB_CONFIG = {
     "password": os.getenv("DB_PASSWORD", ""),
 }
 
+# String de conexão formatada para o psycopg v3
 CONN_STR = f"host={DB_CONFIG['host']} port={DB_CONFIG['port']} dbname={DB_CONFIG['dbname']} user={DB_CONFIG['user']} password={DB_CONFIG['password']}"
 
+# Pool de conexões
 _pool = None
 
 def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
+    """Inicia o pool de conexões com retentativa para subir junto do Docker."""
     global _pool
 
     if _pool is not None:
@@ -37,16 +43,18 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                 conninfo=CONN_STR,
                 min_size=2,
                 max_size=20,
-                max_idle=5,
-                timeout=30.0,
+                max_idle=5, # Ajuda a não manter conexões abertas "zumbis" no Supabase/Neon
+                timeout=30.0, # Timeout para evitar que a API trave
                 open=True,
             )
 
+            # valida conexão inicial para evitar API subir sem banco
             with _pool.connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute("SELECT 1")
                     cursor.fetchone()
-
+                    # Migração defensiva para ambientes já existentes:
+                    # algumas rotas do dashboard dependem desta tabela.
                     cursor.execute("""
                         SELECT
                             to_regclass('public.sessoes_estudo') IS NOT NULL,
@@ -54,6 +62,8 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                     """)
                     tem_sessoes_estudo, tem_questoes = cursor.fetchone()
 
+                    # Só cria se as tabelas-base já existirem (evita derrubar startup
+                    # em banco novo antes do init.sql terminar).
                     if tem_sessoes_estudo and tem_questoes:
                         cursor.execute("""
                             CREATE TABLE IF NOT EXISTS sessoes_questoes (
@@ -64,19 +74,19 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                             );
                         """)
                         cursor.execute("""
-                            CREATE INDEX IF NOT EXISTS idx_sq_sessao_id ON sessoes_questoes (sessao_id);
+                            CREATE INDEX IF NOT EXISTS idx_sq_sessao_id
+                            ON sessoes_questoes (sessao_id);
                         """)
                         cursor.execute("""
-                            CREATE INDEX IF NOT EXISTS idx_sq_questao_id ON sessoes_questoes (questao_id);
+                            CREATE INDEX IF NOT EXISTS idx_sq_questao_id
+                            ON sessoes_questoes (questao_id);
                         """)
 
+                        # Migrações para Estudo Dirigido e Trilhas
                         cursor.execute("SELECT to_regclass('public.modulos') IS NOT NULL;")
                         if cursor.fetchone()[0]:
                             cursor.execute("ALTER TABLE modulos ADD COLUMN IF NOT EXISTS questoes_selecionadas INT[] DEFAULT NULL;")
-                            # NOVAS COLUNAS: duração e material de apoio
-                            cursor.execute("ALTER TABLE modulos ADD COLUMN IF NOT EXISTS duracao_minutos INT DEFAULT NULL;")
-                            cursor.execute("ALTER TABLE modulos ADD COLUMN IF NOT EXISTS material_apoio_url TEXT DEFAULT NULL;")
-
+                        
                         cursor.execute("""
                             CREATE TABLE IF NOT EXISTS progresso_trilhas (
                                 id SERIAL PRIMARY KEY,
@@ -87,13 +97,6 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                                 UNIQUE(usuario_id, modulo_id)
                             );
                         """)
-
-                        # NOVAS COLUNAS na tabela trilhas: capa e nível
-                        cursor.execute("SELECT to_regclass('public.trilhas') IS NOT NULL;")
-                        if cursor.fetchone()[0]:
-                            cursor.execute("ALTER TABLE trilhas ADD COLUMN IF NOT EXISTS capa_url TEXT DEFAULT NULL;")
-                            cursor.execute("ALTER TABLE trilhas ADD COLUMN IF NOT EXISTS nivel TEXT DEFAULT NULL;")
-
             return
         except Exception as erro:
             ultimo_erro = erro
@@ -109,6 +112,7 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
     )
 
 def encerrar_pool():
+    """Fecha todas as conexões do pool. Deve ser chamado no shutdown do FastAPI."""
     global _pool
     if _pool:
         _pool.close()
@@ -116,6 +120,10 @@ def encerrar_pool():
 
 @contextmanager
 def get_conexao():
+    """
+    Context manager que pega uma conexão do pool e a devolve ao final.
+    Uso: with get_conexao() as conn: ...
+    """
     if _pool is None:
         raise RuntimeError("Pool não iniciado. Verifique o startup da aplicação.")
 

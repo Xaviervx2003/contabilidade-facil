@@ -42,16 +42,16 @@ def criar_trilha(trilha: TrilhaCreate, usuario_id: int = Query(...)):
         with get_conexao() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO trilhas (nome, descricao, criado_por, status, capa_url, nivel)
-                VALUES (%s, %s, %s, %s, %s, %s) RETURNING id
-            """, (trilha.nome, trilha.descricao, usuario_id, trilha.status, trilha.capa_url, trilha.nivel))
+                INSERT INTO trilhas (nome, descricao, criado_por, status)
+                VALUES (%s, %s, %s, %s) RETURNING id
+            """, (trilha.nome, trilha.descricao, usuario_id, trilha.status))
             trilha_id = cursor.fetchone()[0]
 
             for mod in trilha.modulos:
                 cursor.execute("""
-                    INSERT INTO modulos (trilha_id, nome, descricao, ordem, link_video, texto_teorico, materia_id, questoes_selecionadas, duracao_minutos, material_apoio_url)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (trilha_id, mod.nome, mod.descricao, mod.ordem, mod.link_video, mod.texto_teorico, mod.materia_id, mod.questoes_selecionadas, mod.duracao_minutos, mod.material_apoio_url))
+                    INSERT INTO modulos (trilha_id, nome, descricao, ordem, link_video, texto_teorico, materia_id, questoes_selecionadas)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (trilha_id, mod.nome, mod.descricao, mod.ordem, mod.link_video, mod.texto_teorico, mod.materia_id, mod.questoes_selecionadas))
             
             conn.commit()
             return {"sucesso": True, "mensagem": "Trilha criada com sucesso", "trilha_id": trilha_id}
@@ -64,24 +64,26 @@ def editar_trilha(trilha_id: int, trilha: TrilhaUpdate):
         with get_conexao() as conn:
             cursor = conn.cursor()
             
+            # Montar a query dinâmica
             campos = []
             valores = []
             if trilha.nome is not None:
-                campos.append("nome = %s"); valores.append(trilha.nome)
+                campos.append("nome = %s")
+                valores.append(trilha.nome)
             if trilha.descricao is not None:
-                campos.append("descricao = %s"); valores.append(trilha.descricao)
+                campos.append("descricao = %s")
+                valores.append(trilha.descricao)
             if trilha.status is not None:
-                campos.append("status = %s"); valores.append(trilha.status)
-            if trilha.capa_url is not None:
-                campos.append("capa_url = %s"); valores.append(trilha.capa_url)
-            if trilha.nivel is not None:
-                campos.append("nivel = %s"); valores.append(trilha.nivel)
+                campos.append("status = %s")
+                valores.append(trilha.status)
                 
             if not campos:
                 return {"sucesso": False, "mensagem": "Nenhum dado para atualizar."}
                 
             valores.append(trilha_id)
-            cursor.execute(f"UPDATE trilhas SET {', '.join(campos)} WHERE id = %s", tuple(valores))
+            query = f"UPDATE trilhas SET {', '.join(campos)} WHERE id = %s"
+            
+            cursor.execute(query, tuple(valores))
             conn.commit()
             return {"sucesso": True, "mensagem": "Trilha atualizada com sucesso"}
     except Exception as e:
@@ -106,9 +108,9 @@ def adicionar_modulo(trilha_id: int, mod: ModuloCreate):
         with get_conexao() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO modulos (trilha_id, nome, descricao, ordem, link_video, texto_teorico, materia_id, questoes_selecionadas, duracao_minutos, material_apoio_url)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
-            """, (trilha_id, mod.nome, mod.descricao, mod.ordem, mod.link_video, mod.texto_teorico, mod.materia_id, mod.questoes_selecionadas, mod.duracao_minutos, mod.material_apoio_url))
+                INSERT INTO modulos (trilha_id, nome, descricao, ordem, link_video, texto_teorico, materia_id, questoes_selecionadas)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
+            """, (trilha_id, mod.nome, mod.descricao, mod.ordem, mod.link_video, mod.texto_teorico, mod.materia_id, mod.questoes_selecionadas))
             conn.commit()
             return {"sucesso": True, "mensagem": "Módulo adicionado", "modulo_id": cursor.fetchone()[0]}
     except Exception as e:
@@ -123,29 +125,33 @@ def editar_modulo(modulo_id: int, mod: ModuloUpdate):
             campos = []
             valores = []
             if mod.nome is not None:
-                campos.append("nome = %s"); valores.append(mod.nome)
+                campos.append("nome = %s")
+                valores.append(mod.nome)
             if mod.descricao is not None:
-                campos.append("descricao = %s"); valores.append(mod.descricao)
+                campos.append("descricao = %s")
+                valores.append(mod.descricao)
             if mod.ordem is not None:
-                campos.append("ordem = %s"); valores.append(mod.ordem)
+                campos.append("ordem = %s")
+                valores.append(mod.ordem)
             if mod.link_video is not None:
-                campos.append("link_video = %s"); valores.append(mod.link_video)
+                campos.append("link_video = %s")
+                valores.append(mod.link_video)
             if mod.texto_teorico is not None:
-                campos.append("texto_teorico = %s"); valores.append(mod.texto_teorico)
+                campos.append("texto_teorico = %s")
+                valores.append(mod.texto_teorico)
             if mod.materia_id is not None:
-                campos.append("materia_id = %s"); valores.append(mod.materia_id)
+                campos.append("materia_id = %s")
+                valores.append(mod.materia_id)
             if mod.questoes_selecionadas is not None:
-                campos.append("questoes_selecionadas = %s"); valores.append(mod.questoes_selecionadas)
-            if mod.duracao_minutos is not None:
-                campos.append("duracao_minutos = %s"); valores.append(mod.duracao_minutos)
-            if mod.material_apoio_url is not None:
-                campos.append("material_apoio_url = %s"); valores.append(mod.material_apoio_url)
+                campos.append("questoes_selecionadas = %s")
+                valores.append(mod.questoes_selecionadas)
 
             if not campos:
                 return {"sucesso": False, "mensagem": "Nenhum dado para atualizar."}
 
             valores.append(modulo_id)
-            cursor.execute(f"UPDATE modulos SET {', '.join(campos)} WHERE id = %s", tuple(valores))
+            query = f"UPDATE modulos SET {', '.join(campos)} WHERE id = %s"
+            cursor.execute(query, tuple(valores))
             conn.commit()
             return {"sucesso": True, "mensagem": "Módulo atualizado com sucesso"}
     except Exception as e:
@@ -167,16 +173,19 @@ def deletar_modulo(modulo_id: int):
 
 @router.get("/aluno/{matricula}")
 def listar_trilhas_aluno(matricula: str):
+    """ Retorna todas as trilhas publicadas e o progresso do aluno nelas """
     try:
         with get_conexao() as conn:
             cursor = conn.cursor(row_factory=dict_row)
             
+            # Buscar o ID do usuário através da matrícula
             cursor.execute("SELECT id FROM usuarios WHERE matricula = %s", (matricula,))
             row = cursor.fetchone()
             if not row:
                 raise HTTPException(status_code=404, detail="Aluno não encontrado")
             usuario_id = row["id"]
             
+            # Buscar trilhas publicadas
             cursor.execute("""
                 SELECT t.*, u.nome as criador_nome 
                 FROM trilhas t
@@ -198,6 +207,7 @@ def listar_trilhas_aluno(matricula: str):
                 """, (usuario_id, t["id"]))
                 t["modulos"] = cursor.fetchall()
                 
+                # Calcular progresso
                 total = len(t["modulos"])
                 concluidos = sum(1 for m in t["modulos"] if m["concluido"])
                 t["progresso_percentual"] = int((concluidos / total) * 100) if total > 0 else 0
@@ -218,6 +228,7 @@ def marcar_modulo_concluido(modulo_id: int, progresso: ProgressoModulo):
                 raise HTTPException(status_code=404, detail="Aluno não encontrado")
             usuario_id = row[0]
             
+            # Upsert
             cursor.execute("""
                 INSERT INTO progresso_trilhas (usuario_id, modulo_id, concluido, concluido_em)
                 VALUES (%s, %s, TRUE, NOW())
@@ -234,28 +245,32 @@ def marcar_modulo_concluido(modulo_id: int, progresso: ProgressoModulo):
 
 @router.post("/{trilha_id}/duplicar")
 def duplicar_trilha(trilha_id: int, usuario_id: int = Query(...)):
+    """ Cria uma cópia exata da trilha e seus módulos """
     try:
         with get_conexao() as conn:
             cursor = conn.cursor(row_factory=dict_row)
             
+            # Buscar trilha original
             cursor.execute("SELECT * FROM trilhas WHERE id = %s", (trilha_id,))
             original = cursor.fetchone()
             if not original:
                 raise HTTPException(status_code=404, detail="Trilha não encontrada")
             
+            # Criar nova trilha
             cursor.execute("""
-                INSERT INTO trilhas (nome, descricao, criado_por, status, capa_url, nivel)
-                VALUES (%s, %s, %s, 'rascunho', %s, %s) RETURNING id
-            """, (f"Cópia de {original['nome']}", original['descricao'], usuario_id, original.get('capa_url'), original.get('nivel')))
+                INSERT INTO trilhas (nome, descricao, criado_por, status)
+                VALUES (%s, %s, %s, 'rascunho') RETURNING id
+            """, (f"Cópia de {original['nome']}", original['descricao'], usuario_id))
             nova_id = cursor.fetchone()["id"]
             
+            # Copiar módulos
             cursor.execute("SELECT * FROM modulos WHERE trilha_id = %s ORDER BY ordem ASC", (trilha_id,))
             modulos = cursor.fetchall()
             for mod in modulos:
                 cursor.execute("""
-                    INSERT INTO modulos (trilha_id, nome, descricao, ordem, link_video, texto_teorico, materia_id, questoes_selecionadas, duracao_minutos, material_apoio_url)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (nova_id, mod['nome'], mod['descricao'], mod['ordem'], mod['link_video'], mod['texto_teorico'], mod['materia_id'], mod['questoes_selecionadas'], mod.get('duracao_minutos'), mod.get('material_apoio_url')))
+                    INSERT INTO modulos (trilha_id, nome, descricao, ordem, link_video, texto_teorico, materia_id, questoes_selecionadas)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (nova_id, mod['nome'], mod['descricao'], mod['ordem'], mod['link_video'], mod['texto_teorico'], mod['materia_id'], mod['questoes_selecionadas']))
             
             conn.commit()
             return {"sucesso": True, "trilha_id": nova_id, "mensagem": "Trilha duplicada com sucesso!"}
@@ -264,16 +279,19 @@ def duplicar_trilha(trilha_id: int, usuario_id: int = Query(...)):
 
 @router.get("/{trilha_id}/engajamento")
 def engajamento_trilha(trilha_id: int):
+    """ Retorna a lista de alunos e seu progresso na trilha """
     try:
         with get_conexao() as conn:
             cursor = conn.cursor(row_factory=dict_row)
             
+            # Total de módulos na trilha
             cursor.execute("SELECT COUNT(*) as total FROM modulos WHERE trilha_id = %s", (trilha_id,))
             total_modulos = cursor.fetchone()["total"]
             
             if total_modulos == 0:
                 return []
 
+            # Lista de alunos com progresso
             cursor.execute("""
                 SELECT 
                     u.nome, 
