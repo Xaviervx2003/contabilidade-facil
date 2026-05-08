@@ -3,7 +3,7 @@ from typing import Optional
 from psycopg.rows import dict_row
 
 from database import get_conexao
-from models import TrilhaCreate, TrilhaUpdate, ModuloCreate, ModuloUpdate, ProgressoModulo
+from models import TrilhaCreate, TrilhaUpdate, ModuloCreate, ModuloUpdate, ProgressoModulo, DuvidaTrilhaCreate, RespostaDuvida
 
 router = APIRouter(prefix="/api/trilhas", tags=["Trilhas de Aprendizagem"])
 
