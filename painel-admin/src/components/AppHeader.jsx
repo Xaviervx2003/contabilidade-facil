@@ -33,7 +33,7 @@ import {
 } from '@coreui/icons'
 
 import { AppBreadcrumb } from './index'
-import { AppHeaderDropdown } from './header/index'
+import { AppHeaderDropdown, AppHeaderNotifications } from './header/index'
 import { useTheme } from '../context/themeContext'
 
 const AppHeader = () => {
