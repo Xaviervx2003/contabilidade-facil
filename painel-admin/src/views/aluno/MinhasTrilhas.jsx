@@ -4,7 +4,7 @@ import CIcon from '@coreui/icons-react'
 import { cilCheckCircle, cilMediaPlay, cilDescription, cilPenAlt, cilChevronRight, cilClock, cilCloudDownload, cilChatBubble, cilUser, cilCheck } from '@coreui/icons'
 import { API_URL } from '../../config'
 import { useNavigate } from 'react-router-dom'
-import { getMatricula } from '../../utils/auth'
+import { getAlunoMatricula } from '../../utils/auth'
 
 const MinhasTrilhas = () => {
   const [trilhas, setTrilhas] = useState([])
@@ -20,16 +20,10 @@ const MinhasTrilhas = () => {
   const [enviandoDuvida, setEnviandoDuvida] = useState(false)
   const navigate = useNavigate()
 
-  const matricula = getMatricula()
-  const papel = sessionStorage.getItem('papel') || localStorage.getItem('papel')
-  const matriculaNormalizada = matricula?.trim().toLowerCase()
-  const podeCarregarTrilhas = Boolean(matriculaNormalizada) &&
-    !['admin', 'professor'].includes(matriculaNormalizada) &&
-    papel !== 'admin' &&
-    papel !== 'professor'
+  const matricula = getAlunoMatricula()
 
   const carregarTrilhas = useCallback(async () => {
-    if (!podeCarregarTrilhas) {
+    if (!matricula) {
       setTrilhas([])
       setLoading(false)
       setError('Esta area e exclusiva para alunos com matricula ativa.')
@@ -47,7 +41,7 @@ const MinhasTrilhas = () => {
     } finally {
       setLoading(false)
     }
-  }, [matricula, podeCarregarTrilhas])
+  }, [matricula])
 
   useEffect(() => {
     carregarTrilhas()

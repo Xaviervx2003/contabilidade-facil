@@ -21,18 +21,12 @@ import { useTheme } from './context/themeContext'
 
 const getNavItens = () => {
   const papelUsuario = sessionStorage.getItem('papel') || 'aluno'
+  const isAluno = papelUsuario === 'aluno'
 
   const itens = [
-    // ── Seção Estudos (visível para TODOS) ──
     {
       component: CNavTitle,
       name: 'Estudos',
-    },
-    {
-      component: CNavItem,
-      name: 'Meu Painel',
-      to: '/aluno/dashboard',
-      icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
     },
     {
       component: CNavItem,
@@ -42,53 +36,64 @@ const getNavItens = () => {
     },
     {
       component: CNavItem,
-      name: 'Minhas Trilhas',
-      to: '/aluno/trilhas',
-      icon: <CIcon icon={cilListRich} customClassName="nav-icon" />,
-    },
-    {
-      component: CNavItem,
       name: 'Vídeo-Aulas',
       to: '/videos',
       icon: <CIcon icon={cilVideo} customClassName="nav-icon" />,
     },
-    {
-      component: CNavItem,
-      name: 'Meu Histórico',
-      to: '/aluno/historico',
-      icon: <CIcon icon={cilHistory} customClassName="nav-icon" />,
-    },
-    {
-      component: CNavItem,
-      name: 'Meu Risco + Plano',
-      to: '/aluno/meu-risco-plano',
-      icon: <CIcon icon={cilWarning} customClassName="nav-icon" />,
-    },
-    {
-      component: CNavItem,
-      name: 'Minhas Questões',
-      to: '/aluno/questoes',
-      icon: <CIcon icon={cilListRich} customClassName="nav-icon" />,
-    },
-    {
-      component: CNavItem,
-      name: 'Meus Feedbacks',
-      to: '/aluno/feedbacks',
-      icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" />,
-    },
-    {
-      component: CNavItem,
-      name: 'Minhas Conquistas',
-      to: '/conquistas',
-      icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
-      badge: {
-        color: 'warning',
-        textColor: 'white',
-        shape: 'rounded-pill',
-        children: '🏆',
-      },
-    },
   ]
+
+  if (isAluno) {
+    itens.push(
+      {
+        component: CNavItem,
+        name: 'Meu Painel',
+        to: '/aluno/dashboard',
+        icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Minhas Trilhas',
+        to: '/aluno/trilhas',
+        icon: <CIcon icon={cilListRich} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Meu Histórico',
+        to: '/aluno/historico',
+        icon: <CIcon icon={cilHistory} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Meu Risco + Plano',
+        to: '/aluno/meu-risco-plano',
+        icon: <CIcon icon={cilWarning} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Minhas Questões',
+        to: '/aluno/questoes',
+        icon: <CIcon icon={cilListRich} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Meus Feedbacks',
+        to: '/aluno/feedbacks',
+        icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Minhas Conquistas',
+        to: '/conquistas',
+        icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
+        badge: {
+          color: 'warning',
+          textColor: 'white',
+          shape: 'rounded-pill',
+          children: '🏆',
+        },
+      },
+    )
+  }
 
   // ── Seções de professor/admin ──
   if (papelUsuario === 'professor' || papelUsuario === 'admin') {

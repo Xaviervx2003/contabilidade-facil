@@ -11,12 +11,12 @@ import {
 import CIcon from '@coreui/icons-react'
 import { cilBell, cilEnvelopeOpen, cilStar, cilInfo } from '@coreui/icons'
 import { API_URL } from '../../config'
-import { getMatricula } from '../../utils/auth'
+import { getAlunoMatricula } from '../../utils/auth'
 
 const AppHeaderNotifications = () => {
   const [notificacoes, setNotificacoes] = useState([])
   const [loading, setLoading] = useState(false)
-  const matricula = getMatricula()
+  const matricula = getAlunoMatricula()
 
   const carregarNotificacoes = useCallback(async () => {
     if (!matricula) return

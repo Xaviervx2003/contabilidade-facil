@@ -158,13 +158,17 @@ def _buscar_metricas_aluno(matricula: str) -> dict:
     with get_conexao() as conn:
         cursor = conn.cursor()
 
-        # 1. Buscar nome do aluno
+        # 1. Buscar usuario e garantir que a matricula pertence a um aluno
         cursor.execute(
-            "SELECT nome FROM usuarios WHERE matricula = %s",
+            "SELECT nome, papel FROM usuarios WHERE matricula = %s",
             (matricula,)
         )
         row_usuario = cursor.fetchone()
-        nome = row_usuario[0] if row_usuario else matricula
+        if not row_usuario:
+            raise HTTPException(status_code=404, detail="Aluno nao encontrado")
+        if row_usuario[1] != "aluno":
+            raise HTTPException(status_code=403, detail="Esta rota e exclusiva para alunos")
+        nome = row_usuario[0]
 
         # 2. Métricas agregadas
         cursor.execute("""

@@ -30,7 +30,7 @@ const AppContent = () => {
                 <Route
                   key={idx}
                   path={route.path}
-                  element={<Navigate to="/quiz" replace />}
+                  element={<Navigate to={papel === 'aluno' ? '/quiz' : '/dashboard'} replace />}
                 />
               )
             }

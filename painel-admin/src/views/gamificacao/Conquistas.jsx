@@ -11,7 +11,7 @@ import {
     CSpinner,
 } from '@coreui/react'
 import './Conquistas.scss'
-import { getMatricula } from '../../utils/auth'
+import { getAlunoMatricula } from '../../utils/auth'
 import { API_URL } from '../../config'
 
 const Conquistas = () => {
@@ -23,11 +23,10 @@ const Conquistas = () => {
     useEffect(() => {
         const carregarConquistas = async () => {
             try {
-                // Obter matrícula usando o utilitário padrão
-                const matricula = getMatricula()
+                const matricula = getAlunoMatricula()
 
                 if (!matricula) {
-                    setError('❌ Matrícula não encontrada. Faça login novamente.')
+                    setError('Esta area e exclusiva para alunos com matricula ativa.')
                     setLoading(false)
                     return
                 }
