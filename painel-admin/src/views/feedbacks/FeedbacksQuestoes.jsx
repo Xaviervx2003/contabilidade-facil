@@ -175,14 +175,14 @@ const FeedbacksQuestoes = () => {
     }, [busca])
 
     return (
-        <CContainer fluid>
+        <CContainer fluid className="bg-gray-50 dark:bg-black text-gray-900 dark:text-white min-vh-100">
             <CRow>
                 <CCol xs={12}>
-                    <CCard className="mb-4">
-                        <CCardHeader>
+                    <CCard className="mb-4 bg-white dark:bg-[#101010] border-gray-200 dark:border-gray-700">
+                        <CCardHeader className="bg-white dark:bg-[#101010] border-gray-200 dark:border-gray-700">
                             <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
                                 <div className="d-flex align-items-center gap-2">
-                                    <strong>Caixa de Entrada — Feedbacks dos Alunos</strong>
+                                    <strong className="text-gray-900 dark:text-gray-100">Caixa de Entrada — Feedbacks dos Alunos</strong>
                                     {pendentes > 0 && (
                                         <CBadge color="danger" shape="rounded-pill">
                                             {pendentes} pendente{pendentes > 1 ? 's' : ''}
@@ -216,18 +216,21 @@ const FeedbacksQuestoes = () => {
                                     <CButton
                                         color={filtroStatus === 'pendente' ? 'warning' : 'light'}
                                         onClick={() => setFiltroStatus('pendente')}
+                                        className={filtroStatus !== 'pendente' ? 'dark:bg-[#101010] dark:border-gray-700 dark:text-gray-300' : ''}
                                     >
                                         🔴 Pendentes
                                     </CButton>
                                     <CButton
                                         color={filtroStatus === 'resolvido' ? 'success' : 'light'}
                                         onClick={() => setFiltroStatus('resolvido')}
+                                        className={filtroStatus !== 'resolvido' ? 'dark:bg-[#101010] dark:border-gray-700 dark:text-gray-300' : ''}
                                     >
                                         ✅ Resolvidos
                                     </CButton>
                                     <CButton
                                         color={filtroStatus === 'todos' ? 'primary' : 'body'}
                                         onClick={() => setFiltroStatus('todos')}
+                                        className={filtroStatus !== 'todos' ? 'dark:bg-[#101010] dark:border-gray-700 dark:text-gray-300' : ''}
                                     >
                                         📋 Todos
                                     </CButton>
@@ -240,22 +243,23 @@ const FeedbacksQuestoes = () => {
                                         placeholder="Buscar por aluno, comentário ou enunciado..."
                                         value={busca}
                                         onChange={(e) => setBusca(e.target.value)}
+                                        className="bg-white dark:bg-[#101010] border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                                     />
                                 </div>
                             </div>
                         </CCardHeader>
 
-                        <CCardBody>
+                        <CCardBody className="bg-white dark:bg-[#101010]">
                             {error && <CAlert color="danger">{error}</CAlert>}
 
                             {loading ? (
                                 <div className="text-center py-5">
                                     <CSpinner color="primary" />
-                                    <p className="mt-2 text-muted">Carregando mensagens...</p>
+                                    <p className="mt-2 text-gray-500 dark:text-gray-400">Carregando mensagens...</p>
                                 </div>
                             ) : feedbacks.length === 0 ? (
-                                <div className="text-center py-5 text-muted">
-                                    <h5>
+                                <div className="text-center py-5 text-gray-500 dark:text-gray-400">
+                                    <h5 className="text-gray-900 dark:text-gray-100">
                                         {filtroStatus === 'pendente'
                                             ? 'Nenhum feedback pendente! 🎉'
                                             : filtroStatus === 'resolvido'
@@ -265,29 +269,30 @@ const FeedbacksQuestoes = () => {
                                     <p>As mensagens e dúvidas dos alunos aparecerão aqui.</p>
                                 </div>
                             ) : (
-                                <CTable hover responsive align="middle" className="border">
+                                <CTable hover responsive align="middle" className="border border-gray-200 dark:border-gray-700">
                                     <CTableHead>
                                         <CTableRow>
-                                            <CTableHeaderCell>Data</CTableHeaderCell>
-                                            <CTableHeaderCell>Aluno</CTableHeaderCell>
-                                            <CTableHeaderCell>Questão Relacionada</CTableHeaderCell>
-                                            <CTableHeaderCell>Comentário</CTableHeaderCell>
-                                            <CTableHeaderCell className="text-center">Tipo</CTableHeaderCell>
-                                            <CTableHeaderCell className="text-center">Status</CTableHeaderCell>
-                                            <CTableHeaderCell className="text-center">Ações</CTableHeaderCell>
+                                            <CTableHeaderCell className="text-gray-900 dark:text-gray-100">Data</CTableHeaderCell>
+                                            <CTableHeaderCell className="text-gray-900 dark:text-gray-100">Aluno</CTableHeaderCell>
+                                            <CTableHeaderCell className="text-gray-900 dark:text-gray-100">Questão Relacionada</CTableHeaderCell>
+                                            <CTableHeaderCell className="text-gray-900 dark:text-gray-100">Comentário</CTableHeaderCell>
+                                            <CTableHeaderCell className="text-center text-gray-900 dark:text-gray-100">Tipo</CTableHeaderCell>
+                                            <CTableHeaderCell className="text-center text-gray-900 dark:text-gray-100">Status</CTableHeaderCell>
+                                            <CTableHeaderCell className="text-center text-gray-900 dark:text-gray-100">Ações</CTableHeaderCell>
                                         </CTableRow>
                                     </CTableHead>
                                     <CTableBody>
                                         {feedbacks.map((item) => (
                                             <CTableRow
                                                 key={item.id}
+                                                className="bg-white dark:bg-[#101010] border-gray-200 dark:border-gray-700"
                                                 style={{
                                                     ...(item.resolvido ? { opacity: 0.7 } : {}),
                                                     ...(item.impacto >= 5 && !item.resolvido ? { backgroundColor: 'rgba(229, 83, 83, 0.15)' } : {})
                                                 }}
                                             >
                                                 {/* Data */}
-                                                <CTableDataCell className="small text-muted" style={{ whiteSpace: 'nowrap' }}>
+                                                <CTableDataCell className="small text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'nowrap' }}>
                                                     {item.data_criacao}
                                                 </CTableDataCell>
 
@@ -311,7 +316,7 @@ const FeedbacksQuestoes = () => {
                                                                 </CBadge>
                                                             )}
                                                         </div>
-                                                        <div className="small text-body-secondary" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                                                        <div className="small text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
                                                             {item.enunciado_questao
                                                                 ? (item.enunciado_questao.length > 120
                                                                     ? item.enunciado_questao.substring(0, 120) + '...'
@@ -325,15 +330,15 @@ const FeedbacksQuestoes = () => {
                                                 <CTableDataCell>
                                                     <div className="d-flex flex-column gap-2">
                                                         {item.texto ? (
-                                                            <span className="fst-italic">"{item.texto}"</span>
+                                                            <span className="fst-italic text-gray-900 dark:text-gray-100">"{item.texto}"</span>
                                                         ) : (
-                                                            <span className="text-body-secondary fst-italic small">Sem comentário em texto</span>
+                                                            <span className="text-gray-500 dark:text-gray-400 fst-italic small">Sem comentário em texto</span>
                                                         )}
                                                         
                                                         {/* Exibição da Resposta do Professor */}
                                                         {item.resposta_professor ? (
-                                                            <div className="p-2 bg-body-tertiary border-start border-4 border-info small">
-                                                                <strong>Sua resposta:</strong> {item.resposta_professor}
+                                                            <div className="p-2 bg-gray-100 dark:bg-[#151515] border-start border-4 border-info small text-gray-900 dark:text-gray-100">
+                                                                <strong className="text-gray-900 dark:text-gray-100">Sua resposta:</strong> {item.resposta_professor}
                                                             </div>
                                                         ) : !item.resolvido && (
                                                             <div className="mt-1">
@@ -346,8 +351,9 @@ const FeedbacksQuestoes = () => {
                                                                             e.target.value = '';
                                                                         }
                                                                     }}
+                                                                    className="bg-white dark:bg-[#101010] border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                                                                 />
-                                                                <small className="text-body-secondary" style={{ fontSize: '0.75rem' }}>Pressione Enter para enviar e resolver</small>
+                                                                <small className="text-gray-500 dark:text-gray-400" style={{ fontSize: '0.75rem' }}>Pressione Enter para enviar e resolver</small>
                                                             </div>
                                                         )}
                                                     </div>
