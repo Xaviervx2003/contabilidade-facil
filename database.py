@@ -93,6 +93,20 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                         if cursor.fetchone()[0]:
                             cursor.execute("ALTER TABLE trilhas ADD COLUMN IF NOT EXISTS capa_url TEXT DEFAULT NULL;")
                             cursor.execute("ALTER TABLE trilhas ADD COLUMN IF NOT EXISTS nivel TEXT DEFAULT NULL;")
+                        
+                        # NOVA TABELA: Dúvidas e Comentários nas Trilhas
+                        cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS duvidas_trilhas (
+                                id SERIAL PRIMARY KEY,
+                                modulo_id INT REFERENCES modulos(id) ON DELETE CASCADE,
+                                usuario_id INT REFERENCES usuarios(id) ON DELETE CASCADE,
+                                texto TEXT NOT NULL,
+                                resposta_professor TEXT DEFAULT NULL,
+                                data_criacao TIMESTAMP DEFAULT NOW(),
+                                respondida_em TIMESTAMP DEFAULT NULL
+                            );
+                        """)
+                        cursor.execute("CREATE INDEX IF NOT EXISTS idx_duvidas_modulo ON duvidas_trilhas(modulo_id);")
 
             return
         except Exception as erro:

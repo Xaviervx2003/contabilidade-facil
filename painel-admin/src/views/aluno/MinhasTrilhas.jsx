@@ -1,27 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import {
-  CAlert,
-  CButton,
-  CCard,
-  CCardBody,
-  CCardHeader,
-  CCol,
-  CRow,
-  CSpinner,
-  CProgress,
-  CBadge,
-  CAccordion,
-  CAccordionItem,
-  CAccordionHeader,
-  CAccordionBody,
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter
-} from '@coreui/react'
+import { CAlert, CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CSpinner, CProgress, CBadge, CAccordion, CAccordionItem, CAccordionHeader, CAccordionBody, CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CNav, CNavItem, CNavLink, CFormTextarea } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilCheckCircle, cilMediaPlay, cilDescription, cilPenAlt, cilChevronRight, cilClock, cilCloudDownload } from '@coreui/icons'
+import { cilCheckCircle, cilMediaPlay, cilDescription, cilPenAlt, cilChevronRight, cilClock, cilCloudDownload, cilChatBubble, cilUser, cilCheck } from '@coreui/icons'
 import { API_URL } from '../../config'
 import { useNavigate } from 'react-router-dom'
 import { getMatricula } from '../../utils/auth'
@@ -34,6 +14,10 @@ const MinhasTrilhas = () => {
   const [moduloAtivo, setModuloAtivo] = useState(null)
   const [salvando, setSalvando] = useState(null)
   const [toastErro, setToastErro] = useState('')
+  const [abaAtiva, setAbaAtiva] = useState('aula') // 'aula' ou 'duvidas'
+  const [duvidas, setDuvidas] = useState([])
+  const [novaDuvida, setNovaDuvida] = useState('')
+  const [enviandoDuvida, setEnviandoDuvida] = useState(false)
   const navigate = useNavigate()
 
   const matricula = getMatricula()
@@ -110,6 +94,42 @@ const MinhasTrilhas = () => {
     }
   }
 
+  const carregarDuvidas = async (moduloId) => {
+    try {
+      const res = await fetch(`${API_URL}/api/trilhas/modulos/${moduloId}/duvidas`)
+      const data = await res.json()
+      setDuvidas(data)
+    } catch (e) { console.error(e) }
+  }
+
+  const enviarDuvida = async () => {
+    if (!novaDuvida.trim()) return
+    setEnviandoDuvida(true)
+    try {
+      const res = await fetch(`${API_URL}/api/trilhas/duvidas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          modulo_id: moduloAtivo.id,
+          texto: novaDuvida,
+          matricula
+        })
+      })
+      if (res.ok) {
+        setNovaDuvida('')
+        carregarDuvidas(moduloAtivo.id)
+      }
+    } catch (e) { console.error(e) }
+    finally { setEnviandoDuvida(false) }
+  }
+
+  useEffect(() => {
+    if (modalAula && moduloAtivo) {
+      setAbaAtiva('aula')
+      carregarDuvidas(moduloAtivo.id)
+    }
+  }, [modalAula, moduloAtivo])
+
   if (loading) return <div className="text-center py-5"><CSpinner /></div>
 
   return (
@@ -151,11 +171,18 @@ const MinhasTrilhas = () => {
                   )}
                   <CCardHeader className="bg-body-tertiary border-bottom-0 pt-3 pb-0">
                     <div className="d-flex justify-content-between align-items-start mb-2">
-                      {!t.capa_url && <h5 className="fw-bold mb-0">{t.nome}</h5>}
-                      {t.capa_url && <h5 className="fw-bold mb-0">{t.nome}</h5>}
-                      <CBadge color={t.progresso_percentual === 100 ? "success" : "primary"}>
-                        {t.progresso_percentual}%
-                      </CBadge>
+                      {!t.capa_url && <h5 className="fw-bold mb-0 text-truncate">{t.nome}</h5>}
+                      {t.capa_url && <h5 className="fw-bold mb-0 text-truncate">{t.nome}</h5>}
+                      <div className="d-flex flex-column align-items-end gap-1">
+                        <CBadge color={t.progresso_percentual === 100 ? "success" : "primary"}>
+                          {t.progresso_percentual}%
+                        </CBadge>
+                        {t.media_acertos !== null && (
+                          <CBadge color="info" variant="outline" style={{ fontSize: '10px' }}>
+                            Média: {t.media_acertos}%
+                          </CBadge>
+                        )}
+                      </div>
                     </div>
                     <div className="text-body-secondary small mb-2">{t.descricao}</div>
                   </CCardHeader>
@@ -248,8 +275,30 @@ const MinhasTrilhas = () => {
             <CModalTitle className="fw-bold fs-4">{moduloAtivo?.nome}</CModalTitle>
           </div>
         </CModalHeader>
-        <CModalBody className="p-0">
-          <CRow className="g-0">
+        <CNav variant="tabs" className="bg-body-tertiary px-4 border-bottom-0">
+          <CNavItem>
+            <CNavLink 
+              active={abaAtiva === 'aula'} 
+              onClick={() => setAbaAtiva('aula')}
+              style={{ cursor: 'pointer', fontWeight: abaAtiva === 'aula' ? 'bold' : 'normal' }}
+            >
+              <CIcon icon={cilMediaPlay} className="me-2" /> Aula
+            </CNavLink>
+          </CNavItem>
+          <CNavItem>
+            <CNavLink 
+              active={abaAtiva === 'duvidas'} 
+              onClick={() => setAbaAtiva('duvidas')}
+              style={{ cursor: 'pointer', fontWeight: abaAtiva === 'duvidas' ? 'bold' : 'normal' }}
+            >
+              <CIcon icon={cilChatBubble} className="me-2" /> Dúvidas / Comentários
+              {duvidas.length > 0 && <CBadge color="danger" shape="rounded-pill" className="ms-2">{duvidas.length}</CBadge>}
+            </CNavLink>
+          </CNavItem>
+        </CNav>
+        <CModalBody className="p-0 border-top">
+          {abaAtiva === 'aula' ? (
+            <CRow className="g-0">
             {/* Player de Vídeo */}
             <CCol xs={12} lg={moduloAtivo?.texto_teorico ? 8 : 12}>
               {moduloAtivo?.link_video ? (
@@ -302,6 +351,51 @@ const MinhasTrilhas = () => {
               </CCol>
             )}
           </CRow>
+          ) : (
+            <div className="p-4 bg-body-elevated" style={{ minHeight: '400px' }}>
+              <div className="mb-4">
+                <h6 className="fw-bold mb-3">Tem alguma dúvida sobre esta aula?</h6>
+                <div className="d-flex gap-2">
+                  <CFormTextarea 
+                    placeholder="Digite sua dúvida ou comentário aqui..." 
+                    rows={3}
+                    value={novaDuvida}
+                    onChange={(e) => setNovaDuvida(e.target.value)}
+                  />
+                  <CButton color="primary" className="text-white" onClick={enviarDuvida} disabled={enviandoDuvida}>
+                    {enviandoDuvida ? <CSpinner size="sm" /> : 'Enviar'}
+                  </CButton>
+                </div>
+              </div>
+
+              <div className="duvidas-list">
+                <h6 className="fw-bold border-bottom pb-2 mb-3">Comentários da Turma ({duvidas.length})</h6>
+                {duvidas.length === 0 ? (
+                  <div className="text-center py-4 text-body-secondary">
+                    Nenhuma dúvida enviada ainda. Seja o primeiro!
+                  </div>
+                ) : (
+                  <div className="d-flex flex-column gap-3">
+                    {duvidas.map(d => (
+                      <div key={d.id} className="p-3 rounded bg-body-tertiary border">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          <span className="fw-bold small"><CIcon icon={cilUser} className="me-1" /> {d.aluno_nome}</span>
+                          <span className="text-body-secondary" style={{ fontSize: '10px' }}>{new Date(d.data_criacao).toLocaleDateString()}</span>
+                        </div>
+                        <div className="mb-2">{d.texto}</div>
+                        {d.resposta_professor && (
+                          <div className="ms-4 p-3 mt-2 rounded bg-info bg-opacity-10 border-start border-info border-4">
+                            <div className="fw-bold small text-info mb-1">Resposta do Professor <CIcon icon={cilCheck} /></div>
+                            <div className="small">{d.resposta_professor}</div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </CModalBody>
         <CModalFooter className="bg-body-tertiary justify-content-between">
           <div className="small text-body-secondary">

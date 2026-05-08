@@ -197,10 +197,25 @@ def listar_trilhas_aluno(matricula: str):
                     ORDER BY m.ordem ASC
                 """, (usuario_id, t["id"]))
                 t["modulos"] = cursor.fetchall()
-                
+                # Calcular progresso e média
                 total = len(t["modulos"])
                 concluidos = sum(1 for m in t["modulos"] if m["concluido"])
                 t["progresso_percentual"] = int((concluidos / total) * 100) if total > 0 else 0
+
+                # Calcular média de acertos nos quizzes vinculados à trilha
+                somas_acertos = []
+                for m in t["modulos"]:
+                    if m["materia_id"]:
+                        # Pega a última sessão do aluno para esta matéria
+                        cursor.execute("""
+                            SELECT taxa_acerto FROM sessoes_estudo 
+                            WHERE matricula_aluno = %s AND (assunto_estudado LIKE %s OR assunto_estudado = (SELECT nome FROM materias WHERE id = %s))
+                            ORDER BY data_sessao DESC LIMIT 1
+                        """, (matricula, f"%{m['materia_nome']}%", m["materia_id"]))
+                        sessao = cursor.fetchone()
+                        if sessao: somas_acertos.append(sessao["taxa_acerto"])
+                
+                t["media_acertos"] = round(sum(somas_acertos) / len(somas_acertos), 1) if somas_acertos else None
                 
             return trilhas
     except Exception as e:
@@ -294,5 +309,76 @@ def engajamento_trilha(trilha_id: int):
                 a["total_modulos"] = total_modulos
 
             return alunos
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ─── DÚVIDAS E COMENTÁRIOS ─────────────────────────────────────────
+
+@router.get("/modulos/{modulo_id}/duvidas")
+def listar_duvidas_modulo(modulo_id: int):
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor(row_factory=dict_row)
+            cursor.execute("""
+                SELECT d.*, u.nome as aluno_nome 
+                FROM duvidas_trilhas d
+                JOIN usuarios u ON u.id = d.usuario_id
+                WHERE d.modulo_id = %s
+                ORDER BY d.data_criacao DESC
+            """, (modulo_id,))
+            return cursor.fetchall()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/duvidas")
+def criar_duvida(duvida: DuvidaTrilhaCreate):
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            
+            cursor.execute("SELECT id FROM usuarios WHERE matricula = %s", (duvida.matricula,))
+            row = cursor.fetchone()
+            if not row: raise HTTPException(status_code=404, detail="Usuário não encontrado")
+            usuario_id = row[0]
+            
+            cursor.execute("""
+                INSERT INTO duvidas_trilhas (modulo_id, usuario_id, texto)
+                VALUES (%s, %s, %s) RETURNING id
+            """, (duvida.modulo_id, usuario_id, duvida.texto))
+            conn.commit()
+            return {"sucesso": True, "duvida_id": cursor.fetchone()[0]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/duvidas/pendentes")
+def listar_duvidas_pendentes():
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor(row_factory=dict_row)
+            cursor.execute("""
+                SELECT d.*, u.nome as aluno_nome, m.nome as modulo_nome, t.nome as trilha_nome
+                FROM duvidas_trilhas d
+                JOIN usuarios u ON u.id = d.usuario_id
+                JOIN modulos m ON m.id = d.modulo_id
+                JOIN trilhas t ON t.id = m.trilha_id
+                WHERE d.resposta_professor IS NULL
+                ORDER BY d.data_criacao ASC
+            """)
+            return cursor.fetchall()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/duvidas/{duvida_id}/responder")
+def responder_duvida(duvida_id: int, resp: RespostaDuvida):
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE duvidas_trilhas 
+                SET resposta_professor = %s, respondida_em = NOW()
+                WHERE id = %s
+            """, (resp.resposta, duvida_id))
+            conn.commit()
+            return {"sucesso": True, "mensagem": "Dúvida respondida!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

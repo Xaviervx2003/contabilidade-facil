@@ -125,3 +125,11 @@ class TrilhaUpdate(BaseModel):
 
 class ProgressoModulo(BaseModel):
     matricula: str
+
+class DuvidaTrilhaCreate(BaseModel):
+    modulo_id: int
+    texto: str
+    matricula: str
+
+class RespostaDuvida(BaseModel):
+    resposta: str

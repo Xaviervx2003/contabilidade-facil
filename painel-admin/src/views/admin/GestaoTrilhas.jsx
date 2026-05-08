@@ -26,7 +26,7 @@ import {
   CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPencil, cilTrash, cilPlus, cilCheck, cilVideo, cilDescription, cilCopy, cilChart } from '@coreui/icons'
+import { cilPlus, cilPencil, cilTrash, cilVideo, cilCheck, cilDescription, cilChart, cilChartLine, cilChatBubble, cilUser, cilCheckCircle } from '@coreui/icons'
 import { API_URL } from '../../config'
 
 const GestaoTrilhas = () => {
@@ -39,8 +39,12 @@ const GestaoTrilhas = () => {
   const [modalTrilha, setModalTrilha] = useState(false)
   const [modalModulo, setModalModulo] = useState(false)
   const [modalEngajamento, setModalEngajamento] = useState(false)
+  const [modalDuvidas, setModalDuvidas] = useState(false)
   const [dadosEngajamento, setDadosEngajamento] = useState([])
+  const [duvidasPendentes, setDuvidasPendentes] = useState([])
   const [loadingEngajamento, setLoadingEngajamento] = useState(false)
+  const [respostaDuvida, setRespostaDuvida] = useState('')
+  const [respondendoId, setRespondendoId] = useState(null)
 
   const [trilhaAtiva, setTrilhaAtiva] = useState(null)
   const [formTrilha, setFormTrilha] = useState({ nome: '', descricao: '', status: 'rascunho', capa_url: '', nivel: '', modulos: [] })
@@ -65,14 +69,18 @@ const GestaoTrilhas = () => {
     setLoading(true)
     setError('')
     try {
-      const [resTrilhas, resMaterias] = await Promise.all([
+      const [resTrilhas, resMaterias, resDuvidas] = await Promise.all([
         fetch(`${API_URL}/api/trilhas`),
-        fetch(`${API_URL}/api/admin/materias`)
+        fetch(`${API_URL}/api/admin/materias`),
+        fetch(`${API_URL}/api/trilhas/duvidas/pendentes`)
       ])
       const dataTrilhas = await resTrilhas.json()
       const dataMaterias = await resMaterias.json()
+      const dataDuvidas = await resDuvidas.json()
+      
       setTrilhas(Array.isArray(dataTrilhas) ? dataTrilhas : [])
       setMaterias(Array.isArray(dataMaterias) ? dataMaterias : [])
+      setDuvidasPendentes(Array.isArray(dataDuvidas) ? dataDuvidas : [])
     } catch (err) {
       setError('Erro ao carregar dados do servidor.')
     } finally {
@@ -203,8 +211,26 @@ const GestaoTrilhas = () => {
       setModalModulo(false)
       carregarDados()
     } catch (e) {
-      setError(`Erro ao salvar módulo: ${e.message}`)
+      console.error(e)
+      setError(`Erro ao deletar: ${e.message}`)
     }
+  }
+
+  const responderDuvida = async (id) => {
+    if (!respostaDuvida.trim()) return
+    try {
+      const res = await fetch(`${API_URL}/api/trilhas/duvidas/${id}/responder`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resposta: respostaDuvida })
+      })
+      if (res.ok) {
+        setSuccess('Resposta enviada!')
+        setRespostaDuvida('')
+        setRespondendoId(null)
+        carregarDados()
+      }
+    } catch (e) { setError('Erro ao responder.') }
   }
 
   const deletarModulo = async (id) => {
@@ -255,13 +281,23 @@ const GestaoTrilhas = () => {
         <CCard className="mb-4">
           <CCardHeader className="d-flex justify-content-between align-items-center">
             <strong>Gestão de Trilhas de Aprendizagem (Cursos)</strong>
-            <CButton color="primary" onClick={() => {
-              setTrilhaAtiva(null)
-              setFormTrilha({ nome: '', descricao: '', status: 'rascunho', capa_url: '', nivel: '', modulos: [] })
-              setModalTrilha(true)
-            }}>
-              <CIcon icon={cilPlus} className="me-1" /> Nova Trilha
-            </CButton>
+            <div className="d-flex gap-2">
+              <CButton color="warning" variant="outline" className="position-relative" onClick={() => setModalDuvidas(true)}>
+                <CIcon icon={cilChatBubble} className="me-1" /> Dúvidas Alunos
+                {duvidasPendentes.length > 0 && (
+                  <CBadge color="danger" position="top-end" shape="rounded-pill">
+                    {duvidasPendentes.length}
+                  </CBadge>
+                )}
+              </CButton>
+              <CButton color="primary" onClick={() => {
+                setTrilhaAtiva(null)
+                setFormTrilha({ nome: '', descricao: '', status: 'rascunho', capa_url: '', nivel: '', modulos: [] })
+                setModalTrilha(true)
+              }}>
+                <CIcon icon={cilPlus} className="me-1" /> Nova Trilha
+              </CButton>
+            </div>
           </CCardHeader>
 
           <CCardBody>
@@ -537,6 +573,52 @@ const GestaoTrilhas = () => {
                 ))}
               </CTableBody>
             </CTable>
+          )}
+        </CModalBody>
+      </CModal>
+      {/* MODAL DE DÚVIDAS PENDENTES */}
+      <CModal visible={modalDuvidas} onClose={() => setModalDuvidas(false)} size="lg">
+        <CModalHeader>
+          <CModalTitle>Dúvidas e Comentários Pendentes</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          {duvidasPendentes.length === 0 ? (
+            <div className="text-center py-4">Tudo limpo! Nenhuma dúvida pendente.</div>
+          ) : (
+            <div className="d-flex flex-column gap-4">
+              {duvidasPendentes.map(d => (
+                <div key={d.id} className="p-3 border rounded bg-light">
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="fw-bold"><CIcon icon={cilUser} /> {d.aluno_nome}</span>
+                    <span className="small text-muted">{new Date(d.data_criacao).toLocaleString()}</span>
+                  </div>
+                  <div className="small text-primary mb-2">
+                    Em: <strong>{d.trilha_nome}</strong> > {d.modulo_nome}
+                  </div>
+                  <div className="p-2 bg-white rounded border mb-3">
+                    {d.texto}
+                  </div>
+                  
+                  {respondendoId === d.id ? (
+                    <div className="mt-2">
+                      <CFormTextarea 
+                        placeholder="Escreva sua resposta..." 
+                        rows={3} 
+                        value={respostaDuvida}
+                        onChange={(e) => setRespostaDuvida(e.target.value)}
+                        className="mb-2"
+                      />
+                      <div className="d-flex gap-2">
+                        <CButton color="success" size="sm" className="text-white" onClick={() => responderDuvida(d.id)}>Enviar Resposta</CButton>
+                        <CButton color="secondary" size="sm" variant="ghost" onClick={() => setRespondendoId(null)}>Cancelar</CButton>
+                      </div>
+                    </div>
+                  ) : (
+                    <CButton color="primary" size="sm" onClick={() => setRespondendoId(d.id)}>Responder</CButton>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </CModalBody>
       </CModal>
