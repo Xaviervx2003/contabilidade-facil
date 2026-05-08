@@ -1,3 +1,8 @@
+@use "@coreui/coreui/scss/coreui" as * with ($enable-deprecation-messages: false,
+);
+@use "@coreui/chartjs/scss/coreui-chartjs";
+@use "vendors/simplebar";
+
 @tailwind utilities;
 
 // Failsafe para o design Premium
@@ -24,11 +29,6 @@
 h1, h2, h3, h4, .words-pull-up {
   font-family: "Almarai", sans-serif !important;
 }
-
-@use "@coreui/coreui/scss/coreui" as * with ($enable-deprecation-messages: false,
-);
-@use "@coreui/chartjs/scss/coreui-chartjs";
-@use "vendors/simplebar";
 
 // ════════════════════════════════════════════════════════════════════════════════
 // FONTES
