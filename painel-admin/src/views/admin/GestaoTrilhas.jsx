@@ -26,7 +26,7 @@ import {
   CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPlus, cilPencil, cilTrash, cilVideo, cilCheck, cilDescription, cilChart, cilChartLine, cilChatBubble, cilUser, cilCheckCircle } from '@coreui/icons'
+import { cilPlus, cilPencil, cilTrash, cilVideo, cilCheck, cilDescription, cilChart, cilChartLine, cilChatBubble, cilUser, cilCheckCircle, cilCopy } from '@coreui/icons'
 import { API_URL } from '../../config'
 
 const GestaoTrilhas = () => {
