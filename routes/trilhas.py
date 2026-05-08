@@ -228,7 +228,7 @@ def listar_trilhas_aluno(matricula: str):
                         cursor.execute("""
                             SELECT taxa_acerto FROM sessoes_estudo 
                             WHERE matricula_aluno = %s AND (assunto_estudado LIKE %s OR assunto_estudado = (SELECT nome FROM materias WHERE id = %s))
-                            ORDER BY data_sessao DESC LIMIT 1
+                            ORDER BY criado_em DESC LIMIT 1
                         """, (matricula, f"%{m['materia_nome']}%", m["materia_id"]))
                         sessao = cursor.fetchone()
                         if sessao: somas_acertos.append(sessao["taxa_acerto"])
