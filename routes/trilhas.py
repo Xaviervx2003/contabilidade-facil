@@ -82,6 +82,22 @@ def editar_trilha(trilha_id: int, trilha: TrilhaUpdate):
                 
             valores.append(trilha_id)
             cursor.execute(f"UPDATE trilhas SET {', '.join(campos)} WHERE id = %s", tuple(valores))
+            
+            # Se a trilha foi publicada, notifica todos os alunos
+            if trilha.status == 'publicado':
+                cursor.execute("SELECT id FROM usuarios WHERE tipo = 'aluno'")
+                alunos = cursor.fetchall()
+                for aluno in alunos:
+                    cursor.execute("""
+                        INSERT INTO notificacoes (usuario_id, titulo, mensagem, link)
+                        VALUES (%s, %s, %s, %s)
+                    """, (
+                        aluno[0], 
+                        "Nova Trilha Disponível! 🚀", 
+                        f"O curso '{trilha.nome or 'Nova Trilha'}' acaba de ser publicado. Confira!",
+                        "/aluno/trilhas"
+                    ))
+
             conn.commit()
             return {"sucesso": True, "mensagem": "Trilha atualizada com sucesso"}
     except Exception as e:
@@ -373,12 +389,62 @@ def responder_duvida(duvida_id: int, resp: RespostaDuvida):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
+            
+            # Pega o autor da dúvida e o nome do módulo
+            cursor.execute("""
+                SELECT d.usuario_id, m.nome as modulo_nome 
+                FROM duvidas_trilhas d
+                JOIN modulos m ON m.id = d.modulo_id
+                WHERE d.id = %s
+            """, (duvida_id,))
+            duvida_info = cursor.fetchone()
+            
             cursor.execute("""
                 UPDATE duvidas_trilhas 
                 SET resposta_professor = %s, respondida_em = NOW()
                 WHERE id = %s
             """, (resp.resposta, duvida_id))
+            
+            if duvida_info:
+                cursor.execute("""
+                    INSERT INTO notificacoes (usuario_id, titulo, mensagem, link)
+                    VALUES (%s, %s, %s, %s)
+                """, (
+                    duvida_info[0], 
+                    "Dúvida Respondida! 🎓", 
+                    f"O professor respondeu sua dúvida na aula: {duvida_info[1]}",
+                    "/aluno/trilhas"
+                ))
+            
             conn.commit()
-            return {"sucesso": True, "mensagem": "Dúvida respondida!"}
+            return {"sucesso": True, "mensagem": "Dúvida respondida e aluno notificado!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ─── ENDPOINTS DE NOTIFICAÇÕES ────────────────────────────────────
+
+@router.get("/notificacoes/{matricula}")
+def listar_notificacoes(matricula: str):
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor(row_factory=dict_row)
+            cursor.execute("""
+                SELECT n.* FROM notificacoes n
+                JOIN usuarios u ON u.id = n.usuario_id
+                WHERE u.matricula = %s
+                ORDER BY n.data_criacao DESC LIMIT 20
+            """, (matricula,))
+            return cursor.fetchall()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/notificacoes/{notif_id}/lida")
+def marcar_notificacao_lida(notif_id: int):
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE notificacoes SET lida = TRUE WHERE id = %s", (notif_id,))
+            conn.commit()
+            return {"sucesso": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

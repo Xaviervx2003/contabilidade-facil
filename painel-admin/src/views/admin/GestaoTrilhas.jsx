@@ -593,7 +593,7 @@ const GestaoTrilhas = () => {
                     <span className="small text-muted">{new Date(d.data_criacao).toLocaleString()}</span>
                   </div>
                   <div className="small text-primary mb-2">
-                    Em: <strong>{d.trilha_nome}</strong> > {d.modulo_nome}
+                    Em: <strong>{d.trilha_nome}</strong> &gt; {d.modulo_nome}
                   </div>
                   <div className="p-2 bg-white rounded border mb-3">
                     {d.texto}

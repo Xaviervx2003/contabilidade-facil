@@ -108,6 +108,20 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                         """)
                         cursor.execute("CREATE INDEX IF NOT EXISTS idx_duvidas_modulo ON duvidas_trilhas(modulo_id);")
 
+                        # NOVA TABELA: Notificações
+                        cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS notificacoes (
+                                id SERIAL PRIMARY KEY,
+                                usuario_id INT REFERENCES usuarios(id) ON DELETE CASCADE,
+                                titulo TEXT NOT NULL,
+                                mensagem TEXT NOT NULL,
+                                link TEXT,
+                                lida BOOLEAN DEFAULT FALSE,
+                                data_criacao TIMESTAMP DEFAULT NOW()
+                            );
+                        """)
+                        cursor.execute("CREATE INDEX IF NOT EXISTS idx_notif_usuario ON notificacoes(usuario_id);")
+
             return
         except Exception as erro:
             ultimo_erro = erro
