@@ -18,7 +18,7 @@ const Landing = () => {
                     flex-direction: column;
                     overflow-x: hidden;
                 }
-                .hero-container {
+                .landing-premium-wrapper .hero-container {
                     position: relative;
                     width: 100%;
                     height: 95vh;
@@ -28,20 +28,20 @@ const Landing = () => {
                     overflow: hidden;
                     border: 1px solid rgba(255,255,255,0.05);
                 }
-                .hero-media {
+                .landing-premium-wrapper .hero-media {
                     position: absolute;
                     inset: 0;
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
                 }
-                .hero-overlay {
+                .landing-premium-wrapper .hero-overlay {
                     position: absolute;
                     inset: 0;
                     background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.4) 100%);
                     z-index: 1;
                 }
-                .hero-content {
+                .landing-premium-wrapper .hero-content {
                     position: absolute;
                     inset: 0;
                     z-index: 10;
@@ -50,7 +50,7 @@ const Landing = () => {
                     flex-direction: column;
                     justify-content: flex-end;
                 }
-                .nav-glass {
+                .landing-premium-wrapper .nav-glass {
                     position: absolute;
                     top: 2rem;
                     left: 50%;
@@ -64,7 +64,7 @@ const Landing = () => {
                     border: 1px solid rgba(255,255,255,0.1);
                     z-index: 20;
                 }
-                .nav-link {
+                .landing-premium-wrapper .nav-link {
                     color: rgba(222, 219, 200, 0.7);
                     text-decoration: none;
                     text-transform: uppercase;
@@ -72,22 +72,22 @@ const Landing = () => {
                     letter-spacing: 0.15em;
                     transition: all 0.3s;
                 }
-                .nav-link:hover { color: #fff; transform: scale(1.05); }
-                
-                .title-main {
+                .landing-premium-wrapper .nav-link:hover { color: #fff; transform: scale(1.05); }
+
+                .landing-premium-wrapper .title-main {
                     font-size: clamp(3rem, 10vw, 8rem);
                     color: #DEDBC8;
                     line-height: 0.8;
                     letter-spacing: -0.05em;
                     margin-bottom: 2rem;
                 }
-                .hero-footer {
+                .landing-premium-wrapper .hero-footer {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
                     align-items: flex-end;
                     gap: 4rem;
                 }
-                .desc-text {
+                .landing-premium-wrapper .desc-text {
                     color: rgba(222, 219, 200, 0.6);
                     font-size: 1.1rem;
                     line-height: 1.4;
@@ -95,7 +95,7 @@ const Landing = () => {
                     border-left: 2px solid rgba(222, 219, 200, 0.2);
                     padding-left: 1.5rem;
                 }
-                .btn-premium {
+                .landing-premium-wrapper .btn-premium {
                     background: #DEDBC8;
                     color: #000;
                     border: none;
@@ -109,11 +109,11 @@ const Landing = () => {
                     transition: all 0.4s;
                     box-shadow: 0 0 30px rgba(222,219,200,0.2);
                 }
-                .btn-premium:hover {
+                .landing-premium-wrapper .btn-premium:hover {
                     gap: 2.5rem;
                     box-shadow: 0 0 50px rgba(222,219,200,0.4);
                 }
-                .btn-icon {
+                .landing-premium-wrapper .btn-icon {
                     background: #000;
                     width: 3.5rem;
                     height: 3.5rem;
@@ -124,18 +124,18 @@ const Landing = () => {
                 }
 
                 @media (max-width: 768px) {
-                    .nav-glass { gap: 1rem; padding: 0.8rem 1.5rem; width: 90%; justify-content: center; }
-                    .nav-link { font-size: 0.6rem; }
-                    .hero-footer { grid-template-columns: 1fr; gap: 2rem; }
-                    .hero-content { padding: 1.5rem; }
-                    .title-main { font-size: 4rem; }
+                    .landing-premium-wrapper .nav-glass { gap: 1rem; padding: 0.8rem 1.5rem; width: 90%; justify-content: center; }
+                    .landing-premium-wrapper .nav-link { font-size: 0.6rem; }
+                    .landing-premium-wrapper .hero-footer { grid-template-columns: 1fr; gap: 2rem; }
+                    .landing-premium-wrapper .hero-content { padding: 1.5rem; }
+                    .landing-premium-wrapper .title-main { font-size: 4rem; }
                 }
             `}</style>
 
             <div className="hero-container">
                 {/* Media Background */}
-                <img 
-                    src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80" 
+                <img
+                    src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80"
                     className="hero-media"
                     alt="Hero"
                 />
@@ -152,7 +152,7 @@ const Landing = () => {
 
                 {/* Content */}
                 <div className="hero-content">
-                    <motion.h1 
+                    <motion.h1
                         initial={{ y: 100, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
@@ -162,7 +162,7 @@ const Landing = () => {
                     </motion.h1>
 
                     <div className="hero-footer">
-                        <motion.p 
+                        <motion.p
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.5 }}
