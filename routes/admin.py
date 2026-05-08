@@ -1,11 +1,8 @@
-"""
-routes/admin.py — Gestão centralizada de Usuários, Alunos e Matérias.
-Todos os papéis (admin, professor, aluno) são gerenciados aqui.
-"""
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
+from typing import Optional
 from database import get_conexao
 from models import PromoverProfessorRequest, MateriaRequest
+from utils.security import get_password_hash
 
 router = APIRouter(prefix="/api/admin", tags=["Administração"])
 
@@ -372,7 +369,8 @@ def criar_usuario(dados: dict):
             if email == "":
                 email = None
 
-            # 3. Inserir o usuário
+            # 3. Inserir o usuário com senha hasheada
+            senha_hash = get_password_hash(dados.get("senha"))
             cursor.execute("""
                 INSERT INTO usuarios (nome, matricula, senha, email, papel)
                 VALUES (%s, %s, %s, %s, %s)
@@ -380,7 +378,7 @@ def criar_usuario(dados: dict):
             """, (
                 dados.get("nome"),
                 dados.get("matricula"),
-                dados.get("senha"),
+                senha_hash,
                 email,
                 papel,
             ))
@@ -424,9 +422,10 @@ def editar_usuario(usuario_id: int, dados: dict):
             if email == "":
                 email = None
 
-            # Atualiza campos básicos (incluindo senha se fornecida)
+            # Atualiza campos básicos (incluindo senha com hash se fornecida)
             senha = dados.get("senha")
             if senha and senha.strip():
+                senha_hash = get_password_hash(senha)
                 cursor.execute("""
                     UPDATE usuarios
                     SET nome  = COALESCE(%s, nome),
@@ -434,7 +433,7 @@ def editar_usuario(usuario_id: int, dados: dict):
                         papel = COALESCE(%s, papel),
                         senha = %s
                     WHERE id = %s;
-                """, (dados.get("nome"), email, papel, senha, usuario_id))
+                """, (dados.get("nome"), email, papel, senha_hash, usuario_id))
             else:
                 cursor.execute("""
                     UPDATE usuarios
