@@ -3,14 +3,6 @@
 @use "@coreui/chartjs/scss/coreui-chartjs";
 @use "vendors/simplebar";
 
-// Tailwind v4 - Importação estável
-@import "tailwindcss";
-
-@theme {
-  --color-primary: #DEDBC8;
-  --color-primary-dark: #B5B198;
-}
-
 // Failsafe e Resets manuais
 *, *::before, *::after {
   box-sizing: border-box;
