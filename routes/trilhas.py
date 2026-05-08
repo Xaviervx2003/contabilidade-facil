@@ -199,3 +199,77 @@ def marcar_modulo_concluido(modulo_id: int, progresso: ProgressoModulo):
             return {"sucesso": True, "mensagem": "Módulo marcado como concluído"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ─── UTILITÁRIOS / DASHBOARD ───────────────────────────────────────
+
+@router.post("/{trilha_id}/duplicar")
+def duplicar_trilha(trilha_id: int, usuario_id: int = Query(...)):
+    """ Cria uma cópia exata da trilha e seus módulos """
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor(row_factory=dict_row)
+            
+            # Buscar trilha original
+            cursor.execute("SELECT * FROM trilhas WHERE id = %s", (trilha_id,))
+            original = cursor.fetchone()
+            if not original:
+                raise HTTPException(status_code=404, detail="Trilha não encontrada")
+            
+            # Criar nova trilha
+            cursor.execute("""
+                INSERT INTO trilhas (nome, descricao, criado_por, status)
+                VALUES (%s, %s, %s, 'rascunho') RETURNING id
+            """, (f"Cópia de {original['nome']}", original['descricao'], usuario_id))
+            nova_id = cursor.fetchone()["id"]
+            
+            # Copiar módulos
+            cursor.execute("SELECT * FROM modulos WHERE trilha_id = %s ORDER BY ordem ASC", (trilha_id,))
+            modulos = cursor.fetchall()
+            for mod in modulos:
+                cursor.execute("""
+                    INSERT INTO modulos (trilha_id, nome, descricao, ordem, link_video, texto_teorico, materia_id, questoes_selecionadas)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (nova_id, mod['nome'], mod['descricao'], mod['ordem'], mod['link_video'], mod['texto_teorico'], mod['materia_id'], mod['questoes_selecionadas']))
+            
+            conn.commit()
+            return {"sucesso": True, "trilha_id": nova_id, "mensagem": "Trilha duplicada com sucesso!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{trilha_id}/engajamento")
+def engajamento_trilha(trilha_id: int):
+    """ Retorna a lista de alunos e seu progresso na trilha """
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor(row_factory=dict_row)
+            
+            # Total de módulos na trilha
+            cursor.execute("SELECT COUNT(*) as total FROM modulos WHERE trilha_id = %s", (trilha_id,))
+            total_modulos = cursor.fetchone()["total"]
+            
+            if total_modulos == 0:
+                return []
+
+            # Lista de alunos com progresso
+            cursor.execute("""
+                SELECT 
+                    u.nome, 
+                    u.matricula,
+                    COUNT(pt.id) FILTER (WHERE pt.concluido) as concluidos,
+                    MAX(pt.concluido_em) as ultimo_acesso
+                FROM usuarios u
+                JOIN progresso_trilhas pt ON pt.usuario_id = u.id
+                JOIN modulos m ON m.id = pt.modulo_id
+                WHERE m.trilha_id = %s
+                GROUP BY u.id
+                ORDER BY concluidos DESC, ultimo_acesso DESC
+            """, (trilha_id,))
+            alunos = cursor.fetchall()
+            
+            for a in alunos:
+                a["progresso_percentual"] = int((a["concluidos"] / total_modulos) * 100)
+                a["total_modulos"] = total_modulos
+
+            return alunos
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -26,7 +26,7 @@ import {
   CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPencil, cilTrash, cilPlus, cilCheck, cilVideo, cilDescription } from '@coreui/icons'
+import { cilPencil, cilTrash, cilPlus, cilCheck, cilVideo, cilDescription, cilCopy, cilChart } from '@coreui/icons'
 import { API_URL } from '../../config'
 
 const GestaoTrilhas = () => {
@@ -39,6 +39,9 @@ const GestaoTrilhas = () => {
   // Modals
   const [modalTrilha, setModalTrilha] = useState(false)
   const [modalModulo, setModalModulo] = useState(false)
+  const [modalEngajamento, setModalEngajamento] = useState(false)
+  const [dadosEngajamento, setDadosEngajamento] = useState([])
+  const [loadingEngajamento, setLoadingEngajamento] = useState(false)
 
   // States for forms
   const [trilhaAtiva, setTrilhaAtiva] = useState(null)
@@ -185,6 +188,35 @@ const GestaoTrilhas = () => {
     }
   }
 
+  const duplicarTrilha = async (id) => {
+    try {
+      setLoading(true)
+      const res = await fetch(`${API_URL}/api/trilhas/${id}/duplicar?usuario_id=${userId}`, { method: 'POST' })
+      if (!res.ok) throw new Error('Falha ao duplicar')
+      setSuccess('Trilha duplicada com sucesso! (Criada como Rascunho)')
+      carregarDados()
+    } catch (e) {
+      setError('Erro ao duplicar trilha.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const verEngajamento = async (trilha) => {
+    setTrilhaAtiva(trilha)
+    setModalEngajamento(true)
+    setLoadingEngajamento(true)
+    try {
+      const res = await fetch(`${API_URL}/api/trilhas/${trilha.id}/engajamento`)
+      const data = await res.json()
+      setDadosEngajamento(Array.isArray(data) ? data : [])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoadingEngajamento(false)
+    }
+  }
+
   return (
     <CRow>
       <CCol xs={12}>
@@ -218,8 +250,14 @@ const GestaoTrilhas = () => {
                       </CBadge>
                     </div>
                     <div>
-                      <CButton color="info" variant="outline" size="sm" className="me-2" onClick={() => { setTrilhaAtiva(t); setFormTrilha(t); setModalTrilha(true) }}>
-                        <CIcon icon={cilPencil} /> Editar
+                      <CButton color="info" variant="outline" size="sm" className="me-1" onClick={() => verEngajamento(t)} title="Ver Engajamento de Alunos">
+                        <CIcon icon={cilChart} />
+                      </CButton>
+                      <CButton color="secondary" variant="outline" size="sm" className="me-1" onClick={() => duplicarTrilha(t.id)} title="Duplicar Trilha">
+                        <CIcon icon={cilCopy} />
+                      </CButton>
+                      <CButton color="info" variant="outline" size="sm" className="me-1" onClick={() => { setTrilhaAtiva(t); setFormTrilha(t); setModalTrilha(true) }}>
+                        <CIcon icon={cilPencil} />
                       </CButton>
                       <CButton color="danger" variant="outline" size="sm" onClick={() => deletarTrilha(t.id)}>
                         <CIcon icon={cilTrash} />
@@ -375,6 +413,50 @@ const GestaoTrilhas = () => {
           <CButton color="secondary" variant="ghost" onClick={() => setModalModulo(false)}>Cancelar</CButton>
           <CButton color="success" onClick={salvarModulo}>Adicionar Módulo</CButton>
         </CModalFooter>
+      </CModal>
+
+      {/* MODAL ENGAJAMENTO */}
+      <CModal visible={modalEngajamento} onClose={() => setModalEngajamento(false)} size="lg">
+        <CModalHeader><CModalTitle>Engajamento: {trilhaAtiva?.nome}</CModalTitle></CModalHeader>
+        <CModalBody>
+          {loadingEngajamento ? (
+            <div className="text-center py-4"><CSpinner /></div>
+          ) : dadosEngajamento.length === 0 ? (
+            <div className="text-center py-4 text-body-secondary">Nenhum aluno iniciou esta trilha ainda.</div>
+          ) : (
+            <CTable align="middle" responsive hover>
+              <CTableHead>
+                <CTableRow>
+                  <CTableHeaderCell>Aluno</CTableHeaderCell>
+                  <CTableHeaderCell>Matrícula</CTableHeaderCell>
+                  <CTableHeaderCell>Progresso</CTableHeaderCell>
+                  <CTableHeaderCell>Módulos</CTableHeaderCell>
+                </CTableRow>
+              </CTableHead>
+              <CTableBody>
+                {dadosEngajamento.map(a => (
+                  <CTableRow key={a.matricula}>
+                    <CTableDataCell className="fw-bold">{a.nome}</CTableDataCell>
+                    <CTableDataCell>{a.matricula}</CTableDataCell>
+                    <CTableDataCell style={{ width: '150px' }}>
+                      <div className="d-flex align-items-center gap-2">
+                        <div style={{ flex: 1, height: '8px', background: 'rgba(0,0,0,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${a.progresso_percentual}%`, height: '100%', background: a.progresso_percentual === 100 ? '#10b981' : '#6366f1' }} />
+                        </div>
+                        <span className="small fw-bold">{a.progresso_percentual}%</span>
+                      </div>
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      <CBadge color="light" className="text-dark">
+                        {a.concluidos} / {a.total_modulos}
+                      </CBadge>
+                    </CTableDataCell>
+                  </CTableRow>
+                ))}
+              </CTableBody>
+            </CTable>
+          )}
+        </CModalBody>
       </CModal>
     </CRow>
   )

@@ -82,7 +82,8 @@ def relatorio_estudo(
                     COUNT(*)                                               AS sessoes,
                     COALESCE(SUM(s.questoes_respondidas), 0)               AS questoes,
                     COALESCE(ROUND(AVG(s.taxa_acerto)::numeric, 1), 0)     AS media_acerto,
-                    COALESCE(SUM(s.tempo_gasto_segundos), 0)               AS tempo_total_segundos
+                    COALESCE(SUM(s.tempo_gasto_segundos), 0)               AS tempo_total_segundos,
+                    COALESCE(COUNT(DISTINCT COALESCE(s.matricula_aluno, s.nome_aluno)), 0) AS alunos_ativos
                 FROM sessoes_estudo s
                 WHERE EXTRACT(MONTH FROM s.criado_em) = %(mes)s
                   AND EXTRACT(YEAR FROM s.criado_em) = %(ano)s
@@ -100,6 +101,7 @@ def relatorio_estudo(
                     "questoes": int(d[2]),
                     "media_acerto": float(d[3] or 0),
                     "tempo_total_segundos": int(d[4] or 0),
+                    "alunos_ativos": int(d[5] or 0),
                 }
                 for d in dias
             ]

@@ -33,11 +33,11 @@ const formatTempo = (segundos = 0) => {
 
 const exportarCSV = (dados, mes, ano) => {
   if (!dados.length) return
-  const cabecalho = 'Dia,Sessões,Questões,Média de Acerto (%),Tempo Total (segundos)\n'
+  const cabecalho = 'Dia,Alunos Ativos,Sessões,Questões,Média Qtd/Aluno,Média de Acerto (%),Tempo Total (segundos)\n'
   const linhas = dados
     .map(
       (d) =>
-        `${d.dia},${d.sessoes},${d.questoes},${d.media_acerto.toFixed(1)},${d.tempo_total_segundos}`,
+        `${d.dia},${d.alunos_ativos || 0},${d.sessoes},${d.questoes},${(d.questoes / (d.alunos_ativos || 1)).toFixed(1)},${d.media_acerto.toFixed(1)},${d.tempo_total_segundos}`,
     )
     .join('\n')
   const blob = new Blob([cabecalho + linhas], { type: 'text/csv' })
@@ -577,7 +577,7 @@ const Relatorios = () => {
                     color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)',
                   }}
                 >
-                  Melhor dia:
+                  Maior Engajamento:
                 </span>
                 <CBadge
                   style={{
@@ -591,6 +591,38 @@ const Relatorios = () => {
                 >
                   {dados.melhor_dia.dia} · {dados.melhor_dia.questoes} questões
                 </CBadge>
+              </>
+            )}
+            {dados.serie_diaria.filter(d => d.questoes >= 10).length > 0 && (
+              <>
+                <span
+                  style={{
+                    fontSize: 13,
+                    color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)',
+                  }}
+                >
+                  Maior Precisão:
+                </span>
+                {(() => {
+                  const melhorPrecisao = [...dados.serie_diaria]
+                    .filter(d => d.questoes >= 5) // Mínimo de questões para ser relevante
+                    .sort((a, b) => b.media_acerto - a.media_acerto)[0]
+                  
+                  return melhorPrecisao ? (
+                    <CBadge
+                      style={{
+                        background: 'rgba(16,185,129,0.15)',
+                        color: '#10b981',
+                        fontWeight: 700,
+                        borderRadius: 8,
+                        padding: '4px 10px',
+                        fontSize: 13,
+                      }}
+                    >
+                      {melhorPrecisao.dia} · {melhorPrecisao.media_acerto.toFixed(1)}%
+                    </CBadge>
+                  ) : null
+                })()}
               </>
             )}
           </div>
@@ -629,7 +661,7 @@ const Relatorios = () => {
                       background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.025)',
                     }}
                   >
-                    {['Dia', 'Sessões', 'Questões', 'Média de Acerto', 'Tempo'].map((col) => (
+                    {['Dia', 'Alunos Ativos', 'Sessões', 'Questões', 'Média Qtd/Aluno', 'Média de Acerto', 'Tempo'].map((col) => (
                       <th
                         key={col}
                         style={{
@@ -682,15 +714,47 @@ const Relatorios = () => {
                           {isMelhor && <span style={{ marginRight: 6 }}>🏆</span>}
                           {d.dia}
                         </td>
-                        <td style={tdStyle(isDark)}>{d.sessoes}</td>
                         <td style={tdStyle(isDark)}>
-                          <span
+                          <CBadge
                             style={{
-                              fontWeight: d.questoes > 0 ? 700 : 400,
-                              color: d.questoes > 0 ? '#6366f1' : undefined,
+                              background: isDark ? 'rgba(236,72,153,0.1)' : 'rgba(236,72,153,0.07)',
+                              color: '#ec4899',
+                              fontWeight: 700,
+                              borderRadius: 6,
+                              padding: '2px 8px',
+                              fontSize: 12,
                             }}
                           >
-                            {d.questoes}
+                            {d.alunos_ativos || 0}
+                          </CBadge>
+                        </td>
+                        <td style={tdStyle(isDark)}>{d.sessoes}</td>
+                        <td style={tdStyle(isDark)}>
+                          <div className="d-flex align-items-center gap-2">
+                            <span
+                              style={{
+                                fontWeight: d.questoes > 0 ? 700 : 400,
+                                color: d.questoes > 0 ? '#6366f1' : undefined,
+                              }}
+                            >
+                              {d.questoes}
+                            </span>
+                            {i > 0 && d.questoes > 0 && (
+                              <span 
+                                style={{ 
+                                  fontSize: 10, 
+                                  color: d.questoes >= dados.serie_diaria[i-1].questoes ? '#10b981' : '#ef4444',
+                                  fontWeight: 700
+                                }}
+                              >
+                                {d.questoes >= dados.serie_diaria[i-1].questoes ? '↑' : '↓'}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td style={tdStyle(isDark)}>
+                          <span style={{ fontSize: 13, color: isDark ? 'rgba(255,255,255,0.6)' : '#64748b' }}>
+                            {d.alunos_ativos > 0 ? (d.questoes / d.alunos_ativos).toFixed(1) : '0'}
                           </span>
                         </td>
                         <td style={tdStyle(isDark)}>

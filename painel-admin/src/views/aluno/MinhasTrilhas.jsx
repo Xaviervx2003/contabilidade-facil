@@ -13,7 +13,12 @@ import {
   CAccordion,
   CAccordionItem,
   CAccordionHeader,
-  CAccordionBody
+  CAccordionBody,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilCheckCircle, cilMediaPlay, cilDescription, cilPenAlt, cilChevronRight } from '@coreui/icons'
@@ -24,6 +29,8 @@ const MinhasTrilhas = () => {
   const [trilhas, setTrilhas] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [modalAula, setModalAula] = useState(false)
+  const [moduloAtivo, setModuloAtivo] = useState(null)
   const navigate = useNavigate()
 
   const matricula = sessionStorage.getItem('matricula')
@@ -59,22 +66,35 @@ const MinhasTrilhas = () => {
     }
   }
 
+  const getEmbedUrl = (url) => {
+    if (!url) return null
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
+      const match = url.match(regExp)
+      return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : url
+    }
+    if (url.includes('vimeo.com')) {
+      const match = url.match(/vimeo.com\/(\d+)/)
+      return match ? `https://player.vimeo.com/video/${match[1]}` : url
+    }
+    return url
+  }
+
   const handleAcessarModulo = (m) => {
-    // Se houver questões específicas (Estudo Dirigido)
-    if (m.questoes_selecionadas && m.questoes_selecionadas.length > 0) {
-      // Passa os IDs como parâmetro para o quiz
-      const ids = m.questoes_selecionadas.join(',')
-      navigate(`/quiz?ids=${ids}`)
+    // Se for quiz, vai direto
+    if (m.materia_id || (m.questoes_selecionadas && m.questoes_selecionadas.length > 0)) {
+      if (m.questoes_selecionadas && m.questoes_selecionadas.length > 0) {
+        const ids = m.questoes_selecionadas.join(',')
+        navigate(`/quiz?ids=${ids}`)
+      } else {
+        navigate(`/quiz?materia_id=${m.materia_id}`)
+      }
+      marcarConcluido(m.id)
+    } else {
+      // Se for vídeo ou texto, abre o modal integrado
+      setModuloAtivo(m)
+      setModalAula(true)
     }
-    // Se for quiz por matéria
-    else if (m.materia_id) {
-      navigate(`/quiz?materia_id=${m.materia_id}`)
-    } else if (m.link_video) {
-      // Abre o vídeo em nova aba por enquanto
-      window.open(m.link_video, '_blank')
-    }
-    // Depois de acessar, marca como concluído automaticamente
-    marcarConcluido(m.id)
   }
 
   if (loading) return <div className="text-center py-5"><CSpinner /></div>
@@ -168,6 +188,62 @@ const MinhasTrilhas = () => {
           </CRow>
         )}
       </CCol>
+
+      {/* MODAL DE AULA INTEGRADA */}
+      <CModal visible={modalAula} onClose={() => setModalAula(false)} size="xl" backdrop="static">
+        <CModalHeader className="bg-body-tertiary">
+          <CModalTitle className="fw-bold">{moduloAtivo?.nome}</CModalTitle>
+        </CModalHeader>
+        <CModalBody className="p-0">
+          <CRow className="g-0">
+            {/* Player de Vídeo */}
+            <CCol xs={12} lg={moduloAtivo?.texto_teorico ? 8 : 12}>
+              {moduloAtivo?.link_video ? (
+                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', background: '#000' }}>
+                  <iframe
+                    src={getEmbedUrl(moduloAtivo.link_video)}
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="Vídeo Aula"
+                  />
+                </div>
+              ) : (
+                <div className="p-5 text-center bg-body-tertiary">
+                  <CIcon icon={cilDescription} size="xxl" className="text-muted mb-3" />
+                  <h5>Conteúdo Teórico</h5>
+                </div>
+              )}
+            </CCol>
+
+            {/* Texto Teórico Lateral/Abaixo */}
+            {moduloAtivo?.texto_teorico && (
+              <CCol xs={12} lg={4} className="border-start bg-body-elevated">
+                <div className="p-4" style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+                  <h6 className="fw-bold text-uppercase small text-body-secondary mb-3">Material de Apoio</h6>
+                  <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.95rem' }}>
+                    {moduloAtivo.texto_teorico}
+                  </div>
+                </div>
+              </CCol>
+            )}
+          </CRow>
+        </CModalBody>
+        <CModalFooter className="bg-body-tertiary justify-content-between">
+          <div className="small text-body-secondary">
+            Módulo {moduloAtivo?.ordem} • {moduloAtivo?.descricao}
+          </div>
+          <div>
+            <CButton color="secondary" variant="ghost" onClick={() => setModalAula(false)} className="me-2">Fechar</CButton>
+            {!moduloAtivo?.concluido && (
+              <CButton color="success" onClick={() => { marcarConcluido(moduloAtivo.id); setModalAula(false); }}>
+                <CIcon icon={cilCheckCircle} className="me-2" /> Marcar como Concluído
+              </CButton>
+            )}
+          </div>
+        </CModalFooter>
+      </CModal>
     </CRow>
   )
 }
