@@ -1,311 +1,196 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useInView, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { Icon } from '@iconify/react';
-import { useNavigate } from 'react-router-dom';
-
-// --- ANIMATION COMPONENTS ---
-
-const WordsPullUp = ({ text, className, showAsterisk }) => {
-    const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-10%" });
-    const words = text.split(" ");
-
-    return (
-        <div ref={ref} className={`flex flex-wrap ${className}`}>
-            {words.map((word, i) => {
-                const isLastWord = showAsterisk && i === words.length - 1;
-                return (
-                    <div key={i} className="overflow-hidden mr-[0.2em] relative flex items-start">
-                        <motion.div
-                            initial={{ y: "100%" }}
-                            animate={isInView ? { y: 0 } : { y: "100%" }}
-                            transition={{ delay: i * 0.08, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                            className="inline-block relative"
-                        >
-                            {word}
-                            {isLastWord && (
-                                <span className="absolute top-[0.65em] -right-[0.3em] text-[0.31em] font-light">*</span>
-                            )}
-                        </motion.div>
-                    </div>
-                );
-            })}
-        </div>
-    );
-};
-
-const WordsPullUpMultiStyle = ({ segments, className, wrapperClass = "justify-center" }) => {
-    const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-10%" });
-    let wordCount = 0;
-
-    return (
-        <div ref={ref} className={`inline-flex flex-wrap ${wrapperClass} ${className}`}>
-            {segments.map((seg, sIdx) => {
-                const words = seg.text.split(" ").filter(w => w !== "");
-                return words.map((word, wIdx) => {
-                    const currentIdx = wordCount++;
-                    return (
-                        <div key={`${sIdx}-${wIdx}`} className="overflow-hidden mr-[0.25em] mb-[0.1em]">
-                            <motion.div
-                                initial={{ y: "100%" }}
-                                animate={isInView ? { y: 0 } : { y: "100%" }}
-                                transition={{ delay: currentIdx * 0.08, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                                className={`inline-block ${seg.className || ""}`}
-                            >
-                                {word}
-                            </motion.div>
-                        </div>
-                    );
-                });
-            })}
-        </div>
-    );
-};
-
-const ScrollRevealText = ({ text, className }) => {
-    const ref = useRef(null);
-    const { scrollYProgress } = useScroll({
-        target: ref,
-        offset: ['start 0.8', 'end 0.2']
-    });
-
-    const chars = text.split("");
-
-    return (
-        <p ref={ref} className={`flex flex-wrap ${className}`}>
-            {chars.map((char, i) => {
-                const start = i / chars.length - 0.1;
-                const end = i / chars.length + 0.05;
-                const opacity = useTransform(scrollYProgress, [Math.max(0, start), Math.min(1, end)], [0.2, 1]);
-                return (
-                    <motion.span key={i} style={{ opacity }} className="whitespace-pre">
-                        {char}
-                    </motion.span>
-                );
-            })}
-        </p>
-    );
-};
-
-const FeatureCard = ({ delay, children, className }) => {
-    const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-100px" });
-    
-    return (
-        <motion.div 
-            ref={ref} 
-            initial={{ opacity: 0, scale: 0.95 }} 
-            animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }} 
-            transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }} 
-            className={`rounded-3xl overflow-hidden relative flex flex-col ${className}`}
-        >
-            {children}
-        </motion.div>
-    )
-};
-
-// --- MAIN LANDING PAGE COMPONENT ---
+import React from 'react'
+import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
+import { Icon } from '@iconify/react'
 
 const Landing = () => {
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
     return (
-        <main className="w-full bg-black min-h-screen font-sans selection:bg-primary selection:text-black">
-            {/* HERO SECTION */}
-            <section className="h-screen p-4 md:p-6 w-full bg-black flex flex-col">
-                <div className="relative w-full h-full rounded-2xl md:rounded-[2rem] overflow-hidden flex-1 bg-[#101010]">
-                    <video 
-                        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_170732_8a9ccda6-5cff-4628-b164-059c500a2b41.mp4" 
-                        autoPlay loop muted playsInline 
-                        className="absolute inset-0 w-full h-full object-cover" 
-                    />
-                    <div className="absolute inset-0 noise-overlay opacity-[0.7] mix-blend-overlay pointer-events-none" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40" />
+        <div className="landing-premium-wrapper">
+            <style>{`
+                .landing-premium-wrapper {
+                    background: #000;
+                    color: #fff;
+                    font-family: system-ui, -apple-system, sans-serif;
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    overflow-x: hidden;
+                }
+                .hero-container {
+                    position: relative;
+                    width: 100%;
+                    height: 95vh;
+                    margin: 10px auto;
+                    max-width: 1800px;
+                    border-radius: 2rem;
+                    overflow: hidden;
+                    border: 1px solid rgba(255,255,255,0.05);
+                }
+                .hero-media {
+                    position: absolute;
+                    inset: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .hero-overlay {
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.4) 100%);
+                    z-index: 1;
+                }
+                .hero-content {
+                    position: absolute;
+                    inset: 0;
+                    z-index: 10;
+                    padding: 3rem;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-end;
+                }
+                .nav-glass {
+                    position: absolute;
+                    top: 2rem;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(0,0,0,0.7);
+                    backdrop-filter: blur(15px);
+                    padding: 1rem 2.5rem;
+                    border-radius: 2rem;
+                    display: flex;
+                    gap: 2.5rem;
+                    border: 1px solid rgba(255,255,255,0.1);
+                    z-index: 20;
+                }
+                .nav-link {
+                    color: rgba(222, 219, 200, 0.7);
+                    text-decoration: none;
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    letter-spacing: 0.15em;
+                    transition: all 0.3s;
+                }
+                .nav-link:hover { color: #fff; transform: scale(1.05); }
+                
+                .title-main {
+                    font-size: clamp(3rem, 10vw, 8rem);
+                    color: #DEDBC8;
+                    line-height: 0.8;
+                    letter-spacing: -0.05em;
+                    margin-bottom: 2rem;
+                }
+                .hero-footer {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    align-items: flex-end;
+                    gap: 4rem;
+                }
+                .desc-text {
+                    color: rgba(222, 219, 200, 0.6);
+                    font-size: 1.1rem;
+                    line-height: 1.4;
+                    max-width: 400px;
+                    border-left: 2px solid rgba(222, 219, 200, 0.2);
+                    padding-left: 1.5rem;
+                }
+                .btn-premium {
+                    background: #DEDBC8;
+                    color: #000;
+                    border: none;
+                    padding: 0.5rem 0.5rem 0.5rem 2rem;
+                    border-radius: 100px;
+                    display: flex;
+                    align-items: center;
+                    gap: 1.5rem;
+                    cursor: pointer;
+                    font-weight: 600;
+                    transition: all 0.4s;
+                    box-shadow: 0 0 30px rgba(222,219,200,0.2);
+                }
+                .btn-premium:hover {
+                    gap: 2.5rem;
+                    box-shadow: 0 0 50px rgba(222,219,200,0.4);
+                }
+                .btn-icon {
+                    background: #000;
+                    width: 3.5rem;
+                    height: 3.5rem;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
 
-                    <nav className="absolute top-0 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md rounded-b-2xl md:rounded-b-3xl px-6 py-3 md:px-10 z-20 flex items-center justify-center gap-4 sm:gap-8 md:gap-14 shadow-2xl border-x border-b border-white/5">
-                        {['Metodologia', 'Módulos', 'Trilhas', 'Planos', 'Suporte'].map(link => (
-                            <a 
-                                href="#" 
-                                key={link} 
-                                className="text-[10px] sm:text-xs md:text-sm font-light tracking-widest uppercase transition-all duration-300 no-underline hover:text-white hover:scale-105" 
-                                style={{ color: 'rgba(225,224,204,0.7)' }} 
-                            >
-                                {link}
-                            </a>
-                        ))}
-                    </nav>
+                @media (max-width: 768px) {
+                    .nav-glass { gap: 1rem; padding: 0.8rem 1.5rem; width: 90%; justify-content: center; }
+                    .nav-link { font-size: 0.6rem; }
+                    .hero-footer { grid-template-columns: 1fr; gap: 2rem; }
+                    .hero-content { padding: 1.5rem; }
+                    .title-main { font-size: 4rem; }
+                }
+            `}</style>
 
-                    <div className="absolute inset-0 p-6 md:p-12 lg:p-16 flex flex-col justify-end z-10">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end max-w-[1600px] mx-auto w-full">
-                            <div className="lg:col-span-8">
-                                <WordsPullUp 
-                                    text="Contabilidade Fácil" 
-                                    showAsterisk 
-                                    className="text-[14vw] sm:text-[11vw] md:text-[9vw] lg:text-[8vw] xl:text-[7.5vw] font-normal leading-[0.8] tracking-[-0.08em] text-primary" 
-                                />
-                            </div>
-                            <div className="lg:col-span-4 flex flex-col items-start gap-6 md:pb-4 lg:pb-8">
-                                <motion.p 
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.5, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                                    className="text-primary/70 text-sm md:text-base lg:text-lg font-light tracking-wide max-w-sm border-l-2 border-primary/20 pl-4"
-                                    style={{ lineHeight: 1.3 }}
-                                >
-                                    A plataforma definitiva para dominar as Ciências Contábeis na UEA. Conteúdo de elite, simulados reais e suporte direto.
-                                </motion.p>
-                                
-                                <motion.button 
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.7, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                                    onClick={() => navigate('/login')}
-                                    className="group border-0 flex items-center gap-3 hover:gap-5 bg-primary rounded-full py-1.5 pl-6 pr-1.5 transition-all duration-500 text-black font-medium text-sm md:text-base cursor-pointer shadow-[0_0_30px_rgba(222,219,200,0.2)] hover:shadow-[0_0_50px_rgba(222,219,200,0.4)]"
-                                >
-                                    Acessar Plataforma
-                                    <div className="bg-black rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                                        <Icon icon="solar:arrow-right-linear" className="text-primary text-xl md:text-2xl" />
-                                    </div>
-                                </motion.button>
-                            </div>
-                        </div>
+            <div className="hero-container">
+                {/* Media Background */}
+                <img 
+                    src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80" 
+                    className="hero-media"
+                    alt="Hero"
+                />
+                <div className="hero-overlay" />
+
+                {/* Navigation */}
+                <nav className="nav-glass">
+                    <a href="#" className="nav-link">Metodologia</a>
+                    <a href="#" className="nav-link">Módulos</a>
+                    <a href="#" className="nav-link">Trilhas</a>
+                    <a href="#" className="nav-link">Planos</a>
+                    <a href="#" className="nav-link">Suporte</a>
+                </nav>
+
+                {/* Content */}
+                <div className="hero-content">
+                    <motion.h1 
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                        className="title-main"
+                    >
+                        Contabilidade<br/>Fácil<span style={{ fontSize: '0.4em', verticalAlign: 'top' }}>*</span>
+                    </motion.h1>
+
+                    <div className="hero-footer">
+                        <motion.p 
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="desc-text"
+                        >
+                            A plataforma definitiva para dominar as Ciências Contábeis na UEA. Conteúdo de elite, simulados reais e suporte direto do professor.
+                        </motion.p>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.8 }}
+                        >
+                            <button className="btn-premium" onClick={() => navigate('/login')}>
+                                ACESSAR PLATAFORMA
+                                <div className="btn-icon">
+                                    <Icon icon="solar:arrow-right-linear" width="24" style={{ color: '#DEDBC8' }} />
+                                </div>
+                            </button>
+                        </motion.div>
                     </div>
                 </div>
-            </section>
+            </div>
+            
+            {/* Espaço extra opcional para garantir o scroll se necessário */}
+            <div style={{ height: '5vh' }} />
+        </div>
+    )
+}
 
-            {/* ABOUT SECTION */}
-            <section className="bg-black py-20 md:py-32 px-4 md:px-8 flex justify-center w-full">
-                <div className="bg-[#101010] rounded-[2rem] p-8 sm:p-12 md:p-16 lg:p-24 w-full max-w-6xl flex flex-col items-center text-center gap-8 md:gap-12 shadow-2xl relative overflow-hidden">
-                    <span className="text-primary text-[10px] sm:text-xs tracking-widest uppercase font-light opacity-80">
-                        Ensino Superior Premium
-                    </span>
-                    
-                    <WordsPullUpMultiStyle
-                        segments={[
-                            { text: "O caminho mais rápido para a aprovação, ", className: "font-light text-primary" },
-                            { text: "com foco total na prática. ", className: "font-serif italic text-primary pr-2" },
-                            { text: "Desenvolvemos habilidades em análise contábil, auditoria e perícia para o mercado real.", className: "font-light text-primary" }
-                        ]}
-                        className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl max-w-4xl leading-[0.95] sm:leading-[0.9] tracking-tight"
-                    />
-                    
-                    <div className="max-w-2xl mt-4 md:mt-8">
-                        <ScrollRevealText 
-                            text="Ao longo dos últimos anos, ajudamos centenas de alunos a superarem as matérias mais complexas do curso. Nossa plataforma une a teoria necessária com a prática que o mercado exige, tudo em um ambiente focado no seu progresso." 
-                            className="text-[#DEDBC8] text-xs sm:text-sm md:text-base justify-center font-light leading-relaxed tracking-wide" 
-                        />
-                    </div>
-                </div>
-            </section>
-
-            {/* FEATURES SECTION */}
-            <section className="min-h-screen bg-black relative py-20 md:py-32 px-4 md:px-6 z-0 overflow-hidden">
-                <div className="absolute inset-0 bg-noise opacity-[0.15] pointer-events-none z-[-1]" />
-                <div className="max-w-[1400px] mx-auto flex flex-col gap-10 md:gap-16">
-                    <div className="w-full max-w-3xl">
-                        <WordsPullUpMultiStyle
-                            wrapperClass="justify-start text-left"
-                            segments={[
-                                { text: "Experiência de estudo imersiva para futuros contadores. ", className: "text-primary block w-full" },
-                                { text: "Construído para resultados. Movido por excelência.", className: "text-gray-500 block w-full" }
-                            ]}
-                            className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light tracking-tight"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-2 md:gap-1 lg:h-[480px]">
-                        <FeatureCard delay={0.15} className="md:col-span-2 lg:col-span-1 h-[350px] sm:h-[400px] lg:h-full bg-[#151515]">
-                            <video 
-                                src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_133058_0504132a-0cf3-4450-a370-8ea3b05c95d4.mp4" 
-                                autoPlay loop muted playsInline 
-                                className="absolute inset-0 w-full h-full object-cover opacity-60" 
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-                            <div className="mt-auto p-6 z-10 w-full">
-                                <p className="text-[#E1E0CC] font-light tracking-wide text-sm sm:text-base">Foco total no aprendizado.</p>
-                            </div>
-                        </FeatureCard>
-
-                        <FeatureCard delay={0.30} className="bg-[#181818] p-6 sm:p-8 h-auto lg:h-full flex flex-col justify-between">
-                            <div>
-                                <div className="w-12 h-12 rounded-xl mb-6 flex items-center justify-center bg-primary/10">
-                                    <Icon icon="solar:notebook-linear" className="text-primary text-3xl" />
-                                </div>
-                                <div className="flex justify-between items-baseline mb-8">
-                                    <h3 className="text-primary text-base sm:text-lg font-normal tracking-tight">Trilhas de Estudo.</h3>
-                                    <span className="text-gray-500 text-xs font-light tracking-widest">01</span>
-                                </div>
-                                <ul className="flex flex-col gap-4 p-0">
-                                    <li className="flex items-start gap-3 text-gray-400 text-xs sm:text-sm font-light list-none">
-                                        <Icon icon="solar:check-circle-linear" className="text-primary mt-[2px] text-base flex-shrink-0 opacity-80" />
-                                        <span className="leading-snug">Mapeamento sequencial de conteúdo</span>
-                                    </li>
-                                    <li className="flex items-start gap-3 text-gray-400 text-xs sm:text-sm font-light list-none">
-                                        <Icon icon="solar:check-circle-linear" className="text-primary mt-[2px] text-base flex-shrink-0 opacity-80" />
-                                        <span className="leading-snug">Progresso visual detalhado</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <button onClick={() => navigate('/login')} className="flex border-0 bg-transparent cursor-pointer items-center gap-2 text-primary text-xs sm:text-sm font-normal mt-10 group w-fit hover:text-white transition-colors">
-                                Explorar <Icon icon="solar:arrow-right-linear" className="text-base -rotate-45 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-                            </button>
-                        </FeatureCard>
-
-                        <FeatureCard delay={0.45} className="bg-[#181818] p-6 sm:p-8 h-auto lg:h-full flex flex-col justify-between">
-                            <div>
-                                <div className="w-12 h-12 rounded-xl mb-6 flex items-center justify-center bg-primary/10">
-                                    <Icon icon="solar:ranking-linear" className="text-primary text-3xl" />
-                                </div>
-                                <div className="flex justify-between items-baseline mb-8">
-                                    <h3 className="text-primary text-base sm:text-lg font-normal tracking-tight">Simulados Reais.</h3>
-                                    <span className="text-gray-500 text-xs font-light tracking-widest">02</span>
-                                </div>
-                                <ul className="flex flex-col gap-4 p-0">
-                                    <li className="flex items-start gap-3 text-gray-400 text-xs sm:text-sm font-light list-none">
-                                        <Icon icon="solar:check-circle-linear" className="text-primary mt-[2px] text-base flex-shrink-0 opacity-80" />
-                                        <span className="leading-snug">Base de questões da UEA e Concursos</span>
-                                    </li>
-                                    <li className="flex items-start gap-3 text-gray-400 text-xs sm:text-sm font-light list-none">
-                                        <Icon icon="solar:check-circle-linear" className="text-primary mt-[2px] text-base flex-shrink-0 opacity-80" />
-                                        <span className="leading-snug">Rankings e Desempenho Global</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <button onClick={() => navigate('/login')} className="flex border-0 bg-transparent cursor-pointer items-center gap-2 text-primary text-xs sm:text-sm font-normal mt-10 group w-fit hover:text-white transition-colors">
-                                Treinar <Icon icon="solar:arrow-right-linear" className="text-base -rotate-45 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-                            </button>
-                        </FeatureCard>
-
-                        <FeatureCard delay={0.60} className="bg-[#181818] p-6 sm:p-8 h-auto lg:h-full flex flex-col justify-between">
-                            <div>
-                                <div className="w-12 h-12 rounded-xl mb-6 flex items-center justify-center bg-primary/10">
-                                    <Icon icon="solar:medal-star-linear" className="text-primary text-3xl" />
-                                </div>
-                                <div className="flex justify-between items-baseline mb-8">
-                                    <h3 className="text-primary text-base sm:text-lg font-normal tracking-tight">Gamificação Premium.</h3>
-                                    <span className="text-gray-500 text-xs font-light tracking-widest">03</span>
-                                </div>
-                                <ul className="flex flex-col gap-4 p-0">
-                                    <li className="flex items-start gap-3 text-gray-400 text-xs sm:text-sm font-light list-none">
-                                        <Icon icon="solar:check-circle-linear" className="text-primary mt-[2px] text-base flex-shrink-0 opacity-80" />
-                                        <span className="leading-snug">Conquistas e Insígnias de Elite</span>
-                                    </li>
-                                    <li className="flex items-start gap-3 text-gray-400 text-xs sm:text-sm font-light list-none">
-                                        <Icon icon="solar:check-circle-linear" className="text-primary mt-[2px] text-base flex-shrink-0 opacity-80" />
-                                        <span className="leading-snug">Sistema de Streaks e Níveis</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <button onClick={() => navigate('/login')} className="flex border-0 bg-transparent cursor-pointer items-center gap-2 text-primary text-xs sm:text-sm font-normal mt-10 group w-fit hover:text-white transition-colors">
-                                Ver mais <Icon icon="solar:arrow-right-linear" className="text-base -rotate-45 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-                            </button>
-                        </FeatureCard>
-                    </div>
-                </div>
-            </section>
-        </main>
-    );
-};
-
-export default Landing;
+export default Landing

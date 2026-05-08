@@ -3,18 +3,21 @@
 @use "@coreui/chartjs/scss/coreui-chartjs";
 @use "vendors/simplebar";
 
-@tailwind utilities;
+// Tailwind v4 - Importação inteligente por camadas (sem preflight para não conflitar com CoreUI)
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
 
-// Resets essenciais para compatibilidade Tailwind + CoreUI
-*, *::before, *::after {
-  box-sizing: border-box;
+@theme {
+  --color-primary: #DEDBC8;
+  --color-primary-dark: #B5B198;
+  --font-family-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-family-serif: 'Instrument Serif', serif;
+  --font-family-premium: 'Almarai', sans-serif;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
+// Resets essenciais manuais
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 // Failsafe para o design Premium
