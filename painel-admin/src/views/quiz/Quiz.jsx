@@ -10,9 +10,6 @@ import {
   CContainer,
   CFormSelect,
   CFormTextarea,
-  CNav,
-  CNavItem,
-  CNavLink,
   CProgress,
   CRow,
   CCollapse,
@@ -651,15 +648,60 @@ const FinishedScreen = ({
   T, grade, gradeColor, finalScore, score, totalAnswered, totalQuestions, elapsedSeconds,
   questionsAndAnswers, isDark,
   onReplay, onRetryErrors, onShare, onReset, onSaveSession, saving, saved, activeTab, setActiveTab
-}) => (
-  <div style={{ animation: 'fade-up .35s ease' }}>
-    <CNav variant="tabs" className="mb-4">
-      <CNavItem><CNavLink active={activeTab === 'stats'} onClick={() => setActiveTab('stats')}>📊 Estatísticas</CNavLink></CNavItem>
-      <CNavItem><CNavLink active={activeTab === 'qna'} onClick={() => setActiveTab('qna')}>📋 Revisão</CNavLink></CNavItem>
-    </CNav>
+}) => {
+  // 🧠 Padrão defensivo: validar dados antes de renderizar
+  const validTabs = useMemo(() => ['stats', 'qna'], [])
+  const safeActiveTab = validTabs.includes(activeTab) ? activeTab : 'stats'
+  
+  const handleTabChange = useCallback((tab) => {
+    if (validTabs.includes(tab)) setActiveTab(tab)
+  }, [validTabs, setActiveTab])
 
-    {activeTab === 'stats' && (
-      <div className="text-center">
+  return (
+    <div style={{ animation: 'fade-up .35s ease' }}>
+      {/* 🎨 Abas com feedback visual + acessibilidade melhorada */}
+      <div role="tablist" className="mb-4 border-bottom">
+        <div className="d-flex gap-0 gap-md-2">
+          {validTabs.map(tab => {
+            const isActive = safeActiveTab === tab
+            const tabConfig = {
+              stats: { icon: '📊', label: 'Estatísticas' },
+              qna: { icon: '📋', label: 'Revisão' }
+            }[tab]
+            
+            return (
+              <button
+                key={tab}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`tab-${tab}`}
+                onClick={() => handleTabChange(tab)}
+                className={`px-3 px-md-4 py-3 border-0 bg-transparent fw-bold transition-all ${
+                  isActive 
+                    ? 'text-primary border-bottom border-primary border-2' 
+                    : 'text-body-secondary hover-primary'
+                }`}
+                style={{
+                  cursor: 'pointer',
+                  borderBottomWidth: isActive ? '3px' : '0',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <span className="me-2">{tabConfig.icon}</span>
+                {tabConfig.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* 📊 TAB: ESTATÍSTICAS */}
+      <div
+        id="tab-stats"
+        role="tabpanel"
+        aria-labelledby="tab-stats"
+        style={{ display: safeActiveTab === 'stats' ? 'block' : 'none' }}
+      >
         <CBadge color={gradeColor} className="fs-2 px-4 py-2 mb-2">{grade.grade}</CBadge>
         {grade.remarks && <p className="text-body-secondary mb-3">{grade.remarks}</p>}
 
@@ -699,10 +741,19 @@ const FinishedScreen = ({
           <CButton color="secondary" variant="outline" onClick={onReset}>🏠 Voltar</CButton>
         </div>
       </div>
-    )}
 
-    {activeTab === 'qna' && <ReviewTable questionsAndAnswers={questionsAndAnswers} isDark={isDark} />}
-  </div>
+      {/* 📋 TAB: REVISÃO */}
+      <div
+        id="tab-qna"
+        role="tabpanel"
+        aria-labelledby="tab-qna"
+        style={{ display: safeActiveTab === 'qna' ? 'block' : 'none' }}
+      >
+        <ReviewTable questionsAndAnswers={questionsAndAnswers} isDark={isDark} />
+      </div>
+    </div>
+  )
+}
 )
 
 /* ─── Componente Principal ───────────────────────────────────────────────────── */
