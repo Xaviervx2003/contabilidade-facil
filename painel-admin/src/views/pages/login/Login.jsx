@@ -34,9 +34,19 @@ const Login = () => {
     try {
       const response = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify({ matricula, senha })
       })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.mensagem || `Erro ${response.status}: ${response.statusText}`)
+      }
+      
       const data = await response.json()
 
       if (data.sucesso) {
@@ -55,7 +65,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Erro na conexão:', error)
-      setErro('Erro ao conectar com o servidor. Verifique se a API está rodando.')
+      setErro(error.message || 'Erro ao conectar com o servidor. Verifique se a API está rodando.')
     } finally {
       setLoading(false)
     }

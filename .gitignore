@@ -1,26 +1,31 @@
-__pycache__/
-*.pyc
-.env
+```
+# Dependencies
 node_modules/
+
+# Environment variables
+.env
+.env.local
+*.env.*
+
+# Build outputs
 dist/
 build/
+.next/
+.nuxt/
+.vercel/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE specific
 .vscode/
 .idea/
-.pytest_cache/
-.vite/
-scratch/
-
-# Perfil do Puppeteer
-chrome-perfil/
-
-# Dados físicos do PostgreSQL
-dados_banco/
-
-# Backups pesados (manter local, não versionar)
-backups/
-*.dump
-backup_questoes.sql
-sample_questoes*.json
-
-# Scratch
-scratch_script.sql
+```
