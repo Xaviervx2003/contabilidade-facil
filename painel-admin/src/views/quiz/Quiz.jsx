@@ -13,6 +13,7 @@ import {
   CProgress,
   CRow,
   CCollapse,
+  CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -1140,6 +1141,7 @@ const Quiz = () => {
     cargos: [],
     anos: [],
   })
+  const [loadingMaterias, setLoadingMaterias] = useState(true)
 
   const nomeAluno = sessionStorage.getItem('nome') || 'Aluno'
   const matricula = getMatricula()
@@ -1208,10 +1210,16 @@ const Quiz = () => {
 
   // Fetch materias and unique filters
   useEffect(() => {
+    setLoadingMaterias(true)
     fetch(`${API_URL}/api/admin/materias`)
       .then((r) => r.json())
-      .then((d) => setMaterias(Array.isArray(d) ? d : []))
-      .catch(() => {})
+      .then((d) => {
+        setMaterias(Array.isArray(d) ? d : [])
+        setLoadingMaterias(false)
+      })
+      .catch(() => {
+        setLoadingMaterias(false)
+      })
 
     fetch(`${API_URL}/api/questoes/valores-unicos`)
       .then((r) => r.json())
@@ -1670,7 +1678,14 @@ const Quiz = () => {
               )}
               {feedback && <CAlert color="info">{feedback}</CAlert>}
 
-              {status === 'ready' && (
+              {status === 'ready' && loadingMaterias && (
+                <div className="text-center py-5">
+                  <CSpinner color="primary" className="mb-3" />
+                  <p className="text-body-secondary">Carregando matérias...</p>
+                </div>
+              )}
+
+              {status === 'ready' && !loadingMaterias && (
                 <ReadyScreen
                   materias={materias}
                   materiasSelected={materiasSelected}
