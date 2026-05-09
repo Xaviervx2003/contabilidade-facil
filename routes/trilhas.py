@@ -223,15 +223,15 @@ def listar_trilhas_aluno(matricula: str):
                 # Calcular média de acertos nos quizzes vinculados à trilha
                 somas_acertos = []
                 for m in t["modulos"]:
-                    if m["materia_id"]:
+                    if m["materia_id"] and m.get("materia_nome"):
                         # Pega a última sessão do aluno para esta matéria
                         cursor.execute("""
                             SELECT taxa_acerto FROM sessoes_estudo 
-                            WHERE matricula_aluno = %s AND (assunto_estudado LIKE %s OR assunto_estudado = (SELECT nome FROM materias WHERE id = %s))
-                            ORDER BY data_sessao DESC LIMIT 1
-                        """, (matricula, f"%{m['materia_nome']}%", m["materia_id"]))
+                            WHERE matricula_aluno = %s AND assunto_estudado ILIKE %s
+                            ORDER BY criado_em DESC LIMIT 1
+                        """, (matricula, f"%{m['materia_nome']}%"))
                         sessao = cursor.fetchone()
-                        if sessao: somas_acertos.append(sessao["taxa_acerto"])
+                        if sessao: somas_acertos.append(sessao[0])
                 
                 t["media_acertos"] = round(sum(somas_acertos) / len(somas_acertos), 1) if somas_acertos else None
                 

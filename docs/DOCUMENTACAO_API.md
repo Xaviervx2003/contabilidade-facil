@@ -23,18 +23,32 @@ A maioria das rotas do sistema utiliza autenticação baseada em sessão (salva 
 ## 📂 Principais Endpoints
 
 ### 1. Administração
+
 - `GET /api/admin/usuarios`: Lista todos os usuários.
 - `GET /api/admin/materias`: Lista a árvore de matérias.
 - `DELETE /api/admin/materias/vazias`: (Em breve) Limpa matérias sem questões.
 
 ### 2. Quizzes e Questões
+
 - `GET /api/questoes`: Busca questões filtradas por matéria.
 - `POST /api/sessoes`: Salva o resultado de um quiz feito pelo aluno.
 - `GET /api/favoritos/{matricula}`: Lista questões marcadas como favoritas.
 
 ### 3. Dashboard e Desempenho
+
 - `GET /api/dashboard/visao-geral`: Métricas para professores e admins.
 - `GET /api/aluno/progresso/{matricula}`: Percentual de conclusão do edital.
+
+### 4. Trilhas de Aprendizagem
+
+- `GET /api/trilhas`: Lista todas as trilhas (admin/professor).
+- `POST /api/trilhas`: Cria uma nova trilha.
+- `PUT /api/trilhas/{trilha_id}`: Atualiza trilha.
+- `DELETE /api/trilhas/{trilha_id}`: Deleta trilha.
+- `GET /api/trilhas/aluno/{matricula}`: Lista trilhas disponíveis para o aluno (só publicadas).
+- `POST /api/trilhas/progresso/{modulo_id}`: Marca módulo como concluído.
+- `POST /api/trilhas/{trilha_id}/modulos`: Adiciona módulo à trilha.
+- `POST /api/trilhas/{trilha_id}/duplicar`: Duplica uma trilha.
 
 ---
 
