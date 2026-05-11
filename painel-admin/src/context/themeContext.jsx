@@ -129,6 +129,19 @@ export const ThemeProvider = ({ children }) => {
     Object.entries(semantic).forEach(([key, value]) => {
       root.style.setProperty(`--color-${key}`, value)
     })
+
+    // #1 — color-scheme: corrige scrollbars, inputs nativos e <select> no dark mode (Windows)
+    root.style.colorScheme = isDark ? 'dark' : 'light'
+
+    // #2 — meta theme-color: sincroniza barra do browser/mobile com o tema
+    const bgColor = isDark ? themes.dark.bg.primary : themes.light.bg.primary
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]')
+    if (!metaThemeColor) {
+      metaThemeColor = document.createElement('meta')
+      metaThemeColor.setAttribute('name', 'theme-color')
+      document.head.appendChild(metaThemeColor)
+    }
+    metaThemeColor.setAttribute('content', bgColor)
   }, [isDark])
 
   const toggleTheme = () => setIsDark((prev) => !prev)

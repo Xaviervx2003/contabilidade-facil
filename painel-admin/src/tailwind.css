@@ -42,7 +42,6 @@
 
   /* =========================================
      Sistema de Espaçamento (8pt Grid Base)
-     (Nativo do Tailwind, reafirmado como padrão no projeto)
   ========================================= */
   --spacing-2: 0.5rem;   /* 8px */
   --spacing-4: 1rem;     /* 16px */
@@ -54,20 +53,69 @@
   /* =========================================
      Container Queries para Cards Responsivos
   ========================================= */
-  --container-xs: 20rem; /* 320px */
-  --container-sm: 24rem; /* 384px */
-  --container-md: 28rem; /* 448px */
-  --container-lg: 32rem; /* 512px */
-  --container-xl: 36rem; /* 576px */
+  --container-xs: 20rem;
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-lg: 32rem;
+  --container-xl: 36rem;
+
+  /* =========================================
+     #14 — Animações nativas (movidas do inline)
+  ========================================= */
+  --animate-fade-up: fade-up 0.35s ease;
+  --animate-shimmer: shimmer 1.4s infinite;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
 }
 
-/* Utilitários globais de typography e containers */
+/* =========================================
+   #10 — Font-size base 16px
+   ========================================= */
+@layer base {
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* =========================================
+   Utilitários globais
+   ========================================= */
 @layer utilities {
+  /* Fluid headings */
   .text-h1 { font-size: var(--text-fluid-h1); line-height: 1.1; font-weight: 700; }
   .text-h2 { font-size: var(--text-fluid-h2); line-height: 1.2; font-weight: 600; }
   .text-h3 { font-size: var(--text-fluid-h3); line-height: 1.3; font-weight: 600; }
   .text-h4 { font-size: var(--text-fluid-h4); line-height: 1.4; font-weight: 600; }
-  
-  /* Habilita o contexto de container para os filhos usarem @md: etc. */
+
+  /* Container queries */
   .card-container { container-type: inline-size; }
+
+  /* #9 — Leitura confortável para enunciados de questões */
+  .text-reading { line-height: 1.7; }
+
+  /* #11 — Números tabulares alinhados (dashboard stats, timer, tabelas) */
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+
+  /* #15 — Headings balanceados (evita viúvas tipográficas) */
+  .text-balance { text-wrap: balance; }
+  .text-pretty  { text-wrap: pretty; }
+}
+
+/* #6 (parcial) — Respeitar preferência de movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
