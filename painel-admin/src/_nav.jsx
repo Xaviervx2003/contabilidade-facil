@@ -20,8 +20,9 @@ import { CNavItem, CNavTitle } from '@coreui/react'
 import { useTheme } from './context/themeContext'
 
 const getNavItens = () => {
-  const papelUsuario = sessionStorage.getItem('papel') || 'aluno'
+  const papelUsuario = sessionStorage.getItem('papel')
   const isAluno = papelUsuario === 'aluno'
+  const isLogado = !!papelUsuario
 
   const itens = [
     {
@@ -42,7 +43,16 @@ const getNavItens = () => {
     },
   ]
 
-  if (isAluno) {
+  if (!isLogado) {
+    itens.push({
+      component: CNavItem,
+      name: 'Entrar / Cadastrar',
+      to: '/login',
+      icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
+    })
+  }
+
+  if (isLogado && isAluno) {
     itens.push(
       {
         component: CNavItem,

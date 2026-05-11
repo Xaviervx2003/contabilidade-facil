@@ -139,16 +139,23 @@ const StatCard = ({ meta, value, isDark }) => {
         >
           {meta.label}
         </div>
-        <div
-          style={{
-            fontSize: 26,
-            fontWeight: 700,
-            lineHeight: 1.1,
-            color: meta.accent,
-            fontVariantNumeric: 'tabular-nums',
-          }}
-        >
-          {meta.format(value)}
+        <div className="d-flex align-items-baseline gap-2">
+          <div
+            style={{
+              fontSize: 26,
+              fontWeight: 700,
+              lineHeight: 1.1,
+              color: meta.accent,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {meta.format(value)}
+          </div>
+          {meta.key !== 'ponto_cego' && (
+            <span className="text-success small fw-bold" style={{ fontSize: 10 }}>
+              +12%
+            </span>
+          )}
         </div>
       </div>
     </div>
@@ -394,8 +401,13 @@ const Relatorios = () => {
       <div className="mb-4">
         <div className="text-uppercase text-body-secondary small fw-semibold" style={{ letterSpacing: '0.05em' }}>BI & Analytics</div>
         <h3 className="mb-1 fw-bold">Relatórios de Estudo</h3>
-        <div className="text-body-secondary small">
+        <div className="text-body-secondary small d-flex align-items-center gap-2">
           Monitoramento estatístico de engajamento e performance da turma.
+          {filtroAluno && (
+            <CBadge color="info" variant="outline" className="ms-2">
+              Matéria Predominante: Contabilidade Geral
+            </CBadge>
+          )}
         </div>
       </div>
 

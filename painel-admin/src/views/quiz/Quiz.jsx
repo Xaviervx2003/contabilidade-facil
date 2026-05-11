@@ -1118,6 +1118,7 @@ const FinishedScreen = ({
   activeTab,
   setActiveTab,
 }) => {
+  const isLogado = !!sessionStorage.getItem('papel')
   // 🧠 Padrão defensivo: validar dados antes de renderizar
   const validTabs = useMemo(() => ['stats', 'qna'], [])
   const safeActiveTab = validTabs.includes(activeTab) ? activeTab : 'stats'
@@ -1131,6 +1132,24 @@ const FinishedScreen = ({
 
   return (
     <div style={{ animation: 'fade-up .35s ease' }}>
+      <CCardBody className="p-4 p-md-5 text-center">
+        <div className="mb-4" style={{ animation: 'bounce 2s infinite' }}>
+          <span style={{ fontSize: 64 }}>{grade.emoji}</span>
+        </div>
+
+        <h2 className="fw-bold mb-1">{grade.title}</h2>
+        <p className="text-body-secondary mb-4">{grade.message}</p>
+
+        {!isLogado && (
+          <div className="p-4 rounded-4 bg-primary bg-opacity-10 border border-primary border-opacity-25 mb-4 shadow-sm">
+            <h6 className="fw-bold text-primary mb-2">🚀 Quer ver sua evolução?</h6>
+            <p className="small text-body-secondary mb-3">Seus resultados de hoje não serão salvos. Crie uma conta gratuita para ter acesso a relatórios de BI e mapas de calor.</p>
+            <CButton color="primary" className="rounded-pill px-4 shadow-sm" onClick={() => window.location.href = '#/register'}>
+              Cadastrar Agora
+            </CButton>
+          </div>
+        )}
+
       {/* 🎨 Abas com feedback visual + acessibilidade melhorada */}
       <div role="tablist" className="mb-4 border-bottom">
         <div className="d-flex gap-0 gap-md-2">
@@ -1762,12 +1781,30 @@ const Quiz = () => {
         : finalScore >= 60
           ? 'warning'
           : 'danger'
+  const isLogado = !!sessionStorage.getItem('papel')
 
   // Render
   return (
     <CContainer fluid className="py-3 py-md-4 px-3 px-md-4">
       <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}@keyframes fade-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
+      {!isLogado && status === 'ready' && (
+        <CAlert 
+          color="info" 
+          className="rounded-4 border-0 shadow-sm mb-4 d-flex align-items-center justify-content-between p-3"
+          style={{ background: isDark ? 'rgba(var(--cui-info-rgb), 0.1)' : 'rgba(var(--cui-info-rgb), 0.05)' }}
+        >
+          <div className="d-flex align-items-center gap-3">
+            <div className="fs-3">👤</div>
+            <div>
+              <div className="fw-bold text-info">Modo Visitante</div>
+              <div className="small text-body-secondary">Faça login para salvar seu progresso e acessar métricas.</div>
+            </div>
+          </div>
+          <CButton color="primary" size="sm" className="rounded-pill px-3 shadow-sm" onClick={() => window.location.href = '#/login'}>
+            Login
+          </CButton>
+        </CAlert>
       {savedSnapshot && status === 'ready' && (
         <CAlert
           color="warning"
