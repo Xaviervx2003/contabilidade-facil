@@ -8,6 +8,7 @@ import {
   CCardHeader,
   CCol,
   CContainer,
+  CFormInput,
   CFormSelect,
   CFormTextarea,
   CProgress,
@@ -481,11 +482,11 @@ const ReadyScreen = ({
         icon="⚙️"
         title="Regras do Simulado"
         subtitle={`${quantidade === 0 ? 'Todas' : quantidade} questões · ${tempoLimite / 60} minutos`}
-        isOpen={activeStep === 2}
-        onToggle={() => setActiveStep(activeStep === 2 ? -1 : 2)}
-        isCompleted={steps[2].completed}
+        isOpen={activeStep === 3}
+        onToggle={() => setActiveStep(activeStep === 3 ? -1 : 3)}
+        isCompleted={steps[3].completed}
         ctaLabel="Confirmar Regras"
-        onCta={() => setActiveStep(3)}
+        onCta={() => setActiveStep(4)}
       >
         <CRow className="g-3">
           <CCol xs={6}>
@@ -553,9 +554,9 @@ const ReadyScreen = ({
               ? 'Apenas erros'
               : 'Não respondidas'
         }
-        isOpen={activeStep === 3}
-        onToggle={() => setActiveStep(activeStep === 3 ? -1 : 3)}
-        isCompleted={steps[3].completed}
+        isOpen={activeStep === 4}
+        onToggle={() => setActiveStep(activeStep === 4 ? -1 : 4)}
+        isCompleted={steps[4].completed}
       >
         <CRow className="g-2">
           {[
