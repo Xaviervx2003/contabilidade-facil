@@ -90,10 +90,17 @@ const AppHeader = () => {
               </CNavLink>
             </CNavItem>
           ) : (
-            <CNavItem>
-              <CNavLink to="/login" as={NavLink} className="fw-bold text-primary">
+            <CNavItem className="d-flex align-items-center">
+              <CButton 
+                to="/login" 
+                as={NavLink} 
+                color="primary" 
+                variant="outline" 
+                className="rounded-pill px-3 fw-bold shadow-sm"
+                style={{ fontSize: '13px' }}
+              >
                 Entrar / Cadastrar
-              </CNavLink>
+              </CButton>
             </CNavItem>
           )}
         </CHeaderNav>

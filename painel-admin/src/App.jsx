@@ -15,7 +15,7 @@
  */
 
 import React, { Suspense } from 'react'
-import { HashRouter, Route, Routes } from 'react-router-dom'
+import { HashRouter, Route, Routes, Navigate } from 'react-router-dom'
 
 import { CSpinner } from '@coreui/react'
 import { ThemeProvider } from './context/themeContext'
@@ -47,7 +47,7 @@ const App = () => {
           }
         >
           <Routes>
-            <Route exact path="/" name="Landing Page" element={<Landing />} />
+            <Route exact path="/" element={<Navigate to="/quiz" replace />} />
             <Route exact path="/login" name="Login Page" element={<Login />} />
             <Route exact path="/register" name="Register Page" element={<Register />} />
             <Route exact path="/404" name="Page 404" element={<Page404 />} />

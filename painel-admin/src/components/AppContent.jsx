@@ -52,7 +52,7 @@ const AppContent = () => {
               />
             )
           })}
-          <Route path="/" element={<Navigate to={papel === 'aluno' ? 'aluno/dashboard' : 'dashboard'} replace />} />
+          <Route path="/" element={<Navigate to="/quiz" replace />} />
         </Routes>
       </Suspense>
     </CContainer>

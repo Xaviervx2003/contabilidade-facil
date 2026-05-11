@@ -12,7 +12,7 @@ import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/inde
 const DefaultLayout = () => {
   // 'papel' — mesma chave usada no Login.jsx ao salvar
   const papel = sessionStorage.getItem('papel')
-  const isPublicRoute = window.location.hash.includes('/quiz')
+  const isPublicRoute = window.location.hash.includes('/quiz') || window.location.hash.includes('/videos')
 
   if (!papel && !isPublicRoute) {
     return <Navigate to="/login" replace />
