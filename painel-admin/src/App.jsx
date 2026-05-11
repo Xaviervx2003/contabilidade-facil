@@ -47,7 +47,7 @@ const App = () => {
           }
         >
           <Routes>
-            <Route exact path="/" element={<Navigate to="/quiz" replace />} />
+            <Route exact path="/" name="Landing Page" element={<Landing />} />
             <Route exact path="/login" name="Login Page" element={<Login />} />
             <Route exact path="/register" name="Register Page" element={<Register />} />
             <Route exact path="/404" name="Page 404" element={<Page404 />} />

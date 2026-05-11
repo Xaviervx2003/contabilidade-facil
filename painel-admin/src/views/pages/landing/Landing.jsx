@@ -176,8 +176,8 @@ const Landing = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.8 }}
                         >
-                            <button className="btn-premium" onClick={() => navigate('/login')}>
-                                ACESSAR PLATAFORMA
+                            <button className="btn-premium" onClick={() => navigate('/quiz')}>
+                                INICIAR ESTUDOS AGORA
                                 <div className="btn-icon">
                                     <Icon icon="solar:arrow-right-linear" width="24" style={{ color: '#DEDBC8' }} />
                                 </div>
