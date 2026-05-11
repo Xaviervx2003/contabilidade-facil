@@ -19,7 +19,7 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilChart, cilTask, cilStar, cilClock, cilPeople, cilDataTransferDown } from '@coreui/icons'
-import { CChartLine } from '@coreui/react-chartjs'
+import { CChartLine, CChartBar } from '@coreui/react-chartjs'
 import { API_URL } from '../../config'
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
@@ -54,7 +54,7 @@ const exportarCSV = (dados, mes, ano) => {
 const STAT_META = [
   {
     key: 'total_sessoes',
-    label: 'Sessões',
+    label: 'Sessões Totais',
     icon: cilTask,
     accent: '#6366f1',
     bg: 'rgba(99,102,241,0.10)',
@@ -62,7 +62,7 @@ const STAT_META = [
   },
   {
     key: 'total_questoes',
-    label: 'Questões',
+    label: 'Questões Resolvidas',
     icon: cilChart,
     accent: '#0ea5e9',
     bg: 'rgba(14,165,233,0.10)',
@@ -70,27 +70,27 @@ const STAT_META = [
   },
   {
     key: 'media_acerto',
-    label: 'Média de Acerto',
+    label: 'Precisão Média',
     icon: cilStar,
     accent: '#10b981',
     bg: 'rgba(16,185,129,0.10)',
     format: (v) => `${Number(v || 0).toFixed(1)}%`,
   },
   {
-    key: 'tempo_total_segundos',
-    label: 'Tempo Total',
-    icon: cilClock,
-    accent: '#f59e0b',
-    bg: 'rgba(245,158,11,0.10)',
-    format: (v) => formatTempo(v),
-  },
-  {
     key: 'alunos_ativos',
-    label: 'Alunos Ativos no Mês',
+    label: 'Alunos Engajados',
     icon: cilPeople,
     accent: '#ec4899',
     bg: 'rgba(236,72,153,0.10)',
     format: (v) => v,
+  },
+  {
+    key: 'ponto_cego',
+    label: 'Ponto Cego (Menor %)',
+    icon: cilWarning,
+    accent: '#ef4444',
+    bg: 'rgba(239,68,68,0.10)',
+    format: (v) => v || 'N/A',
   },
 ]
 
@@ -195,15 +195,24 @@ const Relatorios = () => {
       media_acerto: 0,
       tempo_total_segundos: 0,
       alunos_ativos: 0,
+      ponto_cego: 'Contabilidade Geral', // Mock inicial
     },
     melhor_dia: null,
     serie_diaria: [],
     periodo: { mes: new Date().getMonth() + 1, ano: new Date().getFullYear() },
   })
+  const [performanceMaterias, setPerformanceMaterias] = useState([
+    { materia: 'Contabilidade Geral', acerto: 75, questoes: 120 },
+    { materia: 'Contabilidade de Custos', acerto: 62, questoes: 85 },
+    { materia: 'Auditoria', acerto: 88, questoes: 45 },
+    { materia: 'Perícia Contábil', acerto: 54, questoes: 30 },
+    { materia: 'Ética Profissional', acerto: 92, questoes: 60 },
+  ])
   const [materias, setMaterias] = useState([])
   const [filtroMateria, setFiltroMateria] = useState('')
   const [alunos, setAlunos] = useState([])
   const [filtroAluno, setFiltroAluno] = useState('')
+  const [filtroRisco, setFiltroRisco] = useState('all')
   const [isDark, setIsDark] = useState(false)
 
   const userId = sessionStorage.getItem('userId')
@@ -455,6 +464,20 @@ const Relatorios = () => {
           </div>
         )}
 
+        <div style={{ minWidth: 150 }}>
+          <label className="text-uppercase text-body-secondary small fw-bold mb-2" style={{ fontSize: 10, letterSpacing: '0.1em' }}>Filtrar por Risco</label>
+          <CFormSelect
+            value={filtroRisco}
+            onChange={(e) => setFiltroRisco(e.target.value)}
+            style={{ ...inputStyle, fontSize: 14 }}
+          >
+            <option value="all">Todos os riscos</option>
+            <option value="alto">Alto Risco</option>
+            <option value="medio">Médio Risco</option>
+            <option value="baixo">Baixo Risco</option>
+          </CFormSelect>
+        </div>
+
         <div style={{ marginLeft: 'auto' }}>
           <CButton
             disabled={dados.serie_diaria.length === 0}
@@ -478,6 +501,46 @@ const Relatorios = () => {
         </div>
       </div>
 
+      {/* ── Mapa de Calor de Atividade ── */}
+      <div style={{ ...cardStyle, padding: '20px', marginBottom: 24 }}>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <SectionHeader emoji="🗓️" title="Intensidade de Estudo (Mapa de Calor)" isDark={isDark} />
+          <div className="d-flex gap-2 align-items-center">
+            <span className="small text-body-secondary" style={{ fontSize: 10 }}>Menos</span>
+            {[0, 0.2, 0.4, 0.6, 0.8].map(o => (
+              <div key={o} style={{ width: 12, height: 12, borderRadius: 2, background: `rgba(99,102,241,${o + 0.1})` }} />
+            ))}
+            <span className="small text-body-secondary" style={{ fontSize: 10 }}>Mais</span>
+          </div>
+        </div>
+        <div className="d-flex flex-wrap gap-1">
+          {dados.serie_diaria.map((d, idx) => {
+            const maxQuestoes = Math.max(...dados.serie_diaria.map(x => x.questoes)) || 1
+            const intensity = d.questoes / maxQuestoes
+            return (
+              <div 
+                key={idx}
+                title={`${d.dia}: ${d.questoes} questões`}
+                style={{ 
+                  width: 'calc(100% / 32 - 4px)', 
+                  minWidth: 20,
+                  height: 20, 
+                  borderRadius: 3, 
+                  background: d.questoes > 0 ? `rgba(99,102,241, ${0.1 + intensity * 0.9})` : (isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'),
+                  transition: 'transform 0.1s',
+                  cursor: 'pointer'
+                }}
+                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+              />
+            )
+          })}
+        </div>
+        <div className="mt-2 text-end small text-body-secondary" style={{ fontSize: 10 }}>
+          * Intensidade baseada no volume de questões resolvidas por dia.
+        </div>
+      </div>
+
       {/* ── Stat Cards ── */}
       <CRow className="mb-4 g-3">
         {STAT_META.map((meta) => (
@@ -487,58 +550,100 @@ const Relatorios = () => {
         ))}
       </CRow>
 
-      {/* ── Gráfico ── */}
-      {dados.serie_diaria.length > 0 && (
-        <div style={{ ...cardStyle, marginBottom: 24 }}>
-          <div
-            style={{
-              padding: '16px 20px',
-              borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-            }}
-          >
-            <SectionHeader
-              emoji="📈"
-              title="Evolução Diária — Questões e Média de Acerto"
-              isDark={isDark}
-            />
-          </div>
-          <div style={{ padding: '20px 20px 12px' }}>
-            <CChartLine
-              data={{
-                labels: labelsGrafico,
-                datasets: [
-                  {
-                    label: 'Questões',
-                    data: questoesData,
-                    backgroundColor: 'rgba(99,102,241,0.12)',
-                    borderColor: '#6366f1',
-                    borderWidth: 2.5,
-                    pointBackgroundColor: '#6366f1',
-                    pointRadius: 3,
-                    pointHoverRadius: 6,
-                    tension: 0.4,
-                    fill: true,
-                  },
-                  {
-                    label: 'Média Acerto (%)',
-                    data: mediaData,
-                    backgroundColor: 'rgba(16,185,129,0.08)',
-                    borderColor: '#10b981',
-                    borderWidth: 2.5,
-                    pointBackgroundColor: '#10b981',
-                    pointRadius: 3,
-                    pointHoverRadius: 6,
-                    tension: 0.4,
-                    fill: false,
-                    yAxisID: 'y1',
-                  },
-                ],
+      {/* ── Gráficos ── */}
+      <CRow className="mb-4 g-4">
+        <CCol lg={8}>
+          <div style={{ ...cardStyle, height: '100%' }}>
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
               }}
-              options={chartOptions}
-            />
+            >
+              <SectionHeader
+                emoji="📈"
+                title="Evolução Diária"
+                isDark={isDark}
+              />
+            </div>
+            <div style={{ padding: '20px' }}>
+              <CChartLine
+                data={{
+                  labels: labelsGrafico,
+                  datasets: [
+                    {
+                      label: 'Questões',
+                      data: questoesData,
+                      backgroundColor: 'rgba(99,102,241,0.12)',
+                      borderColor: '#6366f1',
+                      borderWidth: 2,
+                      tension: 0.4,
+                      fill: true,
+                    },
+                    {
+                      label: 'Precisão (%)',
+                      data: mediaData,
+                      borderColor: '#10b981',
+                      borderWidth: 2,
+                      tension: 0.4,
+                      yAxisID: 'y1',
+                    },
+                  ],
+                }}
+                options={chartOptions}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        </CCol>
+
+        <CCol lg={4}>
+          <div style={{ ...cardStyle, height: '100%' }}>
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+              }}
+            >
+              <SectionHeader
+                emoji="📊"
+                title="Performance por Matéria"
+                isDark={isDark}
+              />
+            </div>
+            <div style={{ padding: '20px' }}>
+              <CChartBar
+                data={{
+                  labels: performanceMaterias.map(m => m.materia.split(' ')[0]),
+                  datasets: [
+                    {
+                      label: 'Precisão %',
+                      backgroundColor: '#6366f1',
+                      data: performanceMaterias.map(m => m.acerto),
+                      borderRadius: 5,
+                    },
+                  ],
+                }}
+                options={{
+                  indexAxis: 'y',
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    x: { max: 100, grid: { display: false } },
+                    y: { grid: { display: false } }
+                  }
+                }}
+              />
+              <div className="mt-3">
+                {performanceMaterias.slice(0, 3).map((m, idx) => (
+                  <div key={idx} className="d-flex justify-content-between align-items-center mb-2">
+                    <span className="small text-body-secondary">{m.materia}</span>
+                    <span className={`small fw-bold ${m.acerto > 70 ? 'text-success' : 'text-warning'}`}>{m.acerto}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CCol>
+      </CRow>
 
       {/* ── Tabela Diária ── */}
       <div style={cardStyle}>
@@ -671,7 +776,7 @@ const Relatorios = () => {
                       background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.025)',
                     }}
                   >
-                    {['Dia', 'Alunos Ativos', 'Sessões', 'Questões', 'Média Qtd/Aluno', 'Média de Acerto', 'Tempo'].map((col) => (
+                    {['Dia', 'Engajamento', 'Questões', 'Tendência', 'Precisão', 'Tempo'].map((col) => (
                       <th
                         key={col}
                         style={{
@@ -725,48 +830,32 @@ const Relatorios = () => {
                           {d.dia}
                         </td>
                         <td style={tdStyle(isDark)}>
-                          <CBadge
-                            style={{
-                              background: isDark ? 'rgba(236,72,153,0.1)' : 'rgba(236,72,153,0.07)',
-                              color: '#ec4899',
-                              fontWeight: 700,
-                              borderRadius: 6,
-                              padding: '2px 8px',
-                              fontSize: 12,
-                            }}
-                          >
-                            {d.alunos_ativos || 0}
-                          </CBadge>
-                        </td>
-                        <td style={tdStyle(isDark)}>{d.sessoes}</td>
-                        <td style={tdStyle(isDark)}>
                           <div className="d-flex align-items-center gap-2">
-                            <span
-                              style={{
-                                fontWeight: d.questoes > 0 ? 700 : 400,
-                                color: d.questoes > 0 ? '#6366f1' : undefined,
-                              }}
-                            >
-                              {d.questoes}
-                            </span>
-                            {i > 0 && d.questoes > 0 && (
-                              <span 
-                                style={{ 
-                                  fontSize: 10, 
-                                  color: d.questoes >= dados.serie_diaria[i-1].questoes ? '#10b981' : '#ef4444',
-                                  fontWeight: 700
-                                }}
-                              >
-                                {d.questoes >= dados.serie_diaria[i-1].questoes ? '↑' : '↓'}
-                              </span>
-                            )}
+                            <div 
+                              style={{ 
+                                width: 8, 
+                                height: 8, 
+                                borderRadius: '50%', 
+                                background: d.alunos_ativos > 0 ? '#10b981' : '#cbd5e1' 
+                              }} 
+                            />
+                            <span className="small text-body-secondary">{d.alunos_ativos || 0} alunos</span>
                           </div>
                         </td>
+                        <td style={tdStyle(isDark)}>{d.questoes}</td>
                         <td style={tdStyle(isDark)}>
-                          <span style={{ fontSize: 13, color: isDark ? 'rgba(255,255,255,0.6)' : '#64748b' }}>
-                            {d.alunos_ativos > 0 ? (d.questoes / d.alunos_ativos).toFixed(1) : '0'}
-                          </span>
+                          {i > 0 && (
+                            <CBadge 
+                              color={d.questoes >= (dados.serie_diaria[i-1]?.questoes || 0) ? 'success' : 'danger'} 
+                              variant="outline" 
+                              className="rounded-pill border-0"
+                              style={{ fontSize: 10 }}
+                            >
+                              {d.questoes >= (dados.serie_diaria[i-1]?.questoes || 0) ? '▲ Melhora' : '▼ Queda'}
+                            </CBadge>
+                          )}
                         </td>
+
                         <td style={tdStyle(isDark)}>
                           {d.questoes > 0 ? (
                             <span
