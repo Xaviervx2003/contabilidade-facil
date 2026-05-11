@@ -295,10 +295,13 @@ const GestaoQuestoes = () => {
 
         <CCard className='mb-4 premium-card'>
           <CCardHeader className='d-flex flex-column gap-3'>
-            <div className='d-flex justify-content-between align-items-center flex-wrap gap-2'>
-              <div className='d-flex align-items-center gap-2'>
-                <strong style={{ fontSize: '1.25rem', color: 'var(--color-primary)' }}>Gestão de Questões</strong>
-                <CBadge color='secondary' shape='pill' className='ms-2'>{totalQuestoes} questões</CBadge>
+            <div className='d-flex flex-column flex-lg-row justify-content-between gap-3'>
+              <div>
+                <div className="text-uppercase text-body-secondary small fw-semibold" style={{ letterSpacing: '0.05em' }}>Banco de Itens</div>
+                <h3 className="mb-1 fw-bold">Gestão de Questões</h3>
+                <div className="text-body-secondary small">
+                  Administração de questões, gabaritos e comentários técnicos.
+                </div>
               </div>
               <div className='d-flex align-items-center flex-wrap gap-2 mt-2 mt-md-0 w-100 justify-content-md-end'>
                 <CInputGroup style={{ maxWidth: '100%', width: 'auto', flex: '1 1 250px' }}>
@@ -389,13 +392,13 @@ const GestaoQuestoes = () => {
 
           <CCardBody>
             <CTable align='middle' className='mb-0 premium-table' hover responsive>
-              <CTableHead>
+              <CTableHead className="bg-body-tertiary">
                 <CTableRow>
-                  <CTableHeaderCell>ID</CTableHeaderCell>
-                  <CTableHeaderCell>Matérias</CTableHeaderCell>
-                  <CTableHeaderCell>Enunciado</CTableHeaderCell>
-                  <CTableHeaderCell className='text-center'>Mídia</CTableHeaderCell>
-                  <CTableHeaderCell className='text-center'>Ações</CTableHeaderCell>
+                  <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold ps-4">ID</CTableHeaderCell>
+                  <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">Matérias</CTableHeaderCell>
+                  <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">Enunciado</CTableHeaderCell>
+                  <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold text-center">Mídia</CTableHeaderCell>
+                  <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold text-center pe-4">Ações</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
@@ -574,7 +577,7 @@ const GestaoQuestoes = () => {
               />
             </div>
 
-            <span className='section-label'>Resposta e Comentários</span>
+            <div className="text-uppercase text-body-secondary small fw-semibold mb-2" style={{ letterSpacing: '0.05em' }}>Gabarito e Comentários</div>
             <CRow className='align-items-start g-3 mb-4'>
               <CCol md={4}>
                 <label className='form-label fw-bold small text-primary'>Gabarito Oficial</label>

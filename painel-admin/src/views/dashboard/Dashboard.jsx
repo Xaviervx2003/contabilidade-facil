@@ -180,8 +180,8 @@ const SkeletonBlock = ({ height = 24, width = '100%', className = '' }) => {
 
 const StatCard = ({ titulo, valor, cor, icone, loading }) => (
   <div className="bg-gradient-to-br from-[#f8fafc] to-white dark:from-[#1e293b] dark:to-[#0f172a] border border-white/80 dark:border-slate-700/50 rounded-[1.5rem] p-6 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.06),inset_0_2px_15px_rgba(0,0,0,0.03)] dark:shadow-none h-100 fade-in-up d-flex flex-column justify-content-between transition-colors duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)]" style={{ animationDelay: '0.1s' }}>
-    <div className="text-sm text-secondary uppercase tracking-wide d-flex align-items-center gap-2">
-      <CIcon icon={icone} className={`text-${cor}`} /> {titulo}
+    <div className="text-uppercase text-body-secondary small fw-semibold mb-1" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
+      <CIcon icon={icone} className={`text-${cor} me-1`} /> {titulo}
     </div>
     <div className="fs-3 fw-bold text-primary mt-3">
       {loading ? <SkeletonBlock height={32} width="60%" /> : valor}
@@ -235,7 +235,14 @@ const Dashboard = () => {
     : 0
 
   return (
-    <div className="p-3 p-md-4">
+    <div className="p-3 p-md-4 fade-in">
+      <div className="mb-4">
+        <div className="text-uppercase text-body-secondary small fw-semibold" style={{ letterSpacing: '0.05em' }}>Indicadores de Performance</div>
+        <h3 className="mb-1 fw-bold">Dashboard Administrativo</h3>
+        <div className="text-body-secondary small">
+          Acompanhamento em tempo real do engajamento e desempenho acadêmico.
+        </div>
+      </div>
       {/* Aviso de sessão não identificada */}
       {!userId && (
         <CAlert color="warning" className="mb-3 d-flex align-items-center gap-2">

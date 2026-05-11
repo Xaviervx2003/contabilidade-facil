@@ -104,22 +104,37 @@ const CentralRisco = () => {
   if (erro) return <CAlert color="danger">{erro}</CAlert>
 
   return (
-    <div className="p-3 p-md-4">
-      <h4 className="mb-3">Central de Risco</h4>
+    <div className="p-3 p-md-4 fade-in">
+      <div className="mb-4">
+        <div className="text-uppercase text-body-secondary small fw-semibold" style={{ letterSpacing: '0.05em' }}>Análise de Retenção</div>
+        <h3 className="mb-1 fw-bold">Central de Risco</h3>
+        <div className="text-body-secondary small">
+          Identificação proativa de alunos com risco de evasão (Churn).
+        </div>
+      </div>
       <CRow className="g-3 mb-4">
         <CCol xs={12} md={4}>
-          <CCard className="border-0 shadow-sm">
-            <CCardBody><strong>Risco Alto:</strong> {resumo.alto}</CCardBody>
+          <CCard className="border-0 shadow-sm rounded-4 h-100">
+            <CCardBody className="d-flex flex-column justify-content-center p-3">
+              <div className="text-uppercase text-danger fw-bold small mb-1" style={{ fontSize: 10, letterSpacing: '0.1em' }}>Risco Alto</div>
+              <div className="fs-3 fw-bold tabular-nums">{resumo.alto}</div>
+            </CCardBody>
           </CCard>
         </CCol>
         <CCol xs={12} md={4}>
-          <CCard className="border-0 shadow-sm">
-            <CCardBody><strong>Risco Médio:</strong> {resumo.medio}</CCardBody>
+          <CCard className="border-0 shadow-sm rounded-4 h-100">
+            <CCardBody className="d-flex flex-column justify-content-center p-3">
+              <div className="text-uppercase text-warning fw-bold small mb-1" style={{ fontSize: 10, letterSpacing: '0.1em' }}>Risco Médio</div>
+              <div className="fs-3 fw-bold tabular-nums">{resumo.medio}</div>
+            </CCardBody>
           </CCard>
         </CCol>
         <CCol xs={12} md={4}>
-          <CCard className="border-0 shadow-sm">
-            <CCardBody><strong>Risco Baixo:</strong> {resumo.baixo}</CCardBody>
+          <CCard className="border-0 shadow-sm rounded-4 h-100">
+            <CCardBody className="d-flex flex-column justify-content-center p-3">
+              <div className="text-uppercase text-success fw-bold small mb-1" style={{ fontSize: 10, letterSpacing: '0.1em' }}>Risco Baixo</div>
+              <div className="fs-3 fw-bold tabular-nums">{resumo.baixo}</div>
+            </CCardBody>
           </CCard>
         </CCol>
       </CRow>
@@ -146,14 +161,14 @@ const CentralRisco = () => {
             </div>
           </div>
 
-          <CTable hover responsive>
-            <CTableHead>
+          <CTable hover responsive align="middle" className="mb-0">
+            <CTableHead className="bg-body-tertiary">
               <CTableRow>
-                <CTableHeaderCell>Aluno</CTableHeaderCell>
-                <CTableHeaderCell>Churn</CTableHeaderCell>
-                <CTableHeaderCell>Retenção 30d</CTableHeaderCell>
-                <CTableHeaderCell>Conclusão Simulado</CTableHeaderCell>
-                <CTableHeaderCell>Nível</CTableHeaderCell>
+                <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold ps-4">Aluno</CTableHeaderCell>
+                <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">Churn</CTableHeaderCell>
+                <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">Retenção 30d</CTableHeaderCell>
+                <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">Conclusão</CTableHeaderCell>
+                <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold text-center pe-4">Nível</CTableHeaderCell>
               </CTableRow>
             </CTableHead>
             <CTableBody>

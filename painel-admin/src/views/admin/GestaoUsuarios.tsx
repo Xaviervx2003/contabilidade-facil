@@ -264,25 +264,30 @@ const GestaoUsuarios = () => {
             {sucesso && <CAlert color="success" dismissible onClose={() => setSucesso(null)}>{sucesso}</CAlert>}
             {erro && <CAlert color="danger" dismissible onClose={() => setErro(null)}>{erro}</CAlert>}
 
-            <CCard className="mb-4">
-                <CCardHeader className="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                    <div className="d-flex align-items-center gap-2">
-                        <strong>Gestão de Usuários</strong>
-                        <CBadge color="secondary">{usuariosFiltrados.length}</CBadge>
-                    </div>
-
-                    <div className="d-flex flex-grow-1 flex-md-grow-0 gap-2">
-                        <CFormInput
-                            placeholder="Buscar nome ou matrícula..."
-                            size="sm"
-                            value={busca}
-                            onChange={(e) => setBusca(e.target.value)}
-                            style={{ maxWidth: '250px' }}
-                            aria-label="Campo de busca"
-                        />
-                        <CButton color="primary" size="sm" onClick={abrirCriar} className="text-nowrap">
-                            <CIcon icon={cilUserPlus} className="me-1" /> Novo
-                        </CButton>
+            <CCard className="mb-4 border-0 shadow-sm">
+                <CCardHeader className="bg-body border-0 pb-0">
+                    <div className="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                        <div>
+                            <div className="text-uppercase text-body-secondary small fw-semibold" style={{ letterSpacing: '0.05em' }}>Controle de Acesso</div>
+                            <h3 className="mb-1 fw-bold">Gestão de Usuários</h3>
+                            <div className="text-body-secondary small">
+                                Gerencie permissões e perfis de acesso ao sistema.
+                            </div>
+                        </div>
+                        <div className="d-flex gap-2 align-items-start">
+                            <CFormInput
+                                placeholder="Buscar nome ou matrícula..."
+                                size="sm"
+                                value={busca}
+                                onChange={(e) => setBusca(e.target.value)}
+                                style={{ maxWidth: '250px' }}
+                                className="rounded-pill px-3"
+                                aria-label="Campo de busca"
+                            />
+                            <CButton color="primary" size="sm" onClick={abrirCriar} className="rounded-pill px-3 text-nowrap">
+                                <CIcon icon={cilUserPlus} className="me-1" /> Novo Usuário
+                            </CButton>
+                        </div>
                     </div>
                 </CCardHeader>
 
@@ -291,16 +296,16 @@ const GestaoUsuarios = () => {
                         <div className="text-center py-5"><CSpinner /></div>
                     ) : (
                         <>
-                            <CTable align="middle" hover responsive bordered className="mb-0">
-                                <CTableHead>
+                            <CTable align="middle" hover responsive className="mb-0">
+                                <CTableHead className="bg-body-tertiary">
                                     <CTableRow>
-                                        <CTableHeaderCell>#</CTableHeaderCell>
-                                        <CTableHeaderCell>Nome</CTableHeaderCell>
-                                        <CTableHeaderCell>Matrícula</CTableHeaderCell>
-                                        <CTableHeaderCell>E-mail</CTableHeaderCell>
-                                        <CTableHeaderCell className="text-center">Papel</CTableHeaderCell>
-                                        <CTableHeaderCell>Matérias</CTableHeaderCell>
-                                        <CTableHeaderCell className="text-center">Ações</CTableHeaderCell>
+                                        <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold ps-4">#</CTableHeaderCell>
+                                        <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">Nome</CTableHeaderCell>
+                                        <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">Matrícula</CTableHeaderCell>
+                                        <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">E-mail</CTableHeaderCell>
+                                        <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold text-center">Papel</CTableHeaderCell>
+                                        <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">Matérias</CTableHeaderCell>
+                                        <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold text-center pe-4">Ações</CTableHeaderCell>
                                     </CTableRow>
                                 </CTableHead>
 
@@ -315,22 +320,22 @@ const GestaoUsuarios = () => {
                                         const badge = PAPEL_BADGE[u.papel] || { color: 'secondary', label: u.papel }
                                         return (
                                             <CTableRow key={u.id}>
-                                                <CTableDataCell className="text-body-secondary">{(paginaAtual - 1) * itensPorPagina + idx + 1}</CTableDataCell>
-                                                <CTableDataCell><strong>{u.nome}</strong></CTableDataCell>
-                                                <CTableDataCell><code>{u.matricula}</code></CTableDataCell>
-                                                <CTableDataCell>{u.email || <span className="text-body-secondary">—</span>}</CTableDataCell>
+                                                <CTableDataCell className="text-body-secondary ps-4 tabular-nums">{(paginaAtual - 1) * itensPorPagina + idx + 1}</CTableDataCell>
+                                                <CTableDataCell><div className="fw-bold text-reading">{u.nome}</div></CTableDataCell>
+                                                <CTableDataCell><code className="text-primary">{u.matricula}</code></CTableDataCell>
+                                                <CTableDataCell className="small">{u.email || <span className="text-body-secondary">—</span>}</CTableDataCell>
                                                 <CTableDataCell className="text-center">
-                                                    <CBadge color={badge.color}>{badge.label}</CBadge>
+                                                    <CBadge color={badge.color} className="rounded-pill px-3 py-2" style={{ fontSize: 10 }}>{badge.label}</CBadge>
                                                 </CTableDataCell>
-                                                <CTableDataCell>
+                                                <CTableDataCell className="small">
                                                     {u.papel === 'professor'
                                                         ? Array.isArray(u.materias_ensinadas) ? u.materias_ensinadas.join(', ') : u.materias_ensinadas
                                                         : <span className="text-body-secondary">—</span>}
                                                 </CTableDataCell>
-                                                <CTableDataCell>
+                                                <CTableDataCell className="pe-4">
                                                     <div className="d-flex flex-wrap justify-content-center gap-1">
                                                         <CButton
-                                                            color="info" variant="outline" size="sm"
+                                                            color="info" variant="ghost" size="sm" className="rounded-circle"
                                                             title="Ver Histórico/Progresso"
                                                             aria-label="Ver histórico"
                                                             onClick={() => navigate(`/aluno/historico?matricula=${encodeURIComponent(u.matricula)}`)}
@@ -338,7 +343,7 @@ const GestaoUsuarios = () => {
                                                             <CIcon icon={cilChartLine} />
                                                         </CButton>
                                                         <CButton
-                                                            color="warning" variant="outline" size="sm"
+                                                            color="warning" variant="ghost" size="sm" className="rounded-circle"
                                                             onClick={() => abrirEditar(u)}
                                                             title="Editar"
                                                             aria-label="Editar usuário"
@@ -346,7 +351,7 @@ const GestaoUsuarios = () => {
                                                             <CIcon icon={cilPencil} />
                                                         </CButton>
                                                         <CButton
-                                                            color="danger" variant="outline" size="sm"
+                                                            color="danger" variant="ghost" size="sm" className="rounded-circle"
                                                             onClick={() => deletar(u.id, u.nome)}
                                                             disabled={u.id === 1}
                                                             title={u.id === 1 ? 'Admin principal não pode ser removido' : 'Remover usuário'}

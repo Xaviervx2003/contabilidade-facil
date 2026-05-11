@@ -290,16 +290,21 @@ const GestaoMaterias = () => {
       {error && <CAlert color="danger" dismissible onClose={() => setError('')}>{error}</CAlert>}
       {success && <CAlert color="success" dismissible onClose={() => setSuccess('')}>{success}</CAlert>}
 
-      <CCard className="mb-4 shadow-sm border-0">
-        <CCardHeader className="bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
-          <div>
-            <h5 className="mb-0 fw-bold text-primary">Gestão de Conteúdo (Árvore de Matérias)</h5>
-            <small className="text-muted">Organização hierárquica baseada no Gran Cursos</small>
-          </div>
-          <div className="d-flex gap-2">
-             <CButton color="danger" variant="outline" size="sm" onClick={limparVazias} disabled={limpando}>
-               {limpando ? <CSpinner size="sm" /> : 'Faxina de Vazias'}
-             </CButton>
+      <CCard className="mb-4 border-0 shadow-sm">
+        <CCardHeader className="bg-body border-0 pb-0">
+          <div className="d-flex flex-column flex-lg-row justify-content-between gap-3">
+            <div>
+              <div className="text-uppercase text-body-secondary small fw-semibold" style={{ letterSpacing: '0.05em' }}>Estrutura Acadêmica</div>
+              <h3 className="mb-1 fw-bold">Gestão de Conteúdo</h3>
+              <div className="text-body-secondary small">
+                Organização hierárquica de matérias e assuntos (Base Gran Cursos).
+              </div>
+            </div>
+            <div className="d-flex gap-2 align-items-start">
+              <CButton color="danger" variant="outline" size="sm" className="rounded-pill px-3" onClick={limparVazias} disabled={limpando}>
+                {limpando ? <CSpinner size="sm" /> : <><CIcon icon={cilTrash} className="me-1" /> Faxina de Vazias</>}
+              </CButton>
+            </div>
           </div>
         </CCardHeader>
         <CCardBody className="p-4">
@@ -331,8 +336,10 @@ const GestaoMaterias = () => {
           )}
           <CRow className="mb-4 g-3">
             <CCol lg={8}>
-              <div className="p-3 bg-light rounded-3 border">
-                <h6 className="fw-bold mb-3 small text-uppercase text-secondary">Nova Categoria</h6>
+              <div className="p-3 bg-body-tertiary rounded-4 border border-dashed border-primary border-opacity-25 h-100">
+                <div className="text-uppercase fw-bold text-primary mb-3" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
+                  🆕 Nova Categoria
+                </div>
                 <CRow className="g-2">
                   <CCol md={7}>
                     <CFormInput 
@@ -358,8 +365,10 @@ const GestaoMaterias = () => {
               </div>
             </CCol>
             <CCol lg={4}>
-              <div className="p-3 bg-light rounded-3 border h-100">
-                <h6 className="fw-bold mb-3 small text-uppercase text-secondary">Filtrar Assuntos</h6>
+              <div className="p-3 bg-body-tertiary rounded-4 border h-100">
+                <div className="text-uppercase fw-bold text-secondary mb-3" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
+                  🔍 Filtrar Assuntos
+                </div>
                 <CInputGroup>
                   <CInputGroupText className="bg-white border-end-0">
                     <CIcon icon={cilSearch} className="text-muted" />

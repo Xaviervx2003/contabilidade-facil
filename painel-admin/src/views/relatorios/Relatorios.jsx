@@ -381,7 +381,15 @@ const Relatorios = () => {
   }
 
   return (
-    <>
+    <div className="fade-in">
+      <div className="mb-4">
+        <div className="text-uppercase text-body-secondary small fw-semibold" style={{ letterSpacing: '0.05em' }}>BI & Analytics</div>
+        <h3 className="mb-1 fw-bold">Relatórios de Estudo</h3>
+        <div className="text-body-secondary small">
+          Monitoramento estatístico de engajamento e performance da turma.
+        </div>
+      </div>
+
       {erro && (
         <CAlert color="danger" style={{ borderRadius: 12, marginBottom: 20, fontSize: 14 }}>
           {erro}
@@ -398,10 +406,12 @@ const Relatorios = () => {
           alignItems: 'flex-end',
           gap: 16,
           flexWrap: 'wrap',
+          border: 'none',
+          boxShadow: 'var(--cui-card-shadow, 0 10px 30px -10px rgba(0,0,0,0.06))'
         }}
       >
         <div style={{ minWidth: 160 }}>
-          <label style={labelStyle}>Período</label>
+          <label className="text-uppercase text-body-secondary small fw-bold mb-2" style={{ fontSize: 10, letterSpacing: '0.1em' }}>Período</label>
           <input
             type="month"
             className="form-control"
@@ -412,7 +422,7 @@ const Relatorios = () => {
         </div>
 
         <div style={{ minWidth: 200 }}>
-          <label style={labelStyle}>Matéria</label>
+          <label className="text-uppercase text-body-secondary small fw-bold mb-2" style={{ fontSize: 10, letterSpacing: '0.1em' }}>Matéria</label>
           <CFormSelect
             value={filtroMateria}
             onChange={(e) => setFiltroMateria(e.target.value)}
@@ -429,7 +439,7 @@ const Relatorios = () => {
 
         {(papelUsuario === 'admin' || papelUsuario === 'professor') && (
           <div style={{ minWidth: 200, flex: 1, maxWidth: 280 }}>
-            <label style={labelStyle}>Aluno</label>
+            <label className="text-uppercase text-body-secondary small fw-bold mb-2" style={{ fontSize: 10, letterSpacing: '0.1em' }}>Aluno</label>
             <CFormSelect
               value={filtroAluno}
               onChange={(e) => setFiltroAluno(e.target.value)}

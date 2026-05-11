@@ -1,0 +1,127 @@
+# Plano de Melhorias — Contabilidade Fácil
+
+Análise cruzada entre os docs (`skill/`, `DESIGN_SYSTEM.md`, `TECNICAS_VISUAIS.md`, `Web_Interface_Guidelines.md`) e o estado atual do projeto.
+
+---
+
+## ✅ Já Implementado (Sessão Atual)
+
+| Item | Status |
+|---|---|
+| Cores semânticas (success/error/warning/info) | ✅ `themeContext.jsx` |
+| Tokens expandidos no `tailwind.css` | ✅ Cores + Typography + Spacing + Container |
+| Contraste WCAG AA no dark mode | ✅ text-secondary/tertiary/muted ajustados |
+| Fluid Typography (clamp) | ✅ `--text-fluid-h1..h4` |
+| 8pt Grid System | ✅ `--spacing-*` tokens |
+| Container Queries base | ✅ `.card-container` utility |
+| MeusFeedbacks Light/Dark | ✅ Tokens semânticos aplicados |
+| Quiz CCollapse bug | ✅ Substituído por renderização condicional |
+
+---
+
+## 🔴 Prioridade Alta — Bugs & Acessibilidade
+
+### 1. `color-scheme: dark` no `<html>` (Web_Interface_Guidelines)
+> **Status:** Não implementado
+- Scrollbars, inputs nativos e `<select>` ficam com fundo branco no dark mode no Windows
+- **Ação:** Adicionar `root.style.colorScheme = isDark ? 'dark' : 'light'` no `themeContext.jsx`
+
+### 2. `<meta name="theme-color">` dinâmico (Web_Interface_Guidelines)
+> **Status:** Não implementado
+- Browser tab/mobile bar não acompanha o tema
+- **Ação:** Atualizar no `useEffect` do `themeContext.jsx`
+
+### 3. `<div onClick>` como botão — Anti-pattern (Web_Interface_Guidelines)
+> **Status:** Presente em vários componentes
+- `Quiz.jsx`: disciplinas, modo estudo, toggle views são `<div onClick>` sem keyboard handlers
+- `MateriaMultiSelect.jsx`: itens da lista são `<div onClick>`
+- **Ação:** Converter para `<button>` ou adicionar `role="button"` + `onKeyDown`
+
+### 4. `transition: all` — Anti-pattern (Web_Interface_Guidelines)
+> **Status:** Presente em múltiplos componentes
+- `Quiz.jsx` e `MeusFeedbacks.jsx` usam `transition-all` do Tailwind
+- **Ação:** Substituir por `transition-colors`, `transition-transform`, `transition-opacity` conforme o caso
+
+### 5. Inputs sem `label` / `autocomplete` (Web_Interface_Guidelines)
+> **Status:** Quiz search, MeusFeedbacks search, login form
+- **Ação:** Adicionar `aria-label` ou `<label>` visível + `autocomplete` nos inputs
+
+---
+
+## 🟡 Prioridade Média — UX & Performance
+
+### 6. `prefers-reduced-motion` (Web_Interface_Guidelines + Responsive_Design)
+> **Status:** Nenhuma animação respeita essa preferência
+- Framer Motion no MeusFeedbacks, shimmer no Quiz
+- **Ação:** Adicionar `@media (prefers-reduced-motion: reduce)` no CSS global para desativar animações
+
+### 7. Skeleton Loading no Dashboard (Build_Interactive_Dashboards)
+> **Status:** O Quiz tem skeleton, mas o Dashboard não
+- Os stat cards do Dashboard deveriam ter skeleton enquanto dados carregam
+- **Ação:** Criar componente `SkeletonCard` reutilizável
+
+### 8. Componente `<FeedbackAlert type="success" />` reutilizável (guia.md Fase 2)
+> **Status:** Não criado
+- Badges de sucesso/erro/warning espalhados com classes manuais
+- **Ação:** Criar componente que usa os tokens semânticos `--color-success`, `--color-successBg`, etc.
+
+### 9. `.text-reading` com `line-height: 1.7` (guia.md Fase 1)
+> **Status:** Não implementado
+- Para enunciados de questões no Quiz (textos longos)
+- **Ação:** Adicionar utility no `tailwind.css`
+
+### 10. `font-size` base 16px (guia.md Fase 1)
+> **Status:** Não verificado
+- CoreUI pode estar usando 12-14px como base
+- **Ação:** Verificar e ajustar `html { font-size: 16px }` no CSS global
+
+### 11. `tabular-nums` para números (Web_Interface_Guidelines)
+> **Status:** Não aplicado
+- Dashboard stat cards, timer do Quiz, review table
+- **Ação:** Adicionar `font-variant-numeric: tabular-nums` nos elementos com números
+
+### 12. Virtualização para listas longas (Web_Interface_Guidelines)
+> **Status:** MateriaMultiSelect pode ter 100+ itens sem virtualização
+- **Ação:** Avaliar se necessário (depende da quantidade real de matérias)
+
+---
+
+## 🟢 Prioridade Baixa — Polimento
+
+### 13. Documentação `design-tokens.md` (guia.md Fase 2)
+> **Status:** Não criado
+- **Ação:** Gerar documentação dos tokens do `tailwind.css` + `themeContext.jsx`
+
+### 14. Animações de entrada/saída nativas CSS (Tailwind_Design_System_v4)
+> **Status:** Usando `@keyframes` inline no Quiz
+- **Ação:** Mover `shimmer` e `fade-up` para o `@theme` no `tailwind.css`
+
+### 15. `text-wrap: balance` em headings (Web_Interface_Guidelines)
+> **Status:** Não aplicado
+- **Ação:** Adicionar `text-wrap: balance` nos headings principais
+
+### 16. `loading="lazy"` em iframes/imagens (Web_Interface_Guidelines)
+> **Status:** Parcialmente implementado (VideoGallery tem, Quiz não)
+- **Ação:** Verificar todos os iframes de vídeo
+
+### 17. `Intl.DateTimeFormat` para datas (Web_Interface_Guidelines)
+> **Status:** MeusFeedbacks usa `toLocaleDateString('pt-BR')` — OK
+- Quiz review table pode ter hardcoded
+- **Ação:** Auditar
+
+---
+
+## 📋 Ordem de Execução Sugerida
+
+| Fase | Itens | Esforço |
+|---|---|---|
+| **Agora (Quick wins)** | #1, #2, #9, #10, #11, #14, #15 | ~30min |
+| **Próxima sessão** | #3, #4, #5, #6 | ~1-2h |
+| **Backlog** | #7, #8, #12, #13, #16, #17 | ~3-5h |
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> Deseja que eu comece implementando os **Quick wins** (itens 1, 2, 9, 10, 11, 14, 15) agora? São mudanças rápidas que impactam todo o site de uma vez.

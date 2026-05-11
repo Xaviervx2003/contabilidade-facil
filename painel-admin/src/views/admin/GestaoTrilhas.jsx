@@ -296,10 +296,10 @@ const GestaoTrilhas = () => {
           <CCardHeader className="bg-body border-0 pb-0">
             <div className="d-flex flex-column flex-lg-row justify-content-between gap-3">
               <div>
-                <div className="text-uppercase text-body-secondary small fw-semibold">Cursos guiados</div>
-                <h3 className="mb-1 fw-bold">Gestao de Trilhas</h3>
+                <div className="text-uppercase text-body-secondary small fw-semibold" style={{ letterSpacing: '0.05em' }}>Educação Continuada</div>
+                <h3 className="mb-1 fw-bold">Gestão de Trilhas</h3>
                 <div className="text-body-secondary small">
-                  Organize cursos, modulos, exercicios e materiais de apoio em um unico fluxo.
+                  Organize cursos, módulos, exercícios e materiais de apoio em um único fluxo.
                 </div>
               </div>
               <div className="d-flex gap-2 align-items-start">
@@ -325,21 +325,21 @@ const GestaoTrilhas = () => {
           <CCardBody>
             <CRow className="g-3 mb-4">
               <CCol md={4}>
-                <div className="p-3 rounded border bg-body-tertiary h-100">
-                  <div className="text-body-secondary small">Trilhas cadastradas</div>
-                  <div className="fs-3 fw-bold">{trilhas.length}</div>
+                <div className="p-3 rounded-4 border bg-body-tertiary h-100">
+                  <div className="text-uppercase text-body-secondary small fw-bold mb-1" style={{ fontSize: 10, letterSpacing: '0.1em' }}>Trilhas Cadastradas</div>
+                  <div className="fs-3 fw-bold tabular-nums">{trilhas.length}</div>
                 </div>
               </CCol>
               <CCol md={4}>
-                <div className="p-3 rounded border bg-body-tertiary h-100">
-                  <div className="text-body-secondary small">Publicadas / rascunhos</div>
-                  <div className="fs-3 fw-bold">{trilhasPublicadas} / {trilhasRascunho}</div>
+                <div className="p-3 rounded-4 border bg-body-tertiary h-100">
+                  <div className="text-uppercase text-body-secondary small fw-bold mb-1" style={{ fontSize: 10, letterSpacing: '0.1em' }}>Publicadas / Rascunhos</div>
+                  <div className="fs-3 fw-bold tabular-nums">{trilhasPublicadas} / {trilhasRascunho}</div>
                 </div>
               </CCol>
               <CCol md={4}>
-                <div className="p-3 rounded border bg-body-tertiary h-100">
-                  <div className="text-body-secondary small">Modulos no total</div>
-                  <div className="fs-3 fw-bold">{totalModulos}</div>
+                <div className="p-3 rounded-4 border bg-body-tertiary h-100">
+                  <div className="text-uppercase text-body-secondary small fw-bold mb-1" style={{ fontSize: 10, letterSpacing: '0.1em' }}>Módulos no Total</div>
+                  <div className="fs-3 fw-bold tabular-nums">{totalModulos}</div>
                 </div>
               </CCol>
             </CRow>
