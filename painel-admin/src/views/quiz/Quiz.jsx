@@ -216,18 +216,18 @@ const ChecklistItem = ({
     >
       <div className="d-flex align-items-center gap-3">
         <div
-          className={`rounded-circle d-flex align-items-center justify-content-center ${isCompleted ? 'bg-success text-white' : isOpen ? 'bg-primary text-white' : 'bg-secondary text-white'}`}
-          style={{ width: 32, height: 32, transition: 'background-color 0.3s, color 0.3s' }}
+          className={`rounded-circle d-flex align-items-center justify-content-center fw-bold ${isCompleted ? 'bg-success text-white' : isOpen ? 'bg-primary text-white' : 'bg-secondary text-white'}`}
+          style={{ width: 40, height: 40, transition: 'background-color 0.3s, color 0.3s', flexShrink: 0 }}
         >
           {isCompleted ? '✓' : icon}
         </div>
         <div>
-          <h6 className="mb-0 fw-bold" style={{ fontSize: 14 }}>
+          <h6 className="mb-0 fw-bold" style={{ fontSize: 15 }}>
             {title}
           </h6>
-          <small className="text-body-secondary" style={{ fontSize: 11 }}>
+          <div className="text-body-secondary" style={{ fontSize: 12, opacity: 0.8 }}>
             {subtitle}
-          </small>
+          </div>
         </div>
       </div>
       <div
@@ -325,9 +325,12 @@ const ReadyScreen = ({
   return (
     <div style={{ animation: 'fade-up .35s ease' }}>
       <div className="text-center mb-4">
-        <h4 className="fw-bold mb-1">Configuração do Treino</h4>
-        <p className="text-body-secondary small">
-          Siga os passos abaixo para personalizar sua sessão.
+        <div className="text-uppercase text-secondary small fw-semibold mb-1" style={{ letterSpacing: '1px' }}>
+          Configuração do Treino
+        </div>
+        <h3 className="fw-bold mb-2">Personalize seu Simulado</h3>
+        <p className="text-body-secondary small mx-auto" style={{ maxWidth: 400 }}>
+          Selecione os temas e defina as regras para iniciar sua prática guiada.
         </p>
         <div className="px-4 mt-3">
           <CProgress
@@ -359,9 +362,9 @@ const ReadyScreen = ({
       >
         <div className="d-flex flex-column gap-2">
           {/* Seção de Tópicos Sugeridos */}
-          <div className="mb-2">
-            <div className="text-uppercase fw-bold text-secondary mb-2" style={{ fontSize: 10, letterSpacing: '0.05em' }}>
-              🔥 Temas mais cobrados (CFC)
+          <div className="mb-2 p-3 rounded-4 bg-body-secondary bg-opacity-25 border border-dashed border-primary border-opacity-25">
+            <div className="text-uppercase fw-bold text-primary mb-2" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
+              🔥 Temas Relevantes (CFC)
             </div>
             <div className="d-flex flex-wrap gap-2">
               {TOPICOS_RELEVANTES.map((t) => (
@@ -371,14 +374,14 @@ const ReadyScreen = ({
                   tabIndex={0}
                   onClick={() => selecionarSugerido(t.nome)}
                   onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && selecionarSugerido(t.nome)}
-                  className="px-3 py-2 rounded-pill border bg-body-secondary d-flex align-items-center gap-2 transition-all hover-shadow-sm"
+                  className="px-3 py-2 rounded-pill border bg-body d-flex align-items-center gap-2 transition-all hover-translate-y-px shadow-sm"
                   style={{ cursor: 'pointer', fontSize: 12 }}
                 >
                   <span>{t.icon}</span>
-                  <span className="fw-semibold">{t.nome}</span>
-                  <span className={`badge ${t.peso === 'Alta' ? 'bg-danger' : 'bg-warning'} rounded-pill`} style={{ fontSize: 9 }}>
+                  <span className="fw-semibold text-body-primary">{t.nome}</span>
+                  <CBadge color={t.peso === 'Alta' ? 'danger' : 'warning'} className="rounded-pill" style={{ fontSize: 9 }}>
                     {t.peso}
-                  </span>
+                  </CBadge>
                 </div>
               ))}
             </div>
@@ -740,10 +743,10 @@ const QuizRunning = ({
   return (
     <div style={{ animation: 'fade-up .3s ease' }}>
       <div className="d-flex justify-content-between align-items-center mb-2">
-        <small className="text-body-secondary">
-          Questão {totalAnswered + 1} de {totalQuestions}
-        </small>
-        <small className="text-body-secondary">{Math.round(progress)}%</small>
+        <div className="text-uppercase text-secondary fw-bold" style={{ fontSize: 11, letterSpacing: '0.1em' }}>
+          Questão {totalAnswered + 1} <span className="text-body-tertiary">/ {totalQuestions}</span>
+        </div>
+        <div className="fw-bold tabular-nums text-primary" style={{ fontSize: 13 }}>{Math.round(progress)}%</div>
       </div>
       <CProgress value={progress} color="primary" className="mb-3" height={6} />
 
@@ -809,8 +812,8 @@ const QuizRunning = ({
         <div className="d-flex align-items-start gap-3">
           <div className="flex-grow-1">
             <p
-              className="mb-0 fs-5 fw-bold leading-relaxed"
-              style={{ lineHeight: 1.5, color: 'var(--color-text-primary)' }}
+              className="mb-0 fs-5 fw-bold text-reading"
+              style={{ color: 'var(--color-text-primary)' }}
             >
               {currentQuestion.question}
             </p>
@@ -840,36 +843,48 @@ const QuizRunning = ({
         </div>
       </div>
 
-      <div className="d-grid gap-2 mb-4">
+      <div className="d-flex flex-column gap-2 mb-4">
         {currentQuestion.options.map((option, idx) => {
           const val = LETTERS[idx]
           const isSelected = selectedOption === val
           const isCorrectAnswer = val === currentQuestion.answer
-          let color = 'secondary',
-            variant = 'outline'
+          
+          let stateClass = 'bg-body border'
+          let circleClass = 'bg-body-tertiary text-body-secondary'
+          
           if (isAnswerConfirmed) {
             if (isCorrectAnswer) {
-              color = 'success'
-              variant = undefined
+              stateClass = 'bg-success bg-opacity-10 border-success shadow-sm'
+              circleClass = 'bg-success text-white'
             } else if (isSelected) {
-              color = 'danger'
-              variant = undefined
+              stateClass = 'bg-danger bg-opacity-10 border-danger'
+              circleClass = 'bg-danger text-white'
             }
           } else if (isSelected) {
-            color = 'primary'
-            variant = undefined
+            stateClass = 'bg-primary bg-opacity-10 border-primary shadow-sm'
+            circleClass = 'bg-primary text-white'
           }
+
           return (
-            <CButton
+            <div
               key={val}
-              color={color}
-              variant={variant}
-              disabled={isAnswerConfirmed}
+              role="button"
+              tabIndex={isAnswerConfirmed ? -1 : 0}
               onClick={() => !isAnswerConfirmed && onSelectOption(val)}
-              className={`text-start py-3 text-wrap text-break lh-base ${isSelected || isAnswerConfirmed ? 'fw-bold' : ''}`}
+              onKeyDown={(e) => !isAnswerConfirmed && (e.key === 'Enter' || e.key === ' ') && onSelectOption(val)}
+              className={`d-flex align-items-center gap-3 p-3 rounded-4 transition-all ${stateClass} ${!isAnswerConfirmed ? 'cursor-pointer hover-translate-y-px' : ''}`}
+              style={{ cursor: isAnswerConfirmed ? 'default' : 'pointer', minHeight: 64 }}
             >
-              <strong>{val}.</strong> {option}
-            </CButton>
+              <div 
+                className={`rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 transition-colors ${circleClass}`}
+                style={{ width: 32, height: 32, fontSize: 14 }}
+              >
+                {val}
+              </div>
+              <div className={`flex-grow-1 ${isSelected || (isAnswerConfirmed && isCorrectAnswer) ? 'fw-bold' : ''}`} style={{ fontSize: 14, lineHeight: 1.5 }}>
+                {option}
+              </div>
+            </div>
           )
         })}
       </div>
@@ -1122,14 +1137,14 @@ const FinishedScreen = ({
         <CRow className="g-3 mb-4">
           <CCol xs={6} md={3}>
             <div className="bg-body-tertiary rounded-3 p-3">
-              <div className="fs-2 fw-bold text-primary">{finalScore}%</div>
-              <small className="text-body-secondary">Percentual</small>
+              <div className="fs-2 fw-bold text-primary tabular-nums">{finalScore}%</div>
+              <div className="text-uppercase text-secondary fw-semibold mt-1" style={{ fontSize: 9, letterSpacing: '0.05em' }}>Percentual</div>
             </div>
           </CCol>
           <CCol xs={6} md={3}>
             <div className="bg-body-tertiary rounded-3 p-3">
-              <div className="fs-2 fw-bold text-success">{score}</div>
-              <small className="text-body-secondary">Acertos</small>
+              <div className="fs-2 fw-bold text-success tabular-nums">{score}</div>
+              <div className="text-uppercase text-secondary fw-semibold mt-1" style={{ fontSize: 9, letterSpacing: '0.05em' }}>Acertos</div>
             </div>
           </CCol>
           <CCol xs={6} md={3}>
@@ -1747,7 +1762,7 @@ const Quiz = () => {
                 {status === 'quiz' && (
                   <CBadge
                     color={timerCritical ? 'danger' : 'info'}
-                    className="fs-6 px-3 py-2 rounded-pill"
+                    className="fs-6 px-3 py-2 rounded-pill tabular-nums"
                   >
                     ⏱ {formatSeconds(remainingSeconds)}
                   </CBadge>
