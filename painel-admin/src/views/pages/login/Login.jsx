@@ -85,6 +85,7 @@ const Login = () => {
                     <CFormInput
                       id="matricula"
                       placeholder="Matrícula (ex: 2213150043)"
+                      aria-label="Matrícula"
                       autoComplete="username"
                       value={matricula}
                       onChange={(e) => setMatricula(e.target.value)}
@@ -100,6 +101,7 @@ const Login = () => {
                       id="senha"
                       type="password"
                       placeholder="Senha"
+                      aria-label="Senha"
                       autoComplete="current-password"
                       value={senha}
                       onChange={(e) => setSenha(e.target.value)}

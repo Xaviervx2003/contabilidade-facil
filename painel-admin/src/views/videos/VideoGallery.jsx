@@ -151,8 +151,19 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista, ma
               style={{ width: '100%', aspectRatio: '16/9', border: 'none', display: 'block' }}
             />
           ) : (
-            <div onClick={() => { setIframeAtivo(true); if (!assistido) onMarcarAssistido(q.id) }}
-              style={{ width: '100%', aspectRatio: '16/9', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
+            <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setIframeAtivo(true)
+                  if (!assistido) onMarcarAssistido(q.id)
+                }
+              }}
+              onClick={() => { setIframeAtivo(true); if (!assistido) onMarcarAssistido(q.id) }}
+              style={{ width: '100%', aspectRatio: '16/9', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}
+            >
               {thumbnail
                 ? <img src={thumbnail} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
                 : <div style={{ width: '100%', height: '100%', background: '#1a2535' }} />
@@ -216,6 +227,15 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista, ma
             />
           ) : (
             <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setIframeAtivo(true)
+                  if (!assistido) onMarcarAssistido(q.id)
+                }
+              }}
               onClick={() => { setIframeAtivo(true); if (!assistido) onMarcarAssistido(q.id) }}
               style={{ position: 'absolute', inset: 0, cursor: 'pointer' }}
             >
