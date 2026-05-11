@@ -287,6 +287,23 @@ const ReadyScreen = ({
 }) => {
   const [activeStep, setActiveStep] = useState(0)
 
+  // Tópicos sugeridos baseados no Exame de Suficiência CFC
+  const TOPICOS_RELEVANTES = [
+    { nome: 'Contabilidade Geral', icon: '💎', peso: 'Alta' },
+    { nome: 'Contabilidade de Custos', icon: '📊', peso: 'Média' },
+    { nome: 'Ética Profissional', icon: '⚖️', peso: 'Alta' },
+    { nome: 'Auditoria', icon: '🔍', peso: 'Média' },
+    { nome: 'Direito', icon: '📜', peso: 'Média' },
+  ]
+
+  const selecionarSugerido = (nome) => {
+    const d = materias.find(m => m.nome.toLowerCase().includes(nome.toLowerCase()) && !m.parent_id)
+    if (d) {
+      setDisciplinaPai(d.id)
+      setActiveStep(1)
+    }
+  }
+
   const steps = [
     { id: 0, title: 'Disciplina', icon: '1', completed: !!disciplinaPai },
     { id: 1, title: 'Assuntos', icon: '2', completed: materiasSelected.length > 0 },
@@ -341,6 +358,34 @@ const ReadyScreen = ({
         onCta={() => setActiveStep(1)}
       >
         <div className="d-flex flex-column gap-2">
+          {/* Seção de Tópicos Sugeridos */}
+          <div className="mb-2">
+            <div className="text-uppercase fw-bold text-secondary mb-2" style={{ fontSize: 10, letterSpacing: '0.05em' }}>
+              🔥 Temas mais cobrados (CFC)
+            </div>
+            <div className="d-flex flex-wrap gap-2">
+              {TOPICOS_RELEVANTES.map((t) => (
+                <div
+                  key={t.nome}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => selecionarSugerido(t.nome)}
+                  onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && selecionarSugerido(t.nome)}
+                  className="px-3 py-2 rounded-pill border bg-body-secondary d-flex align-items-center gap-2 transition-all hover-shadow-sm"
+                  style={{ cursor: 'pointer', fontSize: 12 }}
+                >
+                  <span>{t.icon}</span>
+                  <span className="fw-semibold">{t.nome}</span>
+                  <span className={`badge ${t.peso === 'Alta' ? 'bg-danger' : 'bg-warning'} rounded-pill`} style={{ fontSize: 9 }}>
+                    {t.peso}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <hr className="my-2 opacity-50" />
+
           {raizes.map((r) => (
             <div
               key={r.id}
