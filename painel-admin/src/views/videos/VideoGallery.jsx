@@ -147,6 +147,7 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista, ma
               title={`Vídeo ${q.id}`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
+              loading="lazy"
               sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
               style={{ width: '100%', aspectRatio: '16/9', border: 'none', display: 'block' }}
             />
@@ -222,6 +223,7 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista, ma
               title={`Vídeo ${q.id}`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
+              loading="lazy"
               sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
             />
@@ -356,6 +358,7 @@ const ModoPlaylist = ({ questoes, isDark, onFechar }) => {
           title={`Playlist ${idx + 1}`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
+          loading="lazy"
           sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
           style={{ width: '100%', aspectRatio: '16/9', border: 'none', display: 'block' }}
         />

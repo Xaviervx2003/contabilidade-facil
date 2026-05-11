@@ -11,8 +11,11 @@ import {
     CSpinner,
 } from '@coreui/react'
 import './Conquistas.scss'
+import CIcon from '@coreui/icons-react'
+import * as icon from '@coreui/icons'
 import { getAlunoMatricula } from '../../utils/auth'
 import { API_URL } from '../../config'
+import { formatIsoToDateString, formatIsoToShortDate } from '../../utils/formatDate'
 
 const Conquistas = () => {
     const [conquistas, setConquistas] = useState(null)
@@ -152,12 +155,7 @@ const Conquistas = () => {
                                     <div>
                                         <p className="alert-title">Próxima data para manter o streak:</p>
                                         <p className="alert-date">
-                                            {new Date(streak.proxima_data_para_manter).toLocaleDateString('pt-BR', {
-                                                weekday: 'long',
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                            })}
+                                            {formatIsoToShortDate(streak.proxima_data_para_manter)}
                                         </p>
                                     </div>
                                 </div>
@@ -269,7 +267,7 @@ const Conquistas = () => {
 
                                     {medalha.data_desbloqueio && (
                                         <p className="medal-date">
-                                            {new Date(medalha.data_desbloqueio).toLocaleDateString('pt-BR')}
+                                            {formatIsoToDateString(medalha.data_desbloqueio)}
                                         </p>
                                     )}
                                 </div>

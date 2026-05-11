@@ -159,13 +159,32 @@ const useVisaoGeral = (userId) => {
 }
 
 // ── Componentes auxiliares ──────────────────────────────
+// ── Componentes auxiliares ──────────────────────────────
+const SkeletonBlock = ({ height = 24, width = '100%', className = '' }) => {
+  const { isDark } = useTheme()
+  return (
+    <div
+      className={`rounded-3 ${className}`}
+      style={{
+        height,
+        width,
+        background: isDark
+          ? 'linear-gradient(90deg, var(--color-bg-elevated) 25%, var(--color-border) 50%, var(--color-bg-elevated) 75%)'
+          : 'linear-gradient(90deg, var(--color-bg-tertiary) 25%, var(--color-border) 50%, var(--color-bg-tertiary) 75%)',
+        backgroundSize: '200% 100%',
+        animation: 'shimmer 1.4s infinite',
+      }}
+    />
+  )
+}
+
 const StatCard = ({ titulo, valor, cor, icone, loading }) => (
-  <div className="bg-gradient-to-br from-[#f8fafc] to-white dark:from-[#1e293b] dark:to-[#0f172a] border border-white/80 dark:border-slate-700/50 rounded-[1.5rem] p-6 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.06),inset_0_2px_15px_rgba(0,0,0,0.03)] dark:shadow-none h-100 fade-in-up d-flex flex-column justify-content-between transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)]" style={{ animationDelay: '0.1s' }}>
+  <div className="bg-gradient-to-br from-[#f8fafc] to-white dark:from-[#1e293b] dark:to-[#0f172a] border border-white/80 dark:border-slate-700/50 rounded-[1.5rem] p-6 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.06),inset_0_2px_15px_rgba(0,0,0,0.03)] dark:shadow-none h-100 fade-in-up d-flex flex-column justify-content-between transition-colors duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)]" style={{ animationDelay: '0.1s' }}>
     <div className="text-sm text-secondary uppercase tracking-wide d-flex align-items-center gap-2">
       <CIcon icon={icone} className={`text-${cor}`} /> {titulo}
     </div>
     <div className="fs-3 fw-bold text-primary mt-3">
-      {loading ? <CSpinner size="sm" /> : valor}
+      {loading ? <SkeletonBlock height={32} width="60%" /> : valor}
     </div>
   </div>
 )
@@ -174,18 +193,7 @@ const SkeletonRow = ({ isDark }) => (
   <CTableRow>
     {[...Array(5)].map((_, i) => (
       <CTableDataCell key={i}>
-        <div
-          style={{
-            height: 16,
-            borderRadius: 4,
-            background: isDark
-              ? 'linear-gradient(90deg, #212121 25%, #2a2a2a 50%, #212121 75%)'
-              : 'linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%)',
-            backgroundSize: '200% 100%',
-            animation: 'shimmer 1.4s infinite',
-            width: i === 0 ? '40%' : '80%',
-          }}
-        />
+        <SkeletonBlock height={16} width={i === 0 ? '40%' : '80%'} />
       </CTableDataCell>
     ))}
   </CTableRow>
@@ -291,7 +299,19 @@ const Dashboard = () => {
             </div>
             <div className="d-flex flex-column justify-content-center">
               {loadingVisao ? (
-                <CSpinner color="success" size="sm" />
+                <div className="d-flex flex-column gap-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <SkeletonBlock height={14} width="40%" />
+                    <SkeletonBlock height={20} width="15%" />
+                  </div>
+                  <SkeletonBlock height={8} className="rounded-pill" />
+                  <div className="d-flex justify-content-center mt-2">
+                    <SkeletonBlock height={32} width="25%" />
+                  </div>
+                  <div className="mt-2 pt-3 border-top">
+                    <SkeletonBlock height={14} width="50%" />
+                  </div>
+                </div>
               ) : errorVisao ? (
                 <CAlert color="danger" className="mb-0">{errorVisao}</CAlert>
               ) : (
@@ -326,7 +346,21 @@ const Dashboard = () => {
               <strong className="text-body-primary">Últimas Atividades</strong>
             </div>
             {loadingVisao ? (
-              <CSpinner color="info" size="sm" />
+              <div className="table-responsive">
+                <CTable hover align="middle" className="mb-0">
+                  <CTableHead>
+                    <CTableRow>
+                      <CTableHeaderCell className="bg-body-tertiary small border-0">Aluno</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary small border-0">Assunto</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary text-center small border-0">Qtd</CTableHeaderCell>
+                      <CTableHeaderCell className="bg-body-tertiary text-center small border-0">Acerto</CTableHeaderCell>
+                    </CTableRow>
+                  </CTableHead>
+                  <CTableBody>
+                    {[...Array(4)].map((_, i) => <SkeletonRow key={i} isDark={isDark} />)}
+                  </CTableBody>
+                </CTable>
+              </div>
             ) : errorVisao ? (
               <CAlert color="danger" className="mb-0">{errorVisao}</CAlert>
             ) : (

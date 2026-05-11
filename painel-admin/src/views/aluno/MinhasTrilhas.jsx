@@ -3,6 +3,8 @@ import { CAlert, CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CSpinner, C
 import CIcon from '@coreui/icons-react'
 import { cilCheckCircle, cilMediaPlay, cilDescription, cilPenAlt, cilChevronRight, cilClock, cilCloudDownload, cilChatBubble, cilUser, cilCheck } from '@coreui/icons'
 import { API_URL } from '../../config'
+import { useTheme } from '../../context/themeContext'
+import { formatIsoToDateString } from '../../utils/formatDate'
 import { useNavigate } from 'react-router-dom'
 import { getAlunoMatricula } from '../../utils/auth'
 
@@ -314,6 +316,7 @@ const MinhasTrilhas = () => {
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
+                    loading="lazy"
                     title="Vídeo Aula"
                   />
                 </div>
@@ -385,7 +388,7 @@ const MinhasTrilhas = () => {
                       <div key={d.id} className="p-3 rounded bg-body-tertiary border">
                         <div className="d-flex justify-content-between align-items-center mb-2">
                           <span className="fw-bold small"><CIcon icon={cilUser} className="me-1" /> {d.aluno_nome}</span>
-                          <span className="text-body-secondary" style={{ fontSize: '10px' }}>{new Date(d.data_criacao).toLocaleDateString()}</span>
+                          <span className="text-body-secondary" style={{ fontSize: '10px' }}>{formatIsoToDateString(d.data_criacao)}</span>
                         </div>
                         <div className="mb-2">{d.texto}</div>
                         {d.resposta_professor && (
