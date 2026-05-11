@@ -1406,7 +1406,10 @@ const Quiz = () => {
       setError('Selecione uma alternativa.')
       return
     }
-    const q = questions[queue[0]]
+    const currentIdx = queue[0]
+    if (currentIdx === undefined) return  // guard: fila vazia
+    const q = questions[currentIdx]
+    if (!q) return  // guard: questão não existe
     const isCorrect = selectedOption === q.answer
     setQuestionsAndAnswers((prev) => [
       ...prev,
@@ -1425,7 +1428,7 @@ const Quiz = () => {
     playSound(isCorrect, soundEnabled)
     setSkippedSet((prev) => {
       const n = new Set(prev)
-      n.delete(queue[0])
+      n.delete(currentIdx)
       return n
     })
   }
@@ -1598,7 +1601,7 @@ const Quiz = () => {
 
   // Derived values
   const currentIndex = queue[0] ?? 0
-  const currentQuestion = status === 'quiz' ? questions[currentIndex] : null
+  const currentQuestion = (status === 'quiz' && queue.length > 0) ? (questions[currentIndex] ?? null) : null
   const totalAnswered = questionsAndAnswers.length
   const totalQuestions = questions.length
   const finalScore = calculateScore(totalAnswered || totalQuestions, score)
@@ -1714,7 +1717,7 @@ const Quiz = () => {
 
               {status === 'loading' && <SkeletonQuiz isDark={isDark} />}
 
-              {status === 'quiz' && currentQuestion && (
+              {status === 'quiz' && currentQuestion && queue.length > 0 && (
                 <QuizRunning
                   isDark={isDark}
                   currentQuestion={currentQuestion}

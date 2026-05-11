@@ -14,7 +14,7 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
             className={`mb-4 rounded-2xl border overflow-hidden transition-all duration-300 ${
-                isOpen ? 'border-primary shadow-[0_0_20px_rgba(222,219,200,0.1)] bg-[#151515]' : 'border-white/5 bg-[#101010] hover:border-white/20'
+                isOpen ? 'border-primary shadow-soft bg-bg-secondary' : 'border-border bg-bg-elevated hover:border-border/80'
             }`}
         >
             <div
@@ -23,23 +23,23 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => {
             >
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] uppercase tracking-widest text-primary/60 font-light">
+                        <span className="text-[10px] uppercase tracking-widest text-text-muted font-light">
                             {new Date(item.data).toLocaleDateString('pt-BR')}
                         </span>
                         {item.resolvido ? (
-                            <span className="px-2 py-0.5 rounded-full bg-success/10 text-success text-[9px] font-bold uppercase tracking-wider">Resolvido</span>
+                            <span className="px-2 py-0.5 rounded-full bg-[var(--color-successBg)] text-[var(--color-success)] text-[9px] font-bold uppercase tracking-wider">Resolvido</span>
                         ) : (
-                            <span className="px-2 py-0.5 rounded-full bg-warning/10 text-warning text-[9px] font-bold uppercase tracking-wider">Pendente</span>
+                            <span className="px-2 py-0.5 rounded-full bg-[var(--color-warningBg)] text-[var(--color-warning)] text-[9px] font-bold uppercase tracking-wider">Pendente</span>
                         )}
                     </div>
-                    <h4 className="text-primary text-sm md:text-base font-medium leading-snug mb-1">
+                    <h4 className="text-text-primary text-sm md:text-base font-medium leading-snug mb-1">
                         {item.enunciado}
                     </h4>
-                    <p className="text-white/40 text-xs md:text-sm font-light italic">
+                    <p className="text-text-secondary text-xs md:text-sm font-light italic">
                         "{(item.texto || 'Sem descrição').substring(0, 100)}..."
                     </p>
                 </div>
-                <div className={`mt-1 transition-transform duration-300 ${isOpen ? 'rotate-180 text-primary' : 'text-white/20'}`}>
+                <div className={`mt-1 transition-transform duration-300 ${isOpen ? 'rotate-180 text-primary' : 'text-text-muted'}`}>
                     <Icon icon="solar:alt-arrow-down-linear" width="24" />
                 </div>
             </div>
@@ -52,21 +52,21 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3, ease: 'easeInOut' }}
                     >
-                        <div className="px-5 pb-5 pt-2 border-t border-white/5">
+                        <div className="px-5 pb-5 pt-2 border-t border-divider">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                                 <div>
-                                    <div className="text-primary/40 text-[10px] uppercase tracking-widest mb-2 font-semibold">Minha Dúvida</div>
-                                    <div className="text-white/80 text-sm leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5 italic">
+                                    <div className="text-text-tertiary text-[10px] uppercase tracking-widest mb-2 font-semibold">Minha Dúvida</div>
+                                    <div className="text-text-secondary text-sm leading-relaxed bg-bg-tertiary p-4 rounded-xl border border-divider italic">
                                         {item.texto || 'Nenhuma descrição detalhada enviada.'}
                                     </div>
                                 </div>
                                 <div>
                                     <div className="text-primary text-[10px] uppercase tracking-widest mb-2 font-bold">Resposta do Professor</div>
-                                    <div className="text-primary/90 text-sm leading-relaxed bg-primary/5 p-4 rounded-xl border border-primary/20">
+                                    <div className="text-text-primary text-sm leading-relaxed bg-bg-secondary p-4 rounded-xl border border-border">
                                         {item.resposta_professor ? (
                                             item.resposta_professor
                                         ) : (
-                                            <span className="text-white/20 italic font-light">
+                                            <span className="text-text-muted italic font-light">
                                                 Aguardando resposta do professor. Você será notificado assim que for respondido.
                                             </span>
                                         )}
@@ -92,7 +92,7 @@ const MeusFeedbacks = () => {
         if (!nome) return
         setLoading(true)
         // Buscamos todos os feedbacks para permitir filtro local (FAQ Style)
-        fetch(`${API_URL}/api/aluno/meus-feedbacks/${encodeURIComponent(nome)}?por_pagina=100`)
+        fetch(`${API_URL}/api/aluno/meus-feedbacks/${encodeURIComponent(nome)}?por_pagina=50`)
             .then(res => res.json())
             .then(data => {
                 setFeedbacks(data.feedbacks || [])
@@ -113,7 +113,7 @@ const MeusFeedbacks = () => {
     if (!nome) return <CAlert color="warning">Faça login para ver seus feedbacks.</CAlert>
 
     return (
-        <div className="min-h-screen bg-black text-white font-sans selection:bg-primary selection:text-black p-4 md:p-8">
+        <div className="min-h-screen bg-bg-primary text-text-primary font-sans p-4 md:p-8">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="mb-10 text-center md:text-left">
@@ -124,7 +124,7 @@ const MeusFeedbacks = () => {
                         <h2 className="text-primary text-3xl md:text-4xl font-normal tracking-tight mb-2">
                             Central de Suporte <span className="font-serif italic">& Dúvidas</span>
                         </h2>
-                        <p className="text-white/40 font-light text-sm md:text-base">
+                        <p className="text-text-secondary font-light text-sm md:text-base">
                             Consulte suas dúvidas anteriores e veja as explicações dos professores.
                         </p>
                     </motion.div>
@@ -137,20 +137,20 @@ const MeusFeedbacks = () => {
                     transition={{ delay: 0.2 }}
                     className="relative mb-12"
                 >
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-white/30">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-text-muted">
                         <Icon icon="solar:magnifer-linear" width="20" />
                     </div>
                     <input
                         type="text"
                         placeholder="Pesquisar em suas dúvidas ou questões..."
-                        className="w-full bg-[#101010] border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm md:text-base text-primary focus:outline-none focus:border-primary/50 transition-all placeholder:text-white/20 shadow-2xl"
+                        className="w-full bg-bg-elevated border border-border rounded-2xl py-4 pl-12 pr-4 text-sm md:text-base text-text-primary focus:outline-none focus:border-primary transition-all placeholder:text-text-muted shadow-sm"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
                     {search && (
                         <button 
                             onClick={() => setSearch('')}
-                            className="absolute inset-y-0 right-4 border-0 bg-transparent text-white/20 hover:text-white transition-colors"
+                            className="absolute inset-y-0 right-4 border-0 bg-transparent text-text-muted hover:text-text-primary transition-colors"
                         >
                             <Icon icon="solar:close-circle-linear" width="20" />
                         </button>
@@ -164,12 +164,12 @@ const MeusFeedbacks = () => {
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-4">
                             <CSpinner color="primary" />
-                            <span className="text-primary/60 text-xs tracking-widest uppercase">Carregando histórico...</span>
+                            <span className="text-text-muted text-xs tracking-widest uppercase">Carregando histórico...</span>
                         </div>
                     ) : filteredFeedbacks.length === 0 ? (
-                        <div className="text-center py-20 bg-[#101010] rounded-3xl border border-white/5">
-                            <Icon icon="solar:notes-minimalistic-linear" width="48" className="text-white/10 mb-4 mx-auto" />
-                            <p className="text-white/40 font-light">Nenhuma dúvida encontrada para sua busca.</p>
+                        <div className="text-center py-20 bg-bg-elevated rounded-3xl border border-border">
+                            <Icon icon="solar:notes-minimalistic-linear" width="48" className="text-text-muted mb-4 mx-auto" />
+                            <p className="text-text-secondary font-light">Nenhuma dúvida encontrada para sua busca.</p>
                         </div>
                     ) : (
                         filteredFeedbacks.map((item, idx) => (
