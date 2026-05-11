@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
     CSpinner,
@@ -8,16 +8,26 @@ import {
 import { API_URL } from '../../config'
 
 const FAQItem = ({ item, isOpen, onToggle, index }) => {
+    const shouldReduceMotion = useReducedMotion()
+    
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className={`mb-4 rounded-2xl border overflow-hidden transition-all duration-300 ${
+            transition={{ delay: shouldReduceMotion ? 0 : index * 0.05 }}
+            className={`mb-4 rounded-2xl border overflow-hidden transition-colors duration-300 ${
                 isOpen ? 'border-primary shadow-soft bg-bg-secondary' : 'border-border bg-bg-elevated hover:border-border/80'
             }`}
         >
             <div
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onToggle()
+                    }
+                }}
                 className="p-4 md:p-5 cursor-pointer flex justify-between items-start gap-4"
                 onClick={onToggle}
             >
@@ -50,7 +60,7 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: 'easeInOut' }}
                     >
                         <div className="px-5 pb-5 pt-2 border-t border-divider">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
@@ -82,6 +92,7 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => {
 }
 
 const MeusFeedbacks = () => {
+    const shouldReduceMotion = useReducedMotion()
     const [feedbacks, setFeedbacks] = useState([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
@@ -118,7 +129,7 @@ const MeusFeedbacks = () => {
                 {/* Header */}
                 <div className="mb-10 text-center md:text-left">
                     <motion.div
-                        initial={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -20 }}
                         animate={{ opacity: 1, x: 0 }}
                     >
                         <h2 className="text-primary text-3xl md:text-4xl font-normal tracking-tight mb-2">
@@ -132,9 +143,9 @@ const MeusFeedbacks = () => {
 
                 {/* Search Bar */}
                 <motion.div
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
+                    transition={{ delay: shouldReduceMotion ? 0 : 0.2 }}
                     className="relative mb-12"
                 >
                     <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-text-muted">
@@ -143,7 +154,9 @@ const MeusFeedbacks = () => {
                     <input
                         type="text"
                         placeholder="Pesquisar em suas dúvidas ou questões..."
-                        className="w-full bg-bg-elevated border border-border rounded-2xl py-4 pl-12 pr-4 text-sm md:text-base text-text-primary focus:outline-none focus:border-primary transition-all placeholder:text-text-muted shadow-sm"
+                        aria-label="Pesquisar em suas dúvidas"
+                        autoComplete="off"
+                        className="w-full bg-bg-elevated border border-border rounded-2xl py-4 pl-12 pr-4 text-sm md:text-base text-text-primary focus:outline-none focus:border-primary transition-colors placeholder:text-text-muted shadow-sm"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />

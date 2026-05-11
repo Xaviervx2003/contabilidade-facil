@@ -17,7 +17,16 @@ const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatInd
         borderBottom: '1px solid var(--cui-border-color-translucent)',
         cursor: 'pointer',
         background: isSelected ? 'rgba(79,142,247,0.06)' : 'transparent',
-        transition: 'background 0.15s',
+        transition: 'background-color 0.15s',
+      }}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          if (canGoDeeper) navigateTo(node)
+          else toggleItem(node.id)
+        }
       }}
       onClick={() => {
         if (canGoDeeper) navigateTo(node)
@@ -203,11 +212,20 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
             {selected.length > 0 && (
               <span
                 role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    onChange([])
+                  }
+                }}
                 onClick={(e) => {
                   e.stopPropagation()
                   onChange([])
                 }}
                 style={{ fontSize: 18, color: '#888', lineHeight: 1, cursor: 'pointer', padding: '0 4px' }}
+                aria-label="Limpar seleção"
               >
                 x
               </span>
@@ -269,6 +287,8 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
             <input
               type="text"
               placeholder={`Buscar em ${currentParent ? 'assuntos' : 'disciplinas'}...`}
+              aria-label="Buscar"
+              autoComplete="off"
               value={busca}
               onChange={e => setBusca(e.target.value)}
               style={{

@@ -195,8 +195,8 @@ const ChecklistItem = ({
   onCta,
 }) => (
   <div
-    className={`mb-3 rounded-4 border transition-all ${isOpen ? 'shadow-sm border-primary' : 'bg-body-tertiary border-transparent'}`}
-    style={{ transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', overflow: 'visible' }}
+    className={`mb-3 rounded-4 border transition-colors ${isOpen ? 'shadow-sm border-primary' : 'bg-body-tertiary border-transparent'}`}
+    style={{ transition: 'background-color 0.3s, border-color 0.3s, box-shadow 0.3s', overflow: 'visible' }}
   >
     <div
       className="p-3 d-flex align-items-center justify-content-between cursor-pointer"
@@ -204,12 +204,20 @@ const ChecklistItem = ({
         cursor: 'pointer',
         background: isOpen ? 'rgba(var(--cui-primary-rgb), 0.03)' : 'transparent',
       }}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onToggle()
+        }
+      }}
       onClick={onToggle}
     >
       <div className="d-flex align-items-center gap-3">
         <div
           className={`rounded-circle d-flex align-items-center justify-content-center ${isCompleted ? 'bg-success text-white' : isOpen ? 'bg-primary text-white' : 'bg-secondary text-white'}`}
-          style={{ width: 32, height: 32, transition: 'all 0.3s' }}
+          style={{ width: 32, height: 32, transition: 'background-color 0.3s, color 0.3s' }}
         >
           {isCompleted ? '✓' : icon}
         </div>
@@ -223,8 +231,8 @@ const ChecklistItem = ({
         </div>
       </div>
       <div
-        className={`transition-all ${isOpen ? 'rotate-180' : ''}`}
-        style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: '0.3s' }}
+        className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }}
       >
         ▼
       </div>
@@ -336,8 +344,17 @@ const ReadyScreen = ({
           {raizes.map((r) => (
             <div
               key={r.id}
-              className={`p-3 rounded-3 border cursor-pointer transition-all ${disciplinaPai === r.id ? 'border-primary bg-primary-subtle' : 'bg-body-tertiary'}`}
-              style={{ cursor: 'pointer' }}
+              className={`p-3 rounded-3 border cursor-pointer transition-colors ${disciplinaPai === r.id ? 'border-primary bg-primary-subtle' : 'bg-body-tertiary'}`}
+              style={{ cursor: 'pointer', transition: 'border-color 0.2s, background-color 0.2s' }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setDisciplinaPai(r.id)
+                  setActiveStep(1)
+                }
+              }}
               onClick={() => {
                 setDisciplinaPai(r.id)
                 setActiveStep(1)
@@ -518,6 +535,8 @@ const ReadyScreen = ({
                 size="sm"
                 className="mt-2 rounded-3"
                 placeholder="Digite a qtd..."
+                aria-label="Quantidade personalizada"
+                autoComplete="off"
                 value={quantidade}
                 onChange={(e) => setQuantidade(Math.max(1, Number(e.target.value)))}
               />
@@ -566,9 +585,17 @@ const ReadyScreen = ({
           ].map((m) => (
             <CCol key={m.id} xs={4}>
               <div
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setModoEstudo(m.id)
+                  }
+                }}
                 onClick={() => setModoEstudo(m.id)}
-                className={`rounded-3 p-2 text-center transition-all ${modoEstudo === m.id ? 'bg-primary text-white' : 'bg-body-tertiary border'}`}
-                style={{ cursor: 'pointer', transition: '0.2s' }}
+                className={`rounded-3 p-2 text-center transition-colors ${modoEstudo === m.id ? 'bg-primary text-white' : 'bg-body-tertiary border'}`}
+                style={{ cursor: 'pointer', transition: 'background-color 0.2s, color 0.2s' }}
               >
                 <div style={{ fontSize: 18 }}>{m.icon}</div>
                 <div className="fw-bold mt-1" style={{ fontSize: 11 }}>
@@ -593,12 +620,21 @@ const ReadyScreen = ({
         </CButton>
 
         <div
-          className="rounded-4 p-3 border d-flex align-items-center gap-3 cursor-pointer transition-all hover-shadow"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onStartSimuladoRapido()
+            }
+          }}
+          className="rounded-4 p-3 border d-flex align-items-center gap-3 cursor-pointer transition-colors hover-shadow"
           style={{
             cursor: 'pointer',
             background:
               'linear-gradient(135deg, rgba(var(--cui-info-rgb), 0.05) 0%, rgba(var(--cui-primary-rgb), 0.05) 100%)',
             border: '1px dashed var(--cui-info)',
+            transition: 'box-shadow 0.2s, border-color 0.2s'
           }}
           onClick={onStartSimuladoRapido}
         >
@@ -926,6 +962,8 @@ const QuizRunning = ({
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Descreva sua dúvida..."
+                aria-label="Descreva sua dúvida"
+                autoComplete="off"
                 maxLength={300}
                 disabled={commentStatus === 'sent'}
               />
@@ -1005,7 +1043,7 @@ const FinishedScreen = ({
                 aria-selected={isActive}
                 aria-controls={`tab-${tab}`}
                 onClick={() => handleTabChange(tab)}
-                className={`px-3 px-md-4 py-3 border-0 bg-transparent fw-bold transition-all ${
+                className={`px-3 px-md-4 py-3 border-0 bg-transparent fw-bold transition-colors ${
                   isActive
                     ? 'text-primary border-bottom border-primary border-2'
                     : 'text-body-secondary hover-primary'
@@ -1013,7 +1051,7 @@ const FinishedScreen = ({
                 style={{
                   cursor: 'pointer',
                   borderBottomWidth: isActive ? '3px' : '0',
-                  transition: 'all 0.2s ease',
+                  transition: 'color 0.2s, border-color 0.2s',
                 }}
               >
                 <span className="me-2">{tabConfig.icon}</span>
