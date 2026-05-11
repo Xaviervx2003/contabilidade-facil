@@ -1254,6 +1254,7 @@ const FinishedScreen = ({
       >
         <ReviewTable questionsAndAnswers={questionsAndAnswers} isDark={isDark} />
       </div>
+      </CCardBody>
     </div>
   )
 }
@@ -1805,6 +1806,7 @@ const Quiz = () => {
             Login
           </CButton>
         </CAlert>
+      )}
       {savedSnapshot && status === 'ready' && (
         <CAlert
           color="warning"
