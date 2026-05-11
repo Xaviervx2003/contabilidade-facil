@@ -825,7 +825,7 @@ const Relatorios = () => {
           )}
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
