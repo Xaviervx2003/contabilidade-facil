@@ -9,15 +9,9 @@ const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatInd
 
   return (
     <div
+      className={`d-flex align-items-center gap-3 p-3 border-bottom transition-all ${isSelected ? 'bg-primary bg-opacity-10' : 'bg-transparent hover-bg-light'}`}
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '12px 16px',
-        borderBottom: '1px solid var(--cui-border-color-translucent)',
         cursor: 'pointer',
-        background: isSelected ? 'rgba(79,142,247,0.06)' : 'transparent',
-        transition: 'background-color 0.15s',
       }}
       role="button"
       tabIndex={0}
@@ -33,49 +27,44 @@ const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatInd
         else toggleItem(node.id)
       }}
     >
-      <input
-        type="checkbox"
-        checked={isSelected}
-        onChange={(e) => {
-          e.stopPropagation()
-          toggleItem(node.id)
-        }}
-        style={{ width: 18, height: 18, accentColor: '#4f8ef7', cursor: 'pointer', flexShrink: 0 }}
-      />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: 14,
-            fontWeight: canGoDeeper ? 700 : 400,
-            color: 'var(--cui-body-color)',
-            lineHeight: 1.4,
-            wordBreak: 'break-word',
+      <div className="form-check mb-0">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          checked={isSelected}
+          onChange={(e) => {
+            e.stopPropagation()
+            toggleItem(node.id)
           }}
-        >
+          style={{ width: 20, height: 20, cursor: 'pointer' }}
+        />
+      </div>
+      <div className="flex-grow-1 min-width-0">
+        <div className="d-flex align-items-baseline gap-2 flex-wrap">
           {node.indice && (
-            <span
-              style={{
-                color: '#4f8ef7',
-                fontWeight: 800,
-                marginRight: 6,
-                fontSize: 12,
-                fontFamily: 'monospace',
-              }}
-            >
+            <span className="badge bg-primary bg-opacity-10 text-primary fw-bold" style={{ fontSize: 10, letterSpacing: '0.5px' }}>
               {formatIndice(node.indice)}
             </span>
           )}
-          {node.nome}
+          <span className={`text-body-primary ${canGoDeeper ? 'fw-bold' : ''}`} style={{ fontSize: 14 }}>
+            {node.nome}
+          </span>
         </div>
         {node.total_questoes > 0 && (
-          <div style={{ fontSize: 11, color: 'var(--cui-secondary-color)', marginTop: 2 }}>
-            {node.total_questoes} questoes disponiveis
+          <div className="text-secondary mt-1" style={{ fontSize: 11 }}>
+            <span className="fw-semibold">{node.total_questoes}</span> questões disponíveis
           </div>
         )}
       </div>
       {canGoDeeper && (
-        <div style={{ color: '#4f8ef7', fontSize: 18, fontWeight: 'bold', flexShrink: 0 }}>
-          {isLoading ? '...' : '>'}
+        <div className="text-primary opacity-50">
+          {isLoading ? (
+            <div className="spinner-border spinner-border-sm" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          ) : (
+            <span style={{ fontSize: 18 }}>→</span>
+          )}
         </div>
       )}
     </div>

@@ -325,12 +325,12 @@ const ReadyScreen = ({
   return (
     <div style={{ animation: 'fade-up .35s ease' }}>
       <div className="text-center mb-4">
-        <div className="text-uppercase text-secondary small fw-semibold mb-1" style={{ letterSpacing: '1px' }}>
-          Configuração do Treino
+        <div className="text-uppercase text-secondary small fw-semibold mb-2" style={{ letterSpacing: '2px', fontSize: 10 }}>
+          ⚙️ Painel de Controle
         </div>
-        <h3 className="fw-bold mb-2">Personalize seu Simulado</h3>
+        <h3 className="fw-bold mb-2">Configure seu Treino</h3>
         <p className="text-body-secondary small mx-auto" style={{ maxWidth: 400 }}>
-          Selecione os temas e defina as regras para iniciar sua prática guiada.
+          Personalize as matérias e filtros para começar.
         </p>
         <div className="px-4 mt-3">
           <CProgress
@@ -389,31 +389,48 @@ const ReadyScreen = ({
 
           <hr className="my-2 opacity-50" />
 
-          {raizes.map((r) => (
-            <div
-              key={r.id}
-              className={`p-3 rounded-3 border cursor-pointer transition-colors ${disciplinaPai === r.id ? 'border-primary bg-primary-subtle' : 'bg-body-tertiary'}`}
-              style={{ cursor: 'pointer', transition: 'border-color 0.2s, background-color 0.2s' }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  setDisciplinaPai(r.id)
-                  setActiveStep(1)
-                }
-              }}
-              onClick={() => {
-                setDisciplinaPai(r.id)
-                setActiveStep(1)
-              }}
-            >
-              <div className="d-flex justify-content-between align-items-center">
-                <span className="fw-bold">{r.nome}</span>
-                <span className="badge bg-primary rounded-pill">{r.total_questoes}Q</span>
-              </div>
-            </div>
-          ))}
+          <div className="text-uppercase fw-bold text-secondary mb-2" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
+            📚 Selecione uma Disciplina
+          </div>
+          <CRow className="g-3">
+            {raizes.map((r) => (
+              <CCol key={r.id} xs={12} sm={6}>
+                <div
+                  className={`p-3 rounded-4 border cursor-pointer h-100 transition-all ${disciplinaPai === r.id ? 'border-primary bg-primary bg-opacity-10 shadow-sm' : 'bg-body-tertiary border-transparent hover-shadow-sm'}`}
+                  style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setDisciplinaPai(r.id)
+                      setActiveStep(1)
+                    }
+                  }}
+                  onClick={() => {
+                    setDisciplinaPai(r.id)
+                    setActiveStep(1)
+                  }}
+                >
+                  <div className="d-flex flex-column h-100 justify-content-between">
+                    <div className="d-flex align-items-center gap-2 mb-2">
+                      <div className={`rounded-circle d-flex align-items-center justify-content-center ${disciplinaPai === r.id ? 'bg-primary text-white' : 'bg-body border text-secondary'}`} style={{ width: 32, height: 32, fontSize: 14 }}>
+                        📖
+                      </div>
+                      <span className={`fw-bold ${disciplinaPai === r.id ? 'text-primary' : 'text-body-primary'}`} style={{ fontSize: 14 }}>
+                        {r.nome}
+                      </span>
+                    </div>
+                    <div className="d-flex justify-content-end">
+                      <CBadge color={disciplinaPai === r.id ? 'primary' : 'secondary'} variant="outline" className="rounded-pill px-2 py-1" style={{ fontSize: 10 }}>
+                        {r.total_questoes} Questões
+                      </CBadge>
+                    </div>
+                  </div>
+                </div>
+              </CCol>
+            ))}
+          </CRow>
         </div>
       </ChecklistItem>
 
@@ -1754,10 +1771,20 @@ const Quiz = () => {
       <CRow className="justify-content-center">
         <CCol xs={12} xl={10}>
           <CCard className="shadow border-0 overflow-hidden">
-            <CCardHeader className="d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2">
-              <h4 className="mb-0 fw-bold text-primary" style={{ fontSize: 18 }}>
-                📘 Quiz de Contabilidade
-              </h4>
+            <CCardHeader className="bg-body border-0 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-3">
+              <div className="d-flex align-items-center gap-2">
+                <div className="bg-primary bg-opacity-10 p-2 rounded-3">
+                   <span style={{ fontSize: 20 }}>📘</span>
+                </div>
+                <div>
+                  <h4 className="mb-0 fw-bold" style={{ fontSize: 18, letterSpacing: '-0.5px' }}>
+                    Quiz de Contabilidade
+                  </h4>
+                  <small className="text-body-secondary" style={{ fontSize: 10, display: 'block', marginTop: -2 }}>
+                    ALTA PERFORMANCE EM ESTUDOS
+                  </small>
+                </div>
+              </div>
               <div className="d-flex align-items-center gap-2">
                 {status === 'quiz' && (
                   <CBadge
