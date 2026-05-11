@@ -195,8 +195,8 @@ const ChecklistItem = ({
   onCta,
 }) => (
   <div
-    className={`mb-3 rounded-4 border transition-all ${isOpen ? 'shadow-sm border-primary overflow-visible' : 'bg-body-tertiary border-transparent overflow-hidden'}`}
-    style={{ transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}
+    className={`mb-3 rounded-4 border transition-all ${isOpen ? 'shadow-sm border-primary' : 'bg-body-tertiary border-transparent'}`}
+    style={{ transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', overflow: 'visible' }}
   >
     <div
       className="p-3 d-flex align-items-center justify-content-between cursor-pointer"
@@ -229,7 +229,7 @@ const ChecklistItem = ({
         ▼
       </div>
     </div>
-    <CCollapse visible={isOpen} className={isOpen ? 'overflow-visible' : ''}>
+    {isOpen && (
       <div className="px-4 pb-4 pt-2 border-top bg-body">
         {children}
         {ctaLabel && (
@@ -249,7 +249,7 @@ const ChecklistItem = ({
           </div>
         )}
       </div>
-    </CCollapse>
+    )}
   </div>
 )
 
