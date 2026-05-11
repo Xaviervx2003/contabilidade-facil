@@ -461,14 +461,41 @@ const ReadyScreen = ({
             Selecione uma disciplina no passo anterior primeiro.
           </div>
         ) : (
-          <MateriaMultiSelect
-            materias={materias}
-            selected={materiasSelected}
-            onChange={setMateriasSelected}
-            esconderVazias={true}
-            inline={true}
-            rootId={disciplinaPai}
-          />
+          <div className="mb-3">
+            <div className="text-uppercase fw-bold text-secondary mb-2" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
+              🎯 Assuntos Selecionados
+            </div>
+            <div className="d-flex flex-wrap gap-2 mb-3">
+              {materiasSelected.length === 0 ? (
+                <span className="text-body-secondary small italic">Nenhum assunto selecionado</span>
+              ) : (
+                materiasSelected.map(id => {
+                  const m = materias.find(x => String(x.id) === id)
+                  return (
+                    <CBadge key={id} color="primary" className="p-2 d-flex align-items-center gap-2 rounded-pill shadow-sm">
+                      <span style={{ fontSize: 12 }}>{m?.nome || id}</span>
+                      <span 
+                        role="button" 
+                        onClick={() => setMateriasSelected(prev => prev.filter(x => x !== id))}
+                        className="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center"
+                        style={{ cursor: 'pointer', fontSize: 10, width: 16, height: 16, fontWeight: 'bold' }}
+                      >
+                        ×
+                      </span>
+                    </CBadge>
+                  )
+                })
+              )}
+            </div>
+            <MateriaMultiSelect
+              materias={materias}
+              selected={materiasSelected}
+              onChange={setMateriasSelected}
+              esconderVazias={true}
+              inline={true}
+              rootId={disciplinaPai}
+            />
+          </div>
         )}
       </ChecklistItem>
 
@@ -572,36 +599,38 @@ const ReadyScreen = ({
       >
         <CRow className="g-3">
           <CCol xs={6}>
-            <label className="form-label fw-semibold mb-1" style={{ fontSize: 12 }}>
-              Quantidade
+            <label className="form-label fw-semibold mb-2" style={{ fontSize: 12 }}>
+              Selecione a Quantidade
             </label>
-            <CFormSelect
-              size="sm"
-              className="rounded-3"
-              value={
-                quantidade > 0 && [10, 20, 50, 100].includes(quantidade) ? quantidade : 'custom'
-              }
-              onChange={(e) => {
-                const val = e.target.value
-                if (val === 'custom') setQuantidade(1)
-                else setQuantidade(Number(val))
-              }}
-            >
-              <option value="0">Todas</option>
-              <option value="10">10 questões</option>
-              <option value="20">20 questões</option>
-              <option value="50">50 questões</option>
-              <option value="100">100 questões</option>
-              <option value="custom">Personalizado...</option>
-            </CFormSelect>
-            {![0, 10, 20, 50, 100].includes(quantidade) && (
+            <div className="d-flex flex-wrap gap-2 mb-3">
+              {[10, 20, 50, 0].map(val => (
+                <CButton
+                  key={val}
+                  size="sm"
+                  color="primary"
+                  variant={quantidade === val ? 'solid' : 'outline'}
+                  className="rounded-pill px-3"
+                  onClick={() => setQuantidade(val)}
+                >
+                  {val === 0 ? 'Todas' : val}
+                </CButton>
+              ))}
+              <CButton
+                size="sm"
+                color="secondary"
+                variant={![0, 10, 20, 50].includes(quantidade) ? 'solid' : 'outline'}
+                className="rounded-pill px-3"
+                onClick={() => setQuantidade(5)}
+              >
+                Personalizado
+              </CButton>
+            </div>
+            {![0, 10, 20, 50].includes(quantidade) && (
               <CFormInput
                 type="number"
                 size="sm"
                 className="mt-2 rounded-3"
                 placeholder="Digite a qtd..."
-                aria-label="Quantidade personalizada"
-                autoComplete="off"
                 value={quantidade}
                 onChange={(e) => setQuantidade(Math.max(1, Number(e.target.value)))}
               />
@@ -659,13 +688,12 @@ const ReadyScreen = ({
                   }
                 }}
                 onClick={() => setModoEstudo(m.id)}
-                className={`rounded-3 p-2 text-center transition-colors ${modoEstudo === m.id ? 'bg-primary text-white' : 'bg-body-tertiary border'}`}
-                style={{ cursor: 'pointer', transition: 'background-color 0.2s, color 0.2s' }}
+                className={`rounded-4 p-3 text-center transition-all h-100 ${modoEstudo === m.id ? 'bg-primary text-white shadow-sm' : 'bg-body-tertiary border hover-shadow-sm'}`}
+                style={{ cursor: 'pointer', transition: 'all 0.2s ease', transform: modoEstudo === m.id ? 'scale(1.05)' : 'scale(1)' }}
               >
-                <div style={{ fontSize: 18 }}>{m.icon}</div>
-                <div className="fw-bold mt-1" style={{ fontSize: 11 }}>
-                  {m.label}
-                </div>
+                <div style={{ fontSize: 24, marginBottom: 4 }}>{m.icon}</div>
+                <div className="fw-bold" style={{ fontSize: 13 }}>{m.label}</div>
+                <div className={`small opacity-75 ${modoEstudo === m.id ? 'text-white' : 'text-secondary'}`} style={{ fontSize: 10 }}>{m.desc}</div>
               </div>
             </CCol>
           ))}
