@@ -160,15 +160,12 @@ const useVisaoGeral = (userId) => {
 
 // ── Componentes auxiliares ──────────────────────────────
 const StatCard = ({ titulo, valor, cor, icone, loading }) => (
-  <div className="stat-box h-100 fade-in-up" style={{ animationDelay: '0.1s' }}>
-    <div className={`stat-icon-wrapper ${cor}`}>
-      <CIcon icon={icone} size="lg" />
+  <div className="bg-gradient-to-br from-[#f8fafc] to-white dark:from-[#1e293b] dark:to-[#0f172a] border border-white/80 dark:border-slate-700/50 rounded-[1.5rem] p-6 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.06),inset_0_2px_15px_rgba(0,0,0,0.03)] dark:shadow-none h-100 fade-in-up d-flex flex-column justify-content-between transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)]" style={{ animationDelay: '0.1s' }}>
+    <div className="text-sm text-secondary uppercase tracking-wide d-flex align-items-center gap-2">
+      <CIcon icon={icone} className={`text-${cor}`} /> {titulo}
     </div>
-    <div className="stat-info">
-      <div className="stat-value">
-        {loading ? <CSpinner size="sm" /> : valor}
-      </div>
-      <div className="stat-desc">{titulo}</div>
+    <div className="fs-3 fw-bold text-primary mt-3">
+      {loading ? <CSpinner size="sm" /> : valor}
     </div>
   </div>
 )
@@ -287,7 +284,7 @@ const Dashboard = () => {
       {/* Progresso Geral da Turma + Últimas Atividades */}
       <CRow className="g-3 mb-4">
         <CCol md={6}>
-          <div className="premium-card shadow-sm h-100 fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <div className="bg-card border border-border/50 rounded-[1.5rem] p-6 shadow-sm glass-panel h-100 fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={{ animationDelay: '0.2s' }}>
             <div className="d-flex align-items-center gap-2 mb-3">
               <CIcon icon={cilBarChart} className="text-success" />
               <strong className="text-body-primary">Progresso Geral da Turma</strong>
@@ -323,7 +320,7 @@ const Dashboard = () => {
           </div>
         </CCol>
         <CCol md={6}>
-          <div className="premium-card shadow-sm h-100 fade-in-up" style={{ animationDelay: '0.25s' }}>
+          <div className="bg-card border border-border/50 rounded-[1.5rem] p-6 shadow-sm glass-panel h-100 fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={{ animationDelay: '0.25s' }}>
             <div className="d-flex align-items-center gap-2 mb-3">
               <CIcon icon={cilHistory} className="text-info" />
               <strong className="text-body-primary">Últimas Atividades</strong>
@@ -374,12 +371,15 @@ const Dashboard = () => {
 
       <CRow>
         <CCol xs>
-          <CCard className="mb-4 shadow-sm border-0">
-            <CCardHeader className="bg-transparent border-0 d-flex align-items-center gap-2">
+          {/* Horizontal Section Divider */}
+          <div className="w-full h-px bg-slate-200/60 dark:bg-slate-700/50 mb-8 mt-4"></div>
+          
+          <CCard className="bg-card border border-border/50 rounded-[1.5rem] shadow-sm glass-panel mb-4 overflow-hidden transition-all duration-300 hover:shadow-md">
+            <CCardHeader className="bg-transparent border-bottom border-border/50 d-flex align-items-center gap-2 p-5">
               <CIcon icon={cilChart} className="text-primary" />
-              <strong>Resumo Real do Projeto e Desempenho Global</strong>
+              <strong className="text-primary fs-5">Resumo Real do Projeto e Desempenho Global</strong>
             </CCardHeader>
-            <CCardBody>
+            <CCardBody className="p-4">
               {/* Gráfico */}
               {errorChart ? (
                 <CAlert color="warning">Gráfico indisponível: {errorChart}</CAlert>

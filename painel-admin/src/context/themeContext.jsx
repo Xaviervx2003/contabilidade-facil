@@ -55,9 +55,9 @@ const themes = {
 
     text: {
       primary: '#E1E0CC',
-      secondary: '#9ca3af',
-      tertiary: '#6b7280',
-      muted: '#4b5563',
+      secondary: '#d1d5db',
+      tertiary: '#9ca3af',
+      muted: '#9ca3af',
       inverse: '#000000',
     },
 
@@ -69,6 +69,29 @@ const themes = {
     icon: '#9ca3af',
     iconHover: '#E1E0CC',
   },
+}
+
+const semanticColors = {
+  light: {
+    success: '#27ae60',
+    successBg: 'rgba(39, 174, 96, 0.1)',
+    error: '#e74c3c',
+    errorBg: 'rgba(231, 76, 60, 0.1)',
+    warning: '#f39c12',
+    warningBg: 'rgba(243, 156, 18, 0.1)',
+    info: '#3498db',
+    infoBg: 'rgba(52, 152, 219, 0.1)',
+  },
+  dark: {
+    success: '#4ade80',
+    successBg: 'rgba(74, 222, 128, 0.15)',
+    error: '#f87171',
+    errorBg: 'rgba(248, 113, 113, 0.15)',
+    warning: '#fbbf24',
+    warningBg: 'rgba(251, 191, 36, 0.15)',
+    info: '#60a5fa',
+    infoBg: 'rgba(96, 165, 250, 0.15)',
+  }
 }
 
 const ThemeContext = createContext()
@@ -99,6 +122,12 @@ export const ThemeProvider = ({ children }) => {
       } else {
         root.style.setProperty(`--color-${key}`, value)
       }
+    })
+
+    // Aplicar cores semânticas
+    const semantic = isDark ? semanticColors.dark : semanticColors.light
+    Object.entries(semantic).forEach(([key, value]) => {
+      root.style.setProperty(`--color-${key}`, value)
     })
   }, [isDark])
 
