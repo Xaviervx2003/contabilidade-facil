@@ -4,25 +4,30 @@ import {
   CButton,
   CCard,
   CCardBody,
-  CCardGroup,
   CCol,
   CContainer,
   CFormInput,
   CInputGroup,
   CInputGroupText,
   CRow,
+  CFormCheck,
+  CSpinner
 } from '@coreui/react'
 import { API_URL } from '../../../config'
 import CIcon from '@coreui/icons-react'
-import { cilLockLocked, cilUser } from '@coreui/icons'
+import { cilLockLocked, cilUser, cilCheckCircle, cilLowVision, cilFindInPage, cilChartLine } from '@coreui/icons'
+import { useTheme } from '../../../context/themeContext'
 
 const Login = () => {
   const [matricula, setMatricula] = useState('')
   const [senha, setSenha] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
   const navigate = useNavigate()
 
   const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
+  const { isDark } = useTheme()
 
   const handleLogin = async () => {
     if (!matricula || !senha) {
@@ -55,104 +60,148 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Erro na conexão:', error)
-      setErro('Erro ao conectar com o servidor. Verifique se a API está rodando.')
+      setErro('Erro ao conectar com o servidor.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
+    <div className={`min-vh-100 d-flex flex-column align-items-center justify-content-center p-3 ${isDark ? 'bg-dark' : 'bg-light'}`} style={{
+      background: isDark ? 'radial-gradient(circle at top right, #1a202c, #0d1117)' : 'radial-gradient(circle at top right, #f8fafc, #e2e8f0)'
+    }}>
       <CContainer>
         <CRow className="justify-content-center">
-          <CCol md={8}>
-            <CCardGroup>
-              <CCard className="p-4">
-                <CCardBody>
-                  <h1>Acesso ao Sistema</h1>
-                  <p className="text-body-secondary">Entre com sua Matrícula e Senha</p>
+          <CCol md={5} lg={4}>
+            {/* Logo / Brand */}
+            <div className="text-center mb-4 fade-in">
+              <div className="d-inline-flex align-items-center justify-content-center bg-primary rounded-circle shadow-lg mb-3" style={{ width: 64, height: 64 }}>
+                <CIcon icon={cilChartLine} className="text-white" size="xl" />
+              </div>
+              <h2 className="fw-bold mb-0" style={{ letterSpacing: '-0.04em' }}>Contabilidade Fácil</h2>
+              <p className="text-body-secondary small">UEA - Portal do Aluno</p>
+            </div>
 
-                  {erro && (
-                    <div className="alert alert-danger py-2 mb-3" role="alert">
-                      {erro}
-                    </div>
-                  )}
+            <CCard className="border-0 shadow-lg rounded-4 overflow-hidden fade-in" style={{
+              background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.95)',
+              backdropFilter: 'blur(10px)',
+              border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)'
+            }}>
+              <CCardBody className="p-4 p-md-5">
+                <div className="mb-4">
+                  <h3 className="fw-bold mb-1">Bem-vindo de volta!</h3>
+                  <p className="text-body-secondary small">Entre para continuar seus estudos</p>
+                </div>
 
-                  <CInputGroup className="mb-3">
-                    <CInputGroupText>
-                      <CIcon icon={cilUser} />
+                {erro && (
+                  <div className="alert alert-danger py-2 rounded-3 small mb-4 border-0 bg-danger bg-opacity-10 text-danger d-flex align-items-center gap-2">
+                    <CIcon icon={cilCheckCircle} style={{ transform: 'rotate(180deg)' }} />
+                    {erro}
+                  </div>
+                )}
+
+                <div className="mb-3">
+                  <label className="form-label small fw-bold text-body-secondary text-uppercase">Matrícula</label>
+                  <CInputGroup className="input-group-premium">
+                    <CInputGroupText className="bg-transparent border-end-0">
+                      <CIcon icon={cilUser} className="text-body-secondary" />
                     </CInputGroupText>
                     <CFormInput
-                      id="matricula"
-                      placeholder="Matrícula (ex: 2213150043)"
-                      aria-label="Matrícula"
-                      autoComplete="username"
+                      className="border-start-0 ps-0"
+                      placeholder="seu@email.com ou matrícula"
                       value={matricula}
                       onChange={(e) => setMatricula(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                     />
                   </CInputGroup>
+                </div>
 
-                  <CInputGroup className="mb-4">
-                    <CInputGroupText>
-                      <CIcon icon={cilLockLocked} />
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between">
+                    <label className="form-label small fw-bold text-body-secondary text-uppercase">Senha</label>
+                    <Link to="/esqueceu-senha" title="Recuperar senha" style={{ fontSize: '0.75rem', textDecoration: 'none' }} className="fw-bold">
+                      Esqueceu a senha?
+                    </Link>
+                  </div>
+                  <CInputGroup className="input-group-premium">
+                    <CInputGroupText className="bg-transparent border-end-0">
+                      <CIcon icon={cilLockLocked} className="text-body-secondary" />
                     </CInputGroupText>
                     <CFormInput
-                      id="senha"
-                      type="password"
-                      placeholder="Senha"
-                      aria-label="Senha"
-                      autoComplete="current-password"
+                      type={showPassword ? 'text' : 'password'}
+                      className="border-start-0 border-end-0 ps-0"
+                      placeholder="Digite sua senha"
                       value={senha}
                       onChange={(e) => setSenha(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                     />
+                    <CInputGroupText 
+                      className="bg-transparent border-start-0 cursor-pointer" 
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <CIcon icon={cilLowVision} className={showPassword ? 'text-primary' : 'text-body-secondary'} />
+                    </CInputGroupText>
                   </CInputGroup>
+                </div>
 
-                  <CRow>
-                    <CCol xs={6}>
-                      <CButton
-                        id="btn-entrar"
-                        color="primary"
-                        className="px-4"
-                        onClick={handleLogin}
-                        disabled={loading}
-                      >
-                        {loading ? 'Entrando...' : 'Entrar'}
-                      </CButton>
-                    </CCol>
-                    <CCol xs={6} className="text-right">
-                      <CButton
-                        color="link"
-                        className="px-0"
-                        onClick={() => navigate('/esqueceu-senha')}
-                      >
-                        Esqueceu a senha?
-                      </CButton>
-                    </CCol>
-                  </CRow>
-                </CCardBody>
-              </CCard>
+                <div className="d-flex align-items-center mb-4">
+                  <CFormCheck 
+                    id="rememberMe" 
+                    label="Lembrar credenciais" 
+                    className="small text-body-secondary"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                </div>
 
-              <CCard className="text-white bg-primary py-5">
-                <CCardBody className="text-center d-flex flex-column justify-content-center">
-                  <div>
-                    <h2>Plataforma de Questões</h2>
-                    <p className="mt-3">
-                      Ambiente exclusivo para alunos de Ciências Contábeis da Universidade do Estado do Amazonas (UEA).
-                    </p>
-                    <Link to="/register">
-                      <CButton color="primary" className="mt-3 fw-bold border-white" active tabIndex={-1}>
-                        Primeiro Acesso? Crie sua conta
-                      </CButton>
-                    </Link>
-                  </div>
-                </CCardBody>
-              </CCard>
-            </CCardGroup>
+                <CButton
+                  color="primary"
+                  className="w-100 py-2 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2 mb-4"
+                  onClick={handleLogin}
+                  disabled={loading}
+                  style={{ height: 48 }}
+                >
+                  {loading ? <CSpinner size="sm" /> : 'Entrar'}
+                </CButton>
+
+                <div className="text-center">
+                  <p className="text-body-secondary small mb-0">
+                    Não tem conta? <Link to="/register" className="fw-bold text-decoration-none">Criar conta</Link>
+                  </p>
+                </div>
+              </CCardBody>
+            </CCard>
+
+            {/* Footer Links */}
+            <div className="text-center mt-5 text-body-secondary small fade-in" style={{ fontSize: 11 }}>
+              <Link to="/termos" className="text-inherit text-decoration-none mx-2">Termos de Uso</Link>
+              <Link to="/privacidade" className="text-inherit text-decoration-none mx-2">Política de Privacidade</Link>
+            </div>
           </CCol>
         </CRow>
       </CContainer>
+
+      <style>{`
+        .fade-in {
+          animation: fadeIn 0.8s ease-out forwards;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .input-group-premium .form-control:focus {
+          box-shadow: none;
+          border-color: var(--cui-primary);
+        }
+        .input-group-premium .input-group-text {
+          transition: border-color 0.15s ease-in-out;
+        }
+        .input-group-premium:focus-within .input-group-text {
+          border-color: var(--cui-primary);
+        }
+        .cursor-pointer { cursor: pointer; }
+      `}</style>
     </div>
   )
 }
