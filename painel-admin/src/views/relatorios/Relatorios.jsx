@@ -33,9 +33,7 @@ import {
   cilDataTransferDown, 
   cilWarning, 
   cilArrowTop, 
-  cilArrowBottom,
-  cilStar,
-  cilClock
+  cilArrowBottom
 } from '@coreui/icons'
 import { CChartLine, CChartBar, CChartRadar } from '@coreui/react-chartjs'
 import { API_URL } from '../../config'
