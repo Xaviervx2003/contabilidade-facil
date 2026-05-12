@@ -662,12 +662,12 @@ const Relatorios = () => {
             <div style={{ padding: '20px' }}>
               <CChartBar
                 data={{
-                  labels: performanceMaterias.map(m => m.materia.split(' ')[0]),
+                  labels: dados.desempenho_materias.map(m => m.materia.split(' ')[0]),
                   datasets: [
                     {
                       label: 'Precisão %',
                       backgroundColor: '#6366f1',
-                      data: performanceMaterias.map(m => m.acerto),
+                      data: dados.desempenho_materias.map(m => m.precisao),
                       borderRadius: 5,
                     },
                   ],
@@ -682,10 +682,10 @@ const Relatorios = () => {
                 }}
               />
               <div className="mt-3">
-                {performanceMaterias.slice(0, 3).map((m, idx) => (
+                {dados.desempenho_materias.slice(0, 3).map((m, idx) => (
                   <div key={idx} className="d-flex justify-content-between align-items-center mb-2">
                     <span className="small text-body-secondary">{m.materia}</span>
-                    <span className={`small fw-bold ${m.acerto > 70 ? 'text-success' : 'text-warning'}`}>{m.acerto}%</span>
+                    <span className={`small fw-bold ${m.precisao > 70 ? 'text-success' : 'text-warning'}`}>{m.precisao}%</span>
                   </div>
                 ))}
               </div>
