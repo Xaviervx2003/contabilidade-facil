@@ -112,7 +112,7 @@ const STAT_META = [
   },
 ]
 
-const StatCard = ({ meta, value, isDark }) => {
+const StatCard = ({ meta, value, isDark, mediaTurma }) => {
   const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#fff'
   const borderColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)'
   return (
@@ -169,18 +169,17 @@ const StatCard = ({ meta, value, isDark }) => {
           >
             {meta.format(value)}
           </div>
-          </div>
           {meta.key === 'media_acerto' && (
             <div className="d-flex align-items-center gap-1 ms-1">
               <CIcon 
-                icon={value >= (dados.resumo_mes.media_turma || 0) ? cilArrowTop : cilArrowBottom} 
-                style={{ color: value >= (dados.resumo_mes.media_turma || 0) ? '#10b981' : '#ef4444', width: 14 }} 
+                icon={value >= (mediaTurma || 0) ? cilArrowTop : cilArrowBottom} 
+                style={{ color: value >= (mediaTurma || 0) ? '#10b981' : '#ef4444', width: 14 }} 
               />
               <span 
                 className="fw-bold" 
-                style={{ fontSize: 10, color: value >= (dados.resumo_mes.media_turma || 0) ? '#10b981' : '#ef4444' }}
+                style={{ fontSize: 10, color: value >= (mediaTurma || 0) ? '#10b981' : '#ef4444' }}
               >
-                {value >= (dados.resumo_mes.media_turma || 0) ? 'ACIMA' : 'ABAIXO'}
+                {value >= (mediaTurma || 0) ? 'ACIMA' : 'ABAIXO'}
               </span>
             </div>
           )}
@@ -587,7 +586,7 @@ const Relatorios = () => {
       <CRow className="mb-4 g-3">
         {STAT_META.map((meta) => (
           <CCol key={meta.key} xs={12} sm={6} md={4} lg={true}>
-            <StatCard meta={meta} value={dados.resumo_mes[meta.key]} isDark={isDark} />
+            <StatCard meta={meta} value={dados.resumo_mes[meta.key]} isDark={isDark} mediaTurma={dados.resumo_mes.media_turma} />
           </CCol>
         ))}
       </CRow>
