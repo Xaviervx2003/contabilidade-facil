@@ -22,6 +22,7 @@ import {
 import CIcon from '@coreui/icons-react'
 import { cilPencil, cilTrash, cilPlus, cilCheckAlt, cilX, cilSearch } from '@coreui/icons'
 import { API_URL } from '../../config'
+import { useTheme } from '../../context/themeContext'
 
 const GestaoMaterias = () => {
   const [materias, setMaterias] = useState([])
@@ -46,6 +47,7 @@ const GestaoMaterias = () => {
   const userId = parseInt(sessionStorage.getItem('userId'), 10)
   const userPapel = sessionStorage.getItem('userPapel') || 'aluno'
   const isAdmin = userPapel === 'admin'
+  const { isDark } = useTheme()
 
   const carregar = async () => {
     setLoading(true)
