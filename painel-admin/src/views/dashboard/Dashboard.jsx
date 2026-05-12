@@ -60,6 +60,8 @@ const useDashboardData = (userId, pagina, porPagina) => {
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
+    if (!userId) return
+
     const controller = new AbortController()
     const { signal } = controller
 

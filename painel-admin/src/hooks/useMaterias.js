@@ -49,7 +49,7 @@ const useMaterias = () => {
     _promise = null
   }
 
-  return { materias, loading, invalidate }
+  return { materias: [...materias], loading, invalidate }
 }
 
 export default useMaterias

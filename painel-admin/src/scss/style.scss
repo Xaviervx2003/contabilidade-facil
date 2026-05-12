@@ -905,24 +905,9 @@ table {
 
 // ════════════════════════════════════════════════════════════════════════════════
 // PONTO 15: iOS ZOOM PREVENTION
-// No iOS Safari, inputs com font-size < 16px causam zoom automático ao focar.
+// Removido o font-size: 16px !important pois quebra a altura de botões em linha.
+// Substituído por maximum-scale=1 no index.html para evitar o zoom.
 // ════════════════════════════════════════════════════════════════════════════════
-
-@media (max-width: 767.98px) {
-  .form-control,
-  .form-select,
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="search"],
-  input[type="number"],
-  input[type="tel"],
-  input[type="url"],
-  textarea,
-  select {
-    font-size: 16px !important;
-  }
-}
 
 // ════════════════════════════════════════════════════════════════════════════════
 // PONTO 14: MODAL FULLSCREEN NO MOBILE
@@ -939,6 +924,7 @@ table {
       border: 0 !important;
       border-radius: 0 !important;
       min-height: 100dvh;
+      overflow-y: auto;
     }
   }
 }

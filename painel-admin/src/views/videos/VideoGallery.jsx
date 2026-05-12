@@ -155,7 +155,9 @@ const VideoGallery = () => {
   useEffect(() => { ls.set('videosAssistidos', assistidos) }, [assistidos])
 
   const marcarAssistido = useCallback((id) => {
-    setAssistidos(prev => prev.includes(id) ? prev : [...prev, id])
+    if (assistidos.includes(id)) return
+    
+    setAssistidos(prev => [...prev, id])
     // Ponto 10: Confete de celebração
     confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 }, colors: ['#10b981', '#6366f1', '#f59e0b'] })
     toast.success('Vídeo marcado como assistido! 🎉')

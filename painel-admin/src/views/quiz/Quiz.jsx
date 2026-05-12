@@ -824,12 +824,20 @@ const QuizRunning = ({
   // Ponto 12: Atalhos de teclado — A/B/C/D/E seleciona, Enter confirma, N próxima
   useEffect(() => {
     const handler = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
+      const target = e.target
+      if (
+        target.tagName === 'INPUT' || 
+        target.tagName === 'TEXTAREA' || 
+        target.tagName === 'SELECT' || 
+        target.isContentEditable
+      ) return
+
       const key = e.key.toUpperCase()
 
       if (!isAnswerConfirmed && LETTERS.includes(key)) {
         const idx = LETTERS.indexOf(key)
         if (idx < currentQuestion.options.length) {
+          e.preventDefault()
           onSelectOption(key)
         }
       }

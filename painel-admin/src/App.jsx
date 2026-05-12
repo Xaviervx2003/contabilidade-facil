@@ -69,6 +69,7 @@ const App = () => {
             borderRadius: '14px',
             fontSize: '13px',
             boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+            zIndex: 99999,
           },
           success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
           error:   { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
