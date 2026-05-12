@@ -106,7 +106,86 @@ def relatorio_estudo(
                 for d in dias
             ]
 
+            # Melhor dia
             melhor_dia = max(serie_diaria, key=lambda x: x["questoes"], default=None)
+
+            # Ranking (Top 10)
+            cursor.execute(f"""
+                SELECT 
+                    COALESCE(s.matricula_aluno, s.nome_aluno)               AS aluno,
+                    COUNT(*)                                               AS sessoes,
+                    SUM(s.questoes_respondidas)                            AS questoes,
+                    ROUND(AVG(s.taxa_acerto)::numeric, 1)                  AS media_acerto
+                FROM sessoes_estudo s
+                WHERE EXTRACT(MONTH FROM s.criado_em) = %(mes)s
+                  AND EXTRACT(YEAR FROM s.criado_em) = %(ano)s
+                  AND s.questoes_respondidas > 0
+                  {filtros}
+                GROUP BY 1
+                ORDER BY media_acerto DESC, questoes DESC
+                LIMIT 10;
+            """, {**params, "mes": mes, "ano": ano})
+            ranking_rows = cursor.fetchall()
+            ranking = [
+                {"aluno": r[0], "sessoes": r[1], "questoes": r[2], "media": float(r[3])}
+                for r in ranking_rows
+            ]
+
+            # Distribuição por Matéria (Radar Chart)
+            # Filtra apenas se for um aluno específico ou visão geral do professor
+            cursor.execute(f"""
+                SELECT 
+                    m.nome                                                 AS materia,
+                    COUNT(sq.id)                                           AS total_questoes,
+                    ROUND(AVG(CASE WHEN sq.acertou THEN 100 ELSE 0 END)::numeric, 1) AS precisao
+                FROM sessoes_estudo s
+                JOIN sessoes_questoes sq ON sq.sessao_id = s.id
+                JOIN questoes q ON q.id = sq.questao_id
+                JOIN questoes_materias qm ON qm.questao_id = q.id
+                JOIN materias m ON m.id = qm.materia_id
+                WHERE EXTRACT(MONTH FROM s.criado_em) = %(mes)s
+                  AND EXTRACT(YEAR FROM s.criado_em) = %(ano)s
+                  {filtros}
+                GROUP BY m.nome
+                HAVING COUNT(sq.id) > 2
+                ORDER BY precisao DESC
+                LIMIT 8;
+            """, {**params, "mes": mes, "ano": ano})
+            materias_rows = cursor.fetchall()
+            desempenho_materias = [
+                {"materia": r[0], "questoes": r[1], "precisao": float(r[2])}
+                for r in materias_rows
+            ]
+
+            # Distribuição Horária (Heatmap)
+            cursor.execute(f"""
+                SELECT 
+                    EXTRACT(HOUR FROM s.criado_em)                         AS hora,
+                    COUNT(sq.id)                                           AS questoes
+                FROM sessoes_estudo s
+                JOIN sessoes_questoes sq ON sq.sessao_id = s.id
+                WHERE EXTRACT(MONTH FROM s.criado_em) = %(mes)s
+                  AND EXTRACT(YEAR FROM s.criado_em) = %(ano)s
+                  {filtros}
+                GROUP BY 1
+                ORDER BY 1;
+            """, {**params, "mes": mes, "ano": ano})
+            horas_rows = cursor.fetchall()
+            distribuicao_horaria = {int(r[0]): int(r[1]) for r in horas_rows}
+
+            # Média Global (Benchmarking) - Ignora filtro de aluno para comparar
+            params_global = {k: v for k, v in params.items() if k != "aluno_matricula"}
+            filtros_global = filtros.replace("AND COALESCE(s.matricula_aluno, s.nome_aluno) = %(aluno_matricula)s", "")
+            
+            cursor.execute(f"""
+                SELECT COALESCE(ROUND(AVG(s.taxa_acerto)::numeric, 1), 0) AS media_turma
+                FROM sessoes_estudo s
+                WHERE EXTRACT(MONTH FROM s.criado_em) = %(mes)s
+                  AND EXTRACT(YEAR FROM s.criado_em) = %(ano)s
+                  AND s.questoes_respondidas > 0
+                  {filtros_global};
+            """, {**params_global, "mes": mes, "ano": ano})
+            media_turma = float(cursor.fetchone()[0] or 0)
 
             # Resumo mensal
             cursor.execute(f"""
@@ -131,9 +210,13 @@ def relatorio_estudo(
                 "media_acerto":         float(resumo[2] or 0),
                 "tempo_total_segundos": int(resumo[3] or 0),
                 "alunos_ativos":        int(resumo[4] or 0),
+                "media_turma":          media_turma
             },
             "melhor_dia":   melhor_dia,
             "serie_diaria": serie_diaria,
+            "ranking":      ranking,
+            "desempenho_materias": desempenho_materias,
+            "distribuicao_horaria": distribuicao_horaria,
             "periodo": {
                 "mes": mes,
                 "ano": ano,

@@ -16,10 +16,28 @@ import {
   CFormSelect,
   CButton,
   CBadge,
+  CNav,
+  CNavItem,
+  CNavLink,
+  CTabContent,
+  CTabPane,
+  CTooltip,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilChart, cilTask, cilStar, cilClock, cilPeople, cilDataTransferDown, cilWarning } from '@coreui/icons'
-import { CChartLine, CChartBar } from '@coreui/react-chartjs'
+import { 
+  cilChart, 
+  cilTask, 
+  cilStar, 
+  cilClock, 
+  cilPeople, 
+  cilDataTransferDown, 
+  cilWarning, 
+  cilArrowTop, 
+  cilArrowBottom,
+  cilTrophy,
+  cilHistory
+} from '@coreui/icons'
+import { CChartLine, CChartBar, CChartRadar } from '@coreui/react-chartjs'
 import { API_URL } from '../../config'
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
@@ -151,10 +169,20 @@ const StatCard = ({ meta, value, isDark }) => {
           >
             {meta.format(value)}
           </div>
-          {meta.key !== 'ponto_cego' && (
-            <span className="text-success small fw-bold" style={{ fontSize: 10 }}>
-              +12%
-            </span>
+          </div>
+          {meta.key === 'media_acerto' && (
+            <div className="d-flex align-items-center gap-1 ms-1">
+              <CIcon 
+                icon={value >= (dados.resumo_mes.media_turma || 0) ? cilArrowTop : cilArrowBottom} 
+                style={{ color: value >= (dados.resumo_mes.media_turma || 0) ? '#10b981' : '#ef4444', width: 14 }} 
+              />
+              <span 
+                className="fw-bold" 
+                style={{ fontSize: 10, color: value >= (dados.resumo_mes.media_turma || 0) ? '#10b981' : '#ef4444' }}
+              >
+                {value >= (dados.resumo_mes.media_turma || 0) ? 'ACIMA' : 'ABAIXO'}
+              </span>
+            </div>
           )}
         </div>
       </div>
@@ -193,6 +221,7 @@ const SectionHeader = ({ emoji, title, isDark, children }) => (
 /* ─── main component ──────────────────────────────────────────────────────── */
 
 const Relatorios = () => {
+  const [activeTab, setActiveTab] = useState('geral')
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState('')
   const [dados, setDados] = useState({
@@ -202,25 +231,26 @@ const Relatorios = () => {
       media_acerto: 0,
       tempo_total_segundos: 0,
       alunos_ativos: 0,
-      ponto_cego: 'Contabilidade Geral', // Mock inicial
+      media_turma: 0,
+      ponto_cego: 'N/A',
     },
     melhor_dia: null,
     serie_diaria: [],
+    ranking: [],
+    desempenho_materias: [],
+    distribuicao_horaria: {},
     periodo: { mes: new Date().getMonth() + 1, ano: new Date().getFullYear() },
   })
-  const [performanceMaterias, setPerformanceMaterias] = useState([
-    { materia: 'Contabilidade Geral', acerto: 75, questoes: 120 },
-    { materia: 'Contabilidade de Custos', acerto: 62, questoes: 85 },
-    { materia: 'Auditoria', acerto: 88, questoes: 45 },
-    { materia: 'Perícia Contábil', acerto: 54, questoes: 30 },
-    { materia: 'Ética Profissional', acerto: 92, questoes: 60 },
-  ])
   const [materias, setMaterias] = useState([])
   const [filtroMateria, setFiltroMateria] = useState('')
   const [alunos, setAlunos] = useState([])
   const [filtroAluno, setFiltroAluno] = useState('')
   const [filtroRisco, setFiltroRisco] = useState('all')
   const [isDark, setIsDark] = useState(false)
+
+  // Memoized data for charts
+  const radarLabels = useMemo(() => dados.desempenho_materias.map(m => m.materia), [dados])
+  const radarData = useMemo(() => dados.desempenho_materias.map(m => m.precisao), [dados])
 
   const userId = sessionStorage.getItem('userId')
   const papelUsuario = sessionStorage.getItem('papel')
@@ -600,6 +630,16 @@ const Relatorios = () => {
                       tension: 0.4,
                       yAxisID: 'y1',
                     },
+                    {
+                      label: 'Média da Turma',
+                      data: Array(labelsGrafico.length).fill(dados.resumo_mes.media_turma),
+                      borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+                      borderWidth: 1,
+                      borderDash: [5, 5],
+                      pointRadius: 0,
+                      fill: false,
+                      yAxisID: 'y1',
+                    },
                   ],
                 }}
                 options={chartOptions}
@@ -656,6 +696,183 @@ const Relatorios = () => {
           </div>
         </CCol>
       </CRow>
+
+      {/* ── Tabs de Navegação ── */}
+      <CNav variant="tabs" className="mb-4 border-0">
+        <CNavItem>
+          <CNavLink 
+            href="javascript:void(0)" 
+            active={activeTab === 'geral'} 
+            onClick={() => setActiveTab('geral')}
+            className={`rounded-top-4 fw-bold px-4 ${activeTab === 'geral' ? 'border-bottom-0 shadow-sm' : 'text-body-secondary opacity-50'}`}
+          >
+            <CIcon icon={cilChart} className="me-2" /> Painel Geral
+          </CNavLink>
+        </CNavItem>
+        <CNavItem>
+          <CNavLink 
+            href="javascript:void(0)" 
+            active={activeTab === 'performance'} 
+            onClick={() => setActiveTab('performance')}
+            className={`rounded-top-4 fw-bold px-4 ${activeTab === 'performance' ? 'border-bottom-0 shadow-sm' : 'text-body-secondary opacity-50'}`}
+          >
+            <CIcon icon={cilTrophy} className="me-2" /> Ranking & Performance
+          </CNavLink>
+        </CNavItem>
+      </CNav>
+
+      <CTabContent>
+        <CTabPane visible={activeTab === 'geral'}>
+          <CRow className="g-4">
+            <CCol lg={6}>
+              <div style={{ ...cardStyle, padding: '20px' }}>
+                <SectionHeader emoji="🎯" title="Performance por Matéria" isDark={isDark} />
+                <CChartBar
+                  data={{
+                    labels: radarLabels,
+                    datasets: [
+                      {
+                        label: 'Sua Precisão (%)',
+                        backgroundColor: '#6366f1',
+                        data: radarData,
+                        borderRadius: 8,
+                      },
+                    ],
+                  }}
+                  options={{
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 100 } }
+                  }}
+                />
+              </div>
+            </CCol>
+            <CCol lg={6}>
+              <div style={{ ...cardStyle, padding: '20px' }}>
+                <SectionHeader emoji="⏰" title="Intensidade por Horário" isDark={isDark} />
+                <CChartBar
+                  data={{
+                    labels: Array.from({ length: 24 }, (_, i) => `${i}h`),
+                    datasets: [
+                      {
+                        label: 'Questões',
+                        backgroundColor: 'rgba(99,102,241,0.5)',
+                        data: Array.from({ length: 24 }, (_, i) => dados.distribuicao_horaria[i] || 0),
+                        borderRadius: 4,
+                      },
+                    ],
+                  }}
+                  options={{
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                  }}
+                />
+              </div>
+            </CCol>
+          </CRow>
+        </CTabPane>
+
+        <CTabPane visible={activeTab === 'performance'}>
+          <CRow className="g-4">
+            {/* Radar Chart & Insights */}
+            <CCol lg={5}>
+              <div style={{ ...cardStyle, padding: '24px', height: '100%' }}>
+                <SectionHeader emoji="🕸️" title="Domínio de Competências" isDark={isDark} />
+                <div className="py-4">
+                  <CChartRadar
+                    data={{
+                      labels: radarLabels,
+                      datasets: [
+                        {
+                          label: 'Seu Nível',
+                          backgroundColor: 'rgba(99,102,241,0.2)',
+                          borderColor: '#6366f1',
+                          pointBackgroundColor: '#6366f1',
+                          data: radarData,
+                        },
+                        {
+                          label: 'Média Turma',
+                          backgroundColor: 'rgba(16,185,129,0.1)',
+                          borderColor: '#10b981',
+                          pointBackgroundColor: '#10b981',
+                          data: Array(radarLabels.length).fill(dados.resumo_mes.media_turma),
+                        }
+                      ],
+                    }}
+                    options={{
+                      scales: { r: { beginAtZero: true, max: 100, ticks: { display: false } } }
+                    }}
+                  />
+                </div>
+                
+                <div className="mt-4 p-3 rounded-4 bg-opacity-10 bg-warning border border-warning border-opacity-25">
+                  <div className="d-flex align-items-center gap-2 mb-2 text-warning-emphasis fw-bold small">
+                    <CIcon icon={cilWarning} /> ASSUNTOS CRÍTICOS
+                  </div>
+                  {dados.desempenho_materias.filter(m => m.precisao < 60).slice(0, 2).map(m => (
+                    <div key={m.materia} className="small mb-1 d-flex justify-content-between">
+                      <span>{m.materia}</span>
+                      <span className="fw-bold text-danger">{m.precisao}%</span>
+                    </div>
+                  )) || <div className="small opacity-75">Nenhum alerta crítico detectado. Continue assim!</div>}
+                </div>
+              </div>
+            </CCol>
+
+            {/* Leaderboard */}
+            <CCol lg={7}>
+              <div style={{ ...cardStyle, padding: '24px', height: '100%' }}>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <SectionHeader emoji="🏆" title="Ranking da Turma (Top 10)" isDark={isDark} />
+                  <CBadge color="primary" shape="rounded-pill" className="px-3 py-2">
+                    Global / Mês
+                  </CBadge>
+                </div>
+                <div className="table-responsive">
+                  <CTable hover align="middle" className="mb-0 border-0">
+                    <CTableHead>
+                      <CTableRow className="border-0">
+                        <CTableHeaderCell className="border-0 small text-body-secondary fw-bold">Pos</CTableHeaderCell>
+                        <CTableHeaderCell className="border-0 small text-body-secondary fw-bold">Estudante</CTableHeaderCell>
+                        <CTableHeaderCell className="border-0 small text-body-secondary fw-bold text-center">Questões</CTableHeaderCell>
+                        <CTableHeaderCell className="border-0 small text-body-secondary fw-bold text-end pe-3">Precisão</CTableHeaderCell>
+                      </CTableRow>
+                    </CTableHead>
+                    <CTableBody>
+                      {dados.ranking.map((r, idx) => (
+                        <CTableRow key={idx} className="border-bottom">
+                          <CTableDataCell>
+                            <div 
+                              className={`rounded-circle d-flex align-items-center justify-content-center fw-bold small ${idx < 3 ? 'bg-warning text-dark shadow-sm' : 'text-body-secondary'}`}
+                              style={{ width: 24, height: 24, fontSize: 10 }}
+                            >
+                              {idx + 1}
+                            </div>
+                          </CTableDataCell>
+                          <CTableDataCell className="fw-medium small">
+                            {r.aluno}
+                            {r.aluno === filtroAluno && <CBadge color="info" className="ms-2">VOCÊ</CBadge>}
+                          </CTableDataCell>
+                          <CTableDataCell className="text-center tabular-nums small">{r.questoes}</CTableDataCell>
+                          <CTableDataCell className="text-end pe-3">
+                            <span className={`fw-bold tabular-nums ${r.media >= 80 ? 'text-success' : r.media >= 60 ? 'text-warning' : 'text-danger'}`}>
+                              {r.media}%
+                            </span>
+                            <CIcon 
+                              icon={r.media >= dados.resumo_mes.media_turma ? cilArrowTop : cilArrowBottom} 
+                              className={`ms-1 ${r.media >= dados.resumo_mes.media_turma ? 'text-success' : 'text-danger'}`}
+                              style={{ width: 12 }}
+                            />
+                          </CTableDataCell>
+                        </CTableRow>
+                      ))}
+                    </CTableBody>
+                  </CTable>
+                </div>
+              </div>
+            </CCol>
+          </CRow>
+        </CTabPane>
+      </CTabContent>
 
       {/* ── Tabela Diária ── */}
       <div style={cardStyle}>
