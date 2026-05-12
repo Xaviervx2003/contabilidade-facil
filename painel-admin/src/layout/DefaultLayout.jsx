@@ -7,7 +7,7 @@
 
 import React from 'react'
 import { Navigate } from 'react-router-dom'
-import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
+import { AppContent, AppSidebar, AppFooter, AppHeader, AppBottomNav } from '../components/index'
 
 const DefaultLayout = () => {
   // 'papel' — mesma chave usada no Login.jsx ao salvar
@@ -28,6 +28,7 @@ const DefaultLayout = () => {
         </div>
         <AppFooter />
       </div>
+      <AppBottomNav />
     </div>
   )
 }

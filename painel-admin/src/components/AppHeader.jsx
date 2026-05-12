@@ -61,6 +61,7 @@ const AppHeader = () => {
         <CHeaderToggler
           onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}
           style={{ marginInlineStart: '-14px' }}
+          className="d-none d-md-flex"
         >
           <CIcon icon={cilMenu} size="lg" />
         </CHeaderToggler>
@@ -127,7 +128,7 @@ const AppHeader = () => {
           {isLogado && <AppHeaderDropdown />}
         </CHeaderNav>
       </CContainer>
-      <CContainer className="px-4" fluid>
+      <CContainer className="px-4 d-none d-md-block" fluid>
         <AppBreadcrumb />
       </CContainer>
     </CHeader>
