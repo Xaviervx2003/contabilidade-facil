@@ -170,14 +170,23 @@ const VideoGallery = () => {
       ]
       if (matricula) promises.push(fetchJSON(`${API_URL}/api/aluno/historico-grafico/${matricula}`).catch(() => null))
       
-      const [dataMat, dataQuest, dataVidRaw, dataHistorico] = await Promise.all(promises)
-      setMaterias(dataMat || [])
+      const [dataMat, dataQuestRaw, dataVidRaw, dataHistorico] = await Promise.all(promises)
       
-      const qVideos = (dataQuest || []).filter(q => q.link_video)
-      const vVideos = dataVidRaw?.dados?.data || []
+      const extrairArray = (res) => {
+        if (Array.isArray(res)) return res
+        if (res?.dados?.data && Array.isArray(res.dados.data)) return res.dados.data
+        if (res?.dados && Array.isArray(res.dados)) return res.dados
+        if (res?.data && Array.isArray(res.data)) return res.data
+        return []
+      }
+
+      setMaterias(extrairArray(dataMat))
+      
+      const qVideos = extrairArray(dataQuestRaw).filter(q => q?.link_video)
+      const vVideos = extrairArray(dataVidRaw)
       setQuestoesComVideo([...qVideos, ...vVideos])
 
-      if (dataHistorico?.por_assunto) {
+      if (dataHistorico?.por_assunto && Array.isArray(dataHistorico.por_assunto)) {
         setDesempenhoBaixo(dataHistorico.por_assunto.filter(a => a.media_acerto < 60).map(a => a.assunto.toLowerCase()))
       }
     } catch (e) { console.error(e) } finally { setLoading(false) }
