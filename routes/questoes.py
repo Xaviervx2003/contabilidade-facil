@@ -192,9 +192,9 @@ def obter_questoes(
                 limite_sql = f"LIMIT {pp} OFFSET {offset}"
             else:
                 # Modo legado: retorna array simples (compatível com quiz do aluno)
-                limite_sql = ""
-                if limit is not None:
-                    limite_sql = f"LIMIT {int(limit)}"
+                # AÇÃO PREVENTIVA: Hard-limit default para prevenir Out Of Memory no payload e Frontend
+                limite_efetivo = int(limit) if limit is not None else 500
+                limite_sql = f"LIMIT {limite_efetivo}"
 
             # ✅ FASE 1: Inclui q.link_video no SELECT
             cursor.execute(f"""
