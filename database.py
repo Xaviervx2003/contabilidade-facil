@@ -70,6 +70,9 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                             CREATE INDEX IF NOT EXISTS idx_sq_questao_id ON sessoes_questoes (questao_id);
                         """)
 
+                        # MIGRATION: Adicionar link_video na tabela questoes
+                        cursor.execute("ALTER TABLE questoes ADD COLUMN IF NOT EXISTS link_video TEXT DEFAULT NULL;")
+
                         cursor.execute("SELECT to_regclass('public.modulos') IS NOT NULL;")
                         if cursor.fetchone()[0]:
                             cursor.execute("ALTER TABLE modulos ADD COLUMN IF NOT EXISTS questoes_selecionadas INT[] DEFAULT NULL;")

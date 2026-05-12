@@ -141,8 +141,8 @@ const GestaoVideos = () => {
   }
 
   const salvarVideo = async () => {
-    if (!formData.titulo || !formData.link) {
-      setError('Preencha o título e o link do vídeo.')
+    if (!formData.titulo || !formData.link || formData.materia_ids.length === 0) {
+      setError('Preencha o título, o link e selecione uma matéria.')
       return
     }
 
@@ -453,7 +453,10 @@ const GestaoVideos = () => {
             <label className="form-label fw-bold small text-body-secondary text-uppercase">Matéria Relacionada</label>
             <CFormSelect 
               value={formData.materia_ids[0] || ''} 
-              onChange={e => setFormData({ ...formData, materia_ids: [Number(e.target.value)] })}
+              onChange={e => {
+                const val = e.target.value;
+                setFormData({ ...formData, materia_ids: val ? [Number(val)] : [] })
+              }}
               className="rounded-3"
             >
               <option value="">Selecione uma matéria...</option>
