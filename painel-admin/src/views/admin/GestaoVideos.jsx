@@ -99,7 +99,7 @@ const GestaoVideos = () => {
       if (materiaFiltro) params.append('materia_id', materiaFiltro)
 
       const [resVideos, resMaterias] = await Promise.all([
-        fetch(`${API_URL}/api/questoes?${params.toString()}`),
+        fetch(`${API_URL}/api/videos?${params.toString()}`),
         fetch(`${API_URL}/api/admin/materias`)
       ])
       const respVideos = await resVideos.json()
@@ -129,9 +129,9 @@ const GestaoVideos = () => {
       setModoEdicao(true)
       setFormData({
         id: video.id,
-        titulo: video.enunciado || '',
+        titulo: video.titulo || '',
         link: video.link_video || '',
-        materia_ids: video.materia_ids || [video.materia_id].filter(Boolean)
+        materia_ids: [video.materia_id].filter(Boolean)
       })
     } else {
       setModoEdicao(false)
@@ -150,19 +150,12 @@ const GestaoVideos = () => {
     setError('')
     try {
       const payload = {
-        enunciado: formData.titulo,
+        titulo: formData.titulo,
         link_video: formData.link,
-        materia_ids: formData.materia_ids,
-        // Campos padrão para que não quebre no quiz se for sorteado
-        resposta_correta: 'A', 
-        opcao_a: 'Vídeo-aula', 
-        opcao_b: '-', 
-        opcao_c: '-', 
-        opcao_d: '-',
-        explicacao: 'Conteúdo em vídeo.'
+        materia_id: formData.materia_ids[0] || null
       }
 
-      const url = modoEdicao ? `${API_URL}/api/questoes/${formData.id}` : `${API_URL}/api/questoes`
+      const url = modoEdicao ? `${API_URL}/api/videos/${formData.id}` : `${API_URL}/api/videos`
       const method = modoEdicao ? 'PUT' : 'POST'
 
       const res = await fetch(url, {
@@ -191,7 +184,7 @@ const GestaoVideos = () => {
       // Como o vídeo é uma questão, podemos ou excluir a questão ou apenas limpar o link_video.
       // Para ser mais limpo, vamos apenas limpar o link_video se for uma questão real, 
       // ou excluir se for um "vídeo-aula" criado por aqui.
-      const res = await fetch(`${API_URL}/api/questoes/${id}`, {
+      const res = await fetch(`${API_URL}/api/videos/${id}`, {
         method: 'DELETE'
       })
 
@@ -328,7 +321,7 @@ const GestaoVideos = () => {
                     {materias.find(m => m.id === (v.materia_ids?.[0] || v.materia_id))?.nome || 'Geral'}
                   </div>
                   <h6 className="fw-bold mb-3 text-truncate-2" style={{ height: 36, fontSize: 14, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                    {v.enunciado}
+                    {v.titulo}
                   </h6>
                   
                   <div className="mt-auto d-flex gap-2">

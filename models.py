@@ -133,3 +133,8 @@ class DuvidaTrilhaCreate(BaseModel):
 
 class RespostaDuvida(BaseModel):
     resposta: str
+
+class VideoRequest(BaseModel):
+    titulo: str
+    link_video: str
+    materia_id: Optional[int] = None

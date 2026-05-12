@@ -30,6 +30,7 @@ from routes.metricas_estudantes import router as metricas_estudantes_router
 from routes.trilhas import router as trilhas_router
 from routes.gamificacao import router as gamificacao_router
 from routes.dashboard_aluno import router as dashboard_aluno_router
+from routes.videos import router as videos_router
 
 
 @asynccontextmanager
@@ -88,6 +89,7 @@ app.include_router(metricas_estudantes_router)
 app.include_router(trilhas_router)
 app.include_router(gamificacao_router)
 app.include_router(dashboard_aluno_router)
+app.include_router(videos_router)
 
 
 @app.get("/")

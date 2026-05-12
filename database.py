@@ -111,6 +111,18 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
                         """)
                         cursor.execute("CREATE INDEX IF NOT EXISTS idx_duvidas_modulo ON duvidas_trilhas(modulo_id);")
 
+                        # NOVA TABELA: Vídeos Independentes
+                        cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS videos (
+                                id           SERIAL PRIMARY KEY,
+                                titulo       TEXT NOT NULL,
+                                link_video   TEXT NOT NULL,
+                                materia_id   INT REFERENCES materias(id) ON DELETE SET NULL,
+                                data_criacao TIMESTAMP DEFAULT NOW()
+                            );
+                        """)
+                        cursor.execute("CREATE INDEX IF NOT EXISTS idx_videos_materia ON videos(materia_id);")
+
                         # NOVA TABELA: Notificações
                         cursor.execute("""
                             CREATE TABLE IF NOT EXISTS notificacoes (

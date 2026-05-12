@@ -99,6 +99,12 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista, ma
   const [editandoNota, setEditandoNota] = useState(false)
   const cardRef = useRef(null)
 
+  // Normalização para suportar Objetos de Questão e Objetos de Vídeo puro
+  const titulo = q.titulo || q.question || 'Sem título'
+  const materiaLabel = q.materia_nome || q.assunto || 'Geral'
+  const embedUrl = obterLinkEmbed(q.link_video)
+  const thumbnail = obterThumbnail(q.link_video)
+
   // IntersectionObserver — pré-aquece quando card fica visível, não carrega iframe ainda
   useEffect(() => {
     const el = cardRef.current
@@ -181,11 +187,11 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista, ma
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
             <CBadge color="info">#{q.id}</CBadge>
-            <CBadge color="secondary" style={{ fontWeight: 400 }}>{q.assunto || 'Geral'}</CBadge>
+            <CBadge color="secondary" style={{ fontWeight: 400 }}>{materiaLabel}</CBadge>
             {assistido && <CBadge color="success">✓ Assistido</CBadge>}
           </div>
           <p style={{ fontSize: 13, color: isDark ? '#e0e8f0' : '#1f2937', margin: '0 0 6px', lineHeight: 1.4, fontWeight: 500 }}>
-            {q.question?.length > 120 ? q.question.substring(0, 120) + '…' : q.question}
+            {titulo.length > 120 ? titulo.substring(0, 120) + '…' : titulo}
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {!assistido && (
@@ -266,11 +272,11 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista, ma
         {/* Corpo do card */}
         <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', flex: 1 }}>
           <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
-            <CBadge color="info" style={{ fontSize: 10 }}>#{q.id}</CBadge>
-            <CBadge color="secondary" style={{ fontSize: 10, fontWeight: 400 }}>{q.assunto || 'Geral'}</CBadge>
+            <CBadge color="info">#{q.id}</CBadge>
+            <CBadge color="secondary" style={{ fontWeight: 400 }}>{materiaLabel}</CBadge>
           </div>
-          <p style={{ fontSize: 13, color: isDark ? '#e0e8f0' : '#1f2937', margin: '0 0 8px', lineHeight: 1.45, fontWeight: 500, flex: 1 }}>
-            {q.question?.length > 100 ? q.question.substring(0, 100) + '…' : q.question}
+          <p style={{ fontSize: 13, color: isDark ? '#e0e8f0' : '#1f2937', margin: '0 0 12px', lineHeight: 1.4, fontWeight: 600, height: 36, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+            {titulo}
           </p>
           {q.explicacao && (
             <p style={{ fontSize: 11, color: isDark ? '#5d7290' : '#94a3b8', margin: '0 0 10px', fontStyle: 'italic' }}>
@@ -418,19 +424,24 @@ const VideoGallery = () => {
       const promises = [
         fetchJSON(`${API_URL}/api/admin/materias`),
         fetchJSON(`${API_URL}/api/questoes`),
+        fetchJSON(`${API_URL}/api/videos`).catch(() => ({ dados: { data: [] } })),
       ]
       if (matricula) {
         promises.push(
           fetchJSON(`${API_URL}/api/aluno/historico-grafico/${matricula}`).catch(() => null)
         )
       }
-      const [dataMat, dataQuest, dataHistorico] = await Promise.all(promises)
+      const [dataMat, dataQuest, dataVidRaw, dataHistorico] = await Promise.all(promises)
 
       setMaterias(Array.isArray(dataMat) ? dataMat : [])
 
-      const filtradas = (Array.isArray(dataQuest) ? dataQuest : [])
+      const questoesFiltradas = (Array.isArray(dataQuest) ? dataQuest : [])
         .filter(q => q.link_video && q.link_video.trim() !== '')
-      setQuestoesComVideo(filtradas)
+      
+      const videosNovos = dataVidRaw?.dados?.data || []
+      
+      // Mesclar ambos os tipos de vídeos
+      setQuestoesComVideo([...questoesFiltradas, ...videosNovos])
 
       // Extrair assuntos fracos do histórico
       if (dataHistorico?.por_assunto) {
@@ -454,6 +465,8 @@ const VideoGallery = () => {
     questoesComVideo.forEach(q => {
       if (q.materia_ids) {
         q.materia_ids.forEach(id => { m[id] = (m[id] || 0) + 1 })
+      } else if (q.materia_id) {
+        m[q.materia_id] = (m[q.materia_id] || 0) + 1
       }
     })
     return m
@@ -465,15 +478,21 @@ const VideoGallery = () => {
 
     // Filtro de matéria
     if (materiaFiltro) {
-      lista = lista.filter(q => q.materia_ids?.includes(parseInt(materiaFiltro)))
+      const mid = parseInt(materiaFiltro)
+      lista = lista.filter(q => 
+        (q.materia_ids?.includes(mid)) || 
+        (q.materia_id === mid)
+      )
     }
 
     // Busca por texto
     if (busca.trim()) {
       const termo = busca.toLowerCase()
       lista = lista.filter(q =>
-        q.question?.toLowerCase().includes(termo) ||
-        q.assunto?.toLowerCase().includes(termo)
+        (q.question?.toLowerCase().includes(termo)) ||
+        (q.titulo?.toLowerCase().includes(termo)) ||
+        (q.assunto?.toLowerCase().includes(termo)) ||
+        (q.materia_nome?.toLowerCase().includes(termo))
       )
     }
 
