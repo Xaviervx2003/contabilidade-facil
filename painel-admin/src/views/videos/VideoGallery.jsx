@@ -125,9 +125,6 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista, ma
     setEditandoNota(false)
   }, [q.id, anotacao])
 
-  const thumbnail = obterThumbnail(q.link_video)
-  const embedUrl = obterLinkEmbed(q.link_video)
-
   const bgCard = isDark ? '#1a2535' : '#ffffff'
   const borderCard = isDark ? '#2d3f52' : '#e2e8f0'
 
