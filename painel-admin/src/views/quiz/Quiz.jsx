@@ -286,6 +286,8 @@ const ReadyScreen = ({
   onStartSimuladoRapido,
 }) => {
   const [activeStep, setActiveStep] = useState(0)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [visibleLimit, setVisibleLimit] = useState(6)
 
   // Tópicos sugeridos baseados no Exame de Suficiência CFC
   const TOPICOS_RELEVANTES = [
@@ -319,8 +321,13 @@ const ReadyScreen = ({
 
   const progressValue = (steps.filter((s) => s.completed).length / steps.length) * 100
 
-  const raizes = materias.filter((m) => !m.parent_id)
-  const disciplinaNome = disciplinaPai ? raizes.find((r) => r.id === disciplinaPai)?.nome : ''
+  const raizes = useMemo(() => {
+    return materias
+      .filter((m) => !m.parent_id)
+      .filter((m) => m.nome.toLowerCase().includes(searchTerm.toLowerCase()))
+  }, [materias, searchTerm])
+
+  const disciplinaNome = disciplinaPai ? materias.find((r) => r.id === disciplinaPai)?.nome : ''
 
   return (
     <div style={{ animation: 'fade-up .35s ease' }}>
@@ -389,11 +396,26 @@ const ReadyScreen = ({
 
           <hr className="my-2 opacity-50" />
 
-          <div className="text-uppercase fw-bold text-secondary mb-2" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
-            📚 Selecione uma Disciplina
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+            <div className="text-uppercase fw-bold text-secondary" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
+              📚 Selecione uma Disciplina
+            </div>
+            <div className="position-relative" style={{ minWidth: '200px' }}>
+              <CFormInput
+                size="sm"
+                placeholder="🔍 Pesquisar disciplina..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value)
+                  setVisibleLimit(6) // Reseta o limite ao pesquisar
+                }}
+                className="rounded-pill bg-body-tertiary border-0 px-3"
+                style={{ fontSize: 12 }}
+              />
+            </div>
           </div>
           <CRow className="g-3">
-            {raizes.map((r) => (
+            {raizes.slice(0, visibleLimit).map((r) => (
               <CCol key={r.id} xs={12} sm={6}>
                 <div
                   className={`p-3 rounded-4 border cursor-pointer h-100 transition-all ${disciplinaPai === r.id ? 'border-primary bg-primary bg-opacity-10 shadow-sm' : 'bg-body-tertiary border-transparent hover-shadow-sm'}`}
@@ -431,6 +453,20 @@ const ReadyScreen = ({
               </CCol>
             ))}
           </CRow>
+
+          {raizes.length > visibleLimit && (
+            <div className="text-center mt-3">
+              <CButton
+                color="secondary"
+                variant="ghost"
+                size="sm"
+                className="rounded-pill fw-bold text-primary"
+                onClick={() => setVisibleLimit(prev => prev + 6)}
+              >
+                + Ver mais disciplinas ({raizes.length - visibleLimit} restantes)
+              </CButton>
+            </div>
+          )}
         </div>
       </ChecklistItem>
 
