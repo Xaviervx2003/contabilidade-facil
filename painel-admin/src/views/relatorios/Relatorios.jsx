@@ -18,7 +18,7 @@ import {
   CBadge,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilChart, cilTask, cilStar, cilClock, cilPeople, cilDataTransferDown } from '@coreui/icons'
+import { cilChart, cilTask, cilStar, cilClock, cilPeople, cilDataTransferDown, cilWarning } from '@coreui/icons'
 import { CChartLine, CChartBar } from '@coreui/react-chartjs'
 import { API_URL } from '../../config'
 
