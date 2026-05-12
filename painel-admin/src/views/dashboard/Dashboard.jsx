@@ -178,16 +178,35 @@ const SkeletonBlock = ({ height = 24, width = '100%', className = '' }) => {
   )
 }
 
-const StatCard = ({ titulo, valor, cor, icone, loading }) => (
-  <div className="bg-gradient-to-br from-[#f8fafc] to-white dark:from-[#1e293b] dark:to-[#0f172a] border border-white/80 dark:border-slate-700/50 rounded-[1.5rem] p-6 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.06),inset_0_2px_15px_rgba(0,0,0,0.03)] dark:shadow-none h-100 fade-in-up d-flex flex-column justify-content-between transition-colors duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)]" style={{ animationDelay: '0.1s' }}>
-    <div className="text-uppercase text-body-secondary small fw-semibold mb-1" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
-      <CIcon icon={icone} className={`text-${cor} me-1`} /> {titulo}
+const COR_MAP = {
+  info:    { bg: 'rgba(14,165,233,0.12)',  color: '#0ea5e9' },
+  success: { bg: 'rgba(16,185,129,0.12)', color: '#10b981' },
+  warning: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
+  danger:  { bg: 'rgba(239,68,68,0.12)',  color: '#ef4444' },
+  primary: { bg: 'rgba(99,102,241,0.12)', color: '#6366f1' },
+}
+
+const StatCard = ({ titulo, valor, cor, icone, loading }) => {
+  const { bg, color } = COR_MAP[cor] || COR_MAP.primary
+  return (
+    <div className="stat-box h-100 fade-in-up" style={{ animationDelay: '0.1s' }}>
+      <div
+        className="stat-icon-wrapper"
+        style={{ background: bg, color, width: 48, height: 48, borderRadius: 14, fontSize: '1.3rem' }}
+      >
+        <CIcon icon={icone} style={{ color, width: 22, height: 22 }} />
+      </div>
+      <div className="stat-info">
+        <div className="text-uppercase fw-semibold mb-1" style={{ fontSize: 10, letterSpacing: '0.1em', color: 'var(--color-text-tertiary)' }}>
+          {titulo}
+        </div>
+        <div className="fw-bold" style={{ fontSize: 24, color, fontVariantNumeric: 'tabular-nums' }}>
+          {loading ? <SkeletonBlock height={28} width="60%" /> : valor}
+        </div>
+      </div>
     </div>
-    <div className="fs-3 fw-bold text-primary mt-3">
-      {loading ? <SkeletonBlock height={32} width="60%" /> : valor}
-    </div>
-  </div>
-)
+  )
+}
 
 const SkeletonRow = ({ isDark }) => (
   <CTableRow>
@@ -299,7 +318,7 @@ const Dashboard = () => {
       {/* Progresso Geral da Turma + Últimas Atividades */}
       <CRow className="g-3 mb-4">
         <CCol md={6}>
-          <div className="bg-card border border-border/50 rounded-[1.5rem] p-6 shadow-sm glass-panel h-100 fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={{ animationDelay: '0.2s' }}>
+          <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.2s' }}>
             <div className="d-flex align-items-center gap-2 mb-3">
               <CIcon icon={cilBarChart} className="text-success" />
               <strong className="text-body-primary">Progresso Geral da Turma</strong>
@@ -347,7 +366,7 @@ const Dashboard = () => {
           </div>
         </CCol>
         <CCol md={6}>
-          <div className="bg-card border border-border/50 rounded-[1.5rem] p-6 shadow-sm glass-panel h-100 fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={{ animationDelay: '0.25s' }}>
+          <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.25s' }}>
             <div className="d-flex align-items-center gap-2 mb-3">
               <CIcon icon={cilHistory} className="text-info" />
               <strong className="text-body-primary">Últimas Atividades</strong>
@@ -415,7 +434,7 @@ const Dashboard = () => {
           {/* Horizontal Section Divider */}
           <div className="w-full h-px bg-slate-200/60 dark:bg-slate-700/50 mb-8 mt-4"></div>
           
-          <CCard className="bg-card border border-border/50 rounded-[1.5rem] shadow-sm glass-panel mb-4 overflow-hidden transition-all duration-300 hover:shadow-md">
+          <CCard className="premium-card mb-4 border-0 overflow-hidden">
             <CCardHeader className="bg-transparent border-bottom border-border/50 d-flex align-items-center gap-2 p-5">
               <CIcon icon={cilChart} className="text-primary" />
               <strong className="text-primary fs-5">Resumo Real do Projeto e Desempenho Global</strong>
