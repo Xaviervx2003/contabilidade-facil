@@ -34,8 +34,8 @@ import {
   cilWarning, 
   cilArrowTop, 
   cilArrowBottom,
-  cilTrophy,
-  cilHistory
+  cilStar,
+  cilClock
 } from '@coreui/icons'
 import { CChartLine, CChartBar, CChartRadar } from '@coreui/react-chartjs'
 import { API_URL } from '../../config'
@@ -715,7 +715,7 @@ const Relatorios = () => {
             onClick={() => setActiveTab('performance')}
             className={`rounded-top-4 fw-bold px-4 ${activeTab === 'performance' ? 'border-bottom-0 shadow-sm' : 'text-body-secondary opacity-50'}`}
           >
-            <CIcon icon={cilTrophy} className="me-2" /> Ranking & Performance
+            <CIcon icon={cilStar} className="me-2" /> Ranking & Performance
           </CNavLink>
         </CNavItem>
       </CNav>
