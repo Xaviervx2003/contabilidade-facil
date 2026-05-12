@@ -432,10 +432,10 @@ const Dashboard = () => {
       <CRow>
         <CCol xs>
           {/* Horizontal Section Divider */}
-          <div className="w-full h-px bg-slate-200/60 dark:bg-slate-700/50 mb-8 mt-4"></div>
+          <hr className="my-4 border-0" style={{ height: 1, background: 'var(--color-divider)' }} />
           
           <CCard className="premium-card mb-4 border-0 overflow-hidden">
-            <CCardHeader className="bg-transparent border-bottom border-border/50 d-flex align-items-center gap-2 p-5">
+            <CCardHeader className="bg-transparent border-bottom d-flex align-items-center gap-2 p-4">
               <CIcon icon={cilChart} className="text-primary" />
               <strong className="text-primary fs-5">Resumo Real do Projeto e Desempenho Global</strong>
             </CCardHeader>

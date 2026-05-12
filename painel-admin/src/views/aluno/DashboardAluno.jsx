@@ -114,16 +114,12 @@ const DashboardAluno = () => {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [isDark, setIsDark] = useState(false)
+  const { isDark } = useTheme()
   const navigate = useNavigate()
-  const { isDark: themeIsDark } = useTheme()
 
   const matricula = sessionStorage.getItem('matricula')
   const nomeUsuario = sessionStorage.getItem('nome') || ''
 
-  useEffect(() => {
-    setIsDark(themeIsDark)
-  }, [themeIsDark])
 
   useEffect(() => {
     if (!matricula) {
