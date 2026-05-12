@@ -71,6 +71,7 @@ def obter_questoes(
     page: Optional[int] = Query(None, ge=1, description="Página para paginação server-side"),
     per_page: Optional[int] = Query(None, ge=1, le=100, description="Itens por página"),
     busca: Optional[str] = Query(None, description="Busca textual no enunciado/matéria"),
+    apenas_videos: Optional[bool] = Query(False, description="Retornar apenas questões com vídeo"),
 ):
     try:
         with get_conexao() as conn:
@@ -166,6 +167,9 @@ def obter_questoes(
                 """)
                 termo_busca = f"%{busca.strip()}%"
                 params.extend([termo_busca, termo_busca, busca.strip()])
+
+            if apenas_videos:
+                conditions.append("q.link_video IS NOT NULL AND q.link_video != ''")
 
             filtro_where = ""
             if conditions:

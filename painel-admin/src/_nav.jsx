@@ -139,6 +139,12 @@ const getNavItens = () => {
       },
       {
         component: CNavItem,
+        name: 'Gestão de Vídeos',
+        to: '/admin/videos',
+        icon: <CIcon icon={cilVideo} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
         name: 'Gestão de Trilhas',
         to: '/admin/trilhas',
         icon: <CIcon icon={cilListRich} customClassName="nav-icon" />,
