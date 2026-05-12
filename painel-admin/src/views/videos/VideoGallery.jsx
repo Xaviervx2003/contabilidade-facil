@@ -167,11 +167,11 @@ const VideoGallery = () => {
     setLoading(true)
     try {
       const promises = [
-        fetchJSON(`${API_URL}/api/admin/materias`),
-        fetchJSON(`${API_URL}/api/questoes?apenas_videos=true`),
+        fetchJSON(`${API_URL}/api/admin/materias`).catch(() => []),
+        fetchJSON(`${API_URL}/api/questoes?apenas_videos=true`).catch(() => ({ dados: { data: [] } })),
         fetchJSON(`${API_URL}/api/videos`).catch(() => ({ dados: { data: [] } })),
       ]
-      if (matricula) promises.push(fetchJSON(`${API_URL}/api/aluno/historico-grafico/${matricula}`).catch(() => null))
+      if (matricula) promises.push(fetchJSON(`${API_URL}/api/aluno/historico-grafico/${matricula}`).catch(() => ({ por_assunto: [] })))
       
       const [dataMat, dataQuestRaw, dataVidRaw, dataHistorico] = await Promise.all(promises)
       
@@ -187,7 +187,11 @@ const VideoGallery = () => {
       
       const qVideos = extrairArray(dataQuestRaw).filter(q => q?.link_video)
       const vVideos = extrairArray(dataVidRaw)
-      setQuestoesComVideo([...qVideos, ...vVideos])
+      const todosVideos = [...qVideos, ...vVideos]
+      
+      if (Array.isArray(todosVideos)) {
+        setQuestoesComVideo(todosVideos)
+      }
 
       if (dataHistorico?.por_assunto && Array.isArray(dataHistorico.por_assunto)) {
         setDesempenhoBaixo(dataHistorico.por_assunto.filter(a => a.media_acerto < 60).map(a => a.assunto.toLowerCase()))
