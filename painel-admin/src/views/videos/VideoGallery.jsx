@@ -94,35 +94,35 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista }) 
               onClick={() => { setIframeAtivo(true); if (!assistido) onMarcarAssistido(q.id) }}
             >
               <img src={thumbnail} className="w-100 h-100 object-fit-cover opacity-75" alt="" />
-              <div className="position-absolute bg-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" style={{ width: 50, height: 50 }}>
-                <CIcon icon={cilMediaPlay} className="text-primary ms-1" size="xl" />
+              <div className="position-absolute bg-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" style={{ width: 40, height: 40 }}>
+                <CIcon icon={cilMediaPlay} className="text-primary ms-1" size="lg" />
               </div>
             </div>
           )}
           {assistido && (
             <div className="position-absolute top-0 end-0 m-2">
-              <CBadge color="success" className="rounded-pill px-2">✓ ASSISTIDO</CBadge>
+              <CBadge color="success" className="rounded-pill px-2" style={{ fontSize: 9 }}>✓ ASSISTIDO</CBadge>
             </div>
           )}
         </div>
 
         {/* Content Section */}
-        <CCardBody className="p-4 d-flex flex-column">
+        <CCardBody className="p-3 p-md-4 d-flex flex-column">
           <div className="d-flex gap-2 mb-2">
-            <CBadge color="primary" className="rounded-pill bg-opacity-10 text-primary border-0" style={{ fontSize: 10 }}>#{q.id}</CBadge>
-            <CBadge color="secondary" className="rounded-pill bg-opacity-10 text-secondary border-0" style={{ fontSize: 10 }}>{materiaLabel}</CBadge>
+            <CBadge color="primary" className="rounded-pill bg-opacity-10 text-primary border-0" style={{ fontSize: 9 }}>#{q.id}</CBadge>
+            <CBadge color="secondary" className="rounded-pill bg-opacity-10 text-secondary border-0" style={{ fontSize: 9 }}>{materiaLabel}</CBadge>
           </div>
-          <h5 className="fw-bold mb-3 flex-grow-1" style={{ fontSize: 16, lineHeight: 1.4 }}>{titulo}</h5>
+          <h5 className="fw-bold mb-3 flex-grow-1" style={{ fontSize: 'clamp(14px, 4vw, 16px)', lineHeight: 1.4 }}>{titulo}</h5>
           
-          <div className="d-flex justify-content-between align-items-center mt-auto">
+          <div className="d-flex justify-content-between align-items-center mt-auto gap-2">
             {!assistido ? (
-              <CButton size="sm" variant="ghost" className="text-success p-0" onClick={() => onMarcarAssistido(q.id)}>
-                Marcar como assistido
+              <CButton size="sm" variant="ghost" className="text-success p-0" onClick={() => onMarcarAssistido(q.id)} style={{ fontSize: 11 }}>
+                Marcar visto
               </CButton>
             ) : (
-              <span className="small text-success fw-bold">Conteúdo concluído</span>
+              <span className="small text-success fw-bold" style={{ fontSize: 11 }}>Concluído</span>
             )}
-            <CButton size="sm" color="primary" variant="ghost" href={`#/quiz?busca=${q.id}`}>
+            <CButton size="sm" color="primary" variant="ghost" href={`#/quiz?busca=${q.id}`} style={{ fontSize: 11 }}>
               Praticar →
             </CButton>
           </div>
@@ -213,27 +213,35 @@ const VideoGallery = () => {
     <div className={`fade-in pb-5 ${isDark ? 'text-white' : 'text-dark'}`}>
       <style>{`
         .glass-card { background: ${isDark ? 'rgba(255,255,255,0.03)' : '#fff'}; border: 1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}; border-radius: 20px; backdrop-filter: blur(10px); }
-        .header-section { padding: 40px 0; border-bottom: 1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}; margin-bottom: 30px; }
+        .header-section { padding: clamp(20px, 5vw, 40px) 0; border-bottom: 1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}; margin-bottom: 30px; }
         .search-pill { background: ${isDark ? 'rgba(255,255,255,0.05)' : '#fff'}; border-radius: 50px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
         .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        
+        @media (max-width: 768px) {
+          h1 { font-size: 1.5rem !important; }
+          .header-section { padding: 15px 0; margin-bottom: 20px; }
+          .search-pill { border-radius: 12px; }
+          .glass-card { border-radius: 15px; }
+        }
       `}</style>
 
       {/* HEADER */}
       <div className="header-section">
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
           <div>
-            <div className="text-primary fw-bold text-uppercase small mb-1" style={{ letterSpacing: '0.1em' }}>Vídeo-Aulas</div>
+            <div className="text-primary fw-bold text-uppercase mb-1" style={{ fontSize: 9, letterSpacing: '0.1em' }}>Vídeo-Aulas</div>
             <h1 className="fw-bold mb-0" style={{ letterSpacing: '-0.02em' }}>Centro de Aprendizado</h1>
+            <p className="text-body-secondary mb-0 small d-none d-md-block">Assista, aprenda e domine todos os assuntos da contabilidade.</p>
           </div>
-          <div className="text-md-end" style={{ minWidth: 250 }}>
-            <div className="d-flex justify-content-between small fw-bold mb-1">
+          <div className="text-md-end" style={{ minWidth: '100%', maxWidth: 300 }}>
+            <div className="d-flex justify-content-between small fw-bold mb-1" style={{ fontSize: 11 }}>
               <span>Seu Progresso</span>
               <span>{perc}%</span>
             </div>
-            <CProgress value={perc} color="primary" height={10} className="rounded-pill shadow-sm" />
-            <div className="small text-body-secondary mt-1">{assistidos.length} aulas concluídas</div>
+            <CProgress value={perc} color="primary" height={8} className="rounded-pill shadow-sm" />
+            <div className="small text-body-secondary mt-1" style={{ fontSize: 10 }}>{assistidos.length} aulas concluídas</div>
           </div>
         </div>
       </div>
