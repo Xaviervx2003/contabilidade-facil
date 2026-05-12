@@ -222,7 +222,8 @@ const VideoGallery = () => {
   const perc = questoesComVideo.length ? Math.round((assistidos.length / questoesComVideo.length) * 100) : 0
 
   return (
-    <div className={`fade-in pb-5 ${isDark ? 'text-white' : 'text-dark'}`}>
+    <div className={`fade-in pb-5 ${isDark ? 'text-white' : 'text-dark'}`} style={{ overflowX: 'hidden' }}>
+      <CContainer fluid className="px-3 px-md-4">
       <style>{`
         .glass-card { background: ${isDark ? 'rgba(255,255,255,0.03)' : '#fff'}; border: 1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}; border-radius: 20px; backdrop-filter: blur(10px); }
         .header-section { padding: clamp(20px, 5vw, 40px) 0; border-bottom: 1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}; margin-bottom: 30px; }
@@ -240,8 +241,8 @@ const VideoGallery = () => {
         .animate-pulse { animation: pulse 2s infinite; }
 
         @media (max-width: 768px) {
-          h1 { font-size: 1.5rem !important; }
-          .header-section { padding: 15px 0; margin-bottom: 20px; }
+          h1 { font-size: 1.25rem !important; }
+          .header-section { padding: 12px 0; margin-bottom: 15px; }
           .search-pill { border-radius: 12px; }
           .glass-card { border-radius: 15px; }
           .video-card-row { flex-direction: column !important; }
@@ -251,11 +252,11 @@ const VideoGallery = () => {
 
       {/* HEADER */}
       <div className="header-section">
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
           <div>
-            <div className="text-primary fw-bold text-uppercase mb-1" style={{ fontSize: 9, letterSpacing: '0.1em' }}>Vídeo-Aulas</div>
-            <h1 className="fw-bold mb-0" style={{ letterSpacing: '-0.02em' }}>Centro de Aprendizado</h1>
-            <p className="text-body-secondary mb-0 small d-none d-md-block">Assista, aprenda e domine todos os assuntos da contabilidade.</p>
+            <div className="text-primary fw-bold text-uppercase mb-1" style={{ fontSize: 8, letterSpacing: '0.1em' }}>Vídeo-Aulas</div>
+            <h1 className="fw-bold mb-0" style={{ letterSpacing: '-0.02em', fontSize: 'clamp(1.2rem, 4vw, 1.75rem)' }}>Centro de Aprendizado</h1>
+            <p className="text-body-secondary mb-0 small d-none d-lg-block">Assista, aprenda e domine todos os assuntos da contabilidade.</p>
           </div>
           <div className="text-md-end" style={{ minWidth: '100%', maxWidth: 300 }}>
             <div className="d-flex justify-content-between small fw-bold mb-1" style={{ fontSize: 11 }}>
@@ -358,6 +359,7 @@ const VideoGallery = () => {
           </div>
         </div>
       )}
+      </CContainer>
     </div>
   )
 }
