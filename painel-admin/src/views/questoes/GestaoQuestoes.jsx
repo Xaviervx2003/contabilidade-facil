@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useEffect as useDebounceEffect } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
   CAlert, CButton, CCard, CCardBody, CCol, CContainer,
   CForm, CFormInput, CFormSelect, CFormTextarea,
@@ -7,7 +7,7 @@ import {
   CSpinner, CBadge, CPagination, CPaginationItem,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPencil, cilTrash, cilSearch, cilPlus, cilVideo, cilFilterX } from '@coreui/icons'
+import { cilPencil, cilTrash, cilSearch, cilReload, cilVideo } from '@coreui/icons'
 import { API_URL } from '../../config'
 import { useSearchParams } from 'react-router-dom'
 import MateriaMultiSelect from '../../components/MateriaMultiSelect'
@@ -173,7 +173,7 @@ const GestaoQuestoes = () => {
               <p className="text-body-secondary mb-0 small">Banco de dados com {totalQuestoes} questões cadastradas.</p>
             </div>
             <CButton color="primary" className="rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center" onClick={abrirParaNovo}>
-              <CIcon icon={cilPlus} className="me-2" /> Nova Questão
+              + Nova Questão
             </CButton>
           </div>
         </div>
@@ -209,7 +209,7 @@ const GestaoQuestoes = () => {
             </CCol>
             <CCol xs={12} md={6} lg={2} className="d-flex align-items-center">
               <CButton color="secondary" variant="ghost" className="rounded-pill w-100 fw-bold" style={{ fontSize: 11, height: 38 }} onClick={() => { setSearchTerm(''); setFiltroBanca(''); setFiltroAno(''); }}>
-                <CIcon icon={cilFilterX} className="me-1" /> Limpar
+                <CIcon icon={cilReload} className="me-1" size="sm" /> Limpar
               </CButton>
             </CCol>
           </CRow>
