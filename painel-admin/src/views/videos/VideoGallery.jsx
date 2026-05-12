@@ -417,10 +417,10 @@ const VideoGallery = () => {
     setLoading(true)
     setError('')
     try {
-      // Carregar em paralelo: matérias + questões + desempenho do aluno
+      // Carregar em paralelo: matérias + questões (filtradas no servidor) + vídeos + desempenho
       const promises = [
         fetchJSON(`${API_URL}/api/admin/materias`),
-        fetchJSON(`${API_URL}/api/questoes`),
+        fetchJSON(`${API_URL}/api/questoes?apenas_videos=true`),
         fetchJSON(`${API_URL}/api/videos`).catch(() => ({ dados: { data: [] } })),
       ]
       if (matricula) {
