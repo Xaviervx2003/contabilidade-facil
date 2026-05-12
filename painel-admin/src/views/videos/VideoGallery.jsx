@@ -83,9 +83,12 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista }) 
 
   return (
     <CCol xs={12} md={modoLista ? 12 : 6} xl={modoLista ? 12 : 4} className="mb-4" id={`vid-${q.id}`}>
-      <div style={cardStyle} className="hover-lift">
+      <div style={cardStyle} className="hover-lift video-card-row">
         {/* Thumbnail Section */}
-        <div style={{ width: modoLista ? '300px' : '100%', aspectRatio: '16/9', position: 'relative', background: '#000', flexShrink: 0 }}>
+        <div 
+          className="video-card-thumb"
+          style={{ width: modoLista ? '300px' : '100%', aspectRatio: '16/9', position: 'relative', background: '#000', flexShrink: 0 }}
+        >
           {iframeAtivo ? (
             <iframe src={embedUrl} className="w-100 h-100 border-0" allowFullScreen title={titulo} />
           ) : (
@@ -223,16 +226,26 @@ const VideoGallery = () => {
       <style>{`
         .glass-card { background: ${isDark ? 'rgba(255,255,255,0.03)' : '#fff'}; border: 1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}; border-radius: 20px; backdrop-filter: blur(10px); }
         .header-section { padding: clamp(20px, 5vw, 40px) 0; border-bottom: 1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}; margin-bottom: 30px; }
-        .search-pill { background: ${isDark ? 'rgba(255,255,255,0.05)' : '#fff'}; border-radius: 50px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .search-pill { background: ${isDark ? 'rgba(255,255,255,0.05)' : '#fff'}; border-radius: 50px; border: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}; transition: all 0.2s ease; }
+        .search-pill:focus-within { border-color: var(--cui-primary); box-shadow: 0 0 0 4px rgba(var(--cui-primary-rgb), 0.1); }
+        .hover-lift { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
         
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .animate-slide-left { animation: slideLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideLeft { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        .animate-pulse { animation: pulse 2s infinite; }
+
         @media (max-width: 768px) {
           h1 { font-size: 1.5rem !important; }
           .header-section { padding: 15px 0; margin-bottom: 20px; }
           .search-pill { border-radius: 12px; }
           .glass-card { border-radius: 15px; }
+          .video-card-row { flex-direction: column !important; }
+          .video-card-thumb { width: 100% !important; }
         }
       `}</style>
 
@@ -317,7 +330,20 @@ const VideoGallery = () => {
 
       {/* PLAYLIST */}
       {modoPlaylist && (
-        <div className="position-fixed shadow-lg p-4 animate-slide-left" style={{ top: 80, right: 20, bottom: 20, width: 320, background: isDark ? '#1a2535' : '#fff', borderRadius: 24, zIndex: 1050 }}>
+        <div 
+          className="position-fixed shadow-lg p-4 animate-slide-left playlist-panel" 
+          style={{ 
+            top: 'clamp(80px, 10vh, 100px)', 
+            right: 'clamp(10px, 2vw, 20px)', 
+            bottom: 'clamp(10px, 2vw, 20px)', 
+            width: 'min(350px, 90vw)', 
+            background: isDark ? '#1a2535' : '#fff', 
+            borderRadius: 24, 
+            zIndex: 2000,
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h6 className="fw-bold m-0">Playlist de Estudo</h6>
             <CButton size="sm" variant="ghost" onClick={() => setModoPlaylist(false)}><CIcon icon={cilX} /></CButton>
