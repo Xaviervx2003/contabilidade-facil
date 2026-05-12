@@ -34,13 +34,9 @@ import {
 import { API_URL } from '../../config'
 import MainChart from './MainChart'
 import { useTheme } from '../../context/themeContext'
+import useAuthSession from '../../hooks/useAuthSession'
 
 // ── Helpers ─────────────────────────────────────────────
-const getUserId = () => {
-  const id = sessionStorage.getItem('userId')
-  return id ? parseInt(id, 10) : null
-}
-
 const buildUrl = (base, userId, extra = {}) => {
   const params = new URLSearchParams()
   if (userId) params.set('usuario_id', userId)
@@ -48,117 +44,66 @@ const buildUrl = (base, userId, extra = {}) => {
   return `${API_URL}${base}?${params.toString()}`
 }
 
-// ── Hooks ───────────────────────────────────────────────
-const useDashboardStats = (userId) => {
+const safeFetch = async (url, signal) => {
+  const res = await fetch(url, { signal })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+// ── Hook consolidado (Ponto 4 + 7) ─────────────────────
+const useDashboardData = (userId, pagina, porPagina) => {
   const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    setLoading(true)
-    setError(null)
-    fetch(buildUrl('/api/dashboard', userId))
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
-      .then(data => {
-        setStats(data)
-        setLoading(false)
-      })
-      .catch(err => {
-        setError(err.message)
-        setLoading(false)
-      })
-  }, [userId])
-
-  return { stats, loading, error }
-}
-
-export const useChartData = (userId) => {
   const [chartData, setChartData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    setLoading(true)
-    fetch(buildUrl('/api/dashboard/sessoes-por-mes', userId))
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
-      .then(data => {
-        setChartData(data)
-        setLoading(false)
-      })
-      .catch(err => {
-        setError(err.message)
-        setLoading(false)
-      })
-  }, [userId])
-
-  return { chartData, loading, error }
-}
-
-const useAlunos = (userId, pagina, porPagina = 10) => {
-  const [data, setData] = useState({ estudantes: [], total: 0, total_paginas: 1 })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    setLoading(true)
-    setError(null)
-    fetch(buildUrl('/api/metricas-estudantes/desempenho', userId, { pagina, por_pagina: porPagina }))
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
-      .then(data => {
-        // Suporta tanto o formato antigo 'alunos' quanto o novo 'estudantes'
-        const normalizedData = {
-          estudantes: data.estudantes || data.alunos || [],
-          total: data.total || 0,
-          total_paginas: data.total_paginas || 1
-        }
-        setData(normalizedData)
-        setLoading(false)
-      })
-      .catch(err => {
-        setError(err.message)
-        setLoading(false)
-      })
-  }, [userId, pagina, porPagina])
-
-  return { data, loading, error }
-}
-
-const useVisaoGeral = (userId) => {
+  const [alunos, setAlunos] = useState({ estudantes: [], total: 0, total_paginas: 1 })
   const [visao, setVisao] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    setLoading(true)
-    setError(null)
-    fetch(buildUrl('/api/dashboard/visao-geral', userId))
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
-      .then(data => {
-        setVisao(data)
-        setLoading(false)
-      })
-      .catch(err => {
-        setError(err.message)
-        setLoading(false)
-      })
-  }, [userId])
+    const controller = new AbortController()
+    const { signal } = controller
 
-  return { visao, loading, error }
+    setLoading(true)
+    setErrors({})
+
+    Promise.allSettled([
+      safeFetch(buildUrl('/api/dashboard', userId), signal),
+      safeFetch(buildUrl('/api/dashboard/sessoes-por-mes', userId), signal),
+      safeFetch(buildUrl('/api/metricas-estudantes/desempenho', userId, { pagina, por_pagina: porPagina }), signal),
+      safeFetch(buildUrl('/api/dashboard/visao-geral', userId), signal),
+    ]).then(([statsRes, chartRes, alunosRes, visaoRes]) => {
+      if (signal.aborted) return
+
+      const errs = {}
+
+      if (statsRes.status === 'fulfilled') setStats(statsRes.value)
+      else errs.stats = statsRes.reason?.message
+
+      if (chartRes.status === 'fulfilled') setChartData(chartRes.value)
+      else errs.chart = chartRes.reason?.message
+
+      if (alunosRes.status === 'fulfilled') {
+        const d = alunosRes.value
+        setAlunos({
+          estudantes: d.estudantes || d.alunos || [],
+          total: d.total || 0,
+          total_paginas: d.total_paginas || 1,
+        })
+      } else errs.alunos = alunosRes.reason?.message
+
+      if (visaoRes.status === 'fulfilled') setVisao(visaoRes.value)
+      else errs.visao = visaoRes.reason?.message
+
+      setErrors(errs)
+      setLoading(false)
+    })
+
+    return () => controller.abort()
+  }, [userId, pagina, porPagina])
+
+  return { stats, chartData, alunos, visao, loading, errors }
 }
 
-// ── Componentes auxiliares ──────────────────────────────
 // ── Componentes auxiliares ──────────────────────────────
 const SkeletonBlock = ({ height = 24, width = '100%', className = '' }) => {
   const { isDark } = useTheme()
@@ -220,18 +165,16 @@ const SkeletonRow = ({ isDark }) => (
 
 // ── Componente principal ─────────────────────────────────
 const Dashboard = () => {
-  const userId = getUserId()
+  const { userId } = useAuthSession()
 
   const [pagina, setPagina] = useState(1)
   const porPagina = 10
   const { isDark } = useTheme()
 
-  const { stats, loading: loadingStats, error: errorStats } = useDashboardStats(userId)
-  const { data, loading: loadingAlunos, error: errorAlunos } = useAlunos(userId, pagina, porPagina)
-  const { chartData, loading: loadingChart, error: errorChart } = useChartData(userId)
-  const { visao, loading: loadingVisao, error: errorVisao } = useVisaoGeral(userId)
+  const { stats, chartData, alunos, visao, loading, errors } = useDashboardData(userId, pagina, porPagina)
 
-  const { estudantes, total_paginas } = data
+  const { estudantes, total_paginas } = alunos
+
 
   const exportarCSV = useCallback(() => {
     if (estudantes.length === 0) return
@@ -271,8 +214,8 @@ const Dashboard = () => {
       )}
 
       {/* Erro nos stats */}
-      {errorStats && (
-        <CAlert color="danger" className="mb-3">Erro ao carregar métricas: {errorStats}</CAlert>
+      {errors.stats && (
+        <CAlert color="danger" className="mb-3">Erro ao carregar métricas: {errors.stats}</CAlert>
       )}
 
       {/* Cards de métricas principais */}
@@ -283,7 +226,7 @@ const Dashboard = () => {
             valor={stats?.alunos_ativos ?? '—'}
             cor="info"
             icone={cilPeople}
-            loading={loadingStats}
+            loading={loading}
           />
         </CCol>
         <CCol xs={12} sm={6} xl={3}>
@@ -292,7 +235,7 @@ const Dashboard = () => {
             valor={stats?.total_questoes_resolvidas ?? '—'}
             cor="success"
             icone={cilCheckCircle}
-            loading={loadingStats}
+            loading={loading}
           />
         </CCol>
         <CCol xs={12} sm={6} xl={3}>
@@ -301,7 +244,7 @@ const Dashboard = () => {
             valor={stats?.tempo_medio_minutos ? `${stats.tempo_medio_minutos} min` : '—'}
             cor="warning"
             icone={cilClock}
-            loading={loadingStats}
+            loading={loading}
           />
         </CCol>
         <CCol xs={12} sm={6} xl={3}>
@@ -310,7 +253,7 @@ const Dashboard = () => {
             valor={stats?.total_questoes_banco ?? '—'}
             cor="danger"
             icone={cilChart}
-            loading={loadingStats}
+            loading={loading}
           />
         </CCol>
       </CRow>
@@ -324,7 +267,7 @@ const Dashboard = () => {
               <strong className="text-body-primary">Progresso Geral da Turma</strong>
             </div>
             <div className="d-flex flex-column justify-content-center">
-              {loadingVisao ? (
+              {loading ? (
                 <div className="d-flex flex-column gap-3">
                   <div className="d-flex justify-content-between align-items-center">
                     <SkeletonBlock height={14} width="40%" />
@@ -338,8 +281,8 @@ const Dashboard = () => {
                     <SkeletonBlock height={14} width="50%" />
                   </div>
                 </div>
-              ) : errorVisao ? (
-                <CAlert color="danger" className="mb-0">{errorVisao}</CAlert>
+              ) : errors.visao ? (
+                <CAlert color="danger" className="mb-0">{errors.visao}</CAlert>
               ) : (
                 <>
                   <div className="d-flex justify-content-between align-items-center mb-2">
@@ -371,7 +314,7 @@ const Dashboard = () => {
               <CIcon icon={cilHistory} className="text-info" />
               <strong className="text-body-primary">Últimas Atividades</strong>
             </div>
-            {loadingVisao ? (
+            {loading ? (
               <div className="table-responsive">
                 <CTable hover align="middle" className="mb-0">
                   <CTableHead>
@@ -387,8 +330,8 @@ const Dashboard = () => {
                   </CTableBody>
                 </CTable>
               </div>
-            ) : errorVisao ? (
-              <CAlert color="danger" className="mb-0">{errorVisao}</CAlert>
+            ) : errors.visao ? (
+              <CAlert color="danger" className="mb-0">{errors.visao}</CAlert>
             ) : (
               <div className="table-responsive">
                 <CTable hover align="middle" className="mb-0">
@@ -441,10 +384,10 @@ const Dashboard = () => {
             </CCardHeader>
             <CCardBody className="p-4">
               {/* Gráfico */}
-              {errorChart ? (
-                <CAlert color="warning">Gráfico indisponível: {errorChart}</CAlert>
+              {errors.chart ? (
+                <CAlert color="warning">Gráfico indisponível: {errors.chart}</CAlert>
               ) : (
-                <MainChart data={chartData} loading={loadingChart} />
+                <MainChart data={chartData} loading={loading} />
               )}
 
               <hr />
@@ -454,8 +397,8 @@ const Dashboard = () => {
                 <h5 className="mb-0 d-flex align-items-center gap-2">
                   <CIcon icon={cilPeople} className="text-primary" />
                   Top Alunos
-                  {!loadingAlunos && (
-                    <span className="text-body-secondary fs-6 ms-2">({data.total} no total)</span>
+                  {!loading && (
+                    <span className="text-body-secondary fs-6 ms-2">({alunos.total} no total)</span>
                   )}
                 </h5>
                 <CButton
@@ -463,18 +406,18 @@ const Dashboard = () => {
                   variant="outline"
                   size="sm"
                   onClick={exportarCSV}
-                  disabled={estudantes.length === 0 || loadingAlunos}
+                  disabled={estudantes.length === 0 || loading}
                 >
                   <CIcon icon={cilCloudDownload} className="me-1" /> Exportar CSV
                 </CButton>
               </div>
 
-              {errorAlunos && (
-                <CAlert color="danger">Erro ao carregar alunos: {errorAlunos}</CAlert>
+              {errors.alunos && (
+                <CAlert color="danger">Erro ao carregar alunos: {errors.alunos}</CAlert>
               )}
 
               <div className="table-responsive">
-                <CTable align="middle" className="mb-0 border" hover>
+                <CTable align="middle" className="mb-0 border table-mobile-cards" hover>
                   <CTableHead className="text-nowrap">
                     <CTableRow>
                       <CTableHeaderCell className="bg-body-tertiary text-center" style={{ width: '60px' }}>#</CTableHeaderCell>
@@ -485,7 +428,7 @@ const Dashboard = () => {
                     </CTableRow>
                   </CTableHead>
                   <CTableBody>
-                    {loadingAlunos
+                    {loading
                       ? [...Array(porPagina)].map((_, i) => <SkeletonRow key={i} isDark={isDark} />)
                       : estudantes.length === 0
                         ? (
@@ -502,18 +445,18 @@ const Dashboard = () => {
                           return (
                             <CTableRow key={item.matricula} className="align-middle">
                               <CTableDataCell className="text-center fw-bold small">{rank}</CTableDataCell>
-                              <CTableDataCell>
+                              <CTableDataCell data-label="Aluno">
                                 <div className="fw-medium">{item.nome}</div>
                                 <div className="small text-body-secondary">{item.matricula}</div>
                               </CTableDataCell>
-                              <CTableDataCell>
+                              <CTableDataCell data-label="Média">
                                 <div className={`fw-semibold text-${gradeColor} small`}>{media.toFixed(1)}%</div>
                                 <CProgress thin color={gradeColor} value={media} className="mt-1" />
                               </CTableDataCell>
-                              <CTableDataCell>
+                              <CTableDataCell data-label="Questões">
                                 <span className="small">{item.questoes} perguntas</span>
                               </CTableDataCell>
-                              <CTableDataCell className="text-center">
+                              <CTableDataCell data-label="Sessões" className="text-center">
                                 <span className="badge bg-primary px-2 py-1">{item.sessoes}</span>
                               </CTableDataCell>
                             </CTableRow>
@@ -523,7 +466,7 @@ const Dashboard = () => {
                 </CTable>
               </div>
 
-              {!loadingAlunos && total_paginas > 1 && (
+              {!loading && total_paginas > 1 && (
                 <div className="d-flex justify-content-center mt-3">
                   <CPagination>
                     <CPaginationItem disabled={pagina === 1} onClick={() => setPagina(p => p - 1)}>

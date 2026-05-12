@@ -821,6 +821,34 @@ const QuizRunning = ({
 }) => {
   const ValLetra = (idx) => LETTERS[idx]
 
+  // Ponto 12: Atalhos de teclado — A/B/C/D/E seleciona, Enter confirma, N próxima
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
+      const key = e.key.toUpperCase()
+
+      if (!isAnswerConfirmed && LETTERS.includes(key)) {
+        const idx = LETTERS.indexOf(key)
+        if (idx < currentQuestion.options.length) {
+          onSelectOption(key)
+        }
+      }
+
+      if (key === 'ENTER' && selectedOption && !isAnswerConfirmed) {
+        e.preventDefault()
+        onConfirmAnswer()
+      }
+
+      if ((key === 'N' || key === 'ARROWRIGHT') && isAnswerConfirmed) {
+        e.preventDefault()
+        onNextQuestion()
+      }
+    }
+
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [isAnswerConfirmed, selectedOption, currentQuestion, onSelectOption, onConfirmAnswer, onNextQuestion])
+
   return (
     <div style={{ animation: 'fade-up .3s ease' }}>
       <div className="d-flex justify-content-between align-items-center mb-2">

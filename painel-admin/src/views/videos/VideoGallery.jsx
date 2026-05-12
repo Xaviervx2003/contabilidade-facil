@@ -1,6 +1,8 @@
 import React, {
   useEffect, useState, useMemo, useCallback, useRef, memo
 } from 'react'
+import confetti from 'canvas-confetti'
+import toast from 'react-hot-toast'
 import {
   CButton, CCard, CCardBody, CCol, CContainer,
   CFormSelect, CFormInput, CRow, CSpinner, CBadge, CAlert, CProgress,
@@ -154,6 +156,9 @@ const VideoGallery = () => {
 
   const marcarAssistido = useCallback((id) => {
     setAssistidos(prev => prev.includes(id) ? prev : [...prev, id])
+    // Ponto 10: Confete de celebração
+    confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 }, colors: ['#10b981', '#6366f1', '#f59e0b'] })
+    toast.success('Vídeo marcado como assistido! 🎉')
     if (matricula) {
       fetch(`${API_URL}/api/aluno/video-assistido/${id}`, {
         method: 'POST',

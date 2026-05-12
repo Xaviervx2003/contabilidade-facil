@@ -19,6 +19,7 @@ import { HashRouter, Route, Routes, Navigate } from 'react-router-dom'
 
 import { CSpinner } from '@coreui/react'
 import { ThemeProvider } from './context/themeContext'
+import { Toaster } from 'react-hot-toast'
 import './scss/style.scss'
 
 // We use those styles to show code examples, you should remove them in your application.
@@ -57,6 +58,22 @@ const App = () => {
           </Routes>
         </Suspense>
       </HashRouter>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3500,
+          style: {
+            background: 'var(--color-bg-elevated)',
+            color: 'var(--color-text-primary)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '14px',
+            fontSize: '13px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          },
+          success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
+          error:   { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
+        }}
+      />
     </ThemeProvider>
   )
 }

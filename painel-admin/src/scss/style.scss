@@ -903,3 +903,97 @@ table {
   }
 }
 
+// ════════════════════════════════════════════════════════════════════════════════
+// PONTO 15: iOS ZOOM PREVENTION
+// No iOS Safari, inputs com font-size < 16px causam zoom automático ao focar.
+// ════════════════════════════════════════════════════════════════════════════════
+
+@media (max-width: 767.98px) {
+  .form-control,
+  .form-select,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// PONTO 14: MODAL FULLSCREEN NO MOBILE
+// ════════════════════════════════════════════════════════════════════════════════
+
+@media (max-width: 767.98px) {
+  .modal-dialog.modal-lg,
+  .modal-dialog.modal-xl {
+    margin: 0 !important;
+    max-width: 100% !important;
+    min-height: 100dvh;
+
+    .modal-content {
+      border: 0 !important;
+      border-radius: 0 !important;
+      min-height: 100dvh;
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// PONTO 13: TABELA → CARDS RESPONSIVOS NO MOBILE
+// Tabelas com .table-mobile-cards se transformam em cards empilhados no celular.
+// ════════════════════════════════════════════════════════════════════════════════
+
+@media (max-width: 767.98px) {
+  .table-mobile-cards {
+    thead {
+      display: none !important;
+    }
+
+    tbody {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    tr {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px;
+      border: 1px solid var(--color-border) !important;
+      border-radius: 14px;
+      background: var(--color-bg-elevated);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    td {
+      border: 0 !important;
+      padding: 0 !important;
+      font-size: 13px;
+
+      &:first-child {
+        width: 100%;
+        font-weight: 600;
+        font-size: 14px;
+      }
+    }
+
+    // Labels automáticos via data-label
+    td[data-label]::before {
+      content: attr(data-label) ": ";
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-tertiary);
+      display: block;
+      margin-bottom: 2px;
+    }
+  }
+}
