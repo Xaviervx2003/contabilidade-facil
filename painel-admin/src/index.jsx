@@ -7,10 +7,16 @@ import './tailwind.css'
 import App from './App'
 import store from './store'
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+const queryClient = new QueryClient()
+
 createRoot(document.getElementById('root')).render(
-  <Provider store={store}>
-    <App />
-  </Provider>,
+  <QueryClientProvider client={queryClient}>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </QueryClientProvider>,
 )
 
 // Destrói qualquer Service Worker "fantasma" do aplicativo antigo (quiz-app)

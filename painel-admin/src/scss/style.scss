@@ -983,3 +983,36 @@ table {
     }
   }
 }
+
+// ════════════════════════════════════════════════════════════════════════════════
+// QUIZ GLASSMORPHISM E MICRO-ANIMAÇÕES (PREMIUM UI)
+// ════════════════════════════════════════════════════════════════════════════════
+
+.quiz-glass-card {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .quiz-glass-card {
+  background: rgba(21, 21, 21, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.quiz-option {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  
+  &:active {
+    transform: scale(0.98);
+  }
+  
+  &:hover:not(.disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    background: linear-gradient(135deg, rgba(var(--cui-primary-rgb), 0.03) 0%, rgba(var(--cui-primary-rgb), 0.08) 100%) !important;
+    border-color: rgba(var(--cui-primary-rgb), 0.3) !important;
+  }
+}

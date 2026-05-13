@@ -989,7 +989,7 @@ const QuizRunning = ({
               tabIndex={isAnswerConfirmed ? -1 : 0}
               onClick={() => !isAnswerConfirmed && onSelectOption(val)}
               onKeyDown={(e) => !isAnswerConfirmed && (e.key === 'Enter' || e.key === ' ') && onSelectOption(val)}
-              className={`d-flex align-items-center gap-3 p-3 rounded-4 transition-all ${stateClass} ${!isAnswerConfirmed ? 'cursor-pointer hover-translate-y-px' : ''}`}
+              className={`d-flex align-items-center gap-3 p-3 rounded-4 transition-all quiz-option ${stateClass} ${!isAnswerConfirmed ? 'cursor-pointer hover-translate-y-px' : ''}`}
               style={{ cursor: isAnswerConfirmed ? 'default' : 'pointer', minHeight: 64 }}
             >
               <div 
@@ -1009,7 +1009,8 @@ const QuizRunning = ({
       {isAnswerConfirmed && (
         <CAlert
           color={selectedOption === currentQuestion.answer ? 'success' : 'danger'}
-          className="d-flex align-items-center"
+          className="d-flex align-items-center animate-in shadow-sm"
+          style={{ animationDuration: '0.3s' }}
         >
           <CIcon
             icon={selectedOption === currentQuestion.answer ? cilCheckCircle : cilXCircle}
@@ -1909,7 +1910,7 @@ const Quiz = () => {
 
       <CRow className="justify-content-center">
         <CCol xs={12} xl={10}>
-          <CCard className="shadow border-0 overflow-hidden">
+          <CCard className="shadow border-0 overflow-hidden quiz-glass-card">
             <CCardHeader className="bg-body border-0 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-3">
               <div className="d-flex align-items-center gap-2">
                 <div className="bg-primary bg-opacity-10 p-2 rounded-3">

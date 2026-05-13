@@ -28,11 +28,10 @@ import {
 import CIcon from '@coreui/icons-react'
 import { cilPlus, cilPencil, cilTrash, cilVideo, cilCheck, cilDescription, cilChart, cilChartLine, cilChatBubble, cilUser, cilCheckCircle, cilCopy } from '@coreui/icons'
 import { API_URL } from '../../config'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'react-hot-toast'
 
 const GestaoTrilhas = () => {
-  const [trilhas, setTrilhas] = useState([])
-  const [materias, setMaterias] = useState([])
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -40,11 +39,9 @@ const GestaoTrilhas = () => {
   const [modalModulo, setModalModulo] = useState(false)
   const [modalEngajamento, setModalEngajamento] = useState(false)
   const [modalDuvidas, setModalDuvidas] = useState(false)
-  const [dadosEngajamento, setDadosEngajamento] = useState([])
-  const [duvidasPendentes, setDuvidasPendentes] = useState([])
-  const [loadingEngajamento, setLoadingEngajamento] = useState(false)
   const [respostaDuvida, setRespostaDuvida] = useState('')
   const [respondendoId, setRespondendoId] = useState(null)
+  const queryClient = useQueryClient()
 
   const [trilhaAtiva, setTrilhaAtiva] = useState(null)
   const [formTrilha, setFormTrilha] = useState({ nome: '', descricao: '', status: 'rascunho', capa_url: '', nivel: '', modulos: [] })
@@ -65,10 +62,6 @@ const GestaoTrilhas = () => {
 
   const userId = sessionStorage.getItem('userId')
 
-  const totalModulos = trilhas.reduce((total, trilha) => total + (trilha.modulos?.length || 0), 0)
-  const trilhasPublicadas = trilhas.filter(trilha => trilha.status === 'publicado').length
-  const trilhasRascunho = trilhas.length - trilhasPublicadas
-
   const getTipoModulo = (modulo) => {
     if (modulo.materia_id || modulo.questoes_selecionadas?.length > 0) {
       return { label: 'Quiz', color: 'primary', icon: cilCheck }
@@ -79,34 +72,48 @@ const GestaoTrilhas = () => {
     return { label: 'Texto', color: 'secondary', icon: cilDescription }
   }
 
-  const carregarDados = async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const [resTrilhas, resMaterias, resDuvidas] = await Promise.all([
-        fetch(`${API_URL}/api/trilhas`),
-        fetch(`${API_URL}/api/admin/materias`),
-        fetch(`${API_URL}/api/trilhas/duvidas/pendentes`)
-      ])
-      const dataTrilhas = await resTrilhas.json()
-      const dataMaterias = await resMaterias.json()
-      const dataDuvidas = await resDuvidas.json()
-      
-      setTrilhas(Array.isArray(dataTrilhas) ? dataTrilhas : [])
-      setMaterias(Array.isArray(dataMaterias) ? dataMaterias : [])
-      setDuvidasPendentes(Array.isArray(dataDuvidas) ? dataDuvidas : [])
-    } catch (err) {
-      setError('Erro ao carregar dados do servidor.')
-    } finally {
-      setLoading(false)
+  // REFACTOR PARA REACT QUERY
+  const { data: trilhas = [], isLoading: loadingTrilhas } = useQuery({
+    queryKey: ['adminTrilhas'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/trilhas`)
+      return res.json()
     }
-  }
+  })
 
-  useEffect(() => { carregarDados() }, [])
+  const { data: materias = [] } = useQuery({
+    queryKey: ['adminMaterias'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/admin/materias`)
+      return res.json()
+    }
+  })
 
-  // ── Trilhas ──
-  const salvarTrilha = async () => {
-    try {
+  const { data: duvidasPendentes = [] } = useQuery({
+    queryKey: ['adminDuvidasPendentes'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/trilhas/duvidas/pendentes`)
+      return res.json()
+    }
+  })
+
+  const { data: dadosEngajamento = [], isLoading: loadingEngajamento, refetch: refetchEngajamento } = useQuery({
+    queryKey: ['adminEngajamento', trilhaAtiva?.id],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/trilhas/${trilhaAtiva.id}/engajamento`)
+      return res.json()
+    },
+    enabled: !!trilhaAtiva && modalEngajamento,
+  })
+
+  const loading = loadingTrilhas
+  const totalModulos = trilhas.reduce((total, trilha) => total + (trilha.modulos?.length || 0), 0)
+  const trilhasPublicadas = trilhas.filter(trilha => trilha.status === 'publicado').length
+  const trilhasRascunho = trilhas.length - trilhasPublicadas
+
+  // MUTAÇÕES
+  const mutationSalvarTrilha = useMutation({
+    mutationFn: async () => {
       if (trilhaAtiva) {
         await fetch(`${API_URL}/api/trilhas/${trilhaAtiva.id}`, {
           method: 'PUT',
@@ -119,34 +126,33 @@ const GestaoTrilhas = () => {
             nivel: formTrilha.nivel || null
           })
         })
-        setSuccess('Trilha atualizada!')
       } else {
         await fetch(`${API_URL}/api/trilhas?usuario_id=${userId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...formTrilha,
-            capa_url: formTrilha.capa_url || null,
-            nivel: formTrilha.nivel || null
-          })
+          body: JSON.stringify({ ...formTrilha, capa_url: formTrilha.capa_url || null, nivel: formTrilha.nivel || null })
         })
-        setSuccess('Trilha criada!')
       }
+    },
+    onSuccess: () => {
+      toast.success(trilhaAtiva ? 'Trilha atualizada!' : 'Trilha criada!')
       setModalTrilha(false)
-      carregarDados()
-    } catch (e) {
-      setError('Erro ao salvar trilha.')
-    }
-  }
+      queryClient.invalidateQueries({ queryKey: ['adminTrilhas'] })
+    },
+    onError: () => toast.error('Erro ao salvar trilha.')
+  })
+
+  const salvarTrilha = () => mutationSalvarTrilha.mutate()
+
 
   const deletarTrilha = async (id) => {
     if (!window.confirm("Certeza que deseja remover esta trilha e todos os seus módulos?")) return
     try {
       await fetch(`${API_URL}/api/trilhas/${id}`, { method: 'DELETE' })
-      setSuccess('Trilha removida!')
-      carregarDados()
+      toast.success('Trilha removida!')
+      queryClient.invalidateQueries({ queryKey: ['adminTrilhas'] })
     } catch (e) {
-      setError('Erro ao remover trilha.')
+      toast.error('Erro ao remover trilha.')
     }
   }
 
@@ -221,12 +227,12 @@ const GestaoTrilhas = () => {
         throw new Error(errorData.detail || 'Erro na API')
       }
 
-      setSuccess(formModulo.id ? 'Módulo atualizado!' : 'Módulo adicionado!')
+      toast.success(formModulo.id ? 'Módulo atualizado!' : 'Módulo adicionado!')
       setModalModulo(false)
-      carregarDados()
+      queryClient.invalidateQueries({ queryKey: ['adminTrilhas'] })
     } catch (e) {
       console.error(e)
-      setError(`Erro ao salvar modulo: ${e.message}`)
+      toast.error(`Erro ao salvar modulo: ${e.message}`)
     }
   }
 
@@ -239,51 +245,39 @@ const GestaoTrilhas = () => {
         body: JSON.stringify({ resposta: respostaDuvida })
       })
       if (res.ok) {
-        setSuccess('Resposta enviada!')
+        toast.success('Resposta enviada!')
         setRespostaDuvida('')
         setRespondendoId(null)
-        carregarDados()
+        queryClient.invalidateQueries({ queryKey: ['adminDuvidasPendentes'] })
       }
-    } catch (e) { setError('Erro ao responder.') }
+    } catch (e) { toast.error('Erro ao responder.') }
   }
 
   const deletarModulo = async (id) => {
     if (!window.confirm("Remover este módulo da trilha?")) return
     try {
       await fetch(`${API_URL}/api/trilhas/modulos/${id}`, { method: 'DELETE' })
-      carregarDados()
+      toast.success('Módulo deletado!')
+      queryClient.invalidateQueries({ queryKey: ['adminTrilhas'] })
     } catch (e) {
-      setError('Erro ao deletar módulo.')
+      toast.error('Erro ao deletar módulo.')
     }
   }
 
   const duplicarTrilha = async (id) => {
     try {
-      setLoading(true)
       const res = await fetch(`${API_URL}/api/trilhas/${id}/duplicar?usuario_id=${userId}`, { method: 'POST' })
       if (!res.ok) throw new Error('Falha ao duplicar')
-      setSuccess('Trilha duplicada com sucesso! (Criada como Rascunho)')
-      carregarDados()
+      toast.success('Trilha duplicada com sucesso!')
+      queryClient.invalidateQueries({ queryKey: ['adminTrilhas'] })
     } catch (e) {
-      setError('Erro ao duplicar trilha.')
-    } finally {
-      setLoading(false)
+      toast.error('Erro ao duplicar trilha.')
     }
   }
 
-  const verEngajamento = async (trilha) => {
+  const verEngajamento = (trilha) => {
     setTrilhaAtiva(trilha)
     setModalEngajamento(true)
-    setLoadingEngajamento(true)
-    try {
-      const res = await fetch(`${API_URL}/api/trilhas/${trilha.id}/engajamento`)
-      const data = await res.json()
-      setDadosEngajamento(Array.isArray(data) ? data : [])
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setLoadingEngajamento(false)
-    }
   }
 
   return (
@@ -345,14 +339,20 @@ const GestaoTrilhas = () => {
             </CRow>
 
             {loading ? (
-              <div className="text-center py-5"><CSpinner /></div>
+              <CRow className="mt-3">
+                {[...Array(3)].map((_, i) => (
+                  <CCol xs={12} key={i} className="mb-4">
+                    <div className="rounded-4 placeholder-glow" style={{ height: '140px', backgroundColor: 'var(--color-bg-secondary)' }}></div>
+                  </CCol>
+                ))}
+              </CRow>
             ) : trilhas.length === 0 ? (
               <div className="text-center py-5 text-body-secondary">
                 Nenhuma trilha criada ainda. Crie sua primeira trilha de aprendizado!
               </div>
             ) : (
-              trilhas.map(t => (
-                <CCard key={t.id} className="mb-4 border shadow-sm overflow-hidden">
+              trilhas.map((t, index) => (
+                <CCard key={t.id} className="mb-4 border-0 premium-card fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
                   <CCardHeader className="bg-body-tertiary border-bottom">
                     <div className="d-flex flex-column flex-xl-row justify-content-between gap-3">
                       <div className="d-flex align-items-start gap-3">

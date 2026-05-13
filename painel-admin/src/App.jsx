@@ -22,6 +22,7 @@ import { CSpinner } from '@coreui/react'
 import { ThemeProvider } from './context/themeContext'
 import { Toaster } from 'react-hot-toast'
 import './scss/style.scss'
+import GlobalSkeleton from './components/GlobalSkeleton'
 
 
 // Containers
@@ -41,11 +42,7 @@ const App = () => {
       <HashRouter>
         <ErrorBoundary>
           <Suspense
-            fallback={
-              <div className="pt-3 text-center">
-                <CSpinner color="primary" variant="grow" />
-              </div>
-            }
+            fallback={<GlobalSkeleton />}
           >
             <Routes>
               <Route exact path="/" name="Landing Page" element={<Landing />} />

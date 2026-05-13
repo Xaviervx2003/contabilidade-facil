@@ -13,6 +13,7 @@ import {
 import './Conquistas.scss'
 import CIcon from '@coreui/icons-react'
 import * as icon from '@coreui/icons'
+import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 import { getAlunoMatricula } from '../../utils/auth'
 import { API_URL } from '../../config'
 import { formatIsoToDateString, formatIsoToShortDate } from '../../utils/formatDate'
@@ -128,8 +129,15 @@ const Conquistas = () => {
                     <div className="streak-card custom-card">
                         <div className="streak-glow"></div>
                         <div className="streak-header">
-                            <span className="streak-icon">🔥</span>
-                            <h2 className="streak-label">Seu Streak Atual</h2>
+                            <span className="streak-icon" style={{ width: 80, height: 80, display: 'inline-block' }}>
+                                <DotLottieReact
+                                    src="https://lottie.host/80e9a7e6-fcb4-4b55-b0bd-c1fc3c220f83/Vp2W1zU8wV.lottie"
+                                    loop
+                                    autoplay
+                                    style={{ width: '100%', height: '100%' }}
+                                />
+                            </span>
+                            <h2 className="streak-label mt-2">Seu Streak Atual</h2>
                         </div>
 
                         <div className="streak-content">
@@ -236,14 +244,23 @@ const Conquistas = () => {
                             >
                                 <div className="medal-glow" style={{ opacity: medalha.desbloqueada ? 1 : 0 }}></div>
 
-                                <div className="medal-icon-container">
-                                    <span className="medal-emoji">
-                                        {medalha.tipo === 'bronze' && '🥉'}
-                                        {medalha.tipo === 'prata' && '🥈'}
-                                        {medalha.tipo === 'ouro' && '🥇'}
-                                        {medalha.tipo === 'platina' && '💎'}
-                                        {!['bronze', 'prata', 'ouro', 'platina'].includes(medalha.tipo) && '⭐'}
-                                    </span>
+                                <div className="medal-icon-container" style={{ position: 'relative', width: 80, height: 80, margin: '0 auto' }}>
+                                    {medalha.desbloqueada ? (
+                                        <DotLottieReact
+                                            src="https://lottie.host/289659b8-07cb-4b3d-b2a1-ccbb7c3b9429/bBIfP41K2Q.lottie"
+                                            loop
+                                            autoplay
+                                            style={{ width: '100%', height: '100%' }}
+                                        />
+                                    ) : (
+                                        <span className="medal-emoji" style={{ filter: 'grayscale(100%)', opacity: 0.5, fontSize: 48, lineHeight: '80px' }}>
+                                            {medalha.tipo === 'bronze' && '🥉'}
+                                            {medalha.tipo === 'prata' && '🥈'}
+                                            {medalha.tipo === 'ouro' && '🥇'}
+                                            {medalha.tipo === 'platina' && '💎'}
+                                            {!['bronze', 'prata', 'ouro', 'platina'].includes(medalha.tipo) && '⭐'}
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="medal-content">

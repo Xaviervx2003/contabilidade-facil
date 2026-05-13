@@ -32,9 +32,11 @@ import {
 } from '@coreui/icons'
 
 import { API_URL } from '../../config'
-import MainChart from './MainChart'
 import { useTheme } from '../../context/themeContext'
 import useAuthSession from '../../hooks/useAuthSession'
+import { useInView } from 'react-intersection-observer'
+
+const MainChart = React.lazy(() => import('./MainChart'))
 
 // ── Helpers ─────────────────────────────────────────────
 const buildUrl = (base, userId, extra = {}) => {
@@ -44,67 +46,71 @@ const buildUrl = (base, userId, extra = {}) => {
   return `${API_URL}${base}?${params.toString()}`
 }
 
-const safeFetch = async (url, signal) => {
-  const res = await fetch(url, { signal })
+import { useQueries } from '@tanstack/react-query'
+
+const safeFetch = async (url) => {
+  const res = await fetch(url)
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
 
-// ── Hook consolidado (Ponto 4 + 7) ─────────────────────
+// ── Hook consolidado (React Query) ─────────────────────
 const useDashboardData = (userId, pagina, porPagina) => {
-  const [stats, setStats] = useState(null)
-  const [chartData, setChartData] = useState(null)
-  const [alunos, setAlunos] = useState({ estudantes: [], total: 0, total_paginas: 1 })
-  const [visao, setVisao] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [errors, setErrors] = useState({})
+  const results = useQueries({
+    queries: [
+      {
+        queryKey: ['dashboardStats', userId],
+        queryFn: () => safeFetch(buildUrl('/api/dashboard', userId)),
+        enabled: !!userId,
+        staleTime: 60000,
+      },
+      {
+        queryKey: ['dashboardChart', userId],
+        queryFn: () => safeFetch(buildUrl('/api/dashboard/sessoes-por-mes', userId)),
+        enabled: !!userId,
+        staleTime: 60000,
+      },
+      {
+        queryKey: ['dashboardAlunos', userId, pagina, porPagina],
+        queryFn: () => safeFetch(buildUrl('/api/metricas-estudantes/desempenho', userId, { pagina, por_pagina: porPagina })),
+        enabled: !!userId,
+      },
+      {
+        queryKey: ['dashboardVisao', userId],
+        queryFn: () => safeFetch(buildUrl('/api/dashboard/visao-geral', userId)),
+        enabled: !!userId,
+        staleTime: 60000,
+      }
+    ]
+  })
 
-  useEffect(() => {
-    if (!userId) return
+  const [statsRes, chartRes, alunosRes, visaoRes] = results
+  const loading = results.some(r => r.isLoading)
 
-    const controller = new AbortController()
-    const { signal } = controller
+  const errors = {
+    stats: statsRes.error?.message,
+    chart: chartRes.error?.message,
+    alunos: alunosRes.error?.message,
+    visao: visaoRes.error?.message,
+  }
 
-    setLoading(true)
-    setErrors({})
+  const d = alunosRes.data || {}
+  const alunos = {
+    estudantes: d.estudantes || d.alunos || [],
+    total: d.total || 0,
+    total_paginas: d.total_paginas || 1,
+  }
 
-    Promise.allSettled([
-      safeFetch(buildUrl('/api/dashboard', userId), signal),
-      safeFetch(buildUrl('/api/dashboard/sessoes-por-mes', userId), signal),
-      safeFetch(buildUrl('/api/metricas-estudantes/desempenho', userId, { pagina, por_pagina: porPagina }), signal),
-      safeFetch(buildUrl('/api/dashboard/visao-geral', userId), signal),
-    ]).then(([statsRes, chartRes, alunosRes, visaoRes]) => {
-      if (signal.aborted) return
-
-      const errs = {}
-
-      if (statsRes.status === 'fulfilled') setStats(statsRes.value)
-      else errs.stats = statsRes.reason?.message
-
-      if (chartRes.status === 'fulfilled') setChartData(chartRes.value)
-      else errs.chart = chartRes.reason?.message
-
-      if (alunosRes.status === 'fulfilled') {
-        const d = alunosRes.value
-        setAlunos({
-          estudantes: d.estudantes || d.alunos || [],
-          total: d.total || 0,
-          total_paginas: d.total_paginas || 1,
-        })
-      } else errs.alunos = alunosRes.reason?.message
-
-      if (visaoRes.status === 'fulfilled') setVisao(visaoRes.value)
-      else errs.visao = visaoRes.reason?.message
-
-      setErrors(errs)
-      setLoading(false)
-    })
-
-    return () => controller.abort()
-  }, [userId, pagina, porPagina])
-
-  return { stats, chartData, alunos, visao, loading, errors }
+  return {
+    stats: statsRes.data,
+    chartData: chartRes.data,
+    alunos,
+    visao: visaoRes.data,
+    loading,
+    errors
+  }
 }
+
 
 // ── Componentes auxiliares ──────────────────────────────
 const SkeletonBlock = ({ height = 24, width = '100%', className = '' }) => {
@@ -172,6 +178,7 @@ const Dashboard = () => {
   const [pagina, setPagina] = useState(1)
   const porPagina = 10
   const { isDark } = useTheme()
+  const { ref: chartRef, inView: chartInView } = useInView({ triggerOnce: true, rootMargin: '200px 0px' })
 
   const { stats, chartData, alunos, visao, loading, errors } = useDashboardData(userId, pagina, porPagina)
 
@@ -389,7 +396,15 @@ const Dashboard = () => {
               {errors.chart ? (
                 <CAlert color="warning">Gráfico indisponível: {errors.chart}</CAlert>
               ) : (
-                <MainChart data={chartData} loading={loading} />
+                <div ref={chartRef} style={{ minHeight: '300px' }}>
+                  {chartInView ? (
+                    <React.Suspense fallback={<SkeletonBlock height={300} />}>
+                      <MainChart data={chartData} loading={loading} />
+                    </React.Suspense>
+                  ) : (
+                    <SkeletonBlock height={300} />
+                  )}
+                </div>
               )}
 
               <hr />
