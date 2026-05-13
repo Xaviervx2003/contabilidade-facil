@@ -1,0 +1,10 @@
+{
+  "sec-ch-ua-platform": "\"Windows\"",
+  "authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJyb3RhLWFwaS5ncmFuY3Vyc29zb25saW5lLmNvbS5iciIsInVzZXIiOjEwNzY2NTQ1LCJpZCI6IjNvcWQxOTQwN3JkbGhqMG8yZGl1dGRmZGQ0Iiwicm9sZXMiOlsiUk9MRV9GUkVFX1YyIl0sIm1pZ3JhZG8iOmZhbHNlLCJleHAiOjE3NzkyOTQyNzgsImFjZXNzb1RlbXBvcmFyaW8iOmZhbHNlLCJjb25maXJtZWQiOnRydWUsImJhbiI6bnVsbCwiaXNQbmUiOmZhbHNlLCJpc0djbyI6ZmFsc2UsInBheW1lbnRNZXRob2RTYXZlIjpudWxsfQ.Trp3Qt9GDxOx1b4mNAr8iVbf32Co47iOH-bpTWZEGtnxl_FMP19I65TZ9VeEL8hBhJkfwW2lVtbK_v74N2LPS2w_0G7gsRjRINk3jUsM0-6R9oQKVo0J1q0fagD5QNwOoz6cyvXPlqk3geX1gJUCdyy6qdHA8mbCH76c66b-gyLzEqGW2nrXOvEUxSxHQvZ2kEvdNVW7k4hiIQ7rN5j3beE6wzIuKOcwAoQ0Zlved-lHlF6kq3LbOZ5wQ2BNWdz4XSfNUCvK7VTXYyOzplwaV8GkNkNqDH4-f7L0d31Kyok8-QJJWWdYz6aK7EXrduFtRcuRvalpcUYRrkTqYxIhgA",
+  "referer": "https://questoes.grancursosonline.com.br/",
+  "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+  "accept": "application/json, text/plain, */*",
+  "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+  "sec-ch-ua-mobile": "?0",
+  "origin": "https://questoes.grancursosonline.com.br"
+}

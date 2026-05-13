@@ -82,6 +82,7 @@ class QuestaoRequest(BaseModel):
     ano: Optional[int] = None
     escolaridade: Optional[str] = None
     modalidade: Optional[str] = None
+    dificuldade: Optional[str] = None
 
 
 # ── Trilhas de Aprendizagem ──────────────────────────────────────

@@ -16,15 +16,15 @@ CREATE TABLE IF NOT EXISTS usuarios (
     criado_em   TIMESTAMP    DEFAULT NOW()
 );
 
--- Admin padrão (matrícula: admin | senha: admin123)
-INSERT INTO usuarios (nome, matricula, senha, papel)
-VALUES ('Administrador', 'admin', 'admin123', 'admin')
-ON CONFLICT (matricula) DO NOTHING;
+-- SEGURANÇA: senha do admin NÃO é definida aqui.
+-- Execute: python scripts/criar_admin.py
+-- para criar o admin com senha hasheada via argon2.
 
 -- ─── 2. MATÉRIAS (Hierárquica com suporte a API externa) ─────
 CREATE TABLE IF NOT EXISTS materias (
     id         SERIAL PRIMARY KEY,
     nome       VARCHAR(255) NOT NULL,
+    indice     VARCHAR(50),
     id_externo INTEGER UNIQUE,
     parent_id  INT REFERENCES materias(id) ON DELETE CASCADE
 );
@@ -34,8 +34,7 @@ INSERT INTO materias (nome) VALUES
     ('Contabilidade Básica'),
     ('Fiscal'),
     ('Custos'),
-    ('Auditoria')
-ON CONFLICT (nome) DO NOTHING;
+    ('Auditoria');
 
 -- ─── 3. VÍNCULO PROFESSOR ↔ MATÉRIA ──────────────────────────
 CREATE TABLE IF NOT EXISTS professores_materias (
@@ -246,7 +245,5 @@ INSERT INTO questoes (assunto, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, re
     'A'
 )
 ON CONFLICT DO NOTHING;
-ALTER TABLE questoes
-    ADD COLUMN IF NOT EXISTS dica TEXT DEFAULT NULL;
 ALTER TABLE questoes
     ADD COLUMN IF NOT EXISTS dica TEXT DEFAULT NULL;

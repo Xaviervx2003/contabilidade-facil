@@ -10,7 +10,7 @@ puppeteer.use(StealthPlugin());
 
 // ── Configuração ──────────────────────────────────────────────────────────────
 import 'dotenv/config';
-const DB_URL = process.env.DATABASE_URL;
+const DB_URL = process.env.DATABASE_URL || "postgres://joao_xavier:sua_senha_segura12@localhost:5433/plataforma_questoes";
 const API_BASE = "https://rota-api.grancursosonline.com.br";
 const USER_DATA_DIR = "C:\\projetos\\contabilidade facil\\chrome-perfil";
 const QUESTOES_POR_PAG = 100;
@@ -65,6 +65,15 @@ const lerLetra = (a: ItemApi) => (a.rotulo || a.letra || "").trim().charAt(0).to
 
 // ── 1. Captura headers via navegador manual ─────────────────────
 async function capturarHeaders(): Promise<Record<string, string>> {
+  // SE O USUÁRIO FORNECEU O TOKEN NO .ENV, PULA O NAVEGADOR
+  if (process.env.GRAN_TOKEN) {
+    console.log("\n✅ [GRAN_TOKEN] detectado no arquivo .env. Pulando etapa do navegador!");
+    return {
+      "authorization": process.env.GRAN_TOKEN.startsWith("Bearer") ? process.env.GRAN_TOKEN : `Bearer ${process.env.GRAN_TOKEN}`,
+      "accept": "application/json, text/plain, */*"
+    };
+  }
+
   console.log("\n╔══════════════════════════════════════════════════════╗");
   console.log("║     ETAPA 1 — CAPTURAR SESSÃO DO GRAN CURSOS        ║");
   console.log("╠══════════════════════════════════════════════════════╣");
@@ -95,7 +104,7 @@ async function capturarHeaders(): Promise<Record<string, string>> {
         headers = { ...h };
         if (!headersCapturados) {
           headersCapturados = true;
-          console.log("  ✅ Token Bearer capturado com sucesso! Pressione ENTER.");
+          console.log("  ✅ Token Bearer capturado com sucesso! Pressione ENTER no terminal.");
         }
       }
     }

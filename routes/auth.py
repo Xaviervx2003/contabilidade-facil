@@ -3,7 +3,7 @@ routes/auth.py — Autenticação: login, registro, verificação de identidade,
                  redefinição e alteração de senha.
 """
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from psycopg import errors as pg_errors
 from database import get_conexao
 from models import (
@@ -17,6 +17,7 @@ from utils.security import get_password_hash, verify_password
 from utils.responses import api_response
 from utils.logger import setup_logger
 from utils.rate_limit import rate_limiter
+from utils.jwt_auth import criar_token, verificar_proprio_ou_admin
 
 logger = setup_logger(__name__)
 router = APIRouter(prefix="/api", tags=["Autenticação"])
@@ -46,11 +47,13 @@ def fazer_login(credenciais: LoginRequest, request: Request):
 
         if usuario and verify_password(credenciais.senha, usuario[4]):
             logger.info(f"Login bem-sucedido: {credenciais.matricula}")
+            token = criar_token(usuario[2], usuario[3], usuario[0])
             return api_response(sucesso=True, dados={
                 "id": usuario[0],
                 "nome": usuario[1],
                 "matricula": usuario[2],
                 "papel": usuario[3],
+                "token": token,
             })
         else:
             logger.warning(f"Tentativa de login falhou: {credenciais.matricula}")
@@ -186,7 +189,7 @@ def alterar_senha(dados: AlteraSenhaRequest):
 
 
 @router.get("/perfil/{matricula}")
-def obter_perfil(matricula: str):
+def obter_perfil(matricula: str, token_data: dict = Depends(verificar_proprio_ou_admin)):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()

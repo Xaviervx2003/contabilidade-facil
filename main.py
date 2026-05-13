@@ -43,12 +43,19 @@ async def lifespan(app: FastAPI):
     encerrar_pool()
 
 
+import os
+
 # Criação do App com lifespan
+_debug = os.getenv("DEBUG", "false").lower() == "true"
 app = FastAPI(
     title="Contabilidade Fácil API",
     description="API da Plataforma de Questões de Contabilidade",
     version="2.0.0",
     lifespan=lifespan,
+    # Desabilita /docs e /redoc em produção
+    docs_url="/docs" if _debug else None,
+    redoc_url="/redoc" if _debug else None,
+    openapi_url="/openapi.json" if _debug else None,
 )
 
 # Exception Handler Global (Monitoring - Roadmap.sh)
@@ -61,16 +68,22 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500
     )
 
-# Configuração de CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
+# Configuração de CORS Dinâmico
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS")
+if allowed_origins_str:
+    allow_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+else:
+    allow_origins = [
         "https://contabilidade-facil-chi.vercel.app",
         "http://localhost:3000",
         "http://localhost:5173",
         "https://contabilidade-facil.vercel.app"
-    ],
-    allow_credentials=True, # Alterado para True para suportar cookies/auth se necessário
+    ]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allow_origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

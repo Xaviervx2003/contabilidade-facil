@@ -3,7 +3,7 @@ routes/questoes.py – CRUD completo de questões com suporte a matérias (N:N) 
 FASE 1: Suporte a link_video em todas as rotas.
 """
 
-from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Request
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Request, Depends
 from typing import Optional, List
 from database import get_conexao
 from models import QuestaoRequest, FeedbackRequest
@@ -13,6 +13,7 @@ from utils.logger import setup_logger
 from utils.responses import api_response
 from utils.cache import cache
 from utils.rate_limit import rate_limiter
+from utils.jwt_auth import verificar_admin_ou_professor, verificar_admin
 from routes.dashboard import invalidate_dashboard_cache
 
 # Configuração de Logs (Fator XI - Doze Fatores)
@@ -72,6 +73,8 @@ def obter_questoes(
     per_page: Optional[int] = Query(None, ge=1, le=100, description="Itens por página"),
     busca: Optional[str] = Query(None, description="Busca textual no enunciado/matéria"),
     apenas_videos: Optional[bool] = Query(False, description="Retornar apenas questões com vídeo"),
+    dificuldade: Optional[str] = Query(None, description="Filtrar por dificuldade"),
+    cursor_id: Optional[int] = Query(None, ge=0, description="Último ID para keyset pagination"),
 ):
     try:
         with get_conexao() as conn:
@@ -170,6 +173,12 @@ def obter_questoes(
 
             if apenas_videos:
                 conditions.append("q.link_video IS NOT NULL AND q.link_video != ''")
+            if dificuldade:
+                conditions.append("q.dificuldade = %s")
+                params.append(dificuldade)
+            if cursor_id is not None:
+                conditions.append("q.id > %s")
+                params.append(cursor_id)
 
             filtro_where = ""
             if conditions:
@@ -241,7 +250,8 @@ def obter_questoes(
                     q.cargo,
                     q.ano,
                     q.escolaridade,
-                    q.modalidade
+                    q.modalidade,
+                    q.dificuldade
                 FROM questoes q
                 LEFT JOIN materias_agrupadas ma ON ma.questao_id = q.id
                 LEFT JOIN feedbacks_agrupados fa ON fa.questao_id = q.id
@@ -276,6 +286,7 @@ def obter_questoes(
                 "ano":                   linha[18] or None,
                 "escolaridade":          linha[19] or None,
                 "modalidade":            linha[20] or None,
+                "dificuldade":           linha[21] or None,
             })
 
         # Retorno paginado (admin) vs array simples (legado/quiz)
@@ -322,6 +333,10 @@ def obter_filtros_questoes():
             cursor.execute("SELECT DISTINCT escolaridade FROM questoes WHERE escolaridade IS NOT NULL ORDER BY escolaridade;")
             filtros['escolaridades'] = [row[0] for row in cursor.fetchall()]
             
+            # Dificuldade
+            cursor.execute("SELECT DISTINCT dificuldade FROM questoes WHERE dificuldade IS NOT NULL ORDER BY dificuldade;")
+            filtros['dificuldades'] = [row[0] for row in cursor.fetchall()]
+            
             logger.info("Filtros carregados com sucesso.")
             return api_response(sucesso=True, dados=filtros)
     except Exception as e:
@@ -330,7 +345,7 @@ def obter_filtros_questoes():
 
 
 @router.post("/questoes")
-def criar_questao(questao: QuestaoRequest):
+def criar_questao(questao: QuestaoRequest, token_data: dict = Depends(verificar_admin_ou_professor)):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
@@ -339,8 +354,8 @@ def criar_questao(questao: QuestaoRequest):
             cursor.execute("""
                 INSERT INTO questoes
                     (enunciado, opcao_a, opcao_b, opcao_c, opcao_d, opcao_e,
-                     resposta_correta, explicacao, link_video, banca, orgao, cargo, ano, escolaridade, modalidade)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     resposta_correta, explicacao, link_video, banca, orgao, cargo, ano, escolaridade, modalidade, dificuldade)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id;
             """, (
                 questao.enunciado,
@@ -358,6 +373,7 @@ def criar_questao(questao: QuestaoRequest):
                 questao.ano,
                 questao.escolaridade,
                 questao.modalidade,
+                questao.dificuldade,
             ))
             nova_id = cursor.fetchone()[0]
 
@@ -381,7 +397,7 @@ def criar_questao(questao: QuestaoRequest):
 
 
 @router.put("/questoes/{questao_id}")
-def atualizar_questao(questao_id: int, questao: QuestaoRequest):
+def atualizar_questao(questao_id: int, questao: QuestaoRequest, token_data: dict = Depends(verificar_admin_ou_professor)):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
@@ -403,7 +419,8 @@ def atualizar_questao(questao_id: int, questao: QuestaoRequest):
                     cargo            = %s,
                     ano              = %s,
                     escolaridade     = %s,
-                    modalidade       = %s
+                    modalidade       = %s,
+                    dificuldade      = %s
                 WHERE id = %s;
             """, (
                 questao.enunciado,
@@ -421,6 +438,7 @@ def atualizar_questao(questao_id: int, questao: QuestaoRequest):
                 questao.ano,
                 questao.escolaridade,
                 questao.modalidade,
+                questao.dificuldade,
                 questao_id,
             ))
 
@@ -453,7 +471,7 @@ def atualizar_questao(questao_id: int, questao: QuestaoRequest):
 
 
 @router.delete("/questoes/{questao_id}")
-def deletar_questao(questao_id: int):
+def deletar_questao(questao_id: int, token_data: dict = Depends(verificar_admin)):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
@@ -674,7 +692,7 @@ def alternar_publicacao_feedback(feedback_id: int):
 
 
 @router.post("/questoes/importar-csv")
-async def importar_csv(request: Request, arquivo: UploadFile = File(...)):
+async def importar_csv(request: Request, arquivo: UploadFile = File(...), token_data: dict = Depends(verificar_admin_ou_professor)):
     """
     Importa questões em massa via CSV.
     Colunas esperadas: enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao,link_video

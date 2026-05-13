@@ -4,12 +4,38 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
 import autoprefixer from 'autoprefixer'
 import { VitePWA } from 'vite-plugin-pwa'
+import viteImagemin from 'vite-plugin-imagemin'
 
 export default defineConfig(() => {
   return {
     base: './',
     build: {
       outDir: 'build',
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+                return 'vendor-react';
+              }
+              if (id.includes('@coreui')) {
+                return 'vendor-coreui';
+              }
+              if (id.includes('recharts')) {
+                return 'vendor-charts';
+              }
+              if (id.includes('framer-motion')) {
+                return 'vendor-motion';
+              }
+              if (id.includes('@iconify')) {
+                return 'vendor-iconify';
+              }
+              return 'vendor';
+            }
+          }
+        },
+      },
     },
     css: {
       postcss: {
@@ -21,9 +47,21 @@ export default defineConfig(() => {
     plugins: [
       tailwindcss(),
       react(),
+      viteImagemin({
+        gifsicle: { optimizationLevel: 7, interlaced: false },
+        optipng: { optimizationLevel: 7 },
+        mozjpeg: { quality: 20 },
+        pngquant: { quality: [0.8, 0.9], speed: 4 },
+        svgo: {
+          plugins: [
+            { name: 'removeViewBox' },
+            { name: 'removeEmptyAttrs', active: false }
+          ]
+        }
+      }),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+        includeAssets: ['favicon.ico'],
         manifest: {
           name: 'Contabilidade Fácil',
           short_name: 'Contabilidade',
@@ -36,16 +74,6 @@ export default defineConfig(() => {
               src: 'favicon.ico',
               sizes: '64x64 32x32 24x24 16x16',
               type: 'image/x-icon'
-            },
-            {
-              src: 'logo192.png',
-              type: 'image/png',
-              sizes: '192x192'
-            },
-            {
-              src: 'logo512.png',
-              type: 'image/png',
-              sizes: '512x512'
             }
           ]
         }

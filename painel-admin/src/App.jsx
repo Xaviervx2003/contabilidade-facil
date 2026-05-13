@@ -15,6 +15,7 @@
  */
 
 import React, { Suspense } from 'react'
+import ErrorBoundary from './components/ErrorBoundary'
 import { HashRouter, Route, Routes, Navigate } from 'react-router-dom'
 
 import { CSpinner } from '@coreui/react'
@@ -22,8 +23,6 @@ import { ThemeProvider } from './context/themeContext'
 import { Toaster } from 'react-hot-toast'
 import './scss/style.scss'
 
-// We use those styles to show code examples, you should remove them in your application.
-import './scss/examples.scss'
 
 // Containers
 const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
@@ -40,23 +39,25 @@ const App = () => {
   return (
     <ThemeProvider>
       <HashRouter>
-        <Suspense
-          fallback={
-            <div className="pt-3 text-center">
-              <CSpinner color="primary" variant="grow" />
-            </div>
-          }
-        >
-          <Routes>
-            <Route exact path="/" name="Landing Page" element={<Landing />} />
-            <Route exact path="/login" name="Login Page" element={<Login />} />
-            <Route exact path="/register" name="Register Page" element={<Register />} />
-            <Route exact path="/404" name="Page 404" element={<Page404 />} />
-            <Route exact path="/500" name="Page 500" element={<Page500 />} />
-            <Route exact path="/esqueceu-senha" name="Esqueceu a Senha" element={<EsqueceuSenha />} />
-            <Route path="*" name="Home" element={<DefaultLayout />} />
-          </Routes>
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense
+            fallback={
+              <div className="pt-3 text-center">
+                <CSpinner color="primary" variant="grow" />
+              </div>
+            }
+          >
+            <Routes>
+              <Route exact path="/" name="Landing Page" element={<Landing />} />
+              <Route exact path="/login" name="Login Page" element={<Login />} />
+              <Route exact path="/register" name="Register Page" element={<Register />} />
+              <Route exact path="/404" name="Page 404" element={<Page404 />} />
+              <Route exact path="/500" name="Page 500" element={<Page500 />} />
+              <Route exact path="/esqueceu-senha" name="Esqueceu a Senha" element={<EsqueceuSenha />} />
+              <Route path="*" name="Home" element={<ErrorBoundary><DefaultLayout /></ErrorBoundary>} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
       </HashRouter>
       <Toaster
         position="top-right"

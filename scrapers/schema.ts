@@ -33,6 +33,7 @@ export const questoes = pgTable("questoes", {
   ano: integer("ano"),
   escolaridade: varchar("escolaridade", { length: 255 }),
   modalidade: varchar("modalidade", { length: 255 }),
+  dificuldade: integer("dificuldade"), // 1=Muito Fácil, 2=Fácil, 3=Médio, 4=Difícil, 5=Muito Difícil
 });
 
 export const materias = pgTable("materias", {

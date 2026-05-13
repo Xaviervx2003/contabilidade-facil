@@ -11,8 +11,8 @@ import * as fs from "fs/promises";
 
 puppeteer.use(StealthPlugin());
 
-// ── Configuração ──────────────────────────────────────────────────────────────
-const DB_URL = "postgres://joao_xavier:sua_senha_segura12@localhost:5433/plataforma_questoes";
+import 'dotenv/config';
+const DB_URL = process.env.DATABASE_URL || "postgres://joao_xavier:sua_senha_segura12@localhost:5433/plataforma_questoes";
 const API_BASE = "https://rota-api.grancursosonline.com.br";
 const USER_DATA_DIR = "C:\\projetos\\contabilidade facil\\chrome-perfil";
 const QUESTOES_POR_PAG = 100;
@@ -24,6 +24,7 @@ interface MateriaApi {
   id: number;
   nome: string;
   pai?: number | null;
+  assunto_raiz?: number | null;
   indice?: string;
   nivel?: number;
   filhos?: number[];
@@ -43,6 +44,8 @@ interface QuestaoApi {
   anos?: string[];
   provas?: { nome?: string; nivel?: string }[];
   tipo?: string;
+  dificuldade?: number;
+  nivel_dificuldade?: number;
 }
 
 interface ItemApi {
@@ -67,6 +70,21 @@ async function capturarHeadersEDisciplina(): Promise<{
   disciplinaId: number | null;
   disciplinaNome: string | null;
 }> {
+  // Tenta usar o token do .env primeiro
+  if (process.env.GRAN_TOKEN) {
+    console.log("  ✅ Usando token GRAN_TOKEN detectado no .env");
+    return {
+      headers: { 
+        "authorization": process.env.GRAN_TOKEN.startsWith("Bearer ") ? process.env.GRAN_TOKEN : `Bearer ${process.env.GRAN_TOKEN}`,
+        "accept": "application/json, text/plain, */*",
+        "referer": "https://questoes.grancursosonline.com.br/",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+      },
+      disciplinaId: null, // Será detectado via árvore se nulo
+      disciplinaNome: null
+    };
+  }
+
   console.log("\n╔══════════════════════════════════════════════════════╗");
   console.log("║     ETAPA 1 — LOGIN + SELECIONE A DISCIPLINA        ║");
   console.log("╠══════════════════════════════════════════════════════╣");
@@ -101,6 +119,8 @@ async function capturarHeadersEDisciplina(): Promise<{
         if (!headersCapturados) {
           headersCapturados = true;
           console.log("  ✅ Headers de autenticação detectados!");
+          // Salva para uso futuro
+          fs.writeFile("scrapers/last_headers.json", JSON.stringify(headers, null, 2)).catch(() => {});
         }
       }
     }
@@ -281,6 +301,7 @@ async function processarQuestao(
   const escolaridade = prova?.nome || prova?.nivel || null;
   const modalidade = item.tipo || null;
   const assuntoNome = (item.assuntos?.[0]?.nome || "Sem Assunto").slice(0, 255);
+  const dificuldade = item.dificuldade ?? item.nivel_dificuldade ?? null;
 
   const [questao] = await db
     .insert(questoes)
@@ -304,6 +325,7 @@ async function processarQuestao(
       ano,
       escolaridade: escolaridade?.slice(0, 255),
       modalidade: modalidade?.slice(0, 255),
+      dificuldade,
     })
     .onConflictDoUpdate({
       target: questoes.id_externo,
@@ -315,6 +337,7 @@ async function processarQuestao(
         ano,
         escolaridade: escolaridade?.slice(0, 255),
         modalidade: modalidade?.slice(0, 255),
+        dificuldade,
       },
     })
     .returning({ id: questoes.id });
@@ -394,33 +417,73 @@ async function main() {
   await client.connect();
   const db = drizzle(client) as NodePgDatabase<Record<string, unknown>>;
 
-  // 2. Capturar headers (manual)
-  const { headers } = await capturarHeadersEDisciplina();
+  // 3. Tentar ler árvore do arquivo local
+  let arvore: MateriaApi[] = [];
+  try {
+    console.log("📚 Lendo árvore de matérias de scrapers/materias-arvore.json...");
+    const jsonContent = await fs.readFile("scrapers/materias-arvore.json", "utf-8");
+    const data = JSON.parse(jsonContent);
+    arvore = data.materias || data || [];
+    console.log(`✅ ${arvore.length} matérias carregadas do arquivo.\n`);
+  } catch (e) {
+    console.log("⚠️  Arquivo materias-arvore.json não encontrado ou inválido. Iniciando árvore nova.\n");
+  }
 
-  // 3. Ler árvore do arquivo materias.json (pré-definido pelo usuário)
-  console.log("📚 Lendo árvore de matérias de materias.json...\n");
-  const jsonContent = await fs.readFile("materias.json", "utf-8");
-  const arvore: MateriaApi[] = JSON.parse(jsonContent);
-  console.log(`✅ ${arvore.length} matérias carregadas do arquivo.\n`);
+  // 4. Capturar headers e disciplina do navegador
+  const { headers, disciplinaId, disciplinaNome } = await capturarHeadersEDisciplina();
 
-  // 4. Salvar matérias no banco
-  console.log("💾 Salvando matérias...");
+  // 5. Se a disciplina capturada for nova ou o arquivo estiver vazio, baixar árvore completa dessa raiz
+  if (disciplinaId && (!arvore.some(m => m.id === disciplinaId))) {
+    console.log(`🔍 Assunto novo detectado: ${disciplinaNome} (ID: ${disciplinaId})`);
+    console.log(`📡 Baixando árvore completa de sub-assuntos para ID ${disciplinaId}...\n`);
+    const novaArvore = await buscarArvoreCompleta(headers, disciplinaId);
+    
+    if (novaArvore.length > 0) {
+      // Mesclar e salvar
+      arvore = [...arvore, ...novaArvore];
+      // Remover duplicatas por ID
+      arvore = Array.from(new Map(arvore.map(m => [m.id, m])).values());
+      
+      await fs.writeFile("scrapers/materias-arvore.json", JSON.stringify({ total: arvore.length, materias: arvore }, null, 2));
+      console.log(`✅ Árvore atualizada e salva com ${arvore.length} matérias totais.\n`);
+    }
+  }
+
+  // 6. Filtrar assuntos: se temos uma disciplinaId, pegamos apenas ela e seus descendentes
+  let materiasParaProcessar = arvore;
+  if (disciplinaId) {
+    const root = arvore.find(m => m.id === disciplinaId);
+    if (root && root.indice) {
+      console.log(`🎯 Filtrando para processar apenas descendentes de: ${root.nome} (${root.indice})`);
+      materiasParaProcessar = arvore.filter(m => 
+        m.id === disciplinaId || (m.indice && root.indice && m.indice.startsWith(root.indice))
+      );
+    } else {
+      // Se não achou o root na árvore (estranho se acabou de baixar), tenta filtrar pelo menos o ID
+      materiasParaProcessar = arvore.filter(m => 
+        m.id === disciplinaId || m.pai === disciplinaId || (m.assunto_raiz === disciplinaId)
+      );
+    }
+  }
+
+  // 7. Salvar matérias no banco (apenas as que vamos processar)
+  console.log("💾 Sincronizando matérias com o banco de dados...");
   const materiaIdMap = new Map<number, number>();
-  for (const mat of arvore) {
+  for (const mat of materiasParaProcessar) {
     const idInterno = await salvarMateria(db, mat, materiaIdMap);
     if (idInterno) materiaIdMap.set(mat.id, idInterno);
   }
-  console.log(`✅ ${materiaIdMap.size} matérias salvas.\n`);
+  console.log(`✅ ${materiaIdMap.size} matérias sincronizadas.\n`);
 
-  // 6. Filtrar folhas e mostrar lista antes de perguntar
-  const folhas = arvore.filter(m => !m.filhos || m.filhos.length === 0);
+  // 8. Filtrar folhas (assuntos sem filhos)
+  const folhas = materiasParaProcessar.filter(m => !m.filhos || m.filhos.length === 0);
 
-  console.log(`\n🎯 ${folhas.length} assuntos que serão extraídos:\n`);
-  folhas.forEach((m, i) => {
+  console.log(`\n🎯 ${folhas.length} assuntos prontos para extração:\n`);
+  folhas.slice(0, 20).forEach((m, i) => {
     const pct = `(${((i + 1) / folhas.length * 100).toFixed(1)}%)`;
-    const total = m.total_questoes != null ? ` [~${m.total_questoes} questões]` : "";
-    console.log(`  ${String(i + 1).padStart(3)}. ${pct.padEnd(7)} ${m.nome}${total}`);
+    console.log(`  ${String(i + 1).padStart(3)}. ${pct.padEnd(7)} ${m.nome}`);
   });
+  if (folhas.length > 20) console.log(`  ... e mais ${folhas.length - 20} assuntos.`);
 
   console.log(`\nDeseja extrair as questões desses ${folhas.length} assuntos? (s/n)`);
   const resposta = await new Promise<string>(resolve => process.stdin.once("data", d => resolve(d.toString().trim().toLowerCase())));
