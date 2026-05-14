@@ -1,70 +1,61 @@
-import React, { useEffect, useState, useCallback } from 'react'
-import {
-  CAlert,
-  CButton,
-  CCard,
-  CCardBody,
-  CCardHeader,
-  CCol,
-  CRow,
-  CSpinner,
-  CProgress,
-  CBadge,
-  CAccordion,
-  CAccordionItem,
-  CAccordionHeader,
-  CAccordionBody,
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter,
-  CNav,
-  CNavItem,
-  CNavLink,
-  CFormTextarea,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import {
-  cilCheckCircle,
-  cilMediaPlay,
-  cilDescription,
-  cilPenAlt,
-  cilChevronRight,
-  cilClock,
-  cilCloudDownload,
-  cilChatBubble,
-  cilUser,
-  cilCheck,
-} from '@coreui/icons'
-import { API_URL } from '../../config'
-import { motion } from 'framer-motion'
-import { Icon } from '@iconify/react'
-import { useTheme } from '../../context/themeContext'
-import { formatIsoToDateString } from '../../utils/formatDate'
-import { useNavigate } from 'react-router-dom'
-import { getAlunoMatricula } from '../../utils/auth'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { DotLottieReact } from '@lottiefiles/dotlottie-react'
-import { toast } from 'react-hot-toast'
+/* ─── Tokens Airbnb-inspired ─────────────────────────────── */
+const tokens = {
+  rausch: '#FF385C',
+  babu: '#00A699',
+  arches: '#FC642D',
+  hof: '#484848',
+  foggy: '#767676',
+  swiss: '#B0B0B0',
+}
+
+/* ─── SCard Component ─── */
+const SCard = ({ children, delay = 0, style = {} }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 15 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay }}
+    whileHover={{ y: -4, transition: { duration: 0.2 } }}
+    style={{
+      background: 'var(--color-bg-elevated)',
+      borderRadius: 20,
+      padding: '24px',
+      border: '1.5px solid var(--color-border)',
+      boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
+      height: '100%',
+      ...style
+    }}
+  >
+    {children}
+  </motion.div>
+)
+
+/* ─── AirbnbProgress ─── */
+const AirbnbProgress = ({ value, color = tokens.rausch }) => (
+  <div style={{ height: 6, background: 'var(--color-bg-tertiary)', borderRadius: 10, overflow: 'hidden' }}>
+    <motion.div
+      initial={{ width: 0 }}
+      animate={{ width: `${value}%` }}
+      transition={{ duration: 1, ease: 'easeOut' }}
+      style={{ height: '100%', background: color, borderRadius: 10 }}
+    />
+  </div>
+)
 
 const MinhasTrilhas = () => {
   const [error, setError] = useState('')
   const [modalAula, setModalAula] = useState(false)
   const [moduloAtivo, setModuloAtivo] = useState(null)
   const [salvando, setSalvando] = useState(null)
-  const [toastErro, setToastErro] = useState('')
-  const [abaAtiva, setAbaAtiva] = useState('aula') // 'aula' ou 'duvidas'
+  const [abaAtiva, setAbaAtiva] = useState('aula')
   const [novaDuvida, setNovaDuvida] = useState('')
+  const [filtro, setFiltro] = useState('todas') // todas, progresso, concluida
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const isDark = useTheme().isDark
 
   const matricula = getAlunoMatricula()
 
-  const {
-    data: trilhas = [],
-    isLoading: loading,
-    error: queryError,
-  } = useQuery({
+  const { data: trilhas = [], isLoading: loading, error: queryError } = useQuery({
     queryKey: ['minhasTrilhas', matricula],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/api/trilhas/aluno/${matricula}`)
@@ -85,234 +76,176 @@ const MinhasTrilhas = () => {
 
   const mutationConcluir = useMutation({
     mutationFn: async (moduloId) => {
-      const res = await fetch(`${API_URL}/api/trilhas/progresso/${moduloId}`, {
+      await fetch(`${API_URL}/api/trilhas/progresso/${moduloId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matricula }),
       })
-      if (!res.ok) throw new Error(`Erro ${res.status}`)
     },
-    onMutate: (moduloId) => setSalvando(moduloId),
+    onMutate: (id) => setSalvando(id),
     onSuccess: () => {
-      toast.success('Módulo concluído com sucesso!')
+      toast.success('Progresso salvo!')
       queryClient.invalidateQueries({ queryKey: ['minhasTrilhas', matricula] })
-    },
-    onError: () => {
-      toast.error('Não foi possível salvar seu progresso.')
     },
     onSettled: () => setSalvando(null),
   })
 
-  const mutationDuvida = useMutation({
-    mutationFn: async () => {
-      const res = await fetch(`${API_URL}/api/trilhas/duvidas`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ modulo_id: moduloAtivo.id, texto: novaDuvida, matricula }),
-      })
-      if (!res.ok) throw new Error('Erro')
-    },
-    onSuccess: () => {
-      toast.success('Dúvida enviada!')
-      setNovaDuvida('')
-      refetchDuvidas()
-    },
-    onError: () => toast.error('Erro ao enviar dúvida.'),
-  })
-
-  const errorMsg = !matricula
-    ? 'Esta área é exclusiva para alunos com matrícula ativa.'
-    : queryError?.message || error
-
-  const marcarConcluido = (moduloId) => {
-    mutationConcluir.mutate(moduloId)
-  }
-
-  const enviarDuvida = () => {
-    if (novaDuvida.trim()) mutationDuvida.mutate()
-  }
-
-  const getEmbedUrl = (url) => {
-    if (!url) return null
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
-      const match = url.match(regExp)
-      return match && match[2].length === 11 ? `https://www.youtube.com/embed/${match[2]}` : url
-    }
-    if (url.includes('vimeo.com')) {
-      const match = url.match(/vimeo.com\/(\d+)/)
-      return match ? `https://player.vimeo.com/video/${match[1]}` : url
-    }
-    return url
-  }
-
   const handleAcessarModulo = (m) => {
-    // REGRA: Se tiver vídeo ou texto, prioriza o Modal de Aula (Cinema)
     if (m.link_video || m.texto_teorico) {
-      setModuloAtivo(m)
-      setAbaAtiva('aula')
-      setModalAula(true)
-    }
-    // Se for APENAS quiz, vai direto para o quiz
-    else if (m.materia_id || (m.questoes_selecionadas && m.questoes_selecionadas.length > 0)) {
-      if (m.questoes_selecionadas && m.questoes_selecionadas.length > 0) {
-        const ids = m.questoes_selecionadas.join(',')
-        navigate(`/quiz?ids=${ids}&modulo_id=${m.id}`)
-      } else {
-        navigate(`/quiz?materia_id=${m.materia_id}&modulo_id=${m.id}`)
-      }
+      setModuloAtivo(m); setAbaAtiva('aula'); setModalAula(true);
+    } else if (m.materia_id || (m.questoes_selecionadas?.length > 0)) {
+      const url = m.questoes_selecionadas?.length > 0 
+        ? `/quiz?ids=${m.questoes_selecionadas.join(',')}&modulo_id=${m.id}`
+        : `/quiz?materia_id=${m.materia_id}&modulo_id=${m.id}`
+      navigate(url)
     }
   }
 
-  const enviandoDuvida = mutationDuvida.isPending
-
+  const trilhasFiltradas = trilhas.filter(t => {
+    if (filtro === 'concluida') return t.progresso_percentual === 100
+    if (filtro === 'progresso') return t.progresso_percentual > 0 && t.progresso_percentual < 100
+    return true
+  })
 
   if (loading) {
     return (
-      <CRow>
-        {[...Array(6)].map((_, i) => (
-          <CCol xs={12} lg={6} xl={4} key={i} className="mb-4">
-            <div
-              className="rounded-4 placeholder-glow"
-              style={{ height: '300px', backgroundColor: 'var(--color-bg-secondary)' }}
-            ></div>
-          </CCol>
-        ))}
-      </CRow>
+      <div style={{ padding: 32, background: 'var(--color-bg-primary)', minHeight: '100vh' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto' }}>
+          <div style={{ height: 40, width: 300, background: 'var(--color-bg-tertiary)', borderRadius: 10, marginBottom: 12 }} className="animate-pulse" />
+          <div style={{ height: 20, width: 450, background: 'var(--color-bg-tertiary)', borderRadius: 10, marginBottom: 48 }} className="animate-pulse" />
+          <CRow className="g-4">
+            {[1,2,3].map(i => <CCol key={i} md={6} lg={4}><div style={{ height: 350, background: 'var(--color-bg-tertiary)', borderRadius: 20 }} className="animate-pulse" /></CCol>)}
+          </CRow>
+        </div>
+      </div>
     )
   }
 
   return (
-    <div className="min-h-screen pt-4 px-3" style={{ background: 'var(--color-bg-primary)' }}>
-      <div className="max-w-5xl mx-auto">
-        {/* Título e Subtítulo padronizados - Mantendo h3 para alinhamento total */}
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4"
-        >
-          <h3 className="h3 fw-bold mb-1">Minhas Trilhas de Aprendizado</h3>
-          <div className="text-body-secondary small">Siga os cursos e módulos elaborados pelos professores para guiar seus estudos.</div>
-        </motion.div>
+    <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Nunito', sans-serif" }}>
+      <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
+        <div style={{ maxWidth: 960, margin: '0 auto' }}>
+          
+          {/* HEADER PREMIUM IDENTICO AO PAINEL */}
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }}
+            style={{ marginBottom: 32 }}
+          >
+            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Suas Jornadas</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+              Minhas Trilhas de Estudo 🚀
+            </div>
+            <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+              Siga o caminho estruturado pelos nossos professores para garantir sua aprovação.
+            </div>
+          </motion.div>
 
-        {errorMsg && <CAlert color="danger" className="mb-4 border-0 shadow-sm">{errorMsg}</CAlert>}
-        
-        {trilhas.length === 0 ? (
-          <div className="text-center py-5">
-            <Icon icon="solar:folder-error-linear" width="48" className="text-body-secondary mb-3" />
-            <p className="text-body-secondary font-medium">Nenhuma trilha disponível no momento.</p>
+          {/* FILTROS RAPIDOS */}
+          <div className="d-flex gap-2 mb-5 overflow-auto pb-2">
+            {[
+              { id: 'todas', label: 'Todas', icon: 'solar:folder-bold-duotone' },
+              { id: 'progresso', label: 'Em Andamento', icon: 'solar:play-bold-duotone' },
+              { id: 'concluida', label: 'Concluídas', icon: 'solar:verified-check-bold-duotone' }
+            ].map(f => (
+              <motion.button
+                key={f.id}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setFiltro(f.id)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 14,
+                  border: '1.5px solid',
+                  borderColor: filtro === f.id ? tokens.rausch : 'var(--color-border)',
+                  background: filtro === f.id ? `${tokens.rausch}08` : 'var(--color-bg-elevated)',
+                  color: filtro === f.id ? tokens.rausch : tokens.foggy,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  transition: '0.2s',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <Icon icon={f.icon} width="18" /> {f.label}
+              </motion.button>
+            ))}
           </div>
-        ) : (
-          <CRow>
-            {trilhas.map((t, index) => {
-              // Failsafe para evitar erros de renderização com dados incompletos
-              const modulos = t.modulos || [];
-              const proximoModulo = modulos.find(m => !m.concluido) || modulos[0] || null;
-              const progresso = t.progresso_percentual || 0;
-              const concluida = progresso === 100;
 
-              return (
-                <CCol xs={12} lg={6} xl={4} key={t.id || index} className="mb-4">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <CCard className="h-100 border-0 shadow-sm premium-card overflow-hidden transition-all hover-translate-y">
-                      {/* Header da Trilha (Hero ou Capa) */}
-                      {t.capa_url ? (
-                        <div style={{ height: '140px', overflow: 'hidden', position: 'relative' }}>
-                          <img src={t.capa_url} alt={t.nome} className="w-100 h-100 object-cover" />
-                          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)' }}></div>
-                          {t.nivel && (
-                            <CBadge color="dark" className="position-absolute top-2 start-2 backdrop-blur-md bg-black/40 border border-white/10">
-                              {t.nivel}
-                            </CBadge>
-                          )}
+          {trilhasFiltradas.length === 0 ? (
+            <div className="text-center py-5">
+              <Icon icon="solar:ghost-bold-duotone" width="64" style={{ color: tokens.swiss, opacity: 0.3 }} />
+              <h5 className="mt-3" style={{ color: tokens.foggy }}>Nenhuma trilha nesta categoria</h5>
+            </div>
+          ) : (
+            <CRow className="g-4">
+              {trilhasFiltradas.map((t, i) => {
+                const modulos = t.modulos || []
+                const proximo = modulos.find(m => !m.concluido) || modulos[0]
+                const concluida = t.progresso_percentual === 100
+                
+                return (
+                  <CCol key={t.id} xs={12} md={6} lg={4}>
+                    <SCard delay={i * 0.05}>
+                      <div className="d-flex justify-content-between align-items-start mb-3">
+                        <div className="p-2 rounded-3" style={{ background: concluida ? `${tokens.babu}15` : `${tokens.rausch}10`, color: concluida ? tokens.babu : tokens.rausch }}>
+                          <Icon icon={concluida ? "solar:medal-bold-duotone" : "solar:notebook-bold-duotone"} width="24" />
                         </div>
-                      ) : (
-                        <CCardHeader 
-                          className="text-white px-3 d-flex align-items-center justify-content-between border-0" 
-                          style={{ height: '56px', background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)' }}
-                        >
-                          <span className="fw-bold text-truncate text-capitalize">{t.nome}</span>
-                          <Icon icon="solar:bookmark-opened-bold-duotone" width="20" />
-                        </CCardHeader>
-                      )}
+                        <CBadge color={concluida ? 'success' : 'primary'} style={{ borderRadius: 8, fontSize: 11, padding: '4px 8px' }}>
+                          {concluida ? 'CONCLUÍDO' : `${t.progresso_percentual}%`}
+                        </CBadge>
+                      </div>
 
-                      <CCardBody className="p-4 d-flex flex-column">
-                        {/* Título e Progresso */}
-                        <div className="d-flex justify-content-between align-items-start mb-3">
-                          <div className="flex-1 min-w-0">
-                            <h5 className="fw-bold mb-0 text-truncate text-capitalize" style={{ color: 'var(--color-text-primary)' }}>
-                              {t.nome}
-                            </h5>
-                            <div className="text-body-secondary small text-truncate mt-1" style={{ fontSize: '12px' }}>
-                              {t.descricao || 'Trilha de estudos personalizada'}
-                            </div>
-                          </div>
-                          <div className="ms-2">
-                            <CBadge color={concluida ? 'success' : 'primary'} className="rounded-pill px-2 py-1 shadow-sm">
-                              {progresso}%
-                            </CBadge>
-                          </div>
+                      <h5 className="fw-bold mb-2 text-truncate text-capitalize" style={{ color: 'var(--color-text-primary)', letterSpacing: '-0.3px' }}>
+                        {t.nome}
+                      </h5>
+                      <p style={{ fontSize: 12, color: tokens.foggy, height: 36, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
+                        {t.descricao || 'Domine este módulo com videoaulas e questões práticas.'}
+                      </p>
+
+                      <div className="mt-4 mb-4">
+                        <div className="d-flex justify-content-between small mb-2 fw-bold" style={{ fontSize: 11, color: tokens.foggy, textTransform: 'uppercase' }}>
+                          <span>Progresso</span>
+                          <span>{t.progresso_percentual}%</span>
                         </div>
+                        <AirbnbProgress value={t.progresso_percentual} color={concluida ? tokens.babu : tokens.rausch} />
+                      </div>
 
-                        {/* Barra de Progresso Estilizada */}
-                        <div className="mb-4 mt-auto">
-                          <div className="d-flex justify-content-between small mb-2">
-                            <span className="text-body-secondary fw-medium">Sua Evolução</span>
-                            <span className={`fw-bold ${concluida ? 'text-success' : 'text-primary'}`}>
-                              {concluida ? 'Concluída!' : 'Em andamento'}
-                            </span>
-                          </div>
-                          <div className="progress-container rounded-pill" style={{ height: '6px', background: 'var(--color-bg-tertiary)' }}>
-                            <motion.div 
-                              initial={{ width: 0 }}
-                              animate={{ width: `${progresso}%` }}
-                              transition={{ duration: 1.2, ease: "easeOut" }}
-                              className={`h-100 rounded-pill ${concluida ? 'bg-success' : 'bg-primary'}`}
-                              style={{ 
-                                boxShadow: concluida ? '0 0 10px rgba(46, 184, 92, 0.3)' : '0 0 10px rgba(var(--color-primary-rgb, 50, 31, 219), 0.3)'
-                              }}
-                            />
-                          </div>
+                      <div className="p-3 rounded-4 bg-body-tertiary border mb-4">
+                        <div style={{ fontSize: 10, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase', marginBottom: 4 }}>{concluida ? 'PARABÉNS!' : 'PRÓXIMO PASSO'}</div>
+                        <div className="fw-bold text-truncate" style={{ fontSize: 13, color: 'var(--color-text-primary)' }}>
+                          {concluida ? 'Trilha completada com sucesso' : proximo?.nome || 'Aguardando aulas'}
                         </div>
+                      </div>
 
-                        {/* Próximo Passo / Destaque - Usando bg-body-tertiary para respeitar o tema */}
-                        <div className="p-3 rounded-4 mb-4 bg-body-tertiary border border-border/30 d-flex align-items-center gap-3">
-                          <div className={`p-2 rounded-3 ${concluida ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary'}`}>
-                            <Icon icon={concluida ? "solar:verified-check-bold" : "solar:play-circle-bold"} width="24" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-body-secondary" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-                              {concluida ? 'Status Final' : 'Próximo Módulo'}
-                            </div>
-                            <div className="fw-bold text-truncate" style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}>
-                              {concluida ? 'Parabéns pela conclusão!' : proximoModulo?.nome || 'Aguardando conteúdo'}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Botão de Ação Premium */}
-                        <CButton 
-                          color={concluida ? "success" : "primary"}
-                          variant={concluida ? "outline" : ""}
-                          className={`w-100 py-2 fw-bold rounded-3 transition-all d-flex align-items-center justify-content-center gap-2 ${concluida ? '' : 'shadow-lg shadow-primary/20'}`}
-                          onClick={() => concluida ? handleAcessarModulo(t) : proximoModulo && handleAcessarModulo(proximoModulo)}
-                          disabled={!concluida && !proximoModulo}
-                        >
-                          <Icon icon={concluida ? "solar:folder-check-bold" : "solar:play-bold"} width="18" />
-                          {concluida ? 'Rever Conteúdo' : 'Continuar Estudos'}
-                        </CButton>
-                      </CCardBody>
-                    </CCard>
-                  </motion.div>
-                </CCol>
-              );
-            })}
-          </CRow>
-        )}
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => concluida ? handleAcessarModulo(modulos[0]) : handleAcessarModulo(proximo)}
+                        className="w-100 border-0 fw-bold py-2 shadow-sm"
+                        style={{
+                          background: concluida ? tokens.babu : tokens.rausch,
+                          color: '#fff',
+                          borderRadius: 14,
+                          fontSize: 14,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 8
+                        }}
+                      >
+                        <Icon icon={concluida ? "solar:restart-bold-duotone" : "solar:play-bold-duotone"} width="18" />
+                        {concluida ? 'Revisar Conteúdo' : 'Continuar Jornada'}
+                      </motion.button>
+                    </SCard>
+                  </CCol>
+                )
+              })}
+            </CRow>
+          )}
+        </div>
 
 
       {/* MODAL DE AULA INTEGRADA PREMIUM (AIRBNB CLONE) */}
