@@ -1,3 +1,15 @@
+import React, { useEffect, useState, useMemo, useCallback, memo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Icon } from '@iconify/react'
+import confetti from 'canvas-confetti'
+import toast from 'react-hot-toast'
+import {
+  CButton, CCol, CContainer,
+  CFormSelect, CFormInput, CRow, CSpinner
+} from '@coreui/react'
+import { API_URL } from '../../config'
+import { useTheme } from '../../context/themeContext'
+
 /* ─── Tokens Airbnb-inspired ─────────────────────────────── */
 const tokens = {
   rausch: '#FF385C',
