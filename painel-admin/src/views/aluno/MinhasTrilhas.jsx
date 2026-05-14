@@ -378,7 +378,7 @@ const MinhasTrilhas = () => {
             ))}
           </CRow>
         )}
-      </CCol>
+
 
       {/* MODAL DE AULA INTEGRADA */}
       <CModal visible={modalAula} onClose={() => setModalAula(false)} size="xl" backdrop="static">
