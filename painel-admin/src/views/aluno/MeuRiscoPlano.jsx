@@ -191,24 +191,19 @@ const MeuRiscoPlano = () => {
             
             <div style={{ maxWidth: 960, margin: '0 auto' }}>
                 
-                {/* ── Header ── */}
+                {/* ── Header Clássico ── */}
                 <motion.div 
                     initial={{ opacity: 0, y: -10 }} 
                     animate={{ opacity: 1, y: 0 }} 
                     style={{ marginBottom: 32 }}
                 >
                     <div className="d-flex justify-content-between align-items-center">
-                        <div className="d-flex align-items-center gap-3">
-                            <div style={{ width: 42, height: 42, borderRadius: 12, background: `${tokens.rausch}15`, color: tokens.rausch, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Icon icon="solar:target-bold-duotone" width="24" />
+                        <div>
+                            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+                                Meu Risco + Missões
                             </div>
-                            <div>
-                                <h2 style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text-primary)', margin: 0, letterSpacing: '-0.5px' }}>
-                                    Meu Risco + Missões
-                                </h2>
-                                <p style={{ color: tokens.foggy, fontSize: 14, margin: 0 }}>
-                                    Acompanhe sua estratégia e gerencie seus desafios.
-                                </p>
+                            <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+                                Acompanhe sua estratégia e gerencie seus desafios de forma simples.
                             </div>
                         </div>
                         <CButton 
