@@ -251,7 +251,7 @@ const VideoGallery = () => {
   const perc = questoesComVideo.length ? Math.round((assistidos.length / questoesComVideo.length) * 100) : 0
 
   return (
-    <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
+    <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Nunito', sans-serif" }}>
       <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
       <style>{`
         @keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -260,26 +260,18 @@ const VideoGallery = () => {
       `}</style>
 
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
-        {/* HEADER PREMIUM ALINHADO */}
+        {/* HEADER PREMIUM IDENTICO AO PAINEL */}
         <motion.div 
           initial={{ opacity: 0, y: -10 }} 
           animate={{ opacity: 1, y: 0 }}
-          className="pb-4 mb-4"
+          style={{ marginBottom: 32 }}
         >
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-4">
-            <div>
-              <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>Centro de Aprendizado</div>
-              <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--color-text-primary)', marginBottom: 6, lineHeight: 1.2 }}>Aprenda no seu Ritmo 🎓</h1>
-              <p style={{ color: tokens.foggy, fontSize: 14, maxWidth: 450, lineHeight: 1.4, marginTop: 6 }}>Assista às aulas exclusivas e domine os conceitos fundamentais da contabilidade.</p>
-            </div>
-            <div style={{ minWidth: 260 }}>
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Seu Progresso</span>
-                <span style={{ fontSize: 18, fontWeight: 800, color: tokens.rausch }}>{perc}%</span>
-              </div>
-              <AirbnbProgress value={perc} />
-              <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 8, fontWeight: 600 }}>{assistidos.length} de {questoesComVideo.length} aulas concluídas</div>
-            </div>
+          <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Centro de Aprendizado</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+            Aprenda no seu Ritmo 🎓
+          </div>
+          <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+            Assista às aulas exclusivas e domine os conceitos fundamentais da contabilidade.
           </div>
         </motion.div>
 
