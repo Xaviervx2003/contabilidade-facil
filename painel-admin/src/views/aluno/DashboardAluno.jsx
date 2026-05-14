@@ -173,7 +173,7 @@ const DashboardAluno = () => {
   const primeiroNome = nomeExibicao.split(' ')[0]
 
   return (
-    <div className="min-h-screen bg-light pt-4 px-3">
+    <div className="min-h-screen pt-4 px-3" style={{ background: 'var(--color-bg-primary)' }}>
       <div className="max-w-5xl mx-auto">
         {/* Título e Subtítulo padronizados (Modelo Simples) */}
         <div className="mb-3">

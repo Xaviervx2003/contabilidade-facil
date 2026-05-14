@@ -609,7 +609,7 @@ const HistoricoAluno = () => {
     const ultima = resumo?.ultima_sessao ? new Date(resumo.ultima_sessao).toLocaleDateString('pt-BR') : '—'
 
     return (
-        <div className="min-h-screen bg-light pt-4 px-3">
+        <div className="min-h-screen pt-4 px-3" style={{ background: 'var(--color-bg-primary)' }}>
             <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
 
             {toast && <Toast mensagem={toast.mensagem} tipo={toast.tipo} onClose={() => setToast(null)} />}
