@@ -62,7 +62,7 @@ const MeuRiscoPlano = () => {
                 if (jsonKpi) setDados(jsonKpi)
                 if (jsonResumo) setResumoAluno(jsonResumo)
                 if (jsonGlobais) setMissoesGlobais(jsonGlobais)
-                
+
                 const mKey = `missoes_semanais:${matricula}`
                 const pKey = `missoes_pessoais:${matricula}`
                 setMissoesConcluidas(JSON.parse(sessionStorage.getItem(mKey) || '[]'))
@@ -81,18 +81,18 @@ const MeuRiscoPlano = () => {
         if (!textoFinal.trim()) return
 
         const matricula = sessionStorage.getItem('matricula')
-        const nova = { 
-            id: `personal_${Date.now()}`, 
-            titulo: textoFinal, 
-            dica: 'Missão pessoal criada por você.', 
-            progresso: 0, 
+        const nova = {
+            id: `personal_${Date.now()}`,
+            titulo: textoFinal,
+            dica: 'Missão pessoal criada por você.',
+            progresso: 0,
             icon: 'solar:pen-new-square-bold-duotone',
-            isPersonal: true 
+            isPersonal: true
         }
         const atualizadas = [...missoesPessoais, nova]
         setMissoesPessoais(atualizadas)
         localStorage.setItem(`missoes_pessoais:${matricula}`, JSON.stringify(atualizadas))
-        
+
         if (!textoSugestao) setNovaMissao('')
         toast.success('Missão adicionada com sucesso! 🎯')
     }
@@ -138,7 +138,7 @@ const MeuRiscoPlano = () => {
         }
 
         // Converter missões globais (Admin) para o formato do plano com trava de segurança
-        const globaisFormatadas = Array.isArray(missoesGlobais) 
+        const globaisFormatadas = Array.isArray(missoesGlobais)
             ? missoesGlobais.map(g => ({
                 id: `global_${g.id}`,
                 titulo: g.titulo,
@@ -181,27 +181,27 @@ const MeuRiscoPlano = () => {
     const riscoCor = churn >= 70 ? tokens.rausch : churn >= 40 ? tokens.arches : tokens.babu
 
     return (
-        <div style={{ 
-            minHeight: '100vh', 
-            background: 'var(--color-bg-primary)', 
+        <div style={{
+            minHeight: '100vh',
+            background: 'var(--color-bg-primary)',
             padding: '32px 16px 48px',
             fontFamily: "'Nunito', sans-serif"
         }}>
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');`}</style>
-            
+
             <div style={{ maxWidth: 960, margin: '0 auto' }}>
-                
+
                 {/* ── Header Padrão 'Suas Jornadas' ── */}
-                <motion.div 
-                    initial={{ opacity: 0, y: -10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     style={{ marginBottom: 40 }}
                 >
                     <div className="d-flex justify-content-between align-items-start">
                         <div className="d-flex gap-3">
-                            <div style={{ 
-                                width: 54, height: 54, borderRadius: 16, 
-                                background: `${tokens.rausch}15`, color: tokens.rausch, 
+                            <div style={{
+                                width: 54, height: 54, borderRadius: 16,
+                                background: `${tokens.rausch}15`, color: tokens.rausch,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 flexShrink: 0
                             }}>
@@ -217,7 +217,7 @@ const MeuRiscoPlano = () => {
                                 </div>
                             </div>
                         </div>
-                        <CButton 
+                        <CButton
                             onClick={() => navigate('/quiz')}
                             style={{ background: tokens.rausch, color: '#fff', borderRadius: 12, fontWeight: 800, border: 'none' }}
                             className="px-4 py-2 d-flex align-items-center gap-2"
@@ -261,19 +261,19 @@ const MeuRiscoPlano = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
                         <span style={{ fontWeight: 800, fontSize: 18, color: 'var(--color-text-primary)' }}>Planejamento de Missões</span>
                     </div>
-                    
+
                     {/* INPUT NOVA MISSÃO */}
                     <div className="mb-4">
                         <div className="d-flex gap-2 mb-2">
-                            <CFormInput 
-                                placeholder="Sua nova missão..." 
+                            <CFormInput
+                                placeholder="Sua nova missão..."
                                 value={novaMissao}
                                 onChange={e => setNovaMissao(e.target.value)}
                                 onKeyPress={e => e.key === 'Enter' && handleAddMissao()}
                                 className="border-0 bg-body-tertiary rounded-3 shadow-none px-3"
                                 style={{ fontSize: 14 }}
                             />
-                            <CButton 
+                            <CButton
                                 onClick={() => handleAddMissao()}
                                 style={{ background: tokens.babu, color: '#fff', borderRadius: 10, border: 'none' }}
                                 className="px-3"
@@ -281,20 +281,20 @@ const MeuRiscoPlano = () => {
                                 <Icon icon="solar:add-circle-bold" width="20" />
                             </CButton>
                         </div>
-                        
+
                         {/* Sugestões Rápidas */}
                         <div className="d-flex flex-wrap gap-2 mt-3">
                             <span className="small text-muted me-1 mt-1">Sugestões:</span>
                             {['Estudar 1h', 'Resolver 50 questões', 'Revisar erros', 'Ler ementa'].map(opt => (
-                                <CButton 
+                                <CButton
                                     key={opt}
-                                    variant="ghost" 
+                                    variant="ghost"
                                     size="sm"
                                     onClick={() => handleAddMissao(opt)}
-                                    style={{ 
-                                        borderRadius: 20, 
-                                        fontSize: 11, 
-                                        fontWeight: 700, 
+                                    style={{
+                                        borderRadius: 20,
+                                        fontSize: 11,
+                                        fontWeight: 700,
                                         background: 'var(--color-bg-tertiary)',
                                         color: tokens.foggy,
                                         border: '1px solid var(--color-border)'
@@ -319,7 +319,7 @@ const MeuRiscoPlano = () => {
                         {plano.map((m, i) => {
                             const done = missoesConcluidas.includes(m.id)
                             return (
-                                <motion.div 
+                                <motion.div
                                     key={m.id}
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -335,7 +335,7 @@ const MeuRiscoPlano = () => {
                                     }}
                                 >
                                     {/* Checkbox Customizado */}
-                                    <div 
+                                    <div
                                         onClick={() => toggleMissao(m.id)}
                                         style={{
                                             width: 32, height: 32, borderRadius: 10,
@@ -347,7 +347,7 @@ const MeuRiscoPlano = () => {
                                     >
                                         {done && <Icon icon="solar:check-read-bold" width="20" />}
                                     </div>
-                                    
+
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                             <div style={{ fontWeight: 800, fontSize: 17, color: 'var(--color-text-primary)', textDecoration: done ? 'line-through' : 'none', letterSpacing: '-0.3px' }}>
@@ -364,9 +364,9 @@ const MeuRiscoPlano = () => {
                                     {/* Ações Rápidas */}
                                     <div className="d-flex align-items-center gap-2">
                                         {m.isPersonal && (
-                                            <CButton 
-                                                variant="ghost" 
-                                                size="sm" 
+                                            <CButton
+                                                variant="ghost"
+                                                size="sm"
                                                 className="p-2 text-danger opacity-50 hover-opacity-100"
                                                 onClick={() => handleDeleteMissao(m.id)}
                                             >
@@ -384,14 +384,14 @@ const MeuRiscoPlano = () => {
                 </SCard>
 
                 {/* BOX DE AVISO/RECOMENDAÇÃO */}
-                <motion.div 
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }} 
-                    style={{ 
-                        marginTop: 24, 
-                        background: `${tokens.arches}10`, 
-                        borderRadius: 20, 
-                        padding: '24px', 
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    style={{
+                        marginTop: 24,
+                        background: `${tokens.arches}10`,
+                        borderRadius: 20,
+                        padding: '24px',
                         border: `1px solid ${tokens.arches}30`,
                         display: 'flex',
                         gap: 16,
@@ -404,8 +404,8 @@ const MeuRiscoPlano = () => {
                     <div>
                         <div className="fw-bold" style={{ color: tokens.arches }}>Dica do Mentor</div>
                         <div className="text-muted small">
-                            {churn >= 70 
-                                ? 'Foque em resolver pelo menos 5 questões hoje. Isso quebrará o sinal de alerta no sistema.' 
+                            {churn >= 70
+                                ? 'Foque em resolver pelo menos 5 questões hoje. Isso quebrará o sinal de alerta no sistema.'
                                 : 'Você está no caminho certo! Tente manter essa média de conclusão para garantir sua vaga.'}
                         </div>
                     </div>
