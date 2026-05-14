@@ -27,9 +27,12 @@ const GestaoMissoes = () => {
         setLoading(true)
         try {
             const res = await fetch(`${API_URL}/api/missoes/globais`)
+            if (!res.ok) throw new Error(`Erro do servidor: ${res.status}`)
             const data = await res.json()
-            setMissoes(data)
+            setMissoes(Array.isArray(data) ? data : [])
         } catch (e) {
+            console.error(e)
+            setMissoes([]) // Garante que será sempre um array para evitar crash no .map
             toast.error('Erro ao buscar missões')
         } finally {
             setLoading(false)
@@ -155,7 +158,7 @@ const GestaoMissoes = () => {
                                     </CTableRow>
                                 </CTableHead>
                                 <CTableBody>
-                                    {missoes.map((m) => (
+                                    {Array.isArray(missoes) && missoes.map((m) => (
                                         <CTableRow key={m.id}>
                                             <CTableDataCell className="px-0">
                                                 <div className="fw-bold" style={{ fontSize: 15 }}>{m.titulo}</div>
