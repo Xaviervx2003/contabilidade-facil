@@ -315,19 +315,29 @@ const MinhasTrilhas = () => {
         )}
 
 
-      {/* MODAL DE AULA INTEGRADA PREMIUM */}
-      <CModal visible={modalAula} onClose={() => setModalAula(false)} size="xl" backdrop="static" scrollable style={{ fontFamily: "'Nunito', sans-serif" }}>
-        <CModalHeader className="border-0 pb-0 pt-4 px-4 bg-body-elevated">
+      {/* MODAL DE AULA INTEGRADA PREMIUM (AIRBNB CLONE) */}
+      <CModal 
+        visible={modalAula} 
+        onClose={() => setModalAula(false)} 
+        size="xl" 
+        backdrop="static" 
+        scrollable 
+        className="modal-premium"
+        style={{ 
+          fontFamily: "'Circular Std', 'Nunito', sans-serif",
+        }}
+      >
+        <CModalHeader className="border-0 pb-0 pt-4 px-4 bg-body-elevated" style={{ backdropFilter: 'blur(12px)', background: 'rgba(var(--color-bg-elevated-rgb), 0.85)' }}>
           <div className="w-100">
             <div className="d-flex align-items-center gap-2 mb-1">
-              <span className="px-2 py-1 rounded-pill fw-bold" style={{ background: 'rgba(255, 56, 92, 0.12)', color: '#FF385C', fontSize: 10, textTransform: 'uppercase' }}>
+              <span className="px-2 py-1 rounded-pill fw-bold" style={{ background: 'rgba(255, 56, 92, 0.12)', color: '#FF385C', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 {moduloAtivo?.ordem}º Módulo
               </span>
-              <span style={{ fontSize: 12, color: '#767676', fontWeight: 500 }}>
+              <span style={{ fontSize: 11, color: '#767676', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Aula de Contabilidade Fácil
               </span>
             </div>
-            <h4 className="fw-bold mb-3" style={{ fontSize: 24, letterSpacing: '-0.5px', color: 'var(--color-text-primary)' }}>
+            <h4 className="fw-bold mb-3" style={{ fontSize: 26, letterSpacing: '-0.8px', color: 'var(--color-text-primary)', lineHeight: 1.1 }}>
               {moduloAtivo?.nome}
             </h4>
             
@@ -337,11 +347,11 @@ const MinhasTrilhas = () => {
                 style={{ 
                   cursor: 'pointer', paddingBottom: 10, position: 'relative', 
                   color: abaAtiva === 'aula' ? '#FF385C' : '#767676',
-                  fontWeight: 700, fontSize: 14,
+                  fontWeight: 700, fontSize: 15, letterSpacing: '-0.2px',
                   transition: '0.2s'
                 }}
               >
-                <Icon icon="solar:play-circle-bold-duotone" className="me-1" /> Vídeo Aula
+                <Icon icon="solar:play-circle-bold-duotone" className="me-1" width="18" /> Vídeo Aula
                 {abaAtiva === 'aula' && (
                   <motion.div 
                     layoutId="tab-underline" 
@@ -355,12 +365,12 @@ const MinhasTrilhas = () => {
                 style={{ 
                   cursor: 'pointer', paddingBottom: 10, position: 'relative', 
                   color: abaAtiva === 'duvidas' ? '#FF385C' : '#767676',
-                  fontWeight: 700, fontSize: 14,
+                  fontWeight: 700, fontSize: 15, letterSpacing: '-0.2px',
                   transition: '0.2s'
                 }}
               >
-                <Icon icon="solar:chat-round-dots-bold-duotone" className="me-1" /> Dúvidas
-                {duvidas.length > 0 && <span className="ms-2 px-1 rounded-circle bg-danger text-white" style={{ fontSize: 9 }}>{duvidas.length}</span>}
+                <Icon icon="solar:chat-round-dots-bold-duotone" className="me-1" width="18" /> Dúvidas
+                {duvidas.length > 0 && <span className="ms-2 px-2 py-0.5 rounded-pill bg-danger text-white" style={{ fontSize: 10 }}>{duvidas.length}</span>}
                 {abaAtiva === 'duvidas' && (
                   <motion.div 
                     layoutId="tab-underline" 
@@ -378,7 +388,7 @@ const MinhasTrilhas = () => {
             <div className="row g-0">
               <div className={moduloAtivo?.texto_teorico ? "col-12 col-lg-8" : "col-12"}>
                 {moduloAtivo?.link_video ? (
-                  <div className="ratio ratio-16x9 bg-black shadow-lg overflow-hidden">
+                  <div className="ratio ratio-16x9 bg-black shadow-lg overflow-hidden border-bottom">
                     <iframe
                       src={getEmbedUrl(moduloAtivo.link_video)}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -389,8 +399,8 @@ const MinhasTrilhas = () => {
                 ) : (
                   <div className="p-5 text-center d-flex flex-column align-items-center justify-content-center bg-body-tertiary" style={{ minHeight: 400 }}>
                     <Icon icon="solar:document-text-bold-duotone" width="64" style={{ color: '#B0B0B0' }} className="mb-3" />
-                    <h5 className="fw-bold">Conteúdo Teórico</h5>
-                    <p className="text-body-secondary">Acompanhe a leitura e o material de apoio abaixo.</p>
+                    <h5 className="fw-bold" style={{ letterSpacing: '-0.5px' }}>Conteúdo Teórico</h5>
+                    <p className="text-body-secondary small">Acompanhe a leitura e o material de apoio abaixo.</p>
                   </div>
                 )}
               </div>
@@ -399,23 +409,27 @@ const MinhasTrilhas = () => {
                 <div className="col-12 col-lg-4 border-start bg-body-elevated">
                   <div className="p-4" style={{ maxHeight: '600px', overflowY: 'auto' }}>
                     {moduloAtivo?.material_apoio_url && (
-                      <div className="mb-4 p-3 rounded-4" style={{ background: 'rgba(0, 166, 153, 0.08)', border: '1px solid rgba(0, 166, 153, 0.2)' }}>
-                        <h6 className="fw-bold mb-2" style={{ color: '#00A699', fontSize: 13 }}>MATERIAL DE APOIO</h6>
+                      <motion.div 
+                        whileHover={{ scale: 1.02 }}
+                        className="mb-4 p-3 rounded-4" 
+                        style={{ background: 'rgba(0, 166, 153, 0.08)', border: '1.5px solid rgba(0, 166, 153, 0.15)' }}
+                      >
+                        <h6 className="fw-bold mb-2" style={{ color: '#00A699', fontSize: 11, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Material de Estudo</h6>
                         <CButton
                           href={moduloAtivo.material_apoio_url}
                           target="_blank"
-                          className="w-100 fw-bold border-0"
-                          style={{ background: '#00A699', color: '#fff', borderRadius: 10, fontSize: 13 }}
+                          className="w-100 fw-bold border-0 shadow-sm"
+                          style={{ background: '#00A699', color: '#fff', borderRadius: 12, fontSize: 14, padding: '10px' }}
                         >
-                          <Icon icon="solar:cloud-download-bold-duotone" className="me-2" /> Baixar PDF / Slides
+                          <Icon icon="solar:cloud-download-bold-duotone" className="me-2" width="18" /> Baixar PDF / Slides
                         </CButton>
-                      </div>
+                      </motion.div>
                     )}
 
-                    <h6 style={{ fontSize: 11, fontWeight: 700, color: '#767676', textTransform: 'uppercase', letterSpacing: '0.5px' }} className="mb-3">
-                      RESUMO DA AULA
+                    <h6 style={{ fontSize: 11, fontWeight: 700, color: '#767676', textTransform: 'uppercase', letterSpacing: '1px' }} className="mb-3">
+                      Resumo da Aula
                     </h6>
-                    <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.7', fontSize: '14px', color: 'var(--color-text-primary)' }}>
+                    <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.75', fontSize: '15px', color: 'var(--color-text-primary)', letterSpacing: '-0.1px' }}>
                       {moduloAtivo.texto_teorico}
                     </div>
                   </div>
@@ -425,7 +439,7 @@ const MinhasTrilhas = () => {
           ) : (
             <div className="p-4" style={{ minHeight: '400px' }}>
               <div className="mb-4">
-                <h6 className="fw-bold mb-3">Sua dúvida ou comentário:</h6>
+                <h6 className="fw-bold mb-3" style={{ fontSize: 16, letterSpacing: '-0.4px' }}>Sua dúvida ou comentário:</h6>
                 <div className="d-flex flex-column gap-3">
                   <CFormTextarea
                     placeholder="O que você achou desta aula?"
@@ -433,46 +447,57 @@ const MinhasTrilhas = () => {
                     value={novaDuvida}
                     onChange={(e) => setNovaDuvida(e.target.value)}
                     className="border-0 bg-body-tertiary rounded-4 p-3 shadow-none"
+                    style={{ fontSize: 15, border: '1.5px solid var(--color-border)' }}
                   />
-                  <CButton
-                    className="align-self-end fw-bold px-4 border-0"
-                    style={{ background: '#FF385C', color: '#fff', borderRadius: 10 }}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="align-self-end fw-bold px-4 py-2 border-0 shadow-sm"
+                    style={{ background: '#FF385C', color: '#fff', borderRadius: 12, fontSize: 15 }}
                     onClick={enviarDuvida}
                     disabled={enviandoDuvida}
                   >
                     {enviandoDuvida ? <CSpinner size="sm" /> : 'Publicar Comentário'}
-                  </CButton>
+                  </motion.button>
                 </div>
               </div>
 
               <div className="mt-5">
-                <h6 className="fw-bold border-bottom pb-2 mb-4 d-flex align-items-center gap-2">
-                  <Icon icon="solar:chat-square-dots-bold-duotone" style={{ color: '#FF385C' }} />
+                <h6 className="fw-bold border-bottom pb-2 mb-4 d-flex align-items-center gap-2" style={{ fontSize: 16, letterSpacing: '-0.4px' }}>
+                  <Icon icon="solar:chat-square-dots-bold-duotone" style={{ color: '#FF385C' }} width="20" />
                   Comentários da Turma ({duvidas.length})
                 </h6>
                 <div className="d-flex flex-column gap-3">
                   {duvidas.length === 0 ? (
-                    <div className="text-center py-4 text-body-secondary italic">Ainda não há comentários nesta aula.</div>
-                  ) : duvidas.map((d) => (
-                    <div key={d.id} className="p-3 rounded-4 bg-body-tertiary border border-border/10 shadow-sm">
+                    <div className="text-center py-4 text-body-secondary italic small">Ainda não há comentários nesta aula.</div>
+                  ) : duvidas.map((d, i) => (
+                    <motion.div 
+                      key={d.id} 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      whileHover={{ y: -2 }}
+                      className="p-3 rounded-4 bg-body-tertiary border shadow-sm" 
+                      style={{ border: '1px solid var(--color-border)' }}
+                    >
                       <div className="d-flex justify-content-between align-items-center mb-2">
-                        <span className="fw-bold small d-flex align-items-center gap-1">
-                          <Icon icon="solar:user-circle-bold-duotone" style={{ color: '#767676' }} /> {d.aluno_nome}
+                        <span className="fw-bold small d-flex align-items-center gap-1" style={{ color: 'var(--color-text-primary)' }}>
+                          <Icon icon="solar:user-circle-bold-duotone" style={{ color: '#767676' }} width="16" /> {d.aluno_nome}
                         </span>
-                        <span style={{ fontSize: 10, color: '#767676' }}>
+                        <span style={{ fontSize: 10, color: '#767676', fontWeight: 600 }}>
                           {formatIsoToDateString(d.data_criacao)}
                         </span>
                       </div>
-                      <div className="small" style={{ lineHeight: 1.6 }}>{d.texto}</div>
+                      <div className="small" style={{ lineHeight: 1.6, color: 'var(--color-text-secondary)' }}>{d.texto}</div>
                       {d.resposta_professor && (
-                        <div className="ms-4 p-3 mt-3 rounded-4 border-start border-4 shadow-sm" style={{ background: 'rgba(0, 166, 153, 0.08)', borderStartColor: '#00A699' }}>
-                          <div className="fw-bold small mb-1 d-flex align-items-center gap-1" style={{ color: '#00A699' }}>
-                            <Icon icon="solar:verified-check-bold" /> Resposta do Professor
+                        <div className="ms-4 p-3 mt-3 rounded-4 border-start border-4 shadow-sm" style={{ background: 'rgba(0, 166, 153, 0.06)', borderStartColor: '#00A699' }}>
+                          <div className="fw-bold small mb-1 d-flex align-items-center gap-1" style={{ color: '#00A699', fontSize: 12 }}>
+                            <Icon icon="solar:verified-check-bold" width="14" /> Resposta do Professor
                           </div>
-                          <div className="small" style={{ opacity: 0.8 }}>{d.resposta_professor}</div>
+                          <div className="small" style={{ opacity: 0.9, lineHeight: 1.5 }}>{d.resposta_professor}</div>
                         </div>
                       )}
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -481,7 +506,7 @@ const MinhasTrilhas = () => {
         </CModalBody>
 
         <CModalFooter className="border-0 pt-0 pb-4 px-4 bg-body-elevated justify-content-between align-items-center">
-          <div style={{ fontSize: 12, color: '#767676', fontWeight: 500 }}>
+          <div style={{ fontSize: 12, color: '#767676', fontWeight: 600, letterSpacing: '0.3px' }}>
              Módulo {moduloAtivo?.ordem} • {moduloAtivo?.descricao}
           </div>
           <div className="d-flex gap-2">
@@ -489,16 +514,18 @@ const MinhasTrilhas = () => {
               variant="ghost"
               onClick={() => setModalAula(false)}
               className="fw-bold"
-              style={{ color: '#767676' }}
+              style={{ color: '#767676', fontSize: 14 }}
             >
               Fechar
             </CButton>
 
             {/* Ação de Exercícios */}
             {(moduloAtivo?.materia_id || (moduloAtivo?.questoes_selecionadas?.length > 0)) ? (
-              <CButton
-                className="fw-bold border-0 shadow-sm"
-                style={{ background: '#FC642D', color: '#fff', borderRadius: 10 }}
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="fw-bold border-0 shadow-sm px-4 py-2"
+                style={{ background: '#FC642D', color: '#fff', borderRadius: 12, fontSize: 14 }}
                 onClick={() => {
                   if (moduloAtivo.questoes_selecionadas?.length > 0) {
                     const ids = moduloAtivo.questoes_selecionadas.join(',')
@@ -509,26 +536,28 @@ const MinhasTrilhas = () => {
                   setModalAula(false)
                 }}
               >
-                <Icon icon="solar:pen-bold-duotone" className="me-2" /> Praticar Exercícios
-              </CButton>
+                <Icon icon="solar:pen-bold-duotone" className="me-2" width="18" /> Praticar Exercícios
+              </motion.button>
             ) : (
-               <div className="px-3 py-2 bg-body-tertiary rounded-3 small fst-italic text-body-secondary">
+               <div className="px-3 py-2 bg-body-tertiary rounded-3 small fst-italic text-body-secondary border">
                  <Icon icon="solar:pen-new-square-linear" className="me-1" /> Exercícios em breve...
                </div>
             )}
 
             {!moduloAtivo?.concluido && (
-              <CButton
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
                 disabled={salvando === moduloAtivo?.id}
                 onClick={() => {
                   marcarConcluido(moduloAtivo.id)
                   setModalAula(false)
                 }}
-                className="fw-bold border-0 shadow-sm px-4"
-                style={{ background: '#00A699', color: '#fff', borderRadius: 10 }}
+                className="fw-bold border-0 shadow-sm px-4 py-2"
+                style={{ background: '#00A699', color: '#fff', borderRadius: 12, fontSize: 14 }}
               >
-                {salvando === moduloAtivo?.id ? <CSpinner size="sm" /> : <><Icon icon="solar:check-circle-bold-duotone" className="me-2" /> Concluir Aula</>}
-              </CButton>
+                {salvando === moduloAtivo?.id ? <CSpinner size="sm" /> : <><Icon icon="solar:check-circle-bold-duotone" className="me-2" width="18" /> Concluir Aula</>}
+              </motion.button>
             )}
           </div>
         </CModalFooter>
