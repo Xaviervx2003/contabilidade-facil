@@ -5,7 +5,7 @@ import {
     CModal, CModalBody, CModalHeader, CModalTitle,
 } from '@coreui/react'
 import {
-    BarChart, Bar, Tooltip, ResponsiveContainer,
+    BarChart, Bar, Tooltip, ResponsiveContainer, XAxis
 } from 'recharts'
 import { API_URL } from '../../config'
 import { useTheme } from '../../context/themeContext'
