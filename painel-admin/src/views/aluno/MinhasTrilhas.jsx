@@ -185,111 +185,138 @@ const MinhasTrilhas = () => {
   return (
     <div className="min-h-screen pt-4 px-3" style={{ background: 'var(--color-bg-primary)' }}>
       <div className="max-w-5xl mx-auto">
-        {/* Título e Subtítulo padronizados (Modelo Simples) */}
-        <div className="mb-3">
+  return (
+    <div className="min-h-screen pt-4 px-3" style={{ background: 'var(--color-bg-primary)' }}>
+      <div className="max-w-5xl mx-auto">
+  return (
+    <div className="min-h-screen pt-4 px-3" style={{ background: 'var(--color-bg-primary)' }}>
+      <div className="max-w-5xl mx-auto">
+        {/* Título e Subtítulo padronizados - Mantendo h3 para alinhamento total */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4"
+        >
           <h3 className="h3 fw-bold mb-1">Minhas Trilhas de Aprendizado</h3>
-          <div className="text-muted small">Siga os cursos e módulos elaborados pelos professores para guiar seus estudos.</div>
-        </div>
+          <div className="text-body-secondary small">Siga os cursos e módulos elaborados pelos professores para guiar seus estudos.</div>
+        </motion.div>
 
-        {errorMsg && <CAlert color="danger" className="mb-4">{errorMsg}</CAlert>}
+        {errorMsg && <CAlert color="danger" className="mb-4 border-0 shadow-sm">{errorMsg}</CAlert>}
         
         {trilhas.length === 0 ? (
-          <CAlert color="info">Nenhuma trilha disponível no momento.</CAlert>
+          <div className="text-center py-5">
+            <Icon icon="solar:folder-error-linear" width="48" className="text-body-secondary mb-3" />
+            <p className="text-body-secondary font-medium">Nenhuma trilha disponível no momento.</p>
+          </div>
         ) : (
           <CRow>
-            {trilhas.map((t, index) => (
-              <CCol xs={12} lg={6} xl={4} key={t.id} className="mb-4">
-                <CCard className="h-100 border-0 shadow-sm overflow-hidden">
-                  {/* 1. Card Roxo (Header Compacto) */}
-                  {t.capa_url ? (
-                    <div style={{ height: '140px', overflow: 'hidden' }}>
-                      <img src={t.capa_url} alt={t.nome} className="w-100 h-100 object-cover" />
-                    </div>
-                  ) : (
-                    <CCardHeader 
-                      className="bg-primary text-white px-3 d-flex align-items-center justify-content-between" 
-                      style={{ height: '48px' }}
-                    >
-                      <span className="fw-semibold text-truncate">{t.nome}</span>
-                      {t.nivel && <CBadge color="light" text="dark" size="sm">{t.nivel}</CBadge>}
-                    </CCardHeader>
-                  )}
+            {trilhas.map((t, index) => {
+              // Failsafe para evitar erros de renderização com dados incompletos
+              const modulos = t.modulos || [];
+              const proximoModulo = modulos.find(m => !m.concluido) || modulos[0] || null;
+              const progresso = t.progresso_percentual || 0;
+              const concluida = progresso === 100;
 
-                  {/* 2. Card Branco (Título + 100%) */}
-                  <CCardHeader className="bg-white border-bottom-0 px-3 py-2">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <h6 className="fw-bold mb-0 text-truncate" style={{ maxWidth: '75%' }}>{t.nome}</h6>
-                      <CBadge color={t.progresso_percentual === 100 ? 'success' : 'primary'}>
-                        {t.progresso_percentual}%
-                      </CBadge>
-                    </div>
-                    {/* Descrição em 1 linha com ellipsis */}
-                    <div 
-                      className="text-muted small mt-1" 
-                      style={{ 
-                        overflow: 'hidden', 
-                        whiteSpace: 'nowrap', 
-                        textOverflow: 'ellipsis',
-                        fontSize: '13px'
-                      }}
-                    >
-                      {t.descricao}
-                    </div>
-                  </CCardHeader>
-
-                  <CCardBody className="p-3">
-                    {/* Progresso Simples */}
-                    <div className="mb-3">
-                      <CProgress
-                        value={t.progresso_percentual}
-                        color={t.progresso_percentual === 100 ? 'success' : 'info'}
-                        height={4}
-                      />
-                    </div>
-
-                    {/* Módulos (Lista Simples com Descrição Truncada) */}
-                    <div className="d-flex flex-column gap-1">
-                      {t.modulos?.map((m) => (
-                        <div
-                          key={m.id}
-                          className={`px-3 py-2 rounded border d-flex flex-column gap-1 ${
-                            m.concluido ? 'bg-light border-success' : 'bg-white'
-                          }`}
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => handleAcessarModulo(m)}
+              return (
+                <CCol xs={12} lg={6} xl={4} key={t.id || index} className="mb-4">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <CCard className="h-100 border-0 shadow-sm premium-card overflow-hidden transition-all hover-translate-y">
+                      {/* Header da Trilha (Hero ou Capa) */}
+                      {t.capa_url ? (
+                        <div style={{ height: '140px', overflow: 'hidden', position: 'relative' }}>
+                          <img src={t.capa_url} alt={t.nome} className="w-100 h-100 object-cover" />
+                          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)' }}></div>
+                          {t.nivel && (
+                            <CBadge color="dark" className="position-absolute top-2 start-2 backdrop-blur-md bg-black/40 border border-white/10">
+                              {t.nivel}
+                            </CBadge>
+                          )}
+                        </div>
+                      ) : (
+                        <CCardHeader 
+                          className="text-white px-3 d-flex align-items-center justify-content-between border-0" 
+                          style={{ height: '56px', background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)' }}
                         >
-                          <div className="d-flex justify-content-between align-items-center">
-                            <span 
-                              className={`small text-truncate ${m.concluido ? 'text-success fw-bold' : ''}`}
-                              style={{ fontSize: '13px', maxWidth: '85%' }}
-                            >
-                              {m.ordem}. {m.nome}
-                            </span>
-                            {m.concluido && <CIcon icon={cilCheckCircle} className="text-success" size="sm" />}
+                          <span className="fw-bold text-truncate text-capitalize">{t.nome}</span>
+                          <Icon icon="solar:bookmark-opened-bold-duotone" width="20" />
+                        </CCardHeader>
+                      )}
+
+                      <CCardBody className="p-4 d-flex flex-column">
+                        {/* Título e Progresso */}
+                        <div className="d-flex justify-content-between align-items-start mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h5 className="fw-bold mb-0 text-truncate text-capitalize" style={{ color: 'var(--color-text-primary)' }}>
+                              {t.nome}
+                            </h5>
+                            <div className="text-body-secondary small text-truncate mt-1" style={{ fontSize: '12px' }}>
+                              {t.descricao || 'Trilha de estudos personalizada'}
+                            </div>
                           </div>
-                          {/* Descrição do módulo truncada em 1 linha */}
-                          <div 
-                            className="text-muted small text-truncate" 
-                            style={{ fontSize: '11px' }}
-                          >
-                            {m.descricao}
+                          <div className="ms-2">
+                            <CBadge color={concluida ? 'success' : 'primary'} className="rounded-pill px-2 py-1 shadow-sm">
+                              {progresso}%
+                            </CBadge>
                           </div>
                         </div>
-                      ))}
-                    </div>
 
-                    <CButton 
-                      color="primary" 
-                      size="sm" 
-                      className="w-100 mt-3"
-                      onClick={() => handleAcessarModulo(t)}
-                    >
-                      Acessar Trilha
-                    </CButton>
-                  </CCardBody>
-                </CCard>
-              </CCol>
-            ))}
+                        {/* Barra de Progresso Estilizada */}
+                        <div className="mb-4 mt-auto">
+                          <div className="d-flex justify-content-between small mb-2">
+                            <span className="text-body-secondary fw-medium">Sua Evolução</span>
+                            <span className={`fw-bold ${concluida ? 'text-success' : 'text-primary'}`}>
+                              {concluida ? 'Concluída!' : 'Em andamento'}
+                            </span>
+                          </div>
+                          <div className="progress-container rounded-pill" style={{ height: '6px', background: 'var(--color-bg-tertiary)' }}>
+                            <motion.div 
+                              initial={{ width: 0 }}
+                              animate={{ width: `${progresso}%` }}
+                              transition={{ duration: 1.2, ease: "easeOut" }}
+                              className={`h-100 rounded-pill ${concluida ? 'bg-success' : 'bg-primary'}`}
+                              style={{ 
+                                boxShadow: concluida ? '0 0 10px rgba(46, 184, 92, 0.3)' : '0 0 10px rgba(var(--color-primary-rgb, 50, 31, 219), 0.3)'
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Próximo Passo / Destaque - Usando bg-body-tertiary para respeitar o tema */}
+                        <div className="p-3 rounded-4 mb-4 bg-body-tertiary border border-border/30 d-flex align-items-center gap-3">
+                          <div className={`p-2 rounded-3 ${concluida ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary'}`}>
+                            <Icon icon={concluida ? "solar:verified-check-bold" : "solar:play-circle-bold"} width="24" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-body-secondary" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+                              {concluida ? 'Status Final' : 'Próximo Módulo'}
+                            </div>
+                            <div className="fw-bold text-truncate" style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}>
+                              {concluida ? 'Parabéns pela conclusão!' : proximoModulo?.nome || 'Aguardando conteúdo'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Botão de Ação Premium */}
+                        <CButton 
+                          color={concluida ? "success" : "primary"}
+                          variant={concluida ? "outline" : ""}
+                          className={`w-100 py-2 fw-bold rounded-3 transition-all d-flex align-items-center justify-content-center gap-2 ${concluida ? '' : 'shadow-lg shadow-primary/20'}`}
+                          onClick={() => concluida ? handleAcessarModulo(t) : proximoModulo && handleAcessarModulo(proximoModulo)}
+                          disabled={!concluida && !proximoModulo}
+                        >
+                          <Icon icon={concluida ? "solar:folder-check-bold" : "solar:play-bold"} width="18" />
+                          {concluida ? 'Rever Conteúdo' : 'Continuar Estudos'}
+                        </CButton>
+                      </CCardBody>
+                    </CCard>
+                  </motion.div>
+                </CCol>
+              );
+            })}
           </CRow>
         )}
 
