@@ -212,8 +212,8 @@ const GestaoMissoes = () => {
                                                 <div className="small text-muted">{m.dica}</div>
                                             </CTableDataCell>
                                             <CTableDataCell>
-                                                <CBadge style={{ background: m.metrica_tipo === 'manual' ? tokens.hof : tokens.babu, opacity: 0.8 }}>
-                                                    {m.metrica_tipo.toUpperCase()} {m.metrica_tipo !== 'manual' ? `(${m.metrica_alvo})` : ''}
+                                                <CBadge style={{ background: (m.metrica_tipo || 'manual') === 'manual' ? tokens.hof : tokens.babu, opacity: 0.8 }}>
+                                                    {(m.metrica_tipo || 'manual').toUpperCase()} {(m.metrica_tipo || 'manual') !== 'manual' ? `(${m.metrica_alvo || 0})` : ''}
                                                 </CBadge>
                                             </CTableDataCell>
                                             <CTableDataCell className="small text-muted fw-bold">
@@ -225,7 +225,6 @@ const GestaoMissoes = () => {
                                                     variant="ghost" 
                                                     onClick={() => handleDelete(m.id)}
                                                     style={{ color: tokens.rausch }}
-                                                    disabled={m.tipo === 'Sistema'}
                                                 >
                                                     <Icon icon="solar:trash-bin-trash-bold" width="20" />
                                                 </CButton>
