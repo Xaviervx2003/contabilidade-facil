@@ -246,11 +246,9 @@ def _avaliar_medalhas(total_questoes: int, total_sessoes: int, streak_atual: int
 
 
 @router.get("/api/aluno/streak/{matricula}")
-def get_streak(matricula: str):
+def get_streak(matricula: str, token: dict = Depends(verificar_proprio_ou_admin)):
     """
     Retorna informações do streak do aluno calculado a partir do banco.
-
-    O streak conta dias CONSECUTIVOS com pelo menos 1 sessão de estudo.
     """
     try:
         if not matricula or not matricula.strip():
@@ -285,7 +283,7 @@ def get_streak(matricula: str):
 
 
 @router.get("/api/aluno/conquistas/{matricula}")
-def get_conquistas(matricula: str):
+def get_conquistas(matricula: str, token: dict = Depends(verificar_proprio_ou_admin)):
     """
     Retorna todas as conquistas do aluno: streak, medalhas e estatísticas.
     Todos os dados são calculados a partir de sessoes_estudo.
@@ -438,6 +436,8 @@ def get_leaderboard(
         raise HTTPException(status_code=500, detail=f"Erro ao buscar leaderboard: {str(e)}")
 
 
+from utils.jwt_auth import verificar_admin, verificar_proprio_ou_admin
+
 # ==================== MISSÕES GLOBAIS ====================
 
 from pydantic import BaseModel
@@ -464,7 +464,7 @@ def get_missoes_globais():
         raise HTTPException(status_code=500, detail="Erro ao buscar missões globais")
 
 @router.post("/api/admin/missoes")
-def create_missao_global(missao: MissaoGlobalCreate):
+def create_missao_global(missao: MissaoGlobalCreate, token: dict = Depends(verificar_admin)):
     """Cria uma nova missão visível para todos os alunos (Admin only)."""
     try:
         with get_conexao() as conn:
@@ -481,7 +481,7 @@ def create_missao_global(missao: MissaoGlobalCreate):
         raise HTTPException(status_code=500, detail="Erro ao criar missão global")
 
 @router.delete("/api/admin/missoes/{missao_id}")
-def delete_missao_global(missao_id: int):
+def delete_missao_global(missao_id: int, token: dict = Depends(verificar_admin)):
     """Remove uma missão global (Admin only)."""
     try:
         with get_conexao() as conn:

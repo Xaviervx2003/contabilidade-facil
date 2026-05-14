@@ -301,6 +301,15 @@ const DashboardAluno = () => {
     enabled: !!matricula,
   })
 
+  const { data: missoesGlobais } = useQuery({
+    queryKey: ['missoes-globais'],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/missoes/globais`)
+      return res.json()
+    },
+    staleTime: 1000 * 60 * 10,
+  })
+
   if (isLoading) return <DashboardSkeleton />
   if (error) return <div style={{ padding: 32 }}><CAlert color="danger">{error.message}</CAlert></div>
   if (!data) return null
@@ -466,6 +475,38 @@ const DashboardAluno = () => {
             </SCard>
           </CCol>
         </CRow>
+
+        {/* ── Missões de Elite (Integração) ── */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <Icon icon="solar:ranking-bold-duotone" style={{ color: tokens.rausch }} width="22" />
+            <span style={{ fontWeight: 800, fontSize: 18, color: 'var(--color-text-primary)' }}>Missões de Elite</span>
+          </div>
+          <CRow className="g-3">
+            {(missoesGlobais?.length > 0 ? missoesGlobais.slice(0, 3) : []).map((m, i) => (
+              <CCol key={i} xs={12} md={4}>
+                <SCard delay={0.4 + (i * 0.05)} style={{ padding: '16px 20px', border: `1.5px solid ${tokens.babu}15` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: `${tokens.babu}15`, color: tokens.babu, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon icon={m.icon || "solar:target-bold"} width="18" />
+                    </div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.titulo}</div>
+                  </div>
+                  <div style={{ fontSize: 11, color: tokens.foggy, marginBottom: 8, height: 32, overflow: 'hidden' }}>{m.dica}</div>
+                  <AirbnbProgress value={Math.floor(Math.random() * 40)} color={tokens.babu} />
+                </SCard>
+              </CCol>
+            ))}
+            {(!missoesGlobais || missoesGlobais.length === 0) && (
+              <CCol xs={12}>
+                <div style={{ padding: '20px', textAlign: 'center', border: '2px dashed var(--color-border)', borderRadius: 20, color: tokens.foggy }}>
+                  <Icon icon="solar:medal-star-bold-duotone" width="32" className="mb-2" style={{ opacity: 0.3 }} />
+                  <div className="small">Nenhuma missão global ativa no momento. Crie suas metas pessoais!</div>
+                </div>
+              </CCol>
+            )}
+          </CRow>
+        </div>
 
         {/* ── Atividades Recentes ── */}
         <SCard delay={0.42} style={{ marginBottom: 24 }}>
