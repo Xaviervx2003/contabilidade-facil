@@ -315,246 +315,219 @@ const MinhasTrilhas = () => {
         )}
 
 
-      {/* MODAL DE AULA INTEGRADA */}
-      <CModal visible={modalAula} onClose={() => setModalAula(false)} size="xl" backdrop="static">
-        <CModalHeader className="bg-body-tertiary border-bottom-0 pb-0">
+      {/* MODAL DE AULA INTEGRADA PREMIUM */}
+      <CModal visible={modalAula} onClose={() => setModalAula(false)} size="xl" backdrop="static" scrollable style={{ fontFamily: "'Nunito', sans-serif" }}>
+        <CModalHeader className="border-0 pb-0 pt-4 px-4 bg-body-elevated">
           <div className="w-100">
             <div className="d-flex align-items-center gap-2 mb-1">
-              <CBadge
-                color="primary"
-                variant="outline"
-                className="text-uppercase"
-                style={{ fontSize: '10px' }}
-              >
+              <span className="px-2 py-1 rounded-pill fw-bold" style={{ background: 'rgba(255, 56, 92, 0.12)', color: '#FF385C', fontSize: 10, textTransform: 'uppercase' }}>
                 {moduloAtivo?.ordem}º Módulo
-              </CBadge>
-              <span className="text-body-secondary" style={{ fontSize: '12px' }}>
+              </span>
+              <span style={{ fontSize: 12, color: '#767676', fontWeight: 500 }}>
                 Aula de Contabilidade Fácil
               </span>
             </div>
-            <CModalTitle className="fw-bold fs-4">{moduloAtivo?.nome}</CModalTitle>
+            <h4 className="fw-bold mb-3" style={{ fontSize: 24, letterSpacing: '-0.5px', color: 'var(--color-text-primary)' }}>
+              {moduloAtivo?.nome}
+            </h4>
+            
+            <div className="d-flex gap-4 border-bottom mt-2">
+              <div 
+                onClick={() => setAbaAtiva('aula')}
+                style={{ 
+                  cursor: 'pointer', paddingBottom: 10, position: 'relative', 
+                  color: abaAtiva === 'aula' ? '#FF385C' : '#767676',
+                  fontWeight: 700, fontSize: 14,
+                  transition: '0.2s'
+                }}
+              >
+                <Icon icon="solar:play-circle-bold-duotone" className="me-1" /> Vídeo Aula
+                {abaAtiva === 'aula' && (
+                  <motion.div 
+                    layoutId="tab-underline" 
+                    className="position-absolute bottom-0 start-0 end-0" 
+                    style={{ height: 3, background: '#FF385C', borderRadius: '3px 3px 0 0' }} 
+                  />
+                )}
+              </div>
+              <div 
+                onClick={() => setAbaAtiva('duvidas')}
+                style={{ 
+                  cursor: 'pointer', paddingBottom: 10, position: 'relative', 
+                  color: abaAtiva === 'duvidas' ? '#FF385C' : '#767676',
+                  fontWeight: 700, fontSize: 14,
+                  transition: '0.2s'
+                }}
+              >
+                <Icon icon="solar:chat-round-dots-bold-duotone" className="me-1" /> Dúvidas
+                {duvidas.length > 0 && <span className="ms-2 px-1 rounded-circle bg-danger text-white" style={{ fontSize: 9 }}>{duvidas.length}</span>}
+                {abaAtiva === 'duvidas' && (
+                  <motion.div 
+                    layoutId="tab-underline" 
+                    className="position-absolute bottom-0 start-0 end-0" 
+                    style={{ height: 3, background: '#FF385C', borderRadius: '3px 3px 0 0' }} 
+                  />
+                )}
+              </div>
+            </div>
           </div>
         </CModalHeader>
-        <CNav variant="tabs" className="bg-body-tertiary px-4 border-bottom-0">
-          <CNavItem>
-            <CNavLink
-              active={abaAtiva === 'aula'}
-              onClick={() => setAbaAtiva('aula')}
-              style={{ cursor: 'pointer', fontWeight: abaAtiva === 'aula' ? 'bold' : 'normal' }}
-            >
-              <CIcon icon={cilMediaPlay} className="me-2" /> Aula
-            </CNavLink>
-          </CNavItem>
-          <CNavItem>
-            <CNavLink
-              active={abaAtiva === 'duvidas'}
-              onClick={() => setAbaAtiva('duvidas')}
-              style={{ cursor: 'pointer', fontWeight: abaAtiva === 'duvidas' ? 'bold' : 'normal' }}
-            >
-              <CIcon icon={cilChatBubble} className="me-2" /> Dúvidas / Comentários
-              {duvidas.length > 0 && (
-                <CBadge color="danger" shape="rounded-pill" className="ms-2">
-                  {duvidas.length}
-                </CBadge>
-              )}
-            </CNavLink>
-          </CNavItem>
-        </CNav>
-        <CModalBody className="p-0 border-top">
+
+        <CModalBody className="p-0 bg-body-elevated">
           {abaAtiva === 'aula' ? (
-            <CRow className="g-0">
-              {/* Player de Vídeo */}
-              <CCol xs={12} lg={moduloAtivo?.texto_teorico ? 8 : 12}>
+            <div className="row g-0">
+              <div className={moduloAtivo?.texto_teorico ? "col-12 col-lg-8" : "col-12"}>
                 {moduloAtivo?.link_video ? (
-                  <div
-                    style={{
-                      position: 'relative',
-                      paddingBottom: '56.25%',
-                      height: 0,
-                      overflow: 'hidden',
-                      background: '#000',
-                    }}
-                  >
+                  <div className="ratio ratio-16x9 bg-black shadow-lg overflow-hidden">
                     <iframe
                       src={getEmbedUrl(moduloAtivo.link_video)}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                      }}
-                      frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       loading="lazy"
-                      title="Vídeo Aula"
                     />
                   </div>
                 ) : (
-                  <div className="p-5 text-center bg-body-tertiary">
-                    <CIcon icon={cilDescription} size="xxl" className="text-muted mb-3" />
-                    <h5>Conteúdo Teórico</h5>
+                  <div className="p-5 text-center d-flex flex-column align-items-center justify-content-center bg-body-tertiary" style={{ minHeight: 400 }}>
+                    <Icon icon="solar:document-text-bold-duotone" width="64" style={{ color: '#B0B0B0' }} className="mb-3" />
+                    <h5 className="fw-bold">Conteúdo Teórico</h5>
+                    <p className="text-body-secondary">Acompanhe a leitura e o material de apoio abaixo.</p>
                   </div>
                 )}
-              </CCol>
+              </div>
 
-              {/* Texto Teórico Lateral/Abaixo */}
-              {(moduloAtivo?.texto_teorico || moduloAtivo?.material_apoio_url) && (
-                <CCol xs={12} lg={4} className="border-start bg-body-elevated">
-                  <div
-                    className="p-4"
-                    style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
-                  >
+              {moduloAtivo?.texto_teorico && (
+                <div className="col-12 col-lg-4 border-start bg-body-elevated">
+                  <div className="p-4" style={{ maxHeight: '600px', overflowY: 'auto' }}>
                     {moduloAtivo?.material_apoio_url && (
-                      <div className="mb-4 p-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded">
-                        <h6 className="fw-bold text-primary mb-2">Material de Estudo</h6>
+                      <div className="mb-4 p-3 rounded-4" style={{ background: 'rgba(0, 166, 153, 0.08)', border: '1px solid rgba(0, 166, 153, 0.2)' }}>
+                        <h6 className="fw-bold mb-2" style={{ color: '#00A699', fontSize: 13 }}>MATERIAL DE APOIO</h6>
                         <CButton
-                          color="primary"
-                          size="sm"
-                          className="w-100 text-white fw-bold"
                           href={moduloAtivo.material_apoio_url}
                           target="_blank"
+                          className="w-100 fw-bold border-0"
+                          style={{ background: '#00A699', color: '#fff', borderRadius: 10, fontSize: 13 }}
                         >
-                          <CIcon icon={cilCloudDownload} className="me-2" /> Baixar PDF / Slides
+                          <Icon icon="solar:cloud-download-bold-duotone" className="me-2" /> Baixar PDF / Slides
                         </CButton>
                       </div>
                     )}
 
-                    {moduloAtivo?.texto_teorico && (
-                      <>
-                        <h6 className="fw-bold text-uppercase small text-body-secondary mb-3">
-                          Resumo da Aula
-                        </h6>
-                        <div
-                          style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.95rem' }}
-                        >
-                          {moduloAtivo.texto_teorico}
-                        </div>
-                      </>
-                    )}
+                    <h6 style={{ fontSize: 11, fontWeight: 700, color: '#767676', textTransform: 'uppercase', letterSpacing: '0.5px' }} className="mb-3">
+                      RESUMO DA AULA
+                    </h6>
+                    <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.7', fontSize: '14px', color: 'var(--color-text-primary)' }}>
+                      {moduloAtivo.texto_teorico}
+                    </div>
                   </div>
-                </CCol>
+                </div>
               )}
-            </CRow>
+            </div>
           ) : (
-            <div className="p-4 bg-body-elevated" style={{ minHeight: '400px' }}>
+            <div className="p-4" style={{ minHeight: '400px' }}>
               <div className="mb-4">
-                <h6 className="fw-bold mb-3">Tem alguma dúvida sobre esta aula?</h6>
-                <div className="d-flex gap-2">
+                <h6 className="fw-bold mb-3">Sua dúvida ou comentário:</h6>
+                <div className="d-flex flex-column gap-3">
                   <CFormTextarea
-                    placeholder="Digite sua dúvida ou comentário aqui..."
+                    placeholder="O que você achou desta aula?"
                     rows={3}
                     value={novaDuvida}
                     onChange={(e) => setNovaDuvida(e.target.value)}
+                    className="border-0 bg-body-tertiary rounded-4 p-3 shadow-none"
                   />
                   <CButton
-                    color="primary"
-                    className="text-white"
+                    className="align-self-end fw-bold px-4 border-0"
+                    style={{ background: '#FF385C', color: '#fff', borderRadius: 10 }}
                     onClick={enviarDuvida}
                     disabled={enviandoDuvida}
                   >
-                    {enviandoDuvida ? <CSpinner size="sm" /> : 'Enviar'}
+                    {enviandoDuvida ? <CSpinner size="sm" /> : 'Publicar Comentário'}
                   </CButton>
                 </div>
               </div>
 
-              <div className="duvidas-list">
-                <h6 className="fw-bold border-bottom pb-2 mb-3">
+              <div className="mt-5">
+                <h6 className="fw-bold border-bottom pb-2 mb-4 d-flex align-items-center gap-2">
+                  <Icon icon="solar:chat-square-dots-bold-duotone" style={{ color: '#FF385C' }} />
                   Comentários da Turma ({duvidas.length})
                 </h6>
-                {duvidas.length === 0 ? (
-                  <div className="text-center py-4 text-body-secondary">
-                    Nenhuma dúvida enviada ainda. Seja o primeiro!
-                  </div>
-                ) : (
-                  <div className="d-flex flex-column gap-3">
-                    {duvidas.map((d) => (
-                      <div key={d.id} className="p-3 rounded bg-body-tertiary border">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <span className="fw-bold small">
-                            <CIcon icon={cilUser} className="me-1" /> {d.aluno_nome}
-                          </span>
-                          <span className="text-body-secondary" style={{ fontSize: '10px' }}>
-                            {formatIsoToDateString(d.data_criacao)}
-                          </span>
-                        </div>
-                        <div className="mb-2">{d.texto}</div>
-                        {d.resposta_professor && (
-                          <div className="ms-4 p-3 mt-2 rounded bg-info bg-opacity-10 border-start border-info border-4">
-                            <div className="fw-bold small text-info mb-1">
-                              Resposta do Professor <CIcon icon={cilCheck} />
-                            </div>
-                            <div className="small">{d.resposta_professor}</div>
-                          </div>
-                        )}
+                <div className="d-flex flex-column gap-3">
+                  {duvidas.length === 0 ? (
+                    <div className="text-center py-4 text-body-secondary italic">Ainda não há comentários nesta aula.</div>
+                  ) : duvidas.map((d) => (
+                    <div key={d.id} className="p-3 rounded-4 bg-body-tertiary border border-border/10 shadow-sm">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <span className="fw-bold small d-flex align-items-center gap-1">
+                          <Icon icon="solar:user-circle-bold-duotone" style={{ color: '#767676' }} /> {d.aluno_nome}
+                        </span>
+                        <span style={{ fontSize: 10, color: '#767676' }}>
+                          {formatIsoToDateString(d.data_criacao)}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <div className="small" style={{ lineHeight: 1.6 }}>{d.texto}</div>
+                      {d.resposta_professor && (
+                        <div className="ms-4 p-3 mt-3 rounded-4 border-start border-4 shadow-sm" style={{ background: 'rgba(0, 166, 153, 0.08)', borderStartColor: '#00A699' }}>
+                          <div className="fw-bold small mb-1 d-flex align-items-center gap-1" style={{ color: '#00A699' }}>
+                            <Icon icon="solar:verified-check-bold" /> Resposta do Professor
+                          </div>
+                          <div className="small" style={{ opacity: 0.8 }}>{d.resposta_professor}</div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
         </CModalBody>
-        <CModalFooter className="bg-body-tertiary justify-content-between">
-          <div className="small text-body-secondary">
-            Módulo {moduloAtivo?.ordem} • {moduloAtivo?.descricao}
+
+        <CModalFooter className="border-0 pt-0 pb-4 px-4 bg-body-elevated justify-content-between align-items-center">
+          <div style={{ fontSize: 12, color: '#767676', fontWeight: 500 }}>
+             Módulo {moduloAtivo?.ordem} • {moduloAtivo?.descricao}
           </div>
-          <div>
+          <div className="d-flex gap-2">
             <CButton
-              color="secondary"
               variant="ghost"
               onClick={() => setModalAula(false)}
-              className="me-2"
+              className="fw-bold"
+              style={{ color: '#767676' }}
             >
               Fechar
             </CButton>
 
-            {/* Regra de Exercícios: Só mostra botão se houver questões ou matéria vinculada */}
-            {moduloAtivo?.materia_id ||
-            (moduloAtivo?.questoes_selecionadas &&
-              moduloAtivo?.questoes_selecionadas.length > 0) ? (
+            {/* Ação de Exercícios */}
+            {(moduloAtivo?.materia_id || (moduloAtivo?.questoes_selecionadas?.length > 0)) ? (
               <CButton
-                color="info"
-                className="me-2 fw-bold text-white"
+                className="fw-bold border-0 shadow-sm"
+                style={{ background: '#FC642D', color: '#fff', borderRadius: 10 }}
                 onClick={() => {
-                  if (
-                    moduloAtivo.questoes_selecionadas &&
-                    moduloAtivo.questoes_selecionadas.length > 0
-                  ) {
+                  if (moduloAtivo.questoes_selecionadas?.length > 0) {
                     const ids = moduloAtivo.questoes_selecionadas.join(',')
                     navigate(`/quiz?ids=${ids}&modulo_id=${moduloAtivo.id}`)
                   } else {
-                    navigate(
-                      `/quiz?materia_id=${moduloAtivo.materia_id}&modulo_id=${moduloAtivo.id}`,
-                    )
+                    navigate(`/quiz?materia_id=${moduloAtivo.materia_id}&modulo_id=${moduloAtivo.id}`)
                   }
                   setModalAula(false)
                 }}
               >
-                <CIcon icon={cilPenAlt} className="me-2" /> Praticar Exercícios
+                <Icon icon="solar:pen-bold-duotone" className="me-2" /> Praticar Exercícios
               </CButton>
             ) : (
-              <div className="me-3 d-inline-block text-body-secondary small fst-italic">
-                <CIcon icon={cilPenAlt} className="me-1" /> Exercícios sendo preparados...
-              </div>
+               <div className="px-3 py-2 bg-body-tertiary rounded-3 small fst-italic text-body-secondary">
+                 <Icon icon="solar:pen-new-square-linear" className="me-1" /> Exercícios em breve...
+               </div>
             )}
 
             {!moduloAtivo?.concluido && (
               <CButton
-                color="success"
                 disabled={salvando === moduloAtivo?.id}
                 onClick={() => {
                   marcarConcluido(moduloAtivo.id)
                   setModalAula(false)
                 }}
+                className="fw-bold border-0 shadow-sm px-4"
+                style={{ background: '#00A699', color: '#fff', borderRadius: 10 }}
               >
-                {salvando === moduloAtivo?.id ? (
-                  <CSpinner size="sm" className="me-2" />
-                ) : (
-                  <CIcon icon={cilCheckCircle} className="me-2" />
-                )}
-                Marcar como Concluído
+                {salvando === moduloAtivo?.id ? <CSpinner size="sm" /> : <><Icon icon="solar:check-circle-bold-duotone" className="me-2" /> Concluir Aula</>}
               </CButton>
             )}
           </div>
