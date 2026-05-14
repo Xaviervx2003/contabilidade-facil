@@ -157,6 +157,12 @@ const getNavItens = () => {
       },
       {
         component: CNavItem,
+        name: 'Gestão de Missões',
+        to: '/admin/missoes',
+        icon: <CIcon icon={cilFlagAlt} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
         name: 'Relatórios',
         to: '/relatorios',
         icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,

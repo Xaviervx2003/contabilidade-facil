@@ -25,6 +25,8 @@ const MeuRiscoPlano = () => {
     const [dados, setDados] = useState(null)
     const [resumoAluno, setResumoAluno] = useState(null)
     const [missoesConcluidas, setMissoesConcluidas] = useState([])
+    const [missoesPessoais, setMissoesPessoais] = useState([])
+    const [novaMissao, setNovaMissao] = useState('')
     const navigate = useNavigate()
     const { isDark } = useTheme()
 
@@ -46,9 +48,11 @@ const MeuRiscoPlano = () => {
                 const [jsonKpi, jsonResumo] = await Promise.all([resKpi.json(), resResumo.json()])
                 setDados(jsonKpi)
                 setResumoAluno(jsonResumo)
-                const storageKey = `missoes_semanais:${matricula}`
-                const cache = sessionStorage.getItem(storageKey)
-                setMissoesConcluidas(cache ? JSON.parse(cache) : [])
+                
+                const mKey = `missoes_semanais:${matricula}`
+                const pKey = `missoes_pessoais:${matricula}`
+                setMissoesConcluidas(JSON.parse(sessionStorage.getItem(mKey) || '[]'))
+                setMissoesPessoais(JSON.parse(localStorage.getItem(pKey) || '[]'))
             } catch (e) {
                 setErro(`Falha ao carregar dados: ${e.message}`)
             } finally {
@@ -58,13 +62,39 @@ const MeuRiscoPlano = () => {
         carregar()
     }, [])
 
+    const handleAddMissao = () => {
+        if (!novaMissao.trim()) return
+        const matricula = sessionStorage.getItem('matricula')
+        const nova = { 
+            id: `personal_${Date.now()}`, 
+            titulo: novaMissao, 
+            dica: 'Missão criada por você.', 
+            progresso: 0, 
+            icon: 'solar:pen-new-square-bold-duotone',
+            isPersonal: true 
+        }
+        const atualizadas = [...missoesPessoais, nova]
+        setMissoesPessoais(atualizadas)
+        localStorage.setItem(`missoes_pessoais:${matricula}`, JSON.stringify(atualizadas))
+        setNovaMissao('')
+        toast.success('Missão pessoal adicionada! 🎯')
+    }
+
+    const handleDeleteMissao = (id) => {
+        const matricula = sessionStorage.getItem('matricula')
+        const filtradas = missoesPessoais.filter(m => m.id !== id)
+        setMissoesPessoais(filtradas)
+        localStorage.setItem(`missoes_pessoais:${matricula}`, JSON.stringify(filtradas))
+        toast.error('Missão removida.')
+    }
+
     const plano = useMemo(() => {
         if (!dados) return []
         const churn = Number(dados.churn_risco_percentual || 0)
         const mediaSemana = Number(resumoAluno?.semana?.media_acerto || 0)
         const sessoesSemana = Number(resumoAluno?.semana?.sessoes || 0)
 
-        const missoes = [
+        const base = [
             {
                 id: 'sessoes',
                 titulo: 'Ritmo de Estudo',
@@ -82,7 +112,7 @@ const MeuRiscoPlano = () => {
         ]
 
         if (churn >= 70) {
-            missoes.unshift({
+            base.unshift({
                 id: 'anti-churn',
                 titulo: 'Missão de Resgate 🚨',
                 dica: 'Estude hoje para quebrar o ciclo de inatividade.',
@@ -90,8 +120,8 @@ const MeuRiscoPlano = () => {
                 icon: 'solar:shield-warning-bold-duotone'
             })
         }
-        return missoes
-    }, [dados, resumoAluno])
+        return [...base, ...missoesPessoais]
+    }, [dados, resumoAluno, missoesPessoais])
 
     const progressoGeral = useMemo(() => {
         if (!plano.length) return 0
@@ -182,7 +212,27 @@ const MeuRiscoPlano = () => {
                 </CRow>
 
                 {/* MISSÕES SEMANAIS */}
-                <SCard title="🎯 Missões Estratégicas da Semana" icon={<Icon icon="solar:target-bold" width="18" />}>
+                <SCard title="🎯 Planejamento de Missões" icon={<Icon icon="solar:target-bold" width="18" />}>
+                    
+                    {/* INPUT NOVA MISSÃO */}
+                    <div className="d-flex gap-2 mb-4">
+                        <CFormInput 
+                            placeholder="Crie sua própria missão (ex: Estudar 2h de Contabilidade)" 
+                            value={novaMissao}
+                            onChange={e => setNovaMissao(e.target.value)}
+                            onKeyPress={e => e.key === 'Enter' && handleAddMissao()}
+                            className="border-0 bg-body-tertiary rounded-3 shadow-none px-3 py-2"
+                            style={{ fontSize: 14 }}
+                        />
+                        <CButton 
+                            onClick={handleAddMissao}
+                            style={{ background: tokens.babu, color: '#fff', borderRadius: 12, border: 'none' }}
+                            className="px-3"
+                        >
+                            <Icon icon="solar:add-circle-bold" width="20" />
+                        </CButton>
+                    </div>
+
                     <div className="mb-4">
                         <div className="d-flex justify-content-between align-items-center mb-2">
                             <span className="fw-bold small text-muted">PROGRESSO DO PLANO</span>
@@ -227,14 +277,21 @@ const MeuRiscoPlano = () => {
                                                 <div className="small text-muted">{m.dica}</div>
                                             </div>
                                         </div>
-                                        <CButton 
-                                            size="sm" 
-                                            variant="ghost" 
-                                            onClick={() => toggleMissao(m.id)}
-                                            style={{ color: done ? tokens.babu : tokens.foggy }}
-                                        >
-                                            <Icon icon={done ? "solar:check-square-bold" : "solar:square-academic-cap-bold"} width="24" />
-                                        </CButton>
+                                        <div className="d-flex gap-1">
+                                            {m.isPersonal && (
+                                                <CButton size="sm" variant="ghost" onClick={() => handleDeleteMissao(m.id)} style={{ color: tokens.rausch }}>
+                                                    <Icon icon="solar:trash-bin-trash-bold" width="20" />
+                                                </CButton>
+                                            )}
+                                            <CButton 
+                                                size="sm" 
+                                                variant="ghost" 
+                                                onClick={() => toggleMissao(m.id)}
+                                                style={{ color: done ? tokens.babu : tokens.foggy }}
+                                            >
+                                                <Icon icon={done ? "solar:check-square-bold" : "solar:square-academic-cap-bold"} width="24" />
+                                            </CButton>
+                                        </div>
                                     </div>
                                     <CProgress value={m.progresso} height={4} className="mt-2" color={done ? 'success' : 'info'} />
                                 </motion.div>
