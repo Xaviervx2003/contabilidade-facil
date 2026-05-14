@@ -126,15 +126,17 @@ const MeuRiscoPlano = () => {
             })
         }
 
-        // Converter missões globais (Admin) para o formato do plano
-        const globaisFormatadas = missoesGlobais.map(g => ({
-            id: `global_${g.id}`,
-            titulo: g.titulo,
-            dica: g.dica,
-            progresso: 0,
-            icon: g.icon || 'solar:target-bold',
-            isGlobal: true
-        }))
+        // Converter missões globais (Admin) para o formato do plano com trava de segurança
+        const globaisFormatadas = Array.isArray(missoesGlobais) 
+            ? missoesGlobais.map(g => ({
+                id: `global_${g.id}`,
+                titulo: g.titulo,
+                dica: g.dica,
+                progresso: 0,
+                icon: g.icon || 'solar:target-bold',
+                isGlobal: true
+            }))
+            : []
 
         return [...base, ...globaisFormatadas, ...missoesPessoais]
     }, [dados, resumoAluno, missoesPessoais, missoesGlobais])

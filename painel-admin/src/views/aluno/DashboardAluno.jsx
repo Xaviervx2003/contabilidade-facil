@@ -505,7 +505,7 @@ const DashboardAluno = () => {
             </CButton>
           </div>
           <CRow className="g-4">
-            {(missoesGlobais?.length > 0 ? missoesGlobais.slice(0, 3) : []).map((m, i) => (
+            {(Array.isArray(missoesGlobais) ? missoesGlobais.slice(0, 3) : []).map((m, i) => (
               <CCol key={i} xs={12} md={4}>
                 <SCard delay={0.4 + (i * 0.05)} style={{ padding: '24px', border: `1px solid var(--color-border)`, boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 16 }}>
