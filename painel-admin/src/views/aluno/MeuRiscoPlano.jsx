@@ -191,19 +191,30 @@ const MeuRiscoPlano = () => {
             
             <div style={{ maxWidth: 960, margin: '0 auto' }}>
                 
-                {/* ── Header Clássico ── */}
+                {/* ── Header Padrão 'Suas Jornadas' ── */}
                 <motion.div 
                     initial={{ opacity: 0, y: -10 }} 
                     animate={{ opacity: 1, y: 0 }} 
-                    style={{ marginBottom: 32 }}
+                    style={{ marginBottom: 40 }}
                 >
-                    <div className="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
-                                Meu Risco + Missões
+                    <div className="d-flex justify-content-between align-items-start">
+                        <div className="d-flex gap-3">
+                            <div style={{ 
+                                width: 54, height: 54, borderRadius: 16, 
+                                background: `${tokens.rausch}15`, color: tokens.rausch, 
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                flexShrink: 0
+                            }}>
+                                <Icon icon="solar:academic-cap-bold-duotone" width="32" />
                             </div>
-                            <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
-                                Acompanhe sua estratégia e gerencie seus desafios de forma simples.
+                            <div>
+                                <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Suas Jornadas</div>
+                                <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+                                    Meu Risco + Missões 🎯
+                                </div>
+                                <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6, maxWidth: 500 }}>
+                                    Acompanhe sua estratégia e gerencie seus desafios de forma simples e direta.
+                                </div>
                             </div>
                         </div>
                         <CButton 
