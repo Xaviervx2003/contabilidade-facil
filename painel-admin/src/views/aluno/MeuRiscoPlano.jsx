@@ -1,398 +1,409 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import {
-    CCol, CRow, CBadge, CSpinner, CButton, CProgress, CAlert, CFormInput
-} from '@coreui/react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useState, useCallback } from 'react'
+import { CAlert, CSpinner, CButton, CCol, CRow } from '@coreui/react'
 import { API_URL } from '../../config'
-import { useTheme } from '../../context/themeContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import toast from 'react-hot-toast'
-import SCard from '../../components/premium/SCard'
 
-/* ─── Tokens Airbnb-inspired ─────────────────────────────── */
-const tokens = {
-    rausch: '#FF385C',
-    babu: '#00A699',
-    arches: '#FC642D',
-    hof: '#484848',
-    foggy: '#767676',
+/* ── Tokens de cor (inspirado Airbnb + Duolingo) ──────────── */
+const T = {
+  coral:   '#FF385C',
+  teal:    '#00A699',
+  orange:  '#FC642D',
+  gold:    '#F5A623',
+  muted:   '#767676',
+  border:  'var(--color-border)',
+  bg:      'var(--color-bg-elevated)',
+  bgSub:   'var(--color-bg-tertiary)',
+  text:    'var(--color-text-primary)',
 }
 
-const MeuRiscoPlano = () => {
-    const [loading, setLoading] = useState(true)
-    const [erro, setErro] = useState('')
-    const [dados, setDados] = useState(null)
-    const [resumoAluno, setResumoAluno] = useState(null)
-    const [missoesConcluidas, setMissoesConcluidas] = useState([])
-    const [missoesPessoais, setMissoesPessoais] = useState([])
-    const [missoesGlobais, setMissoesGlobais] = useState([])
-    const [novaMissao, setNovaMissao] = useState('')
-    const navigate = useNavigate()
-    const { isDark } = useTheme()
+/* ── Helpers ─────────────────────────────────────────────── */
+const METRICA_CONFIG = {
+  manual:       { icon: '✋', label: 'Manual',          color: T.muted  },
+  sessoes:      { icon: '📚', label: 'Sessões',         color: T.teal   },
+  media_acerto: { icon: '🎯', label: 'Média de Acertos', color: T.orange },
+  questoes:     { icon: '📝', label: 'Questões',         color: '#8B5CF6'},
+}
 
-    useEffect(() => {
-        const carregar = async () => {
-            const matricula = sessionStorage.getItem('matricula')
-            if (!matricula) {
-                setErro('Matrícula não encontrada.')
-                setLoading(false)
-                return
-            }
+const calcularPrazo = (data_limite) => {
+  if (!data_limite) return null
+  const diff = Math.ceil((new Date(data_limite + 'T23:59:59') - new Date()) / 86400000)
+  if (diff < 0)   return { texto: 'Expirou',       cor: '#ef4444', urgente: true  }
+  if (diff === 0) return { texto: 'Vence hoje!',   cor: '#f59e0b', urgente: true  }
+  if (diff === 1) return { texto: 'Vence amanhã',  cor: '#f59e0b', urgente: true  }
+  if (diff <= 3)  return { texto: `${diff} dias`,  cor: '#f59e0b', urgente: false }
+  return           { texto: `${diff} dias`,         cor: T.teal,   urgente: false }
+}
 
-            setLoading(true)
-            try {
-                // Carregamento resiliente: se um falhar, o restante continua
-                const carregarIndiv = async (url) => {
-                    try {
-                        const res = await fetch(url)
-                        if (!res.ok) return null
-                        return await res.json()
-                    } catch (e) { return null }
-                }
+/* ── Circular Progress Ring (estilo Nike/Duolingo) ──────── */
+const RingProgress = ({ value, size = 64, stroke = 5, color = T.coral }) => {
+  const r  = (size - stroke) / 2
+  const c  = 2 * Math.PI * r
+  const pct = Math.min(Math.max(value, 0), 100)
+  const dash = (pct / 100) * c
+  return (
+    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--color-bg-tertiary)" strokeWidth={stroke} />
+      <motion.circle
+        cx={size/2} cy={size/2} r={r} fill="none"
+        stroke={color} strokeWidth={stroke}
+        strokeLinecap="round"
+        strokeDasharray={c}
+        initial={{ strokeDashoffset: c }}
+        animate={{ strokeDashoffset: c - dash }}
+        transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
+      />
+    </svg>
+  )
+}
 
-                const [jsonKpi, jsonResumo, jsonGlobais] = await Promise.all([
-                    carregarIndiv(`${API_URL}/api/metricas-estudantes/desempenho/${encodeURIComponent(matricula)}`),
-                    carregarIndiv(`${API_URL}/api/aluno/dashboard/${encodeURIComponent(matricula)}`),
-                    carregarIndiv(`${API_URL}/api/missoes/globais`)
-                ])
+/* ── Badge de Prazo ──────────────────────────────────────── */
+const PrazoBadge = ({ data_limite }) => {
+  const info = calcularPrazo(data_limite)
+  if (!info) return null
+  return (
+    <motion.span
+      animate={info.urgente ? { scale: [1, 1.06, 1] } : {}}
+      transition={{ repeat: Infinity, duration: 1.8 }}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 4,
+        fontSize: 11, fontWeight: 700,
+        background: `${info.cor}18`, color: info.cor,
+        padding: '3px 10px', borderRadius: 99,
+        border: `1px solid ${info.cor}35`,
+      }}
+    >
+      <Icon icon="solar:clock-circle-bold-duotone" width="12" />
+      {info.texto}
+    </motion.span>
+  )
+}
 
-                if (jsonKpi) setDados(jsonKpi)
-                if (jsonResumo) setResumoAluno(jsonResumo)
-                if (jsonGlobais) setMissoesGlobais(jsonGlobais)
-                
-                const mKey = `missoes_semanais:${matricula}`
-                const pKey = `missoes_pessoais:${matricula}`
-                setMissoesConcluidas(JSON.parse(sessionStorage.getItem(mKey) || '[]'))
-                setMissoesPessoais(JSON.parse(localStorage.getItem(pKey) || '[]'))
-            } catch (e) {
-                console.error("Erro no processamento:", e)
-            } finally {
-                setLoading(false)
-            }
-        }
-        carregar()
-    }, [])
+/* ── Missão Card ─────────────────────────────────────────── */
+const MissaoCard = ({ m, onConcluir, concluindo }) => {
+  const cfg       = METRICA_CONFIG[m.metrica_tipo] || METRICA_CONFIG.manual
+  const isAuto    = m.metrica_tipo !== 'manual'
+  const pct       = m.progresso ?? 0
+  const isConcluida = m.status === 'concluida'
+  const isExpirada  = m.status === 'expirada'
 
-    const handleAddMissao = () => {
-        if (!novaMissao.trim()) return
-        const matricula = sessionStorage.getItem('matricula')
-        const nova = { 
-            id: `personal_${Date.now()}`, 
-            titulo: novaMissao, 
-            dica: 'Missão pessoal criada por você.', 
-            progresso: 0, 
-            icon: 'solar:pen-new-square-bold-duotone',
-            isPersonal: true 
-        }
-        const atualizadas = [...missoesPessoais, nova]
-        setMissoesPessoais(atualizadas)
-        localStorage.setItem(`missoes_pessoais:${matricula}`, JSON.stringify(atualizadas))
-        setNovaMissao('')
-        toast.success('Missão pessoal adicionada! 🎯')
-    }
+  const borderColor = isConcluida ? T.teal : isExpirada ? '#ef4444' : T.border
+  const accentColor = isConcluida ? T.teal : isExpirada ? '#ef4444' : (m.cor || T.coral)
 
-    const handleDeleteMissao = (id) => {
-        const matricula = sessionStorage.getItem('matricula')
-        const filtradas = missoesPessoais.filter(m => m.id !== id)
-        setMissoesPessoais(filtradas)
-        localStorage.setItem(`missoes_pessoais:${matricula}`, JSON.stringify(filtradas))
-        toast.error('Missão removida.')
-    }
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      layout
+      style={{
+        background: T.bg,
+        border: `1px solid ${borderColor}`,
+        borderRadius: 18,
+        padding: '18px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        opacity: isExpirada ? 0.75 : 1,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Faixa colorida lateral */}
+      <div style={{
+        position: 'absolute', left: 0, top: 12, bottom: 12,
+        width: 4, borderRadius: '0 4px 4px 0',
+        background: accentColor,
+      }} />
 
-    const plano = useMemo(() => {
-        if (!dados) return []
-        const churn = Number(dados.churn_risco_percentual || 0)
-        const mediaSemana = Number(resumoAluno?.semana?.media_acerto || 0)
-        const sessoesSemana = Number(resumoAluno?.semana?.sessoes || 0)
-
-        const base = [
-            {
-                id: 'sessoes',
-                titulo: 'Ritmo de Estudo',
-                dica: `Objetivo: 3 sessões. Atual: ${sessoesSemana}/3.`,
-                progresso: Math.min(100, (sessoesSemana / 3) * 100),
-                icon: 'solar:bolt-circle-bold-duotone'
-            },
-            {
-                id: 'simulados',
-                titulo: 'Excelência em Simulados',
-                dica: `Média atual: ${mediaSemana.toFixed(1)}%. Meta: 80%.`,
-                progresso: mediaSemana >= 80 ? 100 : Math.min(100, (mediaSemana / 80) * 100),
-                icon: 'solar:star-circle-bold-duotone'
-            },
-        ]
-
-        if (churn >= 70) {
-            base.unshift({
-                id: 'anti-churn',
-                titulo: 'Missão de Resgate 🚨',
-                dica: 'Estude hoje para quebrar o ciclo de inatividade.',
-                progresso: 20,
-                icon: 'solar:shield-warning-bold-duotone'
-            })
-        }
-
-        // Converter missões globais (Admin) para o formato do plano com trava de segurança
-        const globaisFormatadas = Array.isArray(missoesGlobais) 
-            ? missoesGlobais.map(g => {
-                let progresso = 0;
-                if (g.metrica_tipo === 'sessoes' && g.metrica_alvo > 0) {
-                    progresso = Math.min(100, (sessoesSemana / g.metrica_alvo) * 100);
-                } else if (g.metrica_tipo === 'media_acerto' && g.metrica_alvo > 0) {
-                    progresso = mediaSemana >= g.metrica_alvo ? 100 : Math.min(100, (mediaSemana / g.metrica_alvo) * 100);
-                }
-
-                return {
-                    id: `global_${g.id}`,
-                    titulo: g.titulo,
-                    dica: g.dica,
-                    progresso: progresso,
-                    icon: g.icon || 'solar:target-bold',
-                    isGlobal: true,
-                    metrica_tipo: g.metrica_tipo || 'manual',
-                    metrica_alvo: g.metrica_alvo || 0,
-                    data_limite: g.data_limite || null
-                }
-            })
-            : []
-
-        return [...base, ...globaisFormatadas, ...missoesPessoais]
-    }, [dados, resumoAluno, missoesPessoais, missoesGlobais])
-
-    const progressoGeral = useMemo(() => {
-        if (!plano.length) return 0
-        const soma = plano.reduce((acc, p) => acc + Number(p.progresso || 0), 0)
-        return Math.round(soma / plano.length)
-    }, [plano])
-
-    const toggleMissao = (id) => {
-        const matricula = sessionStorage.getItem('matricula')
-        const atual = missoesConcluidas.includes(id)
-            ? missoesConcluidas.filter((m) => m !== id)
-            : [...missoesConcluidas, id]
-        setMissoesConcluidas(atual)
-        sessionStorage.setItem(`missoes_semanais:${matricula}`, JSON.stringify(atual))
-        if (!missoesConcluidas.includes(id)) toast.success('Missão marcada como concluída! 💪')
-    }
-
-    if (loading) return (
-        <div className="d-flex justify-content-center align-items-center vh-100" style={{ background: 'var(--color-bg-primary)' }}>
-            <CSpinner style={{ color: tokens.rausch }} />
+      {/* Ring de Progresso */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <RingProgress value={pct} size={60} stroke={5} color={accentColor} />
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: isConcluida ? 18 : 14,
+          fontWeight: 800,
+          color: accentColor,
+          transform: 'rotate(0deg)',  // compensar rotate do SVG pai
+        }}>
+          {isConcluida
+            ? '✓'
+            : isExpirada
+            ? '✕'
+            : `${pct}%`
+          }
         </div>
-    )
+      </div>
 
-    if (erro) return <CAlert color="danger" className="m-4">{erro}</CAlert>
+      {/* Conteúdo Central */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Header da missão */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+          <span style={{ fontSize: 18 }}>{m.icone || '🎯'}</span>
+          <span style={{ fontWeight: 700, fontSize: 15, color: T.text }}>{m.titulo}</span>
 
-    const churn = Number(dados?.churn_risco_percentual || 0)
-    const riscoStatus = churn >= 70 ? 'ALTO RISCO' : churn >= 40 ? 'RISCO MÉDIO' : 'RISCO BAIXO'
-    const riscoCor = churn >= 70 ? tokens.rausch : churn >= 40 ? tokens.arches : tokens.babu
+          {/* Badge status */}
+          {isConcluida && (
+            <span style={{ fontSize: 10, fontWeight: 700, background: `${T.teal}15`, color: T.teal, padding: '2px 8px', borderRadius: 99 }}>
+              ✅ Concluída
+            </span>
+          )}
+          {isExpirada && (
+            <span style={{ fontSize: 10, fontWeight: 700, background: '#ef444415', color: '#ef4444', padding: '2px 8px', borderRadius: 99 }}>
+              ⏰ Expirada
+            </span>
+          )}
 
-    return (
-        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', padding: '32px 16px 48px', fontFamily: "'Nunito', sans-serif" }}>
-            <div style={{ maxWidth: 960, margin: '0 auto' }}>
+          {/* Badge de prazo (urgência) */}
+          {!isConcluida && <PrazoBadge data_limite={m.data_limite} />}
+        </div>
 
-                {/* HEADER PREMIUM */}
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
-                    <div className="d-flex justify-content-between align-items-end">
-                        <div>
-                            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Estratégia de Aprendizado</div>
-                            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
-                                Meu Risco + Plano 🛡️
-                            </div>
-                            <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
-                                Analisamos seus dados para criar o caminho mais seguro até a aprovação.
-                            </div>
-                        </div>
-                        <CButton 
-                            onClick={() => navigate('/quiz')}
-                            style={{ background: tokens.rausch, color: '#fff', borderRadius: 12, fontWeight: 800, border: 'none' }}
-                            className="px-4 py-2 d-flex align-items-center gap-2"
-                        >
-                            Praticar Agora
-                            <Icon icon="solar:alt-arrow-right-bold" width="20" />
-                        </CButton>
-                    </div>
-                </motion.div>
+        <p style={{ fontSize: 12, color: T.muted, margin: '0 0 8px', lineHeight: 1.4 }}>
+          {m.descricao}
+        </p>
 
-                {/* CARDS DE KPIS */}
-                <CRow className="g-4 mb-4">
-                    <CCol xs={12} md={4}>
-                        <SCard padding="24px" style={{ borderLeft: `4px solid ${riscoCor}` }}>
-                            <div className="d-flex justify-content-between align-items-start mb-2">
-                                <div style={{ color: riscoCor }}><Icon icon="solar:fire-bold-duotone" width="32" /></div>
-                                <CBadge style={{ background: `${riscoCor}15`, color: riscoCor, borderRadius: 6 }}>{riscoStatus}</CBadge>
-                            </div>
-                            <div style={{ fontSize: 28, fontWeight: 800 }}>{churn.toFixed(1)}%</div>
-                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>RISCO DE EVASÃO</div>
-                            <p className="text-muted small mt-2 mb-0">
-                                {churn >= 70 ? 'Ação imediata necessária!' : 'Seu ritmo está sob controle.'}
-                            </p>
-                        </SCard>
-                    </CCol>
-                    <CCol xs={12} md={4}>
-                        <SCard padding="24px">
-                            <div style={{ color: tokens.babu, marginBottom: 8 }}><Icon icon="solar:graph-up-bold-duotone" width="32" /></div>
-                            <div style={{ fontSize: 28, fontWeight: 800 }}>{Number(dados?.retencao_30d_percentual || 0).toFixed(1)}%</div>
-                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>RETENÇÃO 30 DIAS</div>
-                            <p className="text-muted small mt-2 mb-0">Consistência no último mês.</p>
-                        </SCard>
-                    </CCol>
-                    <CCol xs={12} md={4}>
-                        <SCard padding="24px">
-                            <div style={{ color: tokens.arches, marginBottom: 8 }}><Icon icon="solar:check-circle-bold-duotone" width="32" /></div>
-                            <div style={{ fontSize: 28, fontWeight: 800 }}>{Number(dados?.conclusao_simulado_percentual || 0).toFixed(1)}%</div>
-                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>CONCLUSÃO DE ETAPAS</div>
-                            <p className="text-muted small mt-2 mb-0">Foco em finalizar o que começa.</p>
-                        </SCard>
-                    </CCol>
-                </CRow>
+        {/* Info linha: tipo métrica + meta + XP */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span style={{
+            fontSize: 11, fontWeight: 600,
+            background: `${cfg.color}12`, color: cfg.color,
+            padding: '2px 8px', borderRadius: 99,
+          }}>
+            {cfg.icon} {cfg.label}
+            {m.metrica_alvo != null && ` → ${m.metrica_alvo}${m.metrica_tipo === 'media_acerto' ? '%' : ''}`}
+          </span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: T.coral }}>
+            +{m.xp} XP
+          </span>
+        </div>
 
-                {/* MISSÕES SEMANAIS */}
-                <SCard title="🎯 Planejamento de Missões" icon={<Icon icon="solar:target-bold" width="18" />}>
-                    
-                    {/* INPUT NOVA MISSÃO */}
-                    <div className="d-flex gap-2 mb-4">
-                        <CFormInput 
-                            placeholder="Crie sua própria missão (ex: Estudar 2h de Contabilidade)" 
-                            value={novaMissao}
-                            onChange={e => setNovaMissao(e.target.value)}
-                            onKeyPress={e => e.key === 'Enter' && handleAddMissao()}
-                            className="border-0 bg-body-tertiary rounded-3 shadow-none px-3 py-2"
-                            style={{ fontSize: 14 }}
-                        />
-                        <CButton 
-                            onClick={handleAddMissao}
-                            style={{ background: tokens.babu, color: '#fff', borderRadius: 12, border: 'none' }}
-                            className="px-3"
-                        >
-                            <Icon icon="solar:add-circle-bold" width="20" />
-                        </CButton>
-                    </div>
-
-                    <div className="mb-4">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                            <span className="fw-bold small text-muted">PROGRESSO DO PLANO</span>
-                            <span className="fw-bold" style={{ color: tokens.babu }}>{progressoGeral}%</span>
-                        </div>
-                        <CProgress value={progressoGeral} color="success" height={10} className="rounded-pill" />
-                    </div>
-
-                    <div className="d-flex flex-column gap-3">
-                        {plano.map((m, i) => {
-                            const isAutomated = m.metrica_tipo && m.metrica_tipo !== 'manual';
-                            // Autovalidação para missões automáticas
-                            const done = missoesConcluidas.includes(m.id) || (isAutomated && m.progresso >= 100);
-                            
-                            // Lógica Habitica: Prazo expirado fica avermelhado
-                            const isExpired = m.data_limite && new Date(m.data_limite) < new Date() && !done;
-                            
-                            // Cores Dinâmicas
-                            const borderColor = isExpired ? `${tokens.rausch}40` : (done ? `${tokens.babu}40` : 'transparent');
-                            const bgColor = isExpired ? `${tokens.rausch}08` : 'var(--color-bg-tertiary)';
-                            const iconBoxColor = isExpired ? tokens.rausch : (done ? tokens.babu : 'var(--color-bg-elevated)');
-                            const iconBoxText = isExpired || done ? '#fff' : tokens.foggy;
-                            const titleColor = isExpired ? tokens.rausch : (done ? tokens.foggy : 'var(--color-text-primary)');
-
-                            return (
-                                <motion.div 
-                                    key={m.id}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.1 }}
-                                    style={{ 
-                                        background: bgColor, 
-                                        borderRadius: 16, 
-                                        padding: '16px',
-                                        border: `1.5px solid ${borderColor}`,
-                                        transition: '0.3s'
-                                    }}
-                                >
-                                    <div className="d-flex justify-content-between align-items-center mb-2">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <div style={{ 
-                                                width: 40, height: 40, 
-                                                background: iconBoxColor, 
-                                                borderRadius: 12, 
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                color: iconBoxText,
-                                                transition: '0.3s'
-                                            }}>
-                                                <Icon icon={isExpired ? "solar:danger-triangle-bold" : m.icon} width="24" />
-                                            </div>
-                                            <div>
-                                                <div className="fw-bold" style={{ fontSize: 15, textDecoration: done ? 'line-through' : 'none', color: titleColor }}>
-                                                    {m.titulo} {isAutomated && <CBadge style={{ background: `${tokens.babu}15`, color: tokens.babu, fontSize: 10, marginLeft: 8 }}>AUTO</CBadge>}
-                                                </div>
-                                                <div className="small text-muted">
-                                                    {isExpired 
-                                                        ? <span className="text-danger fw-bold"><Icon icon="solar:alarm-bold" className="me-1" />Expirou em {new Date(m.data_limite).toLocaleDateString('pt-BR')}</span>
-                                                        : m.dica
-                                                    }
-                                                    {m.data_limite && !isExpired && !done && (
-                                                        <span className="ms-2" style={{ color: tokens.arches }}>
-                                                            <Icon icon="solar:clock-circle-bold" className="me-1" />Até {new Date(m.data_limite).toLocaleDateString('pt-BR')}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="d-flex gap-1">
-                                            {m.isPersonal && (
-                                                <CButton size="sm" variant="ghost" onClick={() => handleDeleteMissao(m.id)} style={{ color: tokens.rausch }}>
-                                                    <Icon icon="solar:trash-bin-trash-bold" width="20" />
-                                                </CButton>
-                                            )}
-                                            {/* Se for automática, esconde/desabilita o botão manual */}
-                                            <CButton 
-                                                size="sm" 
-                                                variant="ghost" 
-                                                onClick={() => !isAutomated && toggleMissao(m.id)}
-                                                style={{ color: done ? tokens.babu : tokens.foggy, opacity: isAutomated ? 0.3 : 1, cursor: isAutomated ? 'default' : 'pointer' }}
-                                                disabled={isAutomated}
-                                            >
-                                                <Icon icon={done ? "solar:check-square-bold" : (isAutomated ? "solar:settings-minimalistic-bold" : "solar:square-academic-cap-bold")} width="24" />
-                                            </CButton>
-                                        </div>
-                                    </div>
-                                    <CProgress value={m.progresso} height={4} className="mt-2" color={isExpired ? 'danger' : (done ? 'success' : 'info')} />
-                                </motion.div>
-                            )
-                        })}
-                    </div>
-                </SCard>
-
-                {/* BOX DE AVISO/RECOMENDAÇÃO */}
-                <motion.div 
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }} 
-                    style={{ 
-                        marginTop: 24, 
-                        background: `${tokens.arches}10`, 
-                        borderRadius: 20, 
-                        padding: '24px', 
-                        border: `1px solid ${tokens.arches}30`,
-                        display: 'flex',
-                        gap: 16,
-                        alignItems: 'center'
-                    }}
-                >
-                    <div style={{ width: 48, height: 48, background: tokens.arches, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                        <Icon icon="solar:lightbulb-bold" width="24" />
-                    </div>
-                    <div>
-                        <div className="fw-bold" style={{ color: tokens.arches }}>Dica do Mentor</div>
-                        <div className="text-muted small">
-                            {churn >= 70 
-                                ? 'Foque em resolver pelo menos 5 questões hoje. Isso quebrará o sinal de alerta no sistema.' 
-                                : 'Você está no caminho certo! Tente manter essa média de conclusão para garantir sua vaga.'}
-                        </div>
-                    </div>
-                </motion.div>
-
+        {/* Barra de progresso linear (complementar ao ring) */}
+        {!isConcluida && !isExpirada && isAuto && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{ height: 4, background: 'var(--color-bg-tertiary)', borderRadius: 99, overflow: 'hidden' }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
+                style={{ height: '100%', background: accentColor, borderRadius: 99 }}
+              />
             </div>
-        </div>
-    )
+            <div style={{ fontSize: 10, color: T.muted, marginTop: 3 }}>
+              {m.metrica_tipo === 'sessoes'      && `${Math.round((pct / 100) * m.metrica_alvo)} de ${m.metrica_alvo} sessões`}
+              {m.metrica_tipo === 'media_acerto' && `Média atual: ${Math.round((pct / 100) * m.metrica_alvo)}% de ${m.metrica_alvo}%`}
+              {m.metrica_tipo === 'questoes'     && `${Math.round((pct / 100) * m.metrica_alvo)} de ${m.metrica_alvo} questões`}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Botão de ação */}
+      <div style={{ flexShrink: 0 }}>
+        {!isConcluida && !isExpirada && !isAuto && (
+          <motion.button
+            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+            onClick={() => onConcluir(m.id)}
+            disabled={concluindo === m.id}
+            style={{
+              background: T.coral, color: '#fff', border: 'none',
+              borderRadius: 12, padding: '9px 16px',
+              fontWeight: 700, fontSize: 12, cursor: 'pointer',
+              fontFamily: 'inherit', minWidth: 90,
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            {concluindo === m.id
+              ? <CSpinner size="sm" style={{ borderColor: '#fff', borderRightColor: 'transparent' }} />
+              : <><Icon icon="solar:check-circle-bold-duotone" width="16" /> Concluir</>
+            }
+          </motion.button>
+        )}
+        {isAuto && !isConcluida && !isExpirada && (
+          <div style={{ textAlign: 'center', width: 80 }}>
+            <Icon icon="solar:refresh-bold-duotone" width="20" style={{ color: T.muted, opacity: 0.5 }} />
+            <div style={{ fontSize: 9, color: T.muted, marginTop: 2 }}>Auto</div>
+          </div>
+        )}
+        {isConcluida && (
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%',
+            background: `${T.teal}15`, color: T.teal,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Icon icon="solar:verified-check-bold-duotone" width="22" />
+          </div>
+        )}
+        {isExpirada && (
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%',
+            background: '#ef444415', color: '#ef4444',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Icon icon="solar:close-circle-bold-duotone" width="22" />
+          </div>
+        )}
+      </div>
+    </motion.div>
+  )
+}
+
+/* ── Componente Principal ─────────────────────────────────── */
+const MeuRiscoPlano = () => {
+  const [missoes,    setMissoes]    = useState([])
+  const [loading,    setLoading]    = useState(true)
+  const [erro,       setErro]       = useState('')
+  const [concluindo, setConcluindo] = useState(null)
+  const [toast,      setToast]      = useState(null)
+
+  const matricula = sessionStorage.getItem('matricula')
+
+  const fetchMissoes = useCallback(async () => {
+    if (!matricula) return
+    setLoading(true)
+    try {
+      const r = await fetch(`${API_URL}/api/missoes/globais/${matricula}`)
+      if (!r.ok) throw new Error()
+      setMissoes(await r.json())
+    } catch {
+      setErro('Erro ao carregar missões. Tente recarregar a página.')
+    } finally {
+      setLoading(false)
+    }
+  }, [matricula])
+
+  useEffect(() => { fetchMissoes() }, [fetchMissoes])
+
+  const handleConcluir = async (missaoId) => {
+    setConcluindo(missaoId)
+    try {
+      const r = await fetch(`${API_URL}/api/missoes/concluir`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matricula, missao_id: missaoId }),
+      })
+      if (!r.ok) throw new Error((await r.json()).detail || 'Erro')
+      setToast({ tipo: 'success', msg: '🎉 Missão concluída! XP adicionado!' })
+      fetchMissoes()
+    } catch (e) {
+      setToast({ tipo: 'error', msg: e.message })
+    } finally {
+      setConcluindo(null)
+      setTimeout(() => setToast(null), 3500)
+    }
+  }
+
+  /* Separar por status */
+  const pendentes  = missoes.filter(m => m.status === 'pendente')
+  const concluidas = missoes.filter(m => m.status === 'concluida')
+  const expiradas  = missoes.filter(m => m.status === 'expirada')
+
+  return (
+    <div style={{ padding: '28px 16px', fontFamily: "'Nunito', sans-serif", minHeight: '100vh', background: 'var(--color-bg-primary)' }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');`}</style>
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20 }}
+            style={{
+              position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
+              background: toast.tipo === 'success' ? T.teal : '#ef4444',
+              color: '#fff', borderRadius: 16, padding: '14px 20px',
+              fontWeight: 700, fontSize: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+              display: 'flex', alignItems: 'center', gap: 10, maxWidth: 340,
+            }}
+          >
+            <Icon icon={toast.tipo === 'success' ? 'solar:star-bold-duotone' : 'solar:danger-bold-duotone'} width="22" />
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        {/* Header */}
+        <motion.div initial={{ opacity:0, y:-10 }} animate={{ opacity:1, y:0 }} style={{ marginBottom: 28 }}>
+          <div style={{ fontSize: 26, fontWeight: 800, color: T.text, letterSpacing: '-0.5px' }}>
+            🎯 Meus Desafios
+          </div>
+          <div style={{ fontSize: 14, color: T.muted, marginTop: 4 }}>
+            Complete missões para ganhar XP e subir no ranking.
+          </div>
+        </motion.div>
+
+        {/* Erro */}
+        {erro && <CAlert color="danger" style={{ borderRadius: 14, marginBottom: 20 }}>{erro}</CAlert>}
+
+        {/* Loading */}
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '60px 0' }}>
+            <CSpinner color="primary" />
+            <div style={{ color: T.muted, fontSize: 13, marginTop: 12 }}>Carregando seus desafios...</div>
+          </div>
+        ) : missoes.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 0' }}>
+            <Icon icon="solar:ghost-bold-duotone" width="56" style={{ color: T.muted, opacity: 0.3 }} />
+            <div style={{ color: T.muted, fontSize: 15, marginTop: 12 }}>Nenhum desafio disponível no momento.</div>
+          </div>
+        ) : (
+          <>
+            {/* ── Pendentes ── */}
+            {pendentes.length > 0 && (
+              <section style={{ marginBottom: 32 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
+                  <Icon icon="solar:fire-bold-duotone" style={{ color: T.coral }} width="20" />
+                  <span style={{ fontWeight:700, fontSize:15, color:T.text }}>Em Andamento</span>
+                  <span style={{ fontSize:12, background:`${T.coral}12`, color:T.coral, padding:'2px 10px', borderRadius:99, fontWeight:700 }}>{pendentes.length}</span>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                  <AnimatePresence>
+                    {pendentes.map((m, i) => (
+                      <MissaoCard key={m.id} m={m} onConcluir={handleConcluir} concluindo={concluindo} />
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </section>
+            )}
+
+            {/* ── Concluídas ── */}
+            {concluidas.length > 0 && (
+              <section style={{ marginBottom: 32 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
+                  <Icon icon="solar:verified-check-bold-duotone" style={{ color:T.teal }} width="20" />
+                  <span style={{ fontWeight:700, fontSize:15, color:T.text }}>Concluídas</span>
+                  <span style={{ fontSize:12, background:`${T.teal}12`, color:T.teal, padding:'2px 10px', borderRadius:99, fontWeight:700 }}>{concluidas.length}</span>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                  {concluidas.map(m => (
+                    <MissaoCard key={m.id} m={m} onConcluir={handleConcluir} concluindo={concluindo} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ── Expiradas ── */}
+            {expiradas.length > 0 && (
+              <section style={{ marginBottom: 32 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
+                  <Icon icon="solar:clock-circle-bold-duotone" style={{ color:'#ef4444' }} width="20" />
+                  <span style={{ fontWeight:700, fontSize:15, color:'#ef4444' }}>Expiradas</span>
+                  <span style={{ fontSize:12, background:'#ef444412', color:'#ef4444', padding:'2px 10px', borderRadius:99, fontWeight:700 }}>{expiradas.length}</span>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                  {expiradas.map(m => (
+                    <MissaoCard key={m.id} m={m} onConcluir={handleConcluir} concluindo={concluindo} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
 }
 
 export default MeuRiscoPlano

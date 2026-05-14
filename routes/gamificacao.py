@@ -441,46 +441,33 @@ from utils.jwt_auth import verificar_admin, verificar_proprio_ou_admin
 # ==================== MISSÕES GLOBAIS ====================
 
 from pydantic import BaseModel
-from typing import Optional
-from datetime import datetime
+from typing import Optional, Literal
+from datetime import date
 
 class MissaoGlobalCreate(BaseModel):
-    titulo: str
-    dica: str
-    icon: str = "solar:target-bold"
-    metrica_tipo: str = "manual"
-    metrica_alvo: int = 0
-    data_limite: Optional[datetime] = None
-
-@router.get("/api/missoes/globais")
-def get_missoes_globais():
-    """Retorna lista de missões criadas pelo admin para todos os alunos."""
-    try:
-        with get_conexao() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT id, titulo, dica, icon, metrica_tipo, metrica_alvo, data_limite FROM missoes_globais ORDER BY criado_em DESC")
-            rows = cursor.fetchall()
-            return [
-                {
-                    "id": r[0], "titulo": r[1], "dica": r[2], "icon": r[3],
-                    "metrica_tipo": r[4], "metrica_alvo": r[5], "data_limite": r[6].isoformat() if r[6] else None
-                }
-                for r in rows
-            ]
-    except Exception as e:
-        logger.error(f"Erro em missoes globais: {e}")
-        raise HTTPException(status_code=500, detail="Erro ao buscar missões globais")
+    titulo:        str
+    descricao:     str
+    xp:            int = 100
+    icone:         Optional[str] = "🎯"
+    cor:           Optional[str] = "#FF385C"
+    metrica_tipo:  Literal["manual", "sessoes", "media_acerto", "questoes"] = "manual"
+    metrica_alvo:  Optional[int] = None
+    data_limite:   Optional[date] = None
 
 @router.post("/api/admin/missoes")
-def create_missao_global(missao: MissaoGlobalCreate, token: dict = Depends(verificar_admin)):
-    """Cria uma nova missão visível para todos os alunos (Admin only)."""
+def criar_missao_global(missao: MissaoGlobalCreate, token: dict = Depends(verificar_admin)):
+    if missao.metrica_tipo != "manual" and missao.metrica_alvo is None:
+        raise HTTPException(status_code=422, detail="metrica_alvo é obrigatório para missões automáticas.")
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO missoes_globais (titulo, dica, icon, metrica_tipo, metrica_alvo, data_limite) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
-                (missao.titulo, missao.dica, missao.icon, missao.metrica_tipo, missao.metrica_alvo, missao.data_limite)
-            )
+            cursor.execute("""
+                INSERT INTO missoes_globais
+                    (titulo, dica, xp, icon, cor, metrica_tipo, metrica_alvo, data_limite)
+                VALUES
+                    (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """, (missao.titulo, missao.descricao, missao.xp, missao.icone, missao.cor, missao.metrica_tipo, missao.metrica_alvo, missao.data_limite))
             new_id = cursor.fetchone()[0]
             conn.commit()
             return {"sucesso": True, "id": new_id}
@@ -488,9 +475,111 @@ def create_missao_global(missao: MissaoGlobalCreate, token: dict = Depends(verif
         logger.error(f"Erro ao criar missão: {e}")
         raise HTTPException(status_code=500, detail="Erro ao criar missão global")
 
+@router.get("/api/missoes/globais/{matricula}")
+def listar_missoes_aluno(matricula: str):
+    hoje = date.today()
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                SELECT 
+                    m.id, m.titulo, m.dica as descricao, m.xp, m.icon as icone, m.cor, m.metrica_tipo, m.metrica_alvo, m.data_limite,
+                    CASE WHEN mc.id IS NOT NULL THEN TRUE ELSE FALSE END AS concluida
+                FROM missoes_globais m
+                LEFT JOIN missoes_concluidas mc ON mc.missao_id = m.id AND mc.matricula = %s
+                ORDER BY m.data_limite ASC NULLS LAST, m.id DESC;
+            """, (matricula,))
+            
+            columns = [col[0] for col in cursor.description]
+            missoes = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            cursor.execute("""
+                SELECT
+                    COUNT(*) AS total_sessoes,
+                    COALESCE(AVG(taxa_acerto), 0)::int AS media_acerto
+                FROM sessoes_estudo
+                WHERE matricula_aluno = %s
+                  AND criado_em >= date_trunc('week', NOW());
+            """, (matricula,))
+            kpi_cols = [col[0] for col in cursor.description]
+            kpis_row = cursor.fetchone()
+            kpis = dict(zip(kpi_cols, kpis_row)) if kpis_row else {"total_sessoes": 0, "media_acerto": 0}
+
+        sessoes_semana = kpis["total_sessoes"]
+        media_semana = kpis["media_acerto"]
+
+        resultado = []
+        for m in missoes:
+            progresso = 0
+            if m["metrica_tipo"] == "sessoes":
+                progresso = min(int((sessoes_semana / (m["metrica_alvo"] or 1)) * 100), 100)
+            elif m["metrica_tipo"] == "media_acerto":
+                progresso = min(int((media_semana / (m["metrica_alvo"] or 1)) * 100), 100)
+            elif m["metrica_tipo"] == "manual":
+                progresso = 100 if m["concluida"] else 0
+
+            if m["concluida"] or (m["metrica_tipo"] != "manual" and progresso >= 100):
+                status = "concluida"
+            elif m["data_limite"] and m["data_limite"].date() < hoje:
+                status = "expirada"
+            else:
+                status = "pendente"
+
+            dias_restantes = None
+            if m["data_limite"] and status == "pendente":
+                dias_restantes = (m["data_limite"].date() - hoje).days
+
+            m.update({
+                "progresso": progresso,
+                "status": status,
+                "dias_restantes": dias_restantes,
+                "data_limite": m["data_limite"].isoformat() if m["data_limite"] else None,
+            })
+            resultado.append(m)
+
+        return resultado
+    except Exception as e:
+        logger.error(f"Erro ao listar missoes do aluno: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno")
+
+@router.post("/api/missoes/concluir")
+def concluir_missao(payload: dict):
+    matricula = payload.get("matricula")
+    missao_id = payload.get("missao_id")
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT metrica_tipo, xp FROM missoes_globais WHERE id = %s", (missao_id,))
+            m = cursor.fetchone()
+            if not m:
+                raise HTTPException(status_code=404, detail="Missao não encontrada")
+            
+            if m[0] != "manual":
+                raise HTTPException(status_code=400, detail="Esta missão é validada automaticamente")
+            
+            cursor.execute("""
+                INSERT INTO missoes_concluidas (matricula, missao_id)
+                VALUES (%s, %s)
+                ON CONFLICT (matricula, missao_id) DO NOTHING
+                RETURNING id;
+            """, (matricula, missao_id))
+            inserido = cursor.fetchone()
+            
+            if not inserido:
+                return {"ok": False, "msg": "Missão já estava concluída"}
+                
+            cursor.execute("UPDATE usuarios SET xp = COALESCE(xp, 0) + %s WHERE matricula = %s", (m[1], matricula))
+            conn.commit()
+            return {"ok": True, "msg": "Missão concluída"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erro ao concluir: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno")
+
 @router.delete("/api/admin/missoes/{missao_id}")
 def delete_missao_global(missao_id: int, token: dict = Depends(verificar_admin)):
-    """Remove uma missão global (Admin only)."""
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
@@ -499,4 +588,15 @@ def delete_missao_global(missao_id: int, token: dict = Depends(verificar_admin))
             return {"sucesso": True}
     except Exception as e:
         logger.error(f"Erro ao deletar missão: {e}")
-        raise HTTPException(status_code=500, detail="Erro ao deletar missão global")
+        raise HTTPException(status_code=500, detail="Erro ao deletar")
+
+@router.get("/api/admin/missoes")
+def get_missoes_admin():
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, titulo, dica as descricao, xp, icon as icone, cor, metrica_tipo, metrica_alvo, data_limite FROM missoes_globais ORDER BY criado_em DESC")
+            cols = [col[0] for col in cursor.description]
+            return [dict(zip(cols, row)) for row in cursor.fetchall()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Erro ao buscar missoes admin")
