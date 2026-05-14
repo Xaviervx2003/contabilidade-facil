@@ -244,48 +244,46 @@ const MinhasTrilhas = () => {
                       </div>
                     </div>
                   ) : (
-                    <CCardHeader className="bg-primary text-white py-4">
-                      <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="fw-bold mb-0">{t.nome}</h5>
+                    <CCardHeader className="bg-primary text-white px-4 py-3 d-flex align-items-center justify-content-between">
+                        <h5 className="fw-bold mb-0 text-capitalize">{t.nome}</h5>
                         {t.nivel && (
-                          <CBadge color="light" text="dark">
+                          <CBadge color="light" text="dark" className="ms-2">
                             {t.nivel}
                           </CBadge>
                         )}
-                      </div>
                     </CCardHeader>
                   )}
-                  <CCardHeader className="bg-body-tertiary border-bottom-0 pt-3 pb-0">
-                    <div className="d-flex justify-content-between align-items-start mb-2">
-                      {!t.capa_url && <h5 className="fw-bold mb-0 text-truncate">{t.nome}</h5>}
-                      {t.capa_url && <h5 className="fw-bold mb-0 text-truncate">{t.nome}</h5>}
-                      <div className="d-flex flex-column align-items-end gap-1">
+                  <CCardHeader className="bg-body-tertiary border-bottom-0 px-4 py-3">
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                      <h5 className="fw-bold mb-0 text-truncate text-capitalize">{t.nome}</h5>
+                      <div className="d-flex align-items-center gap-2 ms-2">
                         <CBadge color={t.progresso_percentual === 100 ? 'success' : 'primary'}>
                           {t.progresso_percentual}%
                         </CBadge>
-                        {t.media_acertos !== null && (
-                          <CBadge color="info" variant="outline" style={{ fontSize: '10px' }}>
-                            Média: {t.media_acertos}%
-                          </CBadge>
-                        )}
                       </div>
                     </div>
-                    <div className="text-body-secondary small mb-2">{t.descricao}</div>
+                    <div 
+                      className="text-body-secondary small mb-1 line-clamp-2" 
+                      style={{ minHeight: '2.5rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                    >
+                      {t.descricao || 'Explore este curso e aprofunde seus conhecimentos em contabilidade.'}
+                    </div>
                   </CCardHeader>
-                  <CCardBody>
+                  <CCardBody className="px-4 pb-4">
                     <div className="mb-4 mt-2">
                       <div className="d-flex justify-content-between small text-body-secondary mb-1">
-                        <span>Progresso Geral</span>
-                        <span>{t.progresso_percentual}%</span>
+                        <span className="fw-medium">Progresso Geral</span>
+                        <span className="fw-bold">{t.progresso_percentual}%</span>
                       </div>
                       <CProgress
                         value={t.progresso_percentual}
                         color={t.progresso_percentual === 100 ? 'success' : 'info'}
-                        height={8}
+                        height={6}
+                        className="rounded-pill"
                       />
                     </div>
 
-                    <h6 className="fw-bold mb-3 border-bottom pb-2">
+                    <h6 className="fw-bold mb-3 border-bottom pb-2" style={{ fontSize: '0.9rem' }}>
                       Módulos ({t.modulos?.length || 0})
                     </h6>
 
@@ -294,24 +292,25 @@ const MinhasTrilhas = () => {
                         {t.modulos.map((m, idx) => (
                           <div
                             key={m.id}
-                            className={`p-3 rounded border ${m.concluido ? 'bg-body-tertiary border-success' : 'bg-body-elevated'}`}
+                            className={`px-4 py-3 rounded-3 border d-flex align-items-center justify-content-between ${m.concluido ? 'bg-body-tertiary border-success/30' : 'bg-body-elevated border-border/50'}`}
                           >
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                              <div className="d-flex flex-column">
-                                <span
-                                  className={`fw-bold ${m.concluido ? 'text-success' : 'text-body'}`}
+                            <div className="text-truncate flex-1">
+                                <div
+                                  className={`fw-bold text-truncate ${m.concluido ? 'text-success' : 'text-body'}`}
+                                  style={{ fontSize: '0.9rem' }}
                                 >
                                   {m.ordem}. {m.nome}
-                                </span>
+                                </div>
                                 {m.duracao_minutos && (
-                                  <span className="text-body-tertiary" style={{ fontSize: '11px' }}>
-                                    <CIcon icon={cilClock} size="sm" className="me-1" />
+                                  <div className="text-body-tertiary" style={{ fontSize: '10px' }}>
+                                    <Icon icon="solar:clock-circle-linear" width="12" className="me-1" />
                                     {m.duracao_minutos} min
-                                  </span>
+                                  </div>
                                 )}
-                              </div>
+                            </div>
+                            <div className="ms-3 flex-shrink-0">
                               {m.concluido ? (
-                                <div style={{ width: '32px', height: '32px' }}>
+                                <div style={{ width: '28px', height: '28px' }}>
                                   <DotLottieReact
                                     src="https://lottie.host/80a969b7-0c7f-4ca7-b249-1d373c23c721/tL4Kk5D64X.lottie"
                                     autoplay
@@ -321,56 +320,20 @@ const MinhasTrilhas = () => {
                               ) : (
                                 <CButton
                                   size="sm"
-                                  color="light"
-                                  onClick={() => marcarConcluido(m.id)}
-                                  disabled={salvando === m.id}
-                                  title="Marcar como concluído manualmente"
+                                  color="primary"
+                                  variant="ghost"
+                                  className="p-1 rounded-circle"
+                                  onClick={() => handleAcessarModulo(m)}
                                 >
-                                  {salvando === m.id ? (
-                                    <CSpinner size="sm" />
-                                  ) : (
-                                    <CIcon icon={cilCheckCircle} className="text-muted" />
-                                  )}
+                                  <Icon icon="solar:play-circle-bold" width="24" />
                                 </CButton>
                               )}
                             </div>
-
-                            <p className="small text-body-secondary mb-3">{m.descricao}</p>
-
-                            {/* REMOVIDO: texto_teorico inline (já aparece no modal) */}
-
-                            <CButton
-                              color={m.concluido ? 'secondary' : 'primary'}
-                              variant={m.concluido ? 'outline' : ''}
-                              size="sm"
-                              className="w-100 d-flex justify-content-between align-items-center"
-                              onClick={() => handleAcessarModulo(m)}
-                            >
-                              <span>
-                                {m.link_video && (
-                                  <>
-                                    <CIcon icon={cilMediaPlay} className="me-2" /> Assistir Aula
-                                  </>
-                                )}
-                                {!m.link_video && m.materia_id && (
-                                  <>
-                                    <CIcon icon={cilPenAlt} className="me-2" /> Praticar (
-                                    {m.materia_nome})
-                                  </>
-                                )}
-                                {!m.link_video && !m.materia_id && (
-                                  <>
-                                    <CIcon icon={cilDescription} className="me-2" /> Ler Conteúdo
-                                  </>
-                                )}
-                              </span>
-                              <CIcon icon={cilChevronRight} />
-                            </CButton>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-body-secondary small">Módulos em construção...</div>
+                      <div className="text-body-secondary small italic py-2">Módulos sendo preparados...</div>
                     )}
                   </CCardBody>
                 </CCard>
