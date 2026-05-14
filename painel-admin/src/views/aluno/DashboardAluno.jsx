@@ -31,10 +31,39 @@ import {
   cilLibrary,
 } from '@coreui/icons'
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { API_URL } from '../../config'
 import { useTheme } from '../../context/themeContext'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
+
+/* ── Skeletons para Performance ─────────────────────────── */
+const Skeleton = ({ className, height }) => (
+  <div 
+    className={`bg-body-tertiary rounded-4 animate-pulse ${className}`} 
+    style={{ height: height || '100px', backgroundColor: 'var(--color-bg-tertiary)', opacity: 0.5 }} 
+  />
+)
+
+const DashboardSkeleton = () => (
+  <div className="min-h-screen pt-4 px-3" style={{ background: 'var(--color-bg-primary)' }}>
+    <div className="max-w-5xl mx-auto">
+      <div className="mb-3">
+        <Skeleton height="32px" className="w-48 mb-2" />
+        <Skeleton height="16px" className="w-64" />
+      </div>
+      <CRow className="g-3 mb-4">
+        {[1, 2, 3, 4].map(i => (
+          <CCol key={i} xs={6} md={3}><Skeleton height="110px" /></CCol>
+        ))}
+      </CRow>
+      <CRow className="g-3">
+        <CCol md={8}><Skeleton height="300px" /></CCol>
+        <CCol md={4}><Skeleton height="300px" /></CCol>
+      </CRow>
+    </div>
+  </div>
+)
 
 /* ── Helpers ──────────────────────────────────────────────── */
 const formatTempo = (seg) => {
@@ -55,7 +84,8 @@ const saudacao = () => {
 const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
 /* ── Mini Gráfico de Barras (últimos 7 dias) ──────────────── */
-const MiniBarChart = ({ data, isDark }) => {
+const MiniBarChart = React.memo(({ data, isDark }) => {
+  if (!data || data.length === 0) return null
   const max = Math.max(...data.map(d => d.questoes), 1)
   return (
     <div className="d-flex align-items-end gap-1" style={{ height: 80 }}>
@@ -65,7 +95,7 @@ const MiniBarChart = ({ data, isDark }) => {
         const isHoje = i === data.length - 1
         return (
           <div key={i} className="d-flex flex-column align-items-center flex-fill">
-            <small className="mb-1" style={{ fontSize: 10, color: isDark ? '#94a3b8' : '#64748b' }}>
+            <small className="mb-1" style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>
               {d.questoes > 0 ? d.questoes : ''}
             </small>
             <div
@@ -75,10 +105,11 @@ const MiniBarChart = ({ data, isDark }) => {
                 height: `${Math.max(pct, 4)}%`,
                 borderRadius: '4px 4px 0 0',
                 background: isHoje
-                  ? 'linear-gradient(180deg, #6366f1, #818cf8)'
+                  ? 'linear-gradient(180deg, var(--color-primary), var(--color-secondary))'
                   : d.questoes > 0
-                    ? (isDark ? 'rgba(99,102,241,0.4)' : 'rgba(99,102,241,0.25)')
-                    : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'),
+                    ? 'var(--color-primary)'
+                    : 'var(--color-bg-tertiary)',
+                opacity: isHoje ? 1 : 0.4,
                 transition: 'height 0.5s ease',
               }}
             />
@@ -86,7 +117,7 @@ const MiniBarChart = ({ data, isDark }) => {
               fontSize: 9,
               marginTop: 4,
               fontWeight: isHoje ? 700 : 400,
-              color: isHoje ? '#6366f1' : 'var(--color-text-tertiary)',
+              color: isHoje ? 'var(--color-primary)' : 'var(--color-text-tertiary)',
             }}>
               {diasSemana[dt.getDay()]}
             </small>
@@ -95,77 +126,87 @@ const MiniBarChart = ({ data, isDark }) => {
       })}
     </div>
   )
-}
+})
 
-/* ── Stat Card ──────────────────────────────────────────── */
-const StatCard = ({ icon, label, value, sub, color }) => (
-  <div className="stat-box h-100 fade-in-up" style={{ animationDelay: '0.1s' }}>
-    <div className={`stat-icon-wrapper ${color}`}>
-      <CIcon icon={icon} />
+/* ── Stat Card Premium ───────────────────────────────────── */
+const StatCard = ({ icon, label, value, sub, color, delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 15 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay }}
+    whileHover={{ y: -4, transition: { duration: 0.2 } }}
+    className="premium-card h-100 d-flex flex-column justify-content-between border-0 p-3 shadow-sm overflow-hidden position-relative"
+  >
+    {/* Efeito de brilho sutil no fundo */}
+    <div 
+      className="position-absolute" 
+      style={{ 
+        top: -20, 
+        right: -20, 
+        width: 80, 
+        height: 80, 
+        background: `var(--color-${color})`, 
+        filter: 'blur(40px)', 
+        opacity: 0.15 
+      }} 
+    />
+
+    <div className="d-flex align-items-center gap-3 mb-2">
+      <div 
+        className="rounded-3 d-flex align-items-center justify-content-center" 
+        style={{ 
+          width: 42, 
+          height: 42, 
+          backgroundColor: `rgba(var(--color-${color}-rgb, 50, 31, 219), 0.12)`,
+          color: `var(--color-${color})`
+        }}
+      >
+        <Icon icon={icon} width="24" />
+      </div>
+      <div>
+        <div className="text-body-secondary" style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          {label}
+        </div>
+      </div>
     </div>
-    <div className="stat-info">
-      <div className="stat-value">{value}</div>
-      <div className="stat-desc">{label}</div>
-      {sub && <div className="text-body-tertiary small mt-1">{sub}</div>}
+
+    <div className="mt-2">
+      <div className="h3 fw-bold mb-1" style={{ color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>
+        {value}
+      </div>
+      {sub && (
+        <div className="text-body-secondary d-flex align-items-center gap-1" style={{ fontSize: '11px' }}>
+          {sub}
+        </div>
+      )}
     </div>
-  </div>
+  </motion.div>
 )
 
 /* ── Componente Principal ─────────────────────────────────── */
 const DashboardAluno = () => {
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const { isDark } = useTheme()
   const navigate = useNavigate()
-
   const matricula = sessionStorage.getItem('matricula')
   const nomeUsuario = sessionStorage.getItem('nome') || ''
 
+  // Cache inteligente com useQuery: Abre instantaneamente se os dados tiverem menos de 5 min
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['dashboard-aluno', matricula],
+    queryFn: async () => {
+      if (!matricula) throw new Error('Faça login primeiro')
+      const res = await fetch(`${API_URL}/api/aluno/dashboard/${matricula}`)
+      if (!res.ok) throw new Error('Erro ao buscar dados')
+      const json = await res.json()
+      if (json.nome) sessionStorage.setItem('nome', json.nome)
+      return json
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutos de dados "frescos"
+    enabled: !!matricula
+  })
 
-  useEffect(() => {
-    if (!matricula) {
-      setError('Faça login para ver seu dashboard.')
-      setLoading(false)
-      return
-    }
-    const carregar = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/aluno/dashboard/${matricula}`)
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const json = await res.json()
-        setData(json)
-        if (json.nome && json.nome !== nomeUsuario) {
-          sessionStorage.setItem('nome', json.nome)
-        }
-      } catch (err) {
-        setError(`Erro ao carregar dashboard: ${err.message}`)
-      } finally {
-        setLoading(false)
-      }
-    }
-    carregar()
-  }, [matricula])
-
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
-        <div className="text-center">
-          <CSpinner color="primary" />
-          <p className="mt-3 text-muted">Carregando seu dashboard...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="p-4">
-        <CAlert color="danger">{error}</CAlert>
-      </div>
-    )
-  }
-
+  if (isLoading) return <DashboardSkeleton />
+  if (error) return <div className="p-4"><CAlert color="danger">{error.message}</CAlert></div>
   if (!data) return null
 
   const { hoje, semana, geral, streak, progresso, materias_fracas, materias_fortes, ultimas_sessoes, serie_semanal } = data
@@ -178,7 +219,7 @@ const DashboardAluno = () => {
         {/* Título e Subtítulo padronizados (Modelo Simples) */}
         <div className="mb-3">
           <h3 className="h3 fw-bold mb-1">{saudacao()}, {primeiroNome}! 👋</h3>
-          <div className="text-muted small">
+          <div className="text-body-secondary small">
             {hoje.questoes > 0
               ? `Você já respondeu ${hoje.questoes} questões hoje. Continue assim!`
               : 'Que tal começar sua sessão de estudos agora?'}
@@ -189,38 +230,42 @@ const DashboardAluno = () => {
       <CRow className="g-3 mb-4">
         <CCol xs={6} lg={3}>
           <StatCard
-            icon={cilFire}
+            icon="solar:fire-bold-duotone"
             label="Streak"
             value={`${streak} dias`}
             sub={streak > 0 ? 'Sequência ativa 🔥' : 'Estude hoje para iniciar!'}
             color="warning"
+            delay={0.1}
           />
         </CCol>
         <CCol xs={6} lg={3}>
           <StatCard
-            icon={cilCheckCircle}
+            icon="solar:check-read-bold-duotone"
             label="Hoje"
             value={hoje.questoes}
             sub={`${hoje.sessoes} sessões · ${formatTempo(hoje.tempo_seg)}`}
             color="success"
+            delay={0.15}
           />
         </CCol>
         <CCol xs={6} lg={3}>
           <StatCard
-            icon={cilClock}
+            icon="solar:calendar-bold-duotone"
             label="Semana"
             value={semana.questoes}
             sub={`${semana.dias_estudados}/7 dias · ${formatTempo(semana.tempo_seg)}`}
             color="primary"
+            delay={0.2}
           />
         </CCol>
         <CCol xs={6} lg={3}>
           <StatCard
-            icon={cilSpeedometer}
+            icon="solar:graph-up-bold-duotone"
             label="Média geral"
             value={`${geral.media_geral}%`}
             sub={`${geral.total_questoes} questões total`}
             color="secondary"
+            delay={0.25}
           />
         </CCol>
       </CRow>
