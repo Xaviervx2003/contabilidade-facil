@@ -28,6 +28,7 @@ const DashboardAluno = React.lazy(() => import('./views/aluno/DashboardAluno'))
 const CentralRisco = React.lazy(() => import('./views/admin/CentralRisco'))
 const MeuRiscoPlano = React.lazy(() => import('./views/aluno/MeuRiscoPlano'))
 const GestaoVideos = React.lazy(() => import('./views/admin/GestaoVideos'))
+const InboxDuvidas = React.lazy(() => import('./views/admin/InboxDuvidas'))
 
 export const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -96,6 +97,12 @@ export const routes = [
     path: '/admin/videos',
     name: 'Gestão de Vídeos',
     element: GestaoVideos,
+    allowedRoles: ['admin', 'professor'],
+  },
+  {
+    path: '/admin/inbox',
+    name: 'Inbox de Dúvidas',
+    element: InboxDuvidas,
     allowedRoles: ['admin', 'professor'],
   },
   { path: '/aluno/historico', name: 'Meu Histórico', element: HistoricoAluno, allowedRoles: ['aluno'] },

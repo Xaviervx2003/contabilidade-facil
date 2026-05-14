@@ -9,6 +9,7 @@ import {
 } from '@coreui/react'
 import { API_URL } from '../../config'
 import { useTheme } from '../../context/themeContext'
+import FolderCard from '../../components/premium/FolderCard'
 
 /* ─── Tokens Airbnb-inspired ─────────────────────────────── */
 const tokens = {
@@ -179,6 +180,8 @@ const VideoGallery = () => {
   const [loading, setLoading] = useState(true)
   const [assistidos, setAssistidos] = useState(() => ls.get('videosAssistidos', []))
   const [desempenhoBaixo, setDesempenhoBaixo] = useState([])
+  const [viewMode, setViewMode] = useState('folders') // 'folders' ou 'items'
+  const [activeFolder, setActiveFolder] = useState(null)
   const { isDark } = useTheme()
   const matricula = sessionStorage.getItem('matricula')
 
@@ -250,6 +253,38 @@ const VideoGallery = () => {
 
   const perc = questoesComVideo.length ? Math.round((assistidos.length / questoesComVideo.length) * 100) : 0
 
+  // Agrupar itens por matéria para as pastas
+  const folders = useMemo(() => {
+    const map = {}
+    questoesComVideo.forEach(q => {
+      const nome = q.materia_nome || q.assunto || 'Geral'
+      const mid = q.materia_id || q.materia_ids?.[0] || 0
+      if (!map[mid]) {
+        map[mid] = { id: mid, title: nome, count: 0, items: [], completed: 0 }
+      }
+      map[mid].count++
+      map[mid].items.push(q)
+      if (assistidos.includes(q.id)) map[mid].completed++
+    })
+    return Object.values(map).map(f => ({
+      ...f,
+      progress: Math.round((f.completed / f.count) * 100)
+    }))
+  }, [questoesComVideo, assistidos])
+
+  const handleFolderClick = (folder) => {
+    setActiveFolder(folder)
+    setMateriaFiltro(folder.id)
+    setViewMode('items')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleBackToFolders = () => {
+    setViewMode('folders')
+    setMateriaFiltro('')
+    setActiveFolder(null)
+  }
+
   return (
     <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', padding: '32px 16px 48px', fontFamily: "'Nunito', sans-serif" }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
@@ -265,12 +300,29 @@ const VideoGallery = () => {
           animate={{ opacity: 1, y: 0 }}
           style={{ marginBottom: 32 }}
         >
-          <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Centro de Aprendizado</div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
-            Aprenda no seu Ritmo 🎓
-          </div>
-          <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
-            Assista às aulas exclusivas e domine os conceitos fundamentais da contabilidade.
+          <div className="d-flex justify-content-between align-items-end">
+            <div>
+              <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Centro de Aprendizado</div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+                {viewMode === 'folders' ? 'Pastas de Estudo 📂' : `${activeFolder?.title} 📖`}
+              </div>
+              <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+                {viewMode === 'folders' 
+                  ? 'Navegue pelos assuntos organizados para otimizar seu aprendizado.'
+                  : `Você está explorando as aulas de ${activeFolder?.title}.`}
+              </div>
+            </div>
+            {viewMode === 'items' && (
+              <CButton 
+                onClick={handleBackToFolders}
+                variant="ghost" 
+                className="d-flex align-items-center gap-2 fw-bold"
+                style={{ color: tokens.rausch, borderRadius: 12 }}
+              >
+                <Icon icon="solar:alt-arrow-left-bold-duotone" width="20" />
+                Voltar para Pastas
+              </CButton>
+            )}
           </div>
         </motion.div>
 
@@ -352,10 +404,26 @@ const VideoGallery = () => {
           </SCard>
         )}
 
-        {/* GRID DE VÍDEOS */}
+        {/* CONTEÚDO DINÂMICO: PASTAS OU GRID */}
         {loading ? (
           <CRow className="g-4">
-            {[1,2,3,4,5,6].map(i => <CCol key={i} xs={12} md={6} xl={4}><div style={{ height: 320, background: 'var(--color-bg-tertiary)', borderRadius: 20 }} className="animate-pulse" /></CCol>)}
+            {[1,2,3,4,5,6].map(i => <CCol key={i} xs={12} md={6} xl={4}><div style={{ height: 240, background: 'var(--color-bg-tertiary)', borderRadius: 24 }} className="animate-pulse" /></CCol>)}
+          </CRow>
+        ) : viewMode === 'folders' ? (
+          <CRow className="g-4">
+            <AnimatePresence>
+              {folders.map((f, i) => (
+                <CCol key={f.id} xs={12} md={6} xl={4}>
+                  <FolderCard 
+                    title={f.title}
+                    itemCount={f.count}
+                    progress={f.progress}
+                    color={i % 3 === 0 ? tokens.rausch : i % 3 === 1 ? tokens.babu : tokens.arches}
+                    onClick={() => handleFolderClick(f)}
+                  />
+                </CCol>
+              ))}
+            </AnimatePresence>
           </CRow>
         ) : (
           <CRow className="g-4">
@@ -365,7 +433,7 @@ const VideoGallery = () => {
             {!filteredItems.length && (
               <div className="text-center py-5">
                 <Icon icon="solar:ghost-bold-duotone" width="64" style={{ color: tokens.swiss, opacity: 0.3 }} />
-                <h5 className="mt-3" style={{ color: tokens.foggy }}>Nenhuma aula encontrada</h5>
+                <h5 className="mt-3" style={{ color: tokens.foggy }}>Nenhuma aula encontrada nesta pasta</h5>
               </div>
             )}
           </CRow>

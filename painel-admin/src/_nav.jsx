@@ -151,6 +151,12 @@ const getNavItens = () => {
       },
       {
         component: CNavItem,
+        name: 'Inbox de Dúvidas',
+        to: '/admin/inbox',
+        icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
         name: 'Relatórios',
         to: '/relatorios',
         icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
