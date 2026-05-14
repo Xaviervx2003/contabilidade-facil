@@ -186,7 +186,7 @@ const MinhasTrilhas = () => {
     <div className="min-h-screen bg-bg-primary text-text-primary font-sans p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
         {/* Header Premium */}
-        <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div className="mb-10 flex flex-col md:flex-row justify-between items-start gap-6">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
