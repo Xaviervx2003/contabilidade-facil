@@ -4,7 +4,7 @@ import { Icon } from '@iconify/react'
 import confetti from 'canvas-confetti'
 import toast from 'react-hot-toast'
 import {
-  CButton, CCol, CContainer,
+  CButton, CCol,
   CFormSelect, CFormInput, CRow, CSpinner
 } from '@coreui/react'
 import { API_URL } from '../../config'
@@ -251,15 +251,14 @@ const VideoGallery = () => {
   const perc = questoesComVideo.length ? Math.round((assistidos.length / questoesComVideo.length) * 100) : 0
 
   return (
-    <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Nunito', sans-serif" }}>
-      <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
-      <style>{`
-        @keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-        .search-field { background: var(--color-bg-elevated); border: 1.5px solid var(--color-border); border-radius: 14px; transition: 0.2s; }
-        .search-field:focus-within { border-color: ${tokens.rausch}; box-shadow: 0 0 0 4px rgba(255, 56, 92, 0.1); }
-      `}</style>
-
+    <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', padding: '32px 16px 48px', fontFamily: "'Nunito', sans-serif" }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
+        <style>{`
+          @keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+          .search-field { background: var(--color-bg-elevated); border: 1.5px solid var(--color-border); border-radius: 14px; transition: 0.2s; }
+          .search-field:focus-within { border-color: ${tokens.rausch}; box-shadow: 0 0 0 4px rgba(255, 56, 92, 0.1); }
+        `}</style>
+
         {/* HEADER PREMIUM IDENTICO AO PAINEL */}
         <motion.div 
           initial={{ opacity: 0, y: -10 }} 
@@ -342,7 +341,7 @@ const VideoGallery = () => {
                   <motion.div 
                     whileHover={{ x: 4, background: 'var(--color-bg-elevated)' }}
                     className="p-3 rounded-4 d-flex align-items-center gap-3 cursor-pointer border" 
-                    onClick={() => setModoPlaylist(true)}
+                    onClick={() => { setModoPlaylist(true); }}
                   >
                     <img src={obterThumbnail(q.link_video)} style={{ width: 80, height: 45, borderRadius: 10, objectFit: 'cover' }} alt="" />
                     <div className="text-truncate fw-bold small" style={{ color: 'var(--color-text-primary)' }}>{q.titulo || q.question}</div>
@@ -374,7 +373,6 @@ const VideoGallery = () => {
       </div>
 
       {/* PLAYLIST PANEL GLASSMORPHISM */}
-      {/* PLAYLIST PANEL GLASSMORPHISM */}
       <AnimatePresence>
         {modoPlaylist && (
           <motion.div 
@@ -383,7 +381,7 @@ const VideoGallery = () => {
             exit={{ x: 400, opacity: 0 }}
             style={{ 
               position: 'fixed', top: 100, right: 30, bottom: 30, width: 380, 
-              background: 'rgba(var(--color-bg-elevated-rgb), 0.85)', 
+              background: isDark ? 'rgba(30, 37, 53, 0.85)' : 'rgba(255, 255, 255, 0.85)', 
               backdropFilter: 'blur(16px)', border: '1px solid var(--color-border)',
               borderRadius: 30, zIndex: 2000, display: 'flex', flexDirection: 'column',
               boxShadow: '0 20px 50px rgba(0,0,0,0.15)'
@@ -400,8 +398,11 @@ const VideoGallery = () => {
                 <motion.div 
                   key={v.id} 
                   whileHover={{ x: 5 }}
-                  className={`p-3 rounded-4 mb-3 cursor-pointer border-0 shadow-sm ${assistidos.includes(v.id) ? 'bg-success bg-opacity-10' : 'bg-body-tertiary'}`} 
-                  onClick={() => document.getElementById(`vid-${v.id}`)?.scrollIntoView({ behavior: 'smooth' })}
+                  className={`p-3 rounded-4 mb-3 cursor-pointer border shadow-sm ${assistidos.includes(v.id) ? 'bg-success bg-opacity-10' : 'bg-body-tertiary'}`} 
+                  onClick={() => {
+                    const el = document.getElementById(`vid-${v.id}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
                 >
                   <div className="d-flex align-items-center gap-3">
                     <span style={{ fontSize: 14, fontWeight: 800, color: assistidos.includes(v.id) ? tokens.babu : tokens.foggy }}>{String(i+1).padStart(2, '0')}</span>
@@ -417,7 +418,6 @@ const VideoGallery = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      </CContainer>
     </div>
   )
 }
