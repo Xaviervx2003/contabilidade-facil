@@ -441,11 +441,16 @@ from utils.jwt_auth import verificar_admin, verificar_proprio_ou_admin
 # ==================== MISSÕES GLOBAIS ====================
 
 from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
 
 class MissaoGlobalCreate(BaseModel):
     titulo: str
     dica: str
     icon: str = "solar:target-bold"
+    metrica_tipo: str = "manual"
+    metrica_alvo: int = 0
+    data_limite: Optional[datetime] = None
 
 @router.get("/api/missoes/globais")
 def get_missoes_globais():
@@ -453,10 +458,13 @@ def get_missoes_globais():
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT id, titulo, dica, icon FROM missoes_globais ORDER BY criado_em DESC")
+            cursor.execute("SELECT id, titulo, dica, icon, metrica_tipo, metrica_alvo, data_limite FROM missoes_globais ORDER BY criado_em DESC")
             rows = cursor.fetchall()
             return [
-                {"id": r[0], "titulo": r[1], "dica": r[2], "icon": r[3]}
+                {
+                    "id": r[0], "titulo": r[1], "dica": r[2], "icon": r[3],
+                    "metrica_tipo": r[4], "metrica_alvo": r[5], "data_limite": r[6].isoformat() if r[6] else None
+                }
                 for r in rows
             ]
     except Exception as e:
@@ -470,8 +478,8 @@ def create_missao_global(missao: MissaoGlobalCreate, token: dict = Depends(verif
         with get_conexao() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO missoes_globais (titulo, dica, icon) VALUES (%s, %s, %s) RETURNING id",
-                (missao.titulo, missao.dica, missao.icon)
+                "INSERT INTO missoes_globais (titulo, dica, icon, metrica_tipo, metrica_alvo, data_limite) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
+                (missao.titulo, missao.dica, missao.icon, missao.metrica_tipo, missao.metrica_alvo, missao.data_limite)
             )
             new_id = cursor.fetchone()[0]
             conn.commit()

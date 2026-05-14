@@ -135,14 +135,26 @@ const MeuRiscoPlano = () => {
 
         // Converter missões globais (Admin) para o formato do plano com trava de segurança
         const globaisFormatadas = Array.isArray(missoesGlobais) 
-            ? missoesGlobais.map(g => ({
-                id: `global_${g.id}`,
-                titulo: g.titulo,
-                dica: g.dica,
-                progresso: 0,
-                icon: g.icon || 'solar:target-bold',
-                isGlobal: true
-            }))
+            ? missoesGlobais.map(g => {
+                let progresso = 0;
+                if (g.metrica_tipo === 'sessoes' && g.metrica_alvo > 0) {
+                    progresso = Math.min(100, (sessoesSemana / g.metrica_alvo) * 100);
+                } else if (g.metrica_tipo === 'media_acerto' && g.metrica_alvo > 0) {
+                    progresso = mediaSemana >= g.metrica_alvo ? 100 : Math.min(100, (mediaSemana / g.metrica_alvo) * 100);
+                }
+
+                return {
+                    id: `global_${g.id}`,
+                    titulo: g.titulo,
+                    dica: g.dica,
+                    progresso: progresso,
+                    icon: g.icon || 'solar:target-bold',
+                    isGlobal: true,
+                    metrica_tipo: g.metrica_tipo || 'manual',
+                    metrica_alvo: g.metrica_alvo || 0,
+                    data_limite: g.data_limite || null
+                }
+            })
             : []
 
         return [...base, ...globaisFormatadas, ...missoesPessoais]
@@ -268,7 +280,20 @@ const MeuRiscoPlano = () => {
 
                     <div className="d-flex flex-column gap-3">
                         {plano.map((m, i) => {
-                            const done = missoesConcluidas.includes(m.id)
+                            const isAutomated = m.metrica_tipo && m.metrica_tipo !== 'manual';
+                            // Autovalidação para missões automáticas
+                            const done = missoesConcluidas.includes(m.id) || (isAutomated && m.progresso >= 100);
+                            
+                            // Lógica Habitica: Prazo expirado fica avermelhado
+                            const isExpired = m.data_limite && new Date(m.data_limite) < new Date() && !done;
+                            
+                            // Cores Dinâmicas
+                            const borderColor = isExpired ? `${tokens.rausch}40` : (done ? `${tokens.babu}40` : 'transparent');
+                            const bgColor = isExpired ? `${tokens.rausch}08` : 'var(--color-bg-tertiary)';
+                            const iconBoxColor = isExpired ? tokens.rausch : (done ? tokens.babu : 'var(--color-bg-elevated)');
+                            const iconBoxText = isExpired || done ? '#fff' : tokens.foggy;
+                            const titleColor = isExpired ? tokens.rausch : (done ? tokens.foggy : 'var(--color-text-primary)');
+
                             return (
                                 <motion.div 
                                     key={m.id}
@@ -276,10 +301,10 @@ const MeuRiscoPlano = () => {
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: i * 0.1 }}
                                     style={{ 
-                                        background: 'var(--color-bg-tertiary)', 
+                                        background: bgColor, 
                                         borderRadius: 16, 
                                         padding: '16px',
-                                        border: done ? `1.5px solid ${tokens.babu}40` : '1.5px solid transparent',
+                                        border: `1.5px solid ${borderColor}`,
                                         transition: '0.3s'
                                     }}
                                 >
@@ -287,19 +312,29 @@ const MeuRiscoPlano = () => {
                                         <div className="d-flex align-items-center gap-3">
                                             <div style={{ 
                                                 width: 40, height: 40, 
-                                                background: done ? tokens.babu : 'var(--color-bg-elevated)', 
+                                                background: iconBoxColor, 
                                                 borderRadius: 12, 
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                color: done ? '#fff' : tokens.foggy,
+                                                color: iconBoxText,
                                                 transition: '0.3s'
                                             }}>
-                                                <Icon icon={m.icon} width="24" />
+                                                <Icon icon={isExpired ? "solar:danger-triangle-bold" : m.icon} width="24" />
                                             </div>
                                             <div>
-                                                <div className="fw-bold" style={{ fontSize: 15, textDecoration: done ? 'line-through' : 'none', color: done ? tokens.foggy : 'var(--color-text-primary)' }}>
-                                                    {m.titulo}
+                                                <div className="fw-bold" style={{ fontSize: 15, textDecoration: done ? 'line-through' : 'none', color: titleColor }}>
+                                                    {m.titulo} {isAutomated && <CBadge style={{ background: `${tokens.babu}15`, color: tokens.babu, fontSize: 10, marginLeft: 8 }}>AUTO</CBadge>}
                                                 </div>
-                                                <div className="small text-muted">{m.dica}</div>
+                                                <div className="small text-muted">
+                                                    {isExpired 
+                                                        ? <span className="text-danger fw-bold"><Icon icon="solar:alarm-bold" className="me-1" />Expirou em {new Date(m.data_limite).toLocaleDateString('pt-BR')}</span>
+                                                        : m.dica
+                                                    }
+                                                    {m.data_limite && !isExpired && !done && (
+                                                        <span className="ms-2" style={{ color: tokens.arches }}>
+                                                            <Icon icon="solar:clock-circle-bold" className="me-1" />Até {new Date(m.data_limite).toLocaleDateString('pt-BR')}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="d-flex gap-1">
@@ -308,17 +343,19 @@ const MeuRiscoPlano = () => {
                                                     <Icon icon="solar:trash-bin-trash-bold" width="20" />
                                                 </CButton>
                                             )}
+                                            {/* Se for automática, esconde/desabilita o botão manual */}
                                             <CButton 
                                                 size="sm" 
                                                 variant="ghost" 
-                                                onClick={() => toggleMissao(m.id)}
-                                                style={{ color: done ? tokens.babu : tokens.foggy }}
+                                                onClick={() => !isAutomated && toggleMissao(m.id)}
+                                                style={{ color: done ? tokens.babu : tokens.foggy, opacity: isAutomated ? 0.3 : 1, cursor: isAutomated ? 'default' : 'pointer' }}
+                                                disabled={isAutomated}
                                             >
-                                                <Icon icon={done ? "solar:check-square-bold" : "solar:square-academic-cap-bold"} width="24" />
+                                                <Icon icon={done ? "solar:check-square-bold" : (isAutomated ? "solar:settings-minimalistic-bold" : "solar:square-academic-cap-bold")} width="24" />
                                             </CButton>
                                         </div>
                                     </div>
-                                    <CProgress value={m.progresso} height={4} className="mt-2" color={done ? 'success' : 'info'} />
+                                    <CProgress value={m.progresso} height={4} className="mt-2" color={isExpired ? 'danger' : (done ? 'success' : 'info')} />
                                 </motion.div>
                             )
                         })}

@@ -21,6 +21,9 @@ const GestaoMissoes = () => {
     const [missoes, setMissoes] = useState([])
     const [novoTitulo, setNovoTitulo] = useState('')
     const [novaDica, setNovaDica] = useState('')
+    const [metricaTipo, setMetricaTipo] = useState('manual')
+    const [metricaAlvo, setMetricaAlvo] = useState(0)
+    const [dataLimite, setDataLimite] = useState('')
     const [loading, setLoading] = useState(true)
 
     const buscarMissoes = async () => {
@@ -50,12 +53,22 @@ const GestaoMissoes = () => {
             const res = await fetch(`${API_URL}/api/admin/missoes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ titulo: novoTitulo, dica: novaDica, icon: 'solar:ranking-bold' })
+                body: JSON.stringify({ 
+                    titulo: novoTitulo, 
+                    dica: novaDica, 
+                    icon: 'solar:ranking-bold',
+                    metrica_tipo: metricaTipo,
+                    metrica_alvo: metricaTipo === 'manual' ? 0 : parseInt(metricaAlvo) || 0,
+                    data_limite: dataLimite || null
+                })
             })
             if (res.ok) {
                 toast.success('Desafio lançado para os alunos! 🚀')
                 setNovoTitulo('')
                 setNovaDica('')
+                setMetricaTipo('manual')
+                setMetricaAlvo(0)
+                setDataLimite('')
                 buscarMissoes()
             }
         } catch (e) {
@@ -135,6 +148,39 @@ const GestaoMissoes = () => {
                                     className="border-0 bg-body-tertiary rounded-3 shadow-none"
                                 />
                             </div>
+                            <div className="mb-3">
+                                <label className="small fw-bold text-muted mb-1">TIPO DE VALIDAÇÃO</label>
+                                <select 
+                                    className="form-select border-0 bg-body-tertiary rounded-3 shadow-none"
+                                    value={metricaTipo}
+                                    onChange={e => setMetricaTipo(e.target.value)}
+                                >
+                                    <option value="manual">Manual (Aluno marca como feito)</option>
+                                    <option value="sessoes">Automática - Sessões de Estudo</option>
+                                    <option value="media_acerto">Automática - Média de Acertos (%)</option>
+                                </select>
+                            </div>
+                            {metricaTipo !== 'manual' && (
+                                <div className="mb-3">
+                                    <label className="small fw-bold text-muted mb-1">META NUMÉRICA</label>
+                                    <CFormInput 
+                                        type="number"
+                                        placeholder="Ex: 5" 
+                                        value={metricaAlvo}
+                                        onChange={e => setMetricaAlvo(e.target.value)}
+                                        className="border-0 bg-body-tertiary rounded-3 shadow-none"
+                                    />
+                                </div>
+                            )}
+                            <div className="mb-4">
+                                <label className="small fw-bold text-muted mb-1">PRAZO (DATA LIMITE)</label>
+                                <CFormInput 
+                                    type="date"
+                                    value={dataLimite}
+                                    onChange={e => setDataLimite(e.target.value)}
+                                    className="border-0 bg-body-tertiary rounded-3 shadow-none text-muted"
+                                />
+                            </div>
                             <CButton 
                                 onClick={handleAdd}
                                 className="w-100 fw-bold py-2"
@@ -153,7 +199,8 @@ const GestaoMissoes = () => {
                                 <CTableHead>
                                     <CTableRow>
                                         <CTableHeaderCell className="border-0 text-muted small px-0">MISSÃO</CTableHeaderCell>
-                                        <CTableHeaderCell className="border-0 text-muted small">TIPO</CTableHeaderCell>
+                                        <CTableHeaderCell className="border-0 text-muted small">MÉTRICA</CTableHeaderCell>
+                                        <CTableHeaderCell className="border-0 text-muted small">PRAZO</CTableHeaderCell>
                                         <CTableHeaderCell className="border-0 text-muted small text-end px-0">AÇÕES</CTableHeaderCell>
                                     </CTableRow>
                                 </CTableHead>
@@ -165,9 +212,12 @@ const GestaoMissoes = () => {
                                                 <div className="small text-muted">{m.dica}</div>
                                             </CTableDataCell>
                                             <CTableDataCell>
-                                                <CBadge style={{ background: m.tipo === 'Sistema' ? tokens.hof : tokens.babu }}>
-                                                    {m.tipo.toUpperCase()}
+                                                <CBadge style={{ background: m.metrica_tipo === 'manual' ? tokens.hof : tokens.babu, opacity: 0.8 }}>
+                                                    {m.metrica_tipo.toUpperCase()} {m.metrica_tipo !== 'manual' ? `(${m.metrica_alvo})` : ''}
                                                 </CBadge>
+                                            </CTableDataCell>
+                                            <CTableDataCell className="small text-muted fw-bold">
+                                                {m.data_limite ? new Date(m.data_limite).toLocaleDateString('pt-BR') : '—'}
                                             </CTableDataCell>
                                             <CTableDataCell className="text-end px-0">
                                                 <CButton 
