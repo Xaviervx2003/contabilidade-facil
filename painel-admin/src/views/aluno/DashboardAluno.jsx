@@ -320,9 +320,7 @@ const DashboardAluno = () => {
   const containerStyle = {
     minHeight: '100vh',
     background: 'var(--color-bg-primary)',
-    padding: '48px 24px 64px',
-    position: 'relative',
-    overflow: 'hidden',
+    padding: '32px 16px 48px',
     '--sk1': isDark ? '#1e2535' : '#f0f0f0',
     '--sk2': isDark ? '#252f42' : '#e0e0e0',
   }
@@ -334,32 +332,22 @@ const DashboardAluno = () => {
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
       `}</style>
 
-      {/* ── Container Frame (Elite SaaS) ── */}
-      <div className="pointer-events-none absolute inset-0 d-none d-lg-flex justify-content-center">
-        <div style={{ width: '100%', maxWidth: 1200, position: 'relative' }}>
-          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 1, background: 'var(--color-border)', opacity: 0.4 }}></div>
-          <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 1, background: 'var(--color-border)', opacity: 0.4 }}></div>
-        </div>
-      </div>
-
-      <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1, fontFamily: "'Nunito', sans-serif" }}>
+      <div style={{ maxWidth: 960, margin: '0 auto', fontFamily: "'Nunito', sans-serif" }}>
 
         {/* ── Header ── */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{ marginBottom: 40, position: 'relative' }}
+          style={{ marginBottom: 32 }}
         >
-          <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-1.0px', lineHeight: 1.1 }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
             {saudacao()}, {primeiroNome}! 👋
           </div>
-          <div style={{ fontSize: 16, color: tokens.foggy, marginTop: 8, fontWeight: 500 }}>
+          <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
             {hoje.questoes > 0
               ? `Você já dominou ${hoje.questoes} tópicos hoje. A constância é o caminho para a aprovação.`
               : 'O sucesso é a soma de pequenos esforços repetidos dia após dia.'}
           </div>
-          {/* Section Divider */}
-          <div style={{ height: 1, background: 'var(--color-border)', width: '100%', marginTop: 32, opacity: 0.6 }}></div>
         </motion.div>
 
         {/* ── Stat Cards ── */}
