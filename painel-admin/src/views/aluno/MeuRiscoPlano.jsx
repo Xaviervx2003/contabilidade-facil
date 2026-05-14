@@ -42,24 +42,33 @@ const MeuRiscoPlano = () => {
 
             setLoading(true)
             try {
-                const [resKpi, resResumo, resGlobais] = await Promise.all([
-                    fetch(`${API_URL}/api/metricas-estudantes/desempenho/${encodeURIComponent(matricula)}`),
-                    fetch(`${API_URL}/api/aluno/dashboard/${encodeURIComponent(matricula)}`),
-                    fetch(`${API_URL}/api/missoes/globais`)
-                ])
+                // Carregamento resiliente: se um falhar, o outro continua
+                const carregarDados = async (url) => {
+                    try {
+                        const res = await fetch(url)
+                        if (!res.ok) return null
+                        return await res.json()
+                    } catch (e) {
+                        return null
+                    }
+                }
+
                 const [jsonKpi, jsonResumo, jsonGlobais] = await Promise.all([
-                    resKpi.json(), resResumo.json(), resGlobais.json()
+                    carregarDados(`${API_URL}/api/metricas-estudantes/desempenho/${encodeURIComponent(matricula)}`),
+                    carregarDados(`${API_URL}/api/aluno/dashboard/${encodeURIComponent(matricula)}`),
+                    carregarDados(`${API_URL}/api/missoes/globais`)
                 ])
-                setDados(jsonKpi)
-                setResumoAluno(jsonResumo)
-                setMissoesGlobais(jsonGlobais)
+
+                if (jsonKpi) setDados(jsonKpi)
+                if (jsonResumo) setResumoAluno(jsonResumo)
+                if (jsonGlobais) setMissoesGlobais(jsonGlobais)
                 
                 const mKey = `missoes_semanais:${matricula}`
                 const pKey = `missoes_pessoais:${matricula}`
                 setMissoesConcluidas(JSON.parse(sessionStorage.getItem(mKey) || '[]'))
                 setMissoesPessoais(JSON.parse(localStorage.getItem(pKey) || '[]'))
             } catch (e) {
-                setErro(`Falha ao carregar dados: ${e.message}`)
+                console.error("Erro ao processar dados locais:", e)
             } finally {
                 setLoading(false)
             }
@@ -94,12 +103,11 @@ const MeuRiscoPlano = () => {
     }
 
     const plano = useMemo(() => {
-        if (!dados) return []
-        const churn = Number(dados.churn_risco_percentual || 0)
+        const churn = Number(dados?.churn_risco_percentual || 0)
         const mediaSemana = Number(resumoAluno?.semana?.media_acerto || 0)
         const sessoesSemana = Number(resumoAluno?.semana?.sessoes || 0)
 
-        const base = [
+        const base = dados ? [
             {
                 id: 'sessoes',
                 titulo: 'Ritmo de Estudo',
@@ -114,9 +122,9 @@ const MeuRiscoPlano = () => {
                 progresso: mediaSemana >= 80 ? 100 : Math.min(100, (mediaSemana / 80) * 100),
                 icon: 'solar:star-circle-bold-duotone'
             },
-        ]
+        ] : []
 
-        if (churn >= 70) {
+        if (dados && churn >= 70) {
             base.unshift({
                 id: 'anti-churn',
                 titulo: 'Missão de Resgate 🚨',
