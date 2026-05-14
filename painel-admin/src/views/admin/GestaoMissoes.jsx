@@ -5,7 +5,10 @@ import {
 } from '@coreui/react'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
+import { motion } from 'framer-motion'
 import SCard from '../../components/premium/SCard'
+
+import { API_URL } from '../../config'
 
 const tokens = {
     rausch: '#FF385C',
@@ -71,19 +74,41 @@ const GestaoMissoes = () => {
     }
 
     return (
-        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', padding: '32px 16px 48px', fontFamily: "'Nunito', sans-serif" }}>
-            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                
-                {/* HEADER */}
-                <div className="mb-5">
-                    <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>ADMINISTRAÇÃO</div>
-                    <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
-                        Gestão de Missões e Desafios 🏆
-                    </div>
-                    <div style={{ fontSize: 14, color: 'var(--color-text-tertiary)', marginTop: 6 }}>
-                        Crie desafios globais para motivar seus alunos e aumentar a retenção.
-                    </div>
+        <div style={{ 
+            minHeight: '100vh', 
+            background: 'var(--color-bg-primary)', 
+            padding: '48px 24px 64px', 
+            position: 'relative',
+            overflow: 'hidden'
+        }}>
+            <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');`}</style>
+            
+            {/* ── Container Frame (Elite SaaS) ── */}
+            <div className="pointer-events-none absolute inset-0 d-none d-lg-flex justify-content-center">
+                <div style={{ width: '100%', maxWidth: 1200, position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 1, background: 'var(--color-border)', opacity: 0.4 }}></div>
+                    <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 1, background: 'var(--color-border)', opacity: 0.4 }}></div>
                 </div>
+            </div>
+
+            <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1, fontFamily: "'Nunito', sans-serif" }}>
+                
+                {/* ── Header ── */}
+                <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    style={{ marginBottom: 40, position: 'relative' }}
+                >
+                    <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: 8 }}>Painel de Gestão</div>
+                    <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-1.2px', lineHeight: 1.1 }}>
+                        Central de Desafios 🏆
+                    </div>
+                    <div style={{ fontSize: 16, color: 'var(--color-text-tertiary)', marginTop: 8, fontWeight: 500 }}>
+                        Crie e gerencie missões globais para impulsionar o engajamento e a constância da base de alunos.
+                    </div>
+                    {/* Section Divider */}
+                    <div style={{ height: 1, background: 'var(--color-border)', width: '100%', marginTop: 32, opacity: 0.6 }}></div>
+                </motion.div>
 
                 <CRow className="g-4">
                     {/* FORMULÁRIO DE CRIAÇÃO */}

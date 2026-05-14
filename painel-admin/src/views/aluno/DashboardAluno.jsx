@@ -320,7 +320,9 @@ const DashboardAluno = () => {
   const containerStyle = {
     minHeight: '100vh',
     background: 'var(--color-bg-primary)',
-    padding: '32px 16px 48px',
+    padding: '48px 24px 64px',
+    position: 'relative',
+    overflow: 'hidden',
     '--sk1': isDark ? '#1e2535' : '#f0f0f0',
     '--sk2': isDark ? '#252f42' : '#e0e0e0',
   }
@@ -332,22 +334,32 @@ const DashboardAluno = () => {
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
       `}</style>
 
-      <div style={{ maxWidth: 960, margin: '0 auto', fontFamily: "'Nunito', sans-serif" }}>
+      {/* ── Container Frame (Elite SaaS) ── */}
+      <div className="pointer-events-none absolute inset-0 d-none d-lg-flex justify-content-center">
+        <div style={{ width: '100%', maxWidth: 1200, position: 'relative' }}>
+          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 1, background: 'var(--color-border)', opacity: 0.4 }}></div>
+          <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 1, background: 'var(--color-border)', opacity: 0.4 }}></div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1, fontFamily: "'Nunito', sans-serif" }}>
 
         {/* ── Header ── */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{ marginBottom: 32 }}
+          style={{ marginBottom: 40, position: 'relative' }}
         >
-          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+          <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-1.0px', lineHeight: 1.1 }}>
             {saudacao()}, {primeiroNome}! 👋
           </div>
-          <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+          <div style={{ fontSize: 16, color: tokens.foggy, marginTop: 8, fontWeight: 500 }}>
             {hoje.questoes > 0
-              ? `Você respondeu ${hoje.questoes} questões hoje — continue assim!`
-              : 'Que tal começar sua sessão de estudos agora?'}
+              ? `Você já dominou ${hoje.questoes} tópicos hoje. A constância é o caminho para a aprovação.`
+              : 'O sucesso é a soma de pequenos esforços repetidos dia após dia.'}
           </div>
+          {/* Section Divider */}
+          <div style={{ height: 1, background: 'var(--color-border)', width: '100%', marginTop: 32, opacity: 0.6 }}></div>
         </motion.div>
 
         {/* ── Stat Cards ── */}
@@ -476,32 +488,51 @@ const DashboardAluno = () => {
           </CCol>
         </CRow>
 
-        {/* ── Missões de Elite (Integração) ── */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <Icon icon="solar:ranking-bold-duotone" style={{ color: tokens.rausch }} width="22" />
-            <span style={{ fontWeight: 800, fontSize: 18, color: 'var(--color-text-primary)' }}>Missões de Elite</span>
+        {/* ── Missões de Elite (Elite SaaS Integration) ── */}
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 4, height: 24, background: tokens.rausch, borderRadius: 4 }}></div>
+              <span style={{ fontWeight: 800, fontSize: 20, color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>Missões de Elite</span>
+            </div>
+            <CButton 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/aluno/meu-risco-plano')}
+              style={{ color: tokens.rausch, fontWeight: 700, fontSize: 13 }}
+            >
+              Explorar Todas →
+            </CButton>
           </div>
-          <CRow className="g-3">
+          <CRow className="g-4">
             {(missoesGlobais?.length > 0 ? missoesGlobais.slice(0, 3) : []).map((m, i) => (
               <CCol key={i} xs={12} md={4}>
-                <SCard delay={0.4 + (i * 0.05)} style={{ padding: '16px 20px', border: `1.5px solid ${tokens.babu}15` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: `${tokens.babu}15`, color: tokens.babu, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Icon icon={m.icon || "solar:target-bold"} width="18" />
+                <SCard delay={0.4 + (i * 0.05)} style={{ padding: '24px', border: `1px solid var(--color-border)`, boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 16 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 12, background: `${tokens.babu}10`, color: tokens.babu, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon icon={m.icon || "solar:target-bold"} width="24" />
                     </div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.titulo}</div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-primary)', lineHeight: 1.2 }}>{m.titulo}</div>
+                      <div style={{ fontSize: 12, color: tokens.foggy, marginTop: 4, lineHeight: 1.4, height: 34, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        {m.dica}
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ fontSize: 11, color: tokens.foggy, marginBottom: 8, height: 32, overflow: 'hidden' }}>{m.dica}</div>
-                  <AirbnbProgress value={Math.floor(Math.random() * 40)} color={tokens.babu} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: tokens.babu, textTransform: 'uppercase' }}>Progresso</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: tokens.foggy }}>0%</span>
+                  </div>
+                  <AirbnbProgress value={0} color={tokens.babu} />
                 </SCard>
               </CCol>
             ))}
             {(!missoesGlobais || missoesGlobais.length === 0) && (
               <CCol xs={12}>
-                <div style={{ padding: '20px', textAlign: 'center', border: '2px dashed var(--color-border)', borderRadius: 20, color: tokens.foggy }}>
-                  <Icon icon="solar:medal-star-bold-duotone" width="32" className="mb-2" style={{ opacity: 0.3 }} />
-                  <div className="small">Nenhuma missão global ativa no momento. Crie suas metas pessoais!</div>
+                <div style={{ padding: '40px', textAlign: 'center', background: 'var(--color-bg-tertiary)', border: '1px dashed var(--color-border)', borderRadius: 24, color: tokens.foggy }}>
+                  <Icon icon="solar:medal-star-bold-duotone" width="40" className="mb-3" style={{ opacity: 0.2 }} />
+                  <div style={{ fontWeight: 600 }}>Nenhum desafio global ativo.</div>
+                  <div className="small opacity-75">Sua jornada é única. Defina suas próprias missões no planejamento.</div>
                 </div>
               </CCol>
             )}

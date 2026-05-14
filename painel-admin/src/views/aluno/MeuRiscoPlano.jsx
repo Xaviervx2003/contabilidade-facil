@@ -168,93 +168,123 @@ const MeuRiscoPlano = () => {
     const riscoCor = churn >= 70 ? tokens.rausch : churn >= 40 ? tokens.arches : tokens.babu
 
     return (
-        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', padding: '32px 16px 48px', fontFamily: "'Nunito', sans-serif" }}>
-            <div style={{ maxWidth: 960, margin: '0 auto' }}>
+        <div style={{ 
+            minHeight: '100vh', 
+            background: 'var(--color-bg-primary)', 
+            padding: '48px 24px 64px', 
+            position: 'relative',
+            overflow: 'hidden'
+        }}>
+            <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');`}</style>
+            
+            {/* ── Container Frame (Elite SaaS) ── */}
+            <div className="pointer-events-none absolute inset-0 d-none d-lg-flex justify-content-center">
+                <div style={{ width: '100%', maxWidth: 1200, position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 1, background: 'var(--color-border)', opacity: 0.4 }}></div>
+                    <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 1, background: 'var(--color-border)', opacity: 0.4 }}></div>
+                </div>
+            </div>
 
-                {/* HEADER PREMIUM */}
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
-                    <div className="d-flex justify-content-between align-items-end">
-                        <div>
-                            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Estratégia de Aprendizado</div>
-                            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
-                                Meu Risco + Plano 🛡️
+            <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1, fontFamily: "'Nunito', sans-serif" }}>
+                
+                {/* ── Header ── */}
+                <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    style={{ marginBottom: 40, position: 'relative' }}
+                >
+                    <div className="d-flex justify-content-between align-items-center">
+                        <div className="d-flex align-items-center gap-14">
+                            <div style={{ width: 48, height: 48, borderRadius: 14, background: `${tokens.rausch}15`, color: tokens.rausch, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Icon icon="solar:target-bold-duotone" width="28" />
                             </div>
-                            <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
-                                Analisamos seus dados para criar o caminho mais seguro até a aprovação.
+                            <div>
+                                <h2 style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-text-primary)', margin: 0, letterSpacing: '-1.2px', lineHeight: 1.1 }}>
+                                    Meu Risco + Missões
+                                </h2>
+                                <p style={{ color: tokens.foggy, fontSize: 16, margin: '6px 0 0', fontWeight: 500 }}>
+                                    Estratégia de Aprendizado Adaptativa baseada no seu desempenho real.
+                                </p>
                             </div>
                         </div>
                         <CButton 
                             onClick={() => navigate('/quiz')}
-                            style={{ background: tokens.rausch, color: '#fff', borderRadius: 12, fontWeight: 800, border: 'none' }}
-                            className="px-4 py-2 d-flex align-items-center gap-2"
+                            style={{ background: tokens.rausch, color: '#fff', borderRadius: 12, fontWeight: 800, border: 'none', height: 44 }}
+                            className="px-4 d-flex align-items-center gap-2"
                         >
                             Praticar Agora
                             <Icon icon="solar:alt-arrow-right-bold" width="20" />
                         </CButton>
                     </div>
+                    {/* Section Divider */}
+                    <div style={{ height: 1, background: 'var(--color-border)', width: '100%', marginTop: 32, opacity: 0.6 }}></div>
                 </motion.div>
 
                 {/* CARDS DE KPIS */}
                 <CRow className="g-4 mb-4">
                     <CCol xs={12} md={4}>
-                        <SCard padding="24px" style={{ borderLeft: `4px solid ${riscoCor}` }}>
+                        <SCard padding="24px" style={{ borderLeft: `4px solid ${riscoCor}`, boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
                             <div className="d-flex justify-content-between align-items-start mb-2">
                                 <div style={{ color: riscoCor }}><Icon icon="solar:fire-bold-duotone" width="32" /></div>
-                                <CBadge style={{ background: `${riscoCor}15`, color: riscoCor, borderRadius: 6 }}>{riscoStatus}</CBadge>
+                                <CBadge style={{ background: `${riscoCor}15`, color: riscoCor, borderRadius: 6, padding: '4px 8px' }}>{riscoStatus}</CBadge>
                             </div>
-                            <div style={{ fontSize: 28, fontWeight: 800 }}>{churn.toFixed(1)}%</div>
-                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>RISCO DE EVASÃO</div>
-                            <p className="text-muted small mt-2 mb-0">
+                            <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-text-primary)' }}>{churn.toFixed(1)}%</div>
+                            <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>RISCO DE EVASÃO</div>
+                            <p className="text-muted small mt-3 mb-0" style={{ fontWeight: 500 }}>
                                 {churn >= 70 ? 'Ação imediata necessária!' : 'Seu ritmo está sob controle.'}
                             </p>
                         </SCard>
                     </CCol>
                     <CCol xs={12} md={4}>
-                        <SCard padding="24px">
-                            <div style={{ color: tokens.babu, marginBottom: 8 }}><Icon icon="solar:graph-up-bold-duotone" width="32" /></div>
-                            <div style={{ fontSize: 28, fontWeight: 800 }}>{Number(dados?.retencao_30d_percentual || 0).toFixed(1)}%</div>
-                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>RETENÇÃO 30 DIAS</div>
-                            <p className="text-muted small mt-2 mb-0">Consistência no último mês.</p>
+                        <SCard padding="24px" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                            <div style={{ color: tokens.babu, marginBottom: 12 }}><Icon icon="solar:graph-up-bold-duotone" width="32" /></div>
+                            <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-text-primary)' }}>{Number(dados?.retencao_30d_percentual || 0).toFixed(1)}%</div>
+                            <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>RETENÇÃO 30 DIAS</div>
+                            <p className="text-muted small mt-3 mb-0" style={{ fontWeight: 500 }}>Consistência comprovada no último mês.</p>
                         </SCard>
                     </CCol>
                     <CCol xs={12} md={4}>
-                        <SCard padding="24px">
-                            <div style={{ color: tokens.arches, marginBottom: 8 }}><Icon icon="solar:check-circle-bold-duotone" width="32" /></div>
-                            <div style={{ fontSize: 28, fontWeight: 800 }}>{Number(dados?.conclusao_simulado_percentual || 0).toFixed(1)}%</div>
-                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>CONCLUSÃO DE ETAPAS</div>
-                            <p className="text-muted small mt-2 mb-0">Foco em finalizar o que começa.</p>
+                        <SCard padding="24px" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                            <div style={{ color: tokens.arches, marginBottom: 12 }}><Icon icon="solar:check-circle-bold-duotone" width="32" /></div>
+                            <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-text-primary)' }}>{Number(dados?.conclusao_simulado_percentual || 0).toFixed(1)}%</div>
+                            <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>CONCLUSÃO DE ETAPAS</div>
+                            <p className="text-muted small mt-3 mb-0" style={{ fontWeight: 500 }}>Foco em finalizar o que começa.</p>
                         </SCard>
                     </CCol>
                 </CRow>
 
                 {/* MISSÕES SEMANAIS */}
-                <SCard title="🎯 Planejamento de Missões" icon={<Icon icon="solar:target-bold" width="18" />}>
+                <SCard delay={0.15} style={{ border: '1px solid var(--color-border)', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.04)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
+                        <div style={{ width: 4, height: 24, background: tokens.babu, borderRadius: 4 }}></div>
+                        <span style={{ fontWeight: 800, fontSize: 20, color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>Planejamento de Missões</span>
+                    </div>
                     
                     {/* INPUT NOVA MISSÃO */}
-                    <div className="d-flex gap-2 mb-4">
+                    <div className="d-flex gap-3 mb-5">
                         <CFormInput 
-                            placeholder="Crie sua própria missão (ex: Estudar 2h de Contabilidade)" 
+                            placeholder="Crie sua própria missão estratégica (ex: Estudar 2h de Contabilidade)" 
                             value={novaMissao}
                             onChange={e => setNovaMissao(e.target.value)}
                             onKeyPress={e => e.key === 'Enter' && handleAddMissao()}
-                            className="border-0 bg-body-tertiary rounded-3 shadow-none px-3 py-2"
-                            style={{ fontSize: 14 }}
+                            className="border-0 bg-body-tertiary rounded-4 shadow-none px-4 py-3"
+                            style={{ fontSize: 15, fontWeight: 500 }}
                         />
                         <CButton 
                             onClick={handleAddMissao}
-                            style={{ background: tokens.babu, color: '#fff', borderRadius: 12, border: 'none' }}
-                            className="px-3"
+                            style={{ background: tokens.babu, color: '#fff', borderRadius: 14, border: 'none', width: 52 }}
+                            className="p-0 d-flex align-items-center justify-content-center"
                         >
-                            <Icon icon="solar:add-circle-bold" width="20" />
+                            <Icon icon="solar:add-circle-bold" width="24" />
                         </CButton>
                     </div>
 
-                    <div className="mb-4">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                            <span className="fw-bold small text-muted">PROGRESSO DO PLANO</span>
-                            <span className="fw-bold" style={{ color: tokens.babu }}>{progressoGeral}%</span>
+                    <div className="mb-5 px-1">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <span style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase', letterSpacing: '1px' }}>Progresso Estratégico</span>
+                            <span style={{ fontSize: 20, fontWeight: 800, color: tokens.babu }}>{progressoGeral}%</span>
                         </div>
-                        <CProgress value={progressoGeral} color="success" height={10} className="rounded-pill" />
+                        <CProgress value={progressoGeral} color="success" height={10} className="rounded-pill bg-body-tertiary" />
                     </div>
 
                     <div className="d-flex flex-column gap-3">
@@ -265,51 +295,60 @@ const MeuRiscoPlano = () => {
                                     key={m.id}
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.1 }}
-                                    style={{ 
-                                        background: 'var(--color-bg-tertiary)', 
-                                        borderRadius: 16, 
-                                        padding: '16px',
-                                        border: done ? `1.5px solid ${tokens.babu}40` : '1.5px solid transparent',
-                                        transition: '0.3s'
+                                    transition={{ delay: 0.1 + (i * 0.05) }}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', gap: 20,
+                                        padding: '24px', borderRadius: 20,
+                                        background: done ? 'var(--color-bg-tertiary)' : 'var(--color-bg-elevated)',
+                                        border: done ? '1px solid transparent' : '1px solid var(--color-border)',
+                                        boxShadow: done ? 'none' : '0 4px 12px rgba(0,0,0,0.02)',
+                                        opacity: done ? 0.7 : 1,
+                                        transition: 'all 0.2s'
                                     }}
                                 >
-                                    <div className="d-flex justify-content-between align-items-center mb-2">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <div style={{ 
-                                                width: 40, height: 40, 
-                                                background: done ? tokens.babu : 'var(--color-bg-elevated)', 
-                                                borderRadius: 12, 
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                color: done ? '#fff' : tokens.foggy,
-                                                transition: '0.3s'
-                                            }}>
-                                                <Icon icon={m.icon} width="24" />
+                                    {/* Checkbox Customizado */}
+                                    <div 
+                                        onClick={() => toggleMissao(m.id)}
+                                        style={{
+                                            width: 32, height: 32, borderRadius: 10,
+                                            border: `2px solid ${done ? tokens.babu : 'var(--color-border)'}`,
+                                            background: done ? tokens.babu : 'transparent',
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            color: '#fff', transition: 'all 0.2s', flexShrink: 0
+                                        }}
+                                    >
+                                        {done && <Icon icon="solar:check-read-bold" width="20" />}
+                                    </div>
+                                    
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                            <div style={{ fontWeight: 800, fontSize: 17, color: 'var(--color-text-primary)', textDecoration: done ? 'line-through' : 'none', letterSpacing: '-0.3px' }}>
+                                                {m.titulo}
                                             </div>
-                                            <div>
-                                                <div className="fw-bold" style={{ fontSize: 15, textDecoration: done ? 'line-through' : 'none', color: done ? tokens.foggy : 'var(--color-text-primary)' }}>
-                                                    {m.titulo}
-                                                </div>
-                                                <div className="small text-muted">{m.dica}</div>
-                                            </div>
+                                            {m.isGlobal && <CBadge style={{ background: `${tokens.rausch}15`, color: tokens.rausch, fontSize: 9, fontWeight: 800, padding: '4px 8px' }}>DESAFIO</CBadge>}
+                                            {m.isPersonal && <CBadge style={{ background: `${tokens.babu}15`, color: tokens.babu, fontSize: 9, fontWeight: 800, padding: '4px 8px' }}>PESSOAL</CBadge>}
                                         </div>
-                                        <div className="d-flex gap-1">
-                                            {m.isPersonal && (
-                                                <CButton size="sm" variant="ghost" onClick={() => handleDeleteMissao(m.id)} style={{ color: tokens.rausch }}>
-                                                    <Icon icon="solar:trash-bin-trash-bold" width="20" />
-                                                </CButton>
-                                            )}
-                                            <CButton 
-                                                size="sm" 
-                                                variant="ghost" 
-                                                onClick={() => toggleMissao(m.id)}
-                                                style={{ color: done ? tokens.babu : tokens.foggy }}
-                                            >
-                                                <Icon icon={done ? "solar:check-square-bold" : "solar:square-academic-cap-bold"} width="24" />
-                                            </CButton>
+                                        <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 4, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {m.dica}
                                         </div>
                                     </div>
-                                    <CProgress value={m.progresso} height={4} className="mt-2" color={done ? 'success' : 'info'} />
+
+                                    {/* Ações Rápidas */}
+                                    <div className="d-flex align-items-center gap-2">
+                                        {m.isPersonal && (
+                                            <CButton 
+                                                variant="ghost" 
+                                                size="sm" 
+                                                className="p-2 text-danger opacity-50 hover-opacity-100"
+                                                onClick={() => handleDeleteMissao(m.id)}
+                                            >
+                                                <Icon icon="solar:trash-bin-trash-bold" width="20" />
+                                            </CButton>
+                                        )}
+                                        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-bg-tertiary)', color: tokens.foggy, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Icon icon={m.icon || "solar:target-bold"} width="20" />
+                                        </div>
+                                    </div>
                                 </motion.div>
                             )
                         })}
