@@ -1,22 +1,14 @@
-import React, {
-  useEffect, useState, useMemo, useCallback, useRef, memo
-} from 'react'
-import confetti from 'canvas-confetti'
-import toast from 'react-hot-toast'
-import {
-  CButton, CCard, CCardBody, CCol, CContainer,
-  CFormSelect, CFormInput, CRow, CSpinner, CBadge, CAlert, CProgress,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import {
-  cilSearch, cilX, cilList, cilGrid, cilMediaPlay,
-  cilCheckCircle, cilStar, cilFindInPage,
-} from '@coreui/icons'
-import { API_URL } from '../../config'
-import { useTheme } from '../../context/themeContext'
+/* ─── Tokens Airbnb-inspired ─────────────────────────────── */
+const tokens = {
+  rausch: '#FF385C',
+  babu: '#00A699',
+  arches: '#FC642D',
+  hof: '#484848',
+  foggy: '#767676',
+  swiss: '#B0B0B0',
+}
 
 /* ─── Helpers ─── */
-
 const fetchJSON = async (url) => {
   const r = await fetch(url)
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
@@ -31,13 +23,6 @@ const extrairYouTubeId = (url) => {
     if (m) return m[1]
   }
   return null
-}
-
-const obterLinkEmbed = (url) => {
-  if (!url) return null
-  const ytId = extrairYouTubeId(url)
-  if (ytId) return `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1`
-  return url
 }
 
 const obterThumbnail = (url) => {
@@ -55,89 +40,122 @@ const ls = {
   },
 }
 
-/* ─── Componentes ─── */
+/* ─── Componentes de UI Premium ─── */
+const SCard = ({ children, style = {}, delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay, duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] }}
+    style={{
+      background: 'var(--color-bg-elevated)',
+      border: '1px solid var(--color-border)',
+      borderRadius: 20,
+      overflow: 'hidden',
+      height: '100%',
+      ...style,
+    }}
+  >
+    {children}
+  </motion.div>
+)
 
-const SkeletonCard = ({ isDark }) => (
-  <CCol xs={12} md={6} xl={4} className="mb-4">
-    <div style={{ height: 300, background: isDark ? 'rgba(255,255,255,0.05)' : '#eee', borderRadius: 20 }} className="animate-pulse" />
-  </CCol>
+const AirbnbProgress = ({ value, color = tokens.rausch }) => (
+  <div style={{ height: 6, background: 'var(--color-bg-tertiary)', borderRadius: 99, overflow: 'hidden' }}>
+    <motion.div
+      initial={{ width: 0 }}
+      animate={{ width: `${value}%` }}
+      transition={{ duration: 0.9, ease: 'easeOut', delay: 0.2 }}
+      style={{ height: '100%', background: color, borderRadius: 99 }}
+    />
+  </div>
 )
 
 const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista }) => {
   const titulo = q.titulo || q.question || 'Sem título'
   const materiaLabel = q.materia_nome || q.assunto || 'Geral'
-  const embedUrl = obterLinkEmbed(q.link_video)
   const thumbnail = obterThumbnail(q.link_video)
   const [iframeAtivo, setIframeAtivo] = useState(false)
 
-  const cardStyle = {
-    background: isDark ? 'rgba(255,255,255,0.03)' : '#fff',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}`,
-    borderRadius: 20,
-    overflow: 'hidden',
-    height: '100%',
-    display: 'flex',
-    flexDirection: modoLista ? 'row' : 'column',
-    transition: 'all 0.3s ease',
-    backdropFilter: 'blur(10px)',
-    boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.2)' : '0 10px 30px rgba(0,0,0,0.02)',
-  }
+  const embedUrl = useMemo(() => {
+    const ytId = extrairYouTubeId(q.link_video)
+    return ytId ? `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&autoplay=1` : q.link_video
+  }, [q.link_video])
 
   return (
-    <CCol xs={12} md={modoLista ? 12 : 6} xl={modoLista ? 12 : 4} className="mb-4" id={`vid-${q.id}`}>
-      <div style={cardStyle} className="hover-lift video-card-row">
-        {/* Thumbnail Section */}
-        <div 
-          className="video-card-thumb"
-          style={{ width: modoLista ? '300px' : '100%', aspectRatio: '16/9', position: 'relative', background: '#000', flexShrink: 0 }}
-        >
+    <CCol xs={12} md={modoLista ? 12 : 6} xl={modoLista ? 12 : 4} className="mb-4">
+      <motion.div
+        whileHover={{ y: -4, boxShadow: '0 12px 30px rgba(0,0,0,0.12)' }}
+        transition={{ duration: 0.2 }}
+        style={{
+          background: 'var(--color-bg-elevated)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 20,
+          overflow: 'hidden',
+          height: '100%',
+          display: 'flex',
+          flexDirection: modoLista ? 'row' : 'column',
+          cursor: 'pointer'
+        }}
+        onClick={() => { setIframeAtivo(true); if (!assistido) onMarcarAssistido(q.id) }}
+      >
+        <div style={{ width: modoLista ? '320px' : '100%', aspectRatio: '16/9', position: 'relative', background: '#000', flexShrink: 0 }}>
           {iframeAtivo ? (
-            <iframe src={embedUrl} className="w-100 h-100 border-0" allowFullScreen title={titulo} />
+            <iframe src={embedUrl} className="w-100 h-100 border-0" allow="autoplay; encrypted-media" allowFullScreen title={titulo} />
           ) : (
-            <div 
-              className="w-100 h-100 cursor-pointer d-flex align-items-center justify-content-center"
-              onClick={() => { setIframeAtivo(true); if (!assistido) onMarcarAssistido(q.id) }}
-            >
-              <img src={thumbnail} className="w-100 h-100 object-fit-cover opacity-75" alt="" />
-              <div className="position-absolute bg-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" style={{ width: 40, height: 40 }}>
-                <CIcon icon={cilMediaPlay} className="text-primary ms-1" size="lg" />
+            <>
+              <img src={thumbnail} className="w-100 h-100 object-fit-cover opacity-80" alt="" />
+              <div className="position-absolute inset-0 d-flex align-items-center justify-content-center">
+                <div 
+                  className="rounded-circle d-flex align-items-center justify-content-center shadow-lg" 
+                  style={{ width: 54, height: 54, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(4px)' }}
+                >
+                  <Icon icon="solar:play-bold" style={{ color: tokens.rausch }} width="24" className="ms-1" />
+                </div>
               </div>
-            </div>
+            </>
           )}
           {assistido && (
-            <div className="position-absolute top-0 end-0 m-2">
-              <CBadge color="success" className="rounded-pill px-2" style={{ fontSize: 9 }}>✓ ASSISTIDO</CBadge>
+            <div className="position-absolute top-3 end-3 shadow-sm">
+              <span className="px-2 py-1 rounded-pill fw-bold text-white" style={{ background: tokens.babu, fontSize: 9, letterSpacing: '0.5px' }}>
+                ✓ ASSISTIDO
+              </span>
             </div>
           )}
         </div>
 
-        {/* Content Section */}
-        <CCardBody className="p-3 p-md-4 d-flex flex-column">
+        <div className="p-4 d-flex flex-column flex-grow-1">
           <div className="d-flex gap-2 mb-2">
-            <CBadge color="primary" className="rounded-pill bg-opacity-10 text-primary border-0" style={{ fontSize: 9 }}>#{q.id}</CBadge>
-            <CBadge color="secondary" className="rounded-pill bg-opacity-10 text-secondary border-0" style={{ fontSize: 9 }}>{materiaLabel}</CBadge>
+            <span style={{ fontSize: 10, fontWeight: 700, color: tokens.rausch, background: `${tokens.rausch}15`, padding: '2px 8px', borderRadius: 6 }}>
+              #{q.id}
+            </span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: tokens.foggy, background: 'var(--color-bg-tertiary)', padding: '2px 8px', borderRadius: 6, textTransform: 'uppercase' }}>
+              {materiaLabel}
+            </span>
           </div>
-          <h5 className="fw-bold mb-3 flex-grow-1" style={{ fontSize: 'clamp(14px, 4vw, 16px)', lineHeight: 1.4 }}>{titulo}</h5>
+          <h5 className="fw-bold mb-3" style={{ fontSize: 16, lineHeight: 1.3, letterSpacing: '-0.3px', color: 'var(--color-text-primary)' }}>
+            {titulo}
+          </h5>
           
-          <div className="d-flex justify-content-between align-items-center mt-auto gap-2">
-            {!assistido ? (
-              <CButton size="sm" variant="ghost" className="text-success p-0" onClick={() => onMarcarAssistido(q.id)} style={{ fontSize: 11 }}>
-                Marcar visto
-              </CButton>
-            ) : (
-              <span className="small text-success fw-bold" style={{ fontSize: 11 }}>Concluído</span>
-            )}
-            <CButton size="sm" color="primary" variant="ghost" href={`#/quiz?busca=${q.id}`} style={{ fontSize: 11 }}>
-              Praticar →
-            </CButton>
+          <div className="d-flex justify-content-between align-items-center mt-auto">
+            <span style={{ fontSize: 12, color: assistido ? tokens.babu : tokens.foggy, fontWeight: 600 }}>
+              {assistido ? 'Concluído' : 'Aguardando'}
+            </span>
+            <div className="d-flex gap-2">
+               <CButton 
+                 size="sm" 
+                 href={`#/quiz?busca=${q.id}`}
+                 className="fw-bold border-0 px-3"
+                 style={{ borderRadius: 10, background: 'var(--color-bg-tertiary)', color: 'var(--color-text-primary)', fontSize: 11 }}
+               >
+                 Praticar
+               </CButton>
+            </div>
           </div>
-        </CCardBody>
-      </div>
+        </div>
+      </motion.div>
     </CCol>
   )
 })
-
-/* ─── Main ─── */
 
 const VideoGallery = () => {
   const [questoesComVideo, setQuestoesComVideo] = useState([])
@@ -156,11 +174,9 @@ const VideoGallery = () => {
 
   const marcarAssistido = useCallback((id) => {
     if (assistidos.includes(id)) return
-    
     setAssistidos(prev => [...prev, id])
-    // Ponto 10: Confete de celebração
-    confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 }, colors: ['#10b981', '#6366f1', '#f59e0b'] })
-    toast.success('Vídeo marcado como assistido! 🎉')
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 }, colors: [tokens.rausch, tokens.babu, tokens.arches] })
+    toast.success('Aula concluída com sucesso! 🎉')
     if (matricula) {
       fetch(`${API_URL}/api/aluno/video-assistido/${id}`, {
         method: 'POST',
@@ -168,7 +184,7 @@ const VideoGallery = () => {
         body: JSON.stringify({ matricula }),
       }).catch(() => { })
     }
-  }, [matricula])
+  }, [matricula, assistidos])
 
   const carregarDados = useCallback(async () => {
     setLoading(true)
@@ -191,14 +207,9 @@ const VideoGallery = () => {
       }
 
       setMaterias(extrairArray(dataMat))
-      
       const qVideos = extrairArray(dataQuestRaw).filter(q => q?.link_video)
       const vVideos = extrairArray(dataVidRaw)
-      const todosVideos = [...qVideos, ...vVideos]
-      
-      if (Array.isArray(todosVideos)) {
-        setQuestoesComVideo(todosVideos)
-      }
+      setQuestoesComVideo([...qVideos, ...vVideos])
 
       if (dataHistorico?.por_assunto && Array.isArray(dataHistorico.por_assunto)) {
         setDesempenhoBaixo(dataHistorico.por_assunto.filter(a => a.media_acerto < 60).map(a => a.assunto.toLowerCase()))
@@ -208,17 +219,12 @@ const VideoGallery = () => {
 
   useEffect(() => { carregarDados() }, [carregarDados])
 
-  const countPorMateria = useMemo(() => {
-    const m = {}; questoesComVideo.forEach(q => { const id = q.materia_id || q.materia_ids?.[0]; if (id) m[id] = (m[id] || 0) + 1 }); return m
-  }, [questoesComVideo])
-
   const filteredItems = useMemo(() => {
     return questoesComVideo.filter(q => {
       const mid = q.materia_id || q.materia_ids?.[0]
       const matchMat = !materiaFiltro || mid === parseInt(materiaFiltro)
       const t = (q.titulo || q.question || '').toLowerCase()
-      const matchBusca = !busca || t.includes(busca.toLowerCase())
-      return matchMat && matchBusca
+      return matchMat && (!busca || t.includes(busca.toLowerCase()))
     })
   }, [questoesComVideo, materiaFiltro, busca])
 
@@ -233,143 +239,177 @@ const VideoGallery = () => {
   const perc = questoesComVideo.length ? Math.round((assistidos.length / questoesComVideo.length) * 100) : 0
 
   return (
-    <div className={`fade-in pb-5 ${isDark ? 'text-white' : 'text-dark'}`} style={{ overflowX: 'hidden' }}>
-      <CContainer fluid className="px-3 px-md-4">
+    <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
+      <CContainer fluid className="px-3 px-md-5">
       <style>{`
-        .glass-card { background: ${isDark ? 'rgba(255,255,255,0.03)' : '#fff'}; border: 1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}; border-radius: 20px; backdrop-filter: blur(10px); }
-        .header-section { padding: clamp(20px, 5vw, 40px) 0; border-bottom: 1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}; margin-bottom: 30px; }
-        .search-pill { background: ${isDark ? 'rgba(255,255,255,0.05)' : '#fff'}; border-radius: 50px; border: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}; transition: all 0.2s ease; }
-        .search-pill:focus-within { border-color: var(--cui-primary); box-shadow: 0 0 0 4px rgba(var(--cui-primary-rgb), 0.1); }
-        .hover-lift { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        
-        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        .animate-slide-left { animation: slideLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideLeft { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-        .animate-pulse { animation: pulse 2s infinite; }
-
-        @media (max-width: 768px) {
-          h1 { font-size: 1.25rem !important; }
-          .header-section { padding: 12px 0; margin-bottom: 15px; }
-          .search-pill { border-radius: 12px; }
-          .glass-card { border-radius: 15px; }
-          .video-card-row { flex-direction: column !important; }
-          .video-card-thumb { width: 100% !important; }
-        }
+        @keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        .search-field { background: var(--color-bg-elevated); border: 1.5px solid var(--color-border); border-radius: 14px; transition: 0.2s; }
+        .search-field:focus-within { border-color: ${tokens.rausch}; box-shadow: 0 0 0 4px rgba(255, 56, 92, 0.1); }
       `}</style>
 
-      {/* HEADER */}
-      <div className="header-section">
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+      {/* HEADER PREMIUM */}
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }} 
+        animate={{ opacity: 1, y: 0 }}
+        className="pt-5 pb-4 mb-4 border-bottom"
+      >
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-4">
           <div>
-            <div className="text-primary fw-bold text-uppercase mb-1" style={{ fontSize: 8, letterSpacing: '0.1em' }}>Vídeo-Aulas</div>
-            <h1 className="fw-bold mb-0" style={{ letterSpacing: '-0.02em', fontSize: 'clamp(1.2rem, 4vw, 1.75rem)' }}>Centro de Aprendizado</h1>
-            <p className="text-body-secondary mb-0 small d-none d-lg-block">Assista, aprenda e domine todos os assuntos da contabilidade.</p>
+            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>Centro de Aprendizado</div>
+            <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px', color: 'var(--color-text-primary)', marginBottom: 6 }}>Aprenda no seu Ritmo 🎓</h1>
+            <p style={{ color: tokens.foggy, fontSize: 15, maxWidth: 450, lineHeight: 1.4 }}>Assista às aulas exclusivas e domine os conceitos fundamentais da contabilidade.</p>
           </div>
-          <div className="text-md-end" style={{ minWidth: '100%', maxWidth: 300 }}>
-            <div className="d-flex justify-content-between small fw-bold mb-1" style={{ fontSize: 11 }}>
-              <span>Seu Progresso</span>
-              <span>{perc}%</span>
+          <div style={{ minWidth: 260 }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Seu Progresso</span>
+              <span style={{ fontSize: 18, fontWeight: 800, color: tokens.rausch }}>{perc}%</span>
             </div>
-            <CProgress value={perc} color="primary" height={8} className="rounded-pill shadow-sm" />
-            <div className="small text-body-secondary mt-1" style={{ fontSize: 10 }}>{assistidos.length} aulas concluídas</div>
+            <AirbnbProgress value={perc} />
+            <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 8, fontWeight: 600 }}>{assistidos.length} de {questoesComVideo.length} aulas concluídas</div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* FILTROS */}
+      {/* FILTROS E BUSCA */}
       <CRow className="mb-5 g-3">
         <CCol lg={5}>
-          <div className="search-pill p-1 d-flex align-items-center">
-            <div className="ps-3"><CIcon icon={cilSearch} className="opacity-50" /></div>
-            <CFormInput placeholder="Pesquisar aula..." value={busca} onChange={e => setBusca(e.target.value)} className="bg-transparent border-0 shadow-none py-2" />
+          <div className="search-field d-flex align-items-center px-3 py-1">
+            <Icon icon="solar:magnifer-linear" style={{ color: tokens.foggy }} width="20" />
+            <CFormInput 
+              placeholder="Pesquisar por título ou assunto..." 
+              value={busca} 
+              onChange={e => setBusca(e.target.value)} 
+              className="bg-transparent border-0 shadow-none py-2"
+              style={{ fontSize: 15 }}
+            />
           </div>
         </CCol>
         <CCol lg={3}>
-          <CFormSelect value={materiaFiltro} onChange={e => setMateriaFiltro(e.target.value)} className="search-pill border-0 py-2 h-100 ps-3">
+          <CFormSelect 
+            value={materiaFiltro} 
+            onChange={e => setMateriaFiltro(e.target.value)} 
+            className="search-field py-2 h-100 ps-3 shadow-none"
+            style={{ fontSize: 15 }}
+          >
             <option value="">Todas as matérias</option>
             {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
           </CFormSelect>
         </CCol>
-        <CCol lg={4} className="d-flex justify-content-lg-end gap-2">
-          <div className="bg-body-tertiary p-1 rounded-pill d-flex shadow-sm">
-            <CButton variant={modoVis === 'grade' ? 'primary' : 'ghost'} className="rounded-circle p-2" onClick={() => setModoVis('grade')}><CIcon icon={cilGrid} /></CButton>
-            <CButton variant={modoVis === 'lista' ? 'primary' : 'ghost'} className="rounded-circle p-2" onClick={() => setModoVis('lista')}><CIcon icon={cilList} /></CButton>
+        <CCol lg={4} className="d-flex justify-content-lg-end gap-3">
+          <div className="d-flex bg-body-tertiary p-1 rounded-4 border">
+            <CButton 
+              onClick={() => setModoVis('grade')}
+              style={{ background: modoVis === 'grade' ? 'var(--color-bg-elevated)' : 'transparent', border: 'none', borderRadius: 10, padding: '8px 12px' }}
+            >
+              <Icon icon="solar:widget-2-bold-duotone" style={{ color: modoVis === 'grade' ? tokens.rausch : tokens.foggy }} />
+            </CButton>
+            <CButton 
+              onClick={() => setModoVis('lista')}
+              style={{ background: modoVis === 'lista' ? 'var(--color-bg-elevated)' : 'transparent', border: 'none', borderRadius: 10, padding: '8px 12px' }}
+            >
+              <Icon icon="solar:list-bold-duotone" style={{ color: modoVis === 'lista' ? tokens.rausch : tokens.foggy }} />
+            </CButton>
           </div>
-          <CButton color={modoPlaylist ? 'warning' : 'primary'} className="rounded-pill px-4 fw-bold shadow-sm" onClick={() => setModoPlaylist(!modoPlaylist)}>
-            <CIcon icon={cilMediaPlay} className="me-2" /> {modoPlaylist ? 'Sair' : 'Playlist'}
-          </CButton>
+          <motion.button 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="fw-bold border-0 px-4 shadow-sm"
+            style={{ background: tokens.rausch, color: '#fff', borderRadius: 14, fontSize: 14 }}
+            onClick={() => setModoPlaylist(!modoPlaylist)}
+          >
+            <Icon icon="solar:play-stream-bold-duotone" className="me-2" /> {modoPlaylist ? 'Fechar Playlist' : 'Modo Playlist'}
+          </motion.button>
         </CCol>
       </CRow>
 
-      {/* RECOMENDADOS */}
+      {/* RECOMENDADOS (CARD ESTILO SCard) */}
       {recomendados.length > 0 && !busca && (
-        <div className="glass-card p-4 mb-5" style={{ borderLeft: '6px solid #e55353' }}>
+        <SCard delay={0.1} style={{ marginBottom: 48, borderLeft: `6px solid ${tokens.arches}`, background: `linear-gradient(90deg, ${tokens.arches}05 0%, transparent 100%)` }}>
           <div className="d-flex align-items-center gap-3 mb-4">
-            <div className="bg-danger p-2 rounded-3 text-white"><CIcon icon={cilStar} /></div>
-            <h5 className="mb-0 fw-bold">Reforce seus pontos fracos</h5>
+            <div className="rounded-3 d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, background: `${tokens.arches}15`, color: tokens.arches }}>
+              <Icon icon="solar:star-bold-duotone" width="22" />
+            </div>
+            <h5 className="mb-0 fw-bold" style={{ letterSpacing: '-0.5px' }}>Recomendado para você</h5>
           </div>
           <CRow className="g-3">
-            {recomendados.map(q => (
+            {recomendados.map((q, i) => (
               <CCol key={q.id} md={4}>
-                <div className="p-3 rounded-4 bg-body-tertiary d-flex align-items-center gap-3 cursor-pointer" onClick={() => setModoPlaylist(true)}>
-                  <img src={obterThumbnail(q.link_video)} style={{ width: 80, height: 45, borderRadius: 8, objectFit: 'cover' }} alt="" />
-                  <div className="text-truncate fw-bold small">{q.titulo || q.question}</div>
-                </div>
+                <motion.div 
+                  whileHover={{ x: 4, background: 'var(--color-bg-elevated)' }}
+                  className="p-3 rounded-4 d-flex align-items-center gap-3 cursor-pointer border" 
+                  onClick={() => setModoPlaylist(true)}
+                >
+                  <img src={obterThumbnail(q.link_video)} style={{ width: 80, height: 45, borderRadius: 10, objectFit: 'cover' }} alt="" />
+                  <div className="text-truncate fw-bold small" style={{ color: 'var(--color-text-primary)' }}>{q.titulo || q.question}</div>
+                </motion.div>
               </CCol>
             ))}
           </CRow>
-        </div>
+        </SCard>
       )}
 
-      {/* GRID */}
+      {/* GRID DE VÍDEOS */}
       {loading ? (
-        <CRow className="g-4">{[...Array(6)].map((_, i) => <SkeletonCard key={i} isDark={isDark} />)}</CRow>
+        <CRow className="g-4">
+          {[1,2,3,4,5,6].map(i => <CCol key={i} xs={12} md={6} xl={4}><div style={{ height: 320, background: 'var(--color-bg-tertiary)', borderRadius: 20 }} className="animate-pulse" /></CCol>)}
+        </CRow>
       ) : (
         <CRow className="g-4">
-          {filteredItems.map(v => <VideoCard key={v.id} q={v} isDark={isDark} modoLista={modoVis === 'lista'} assistido={assistidos.includes(v.id)} onMarcarAssistido={marcarAssistido} />)}
+          {filteredItems.map((v, i) => (
+            <VideoCard key={v.id} q={v} isDark={isDark} modoLista={modoVis === 'lista'} assistido={assistidos.includes(v.id)} onMarcarAssistido={marcarAssistido} />
+          ))}
           {!filteredItems.length && (
-            <div className="text-center py-5 opacity-50">
-              <CIcon icon={cilFindInPage} size="3xl" className="mb-3" />
-              <h5>Nenhum resultado encontrado</h5>
+            <div className="text-center py-5">
+              <Icon icon="solar:ghost-bold-duotone" width="64" style={{ color: tokens.swiss, opacity: 0.3 }} />
+              <h5 className="mt-3" style={{ color: tokens.foggy }}>Nenhuma aula encontrada</h5>
             </div>
           )}
         </CRow>
       )}
 
-      {/* PLAYLIST */}
-      {modoPlaylist && (
-        <div 
-          className="position-fixed shadow-lg p-4 animate-slide-left playlist-panel" 
-          style={{ 
-            top: 'clamp(80px, 10vh, 100px)', 
-            right: 'clamp(10px, 2vw, 20px)', 
-            bottom: 'clamp(10px, 2vw, 20px)', 
-            width: 'min(350px, 90vw)', 
-            background: isDark ? '#1a2535' : '#fff', 
-            borderRadius: 24, 
-            zIndex: 2000,
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h6 className="fw-bold m-0">Playlist de Estudo</h6>
-            <CButton size="sm" variant="ghost" onClick={() => setModoPlaylist(false)}><CIcon icon={cilX} /></CButton>
-          </div>
-          <div className="overflow-auto h-100 pb-5 pe-2">
-            {filteredItems.map((v, i) => (
-              <div key={v.id} className={`p-3 rounded-4 mb-2 cursor-pointer ${assistidos.includes(v.id) ? 'bg-success bg-opacity-10' : 'bg-body-tertiary'}`} style={{ fontSize: 13 }} onClick={() => document.getElementById(`vid-${v.id}`)?.scrollIntoView({ behavior: 'smooth' })}>
-                <div className="fw-bold text-truncate">{i+1}. {v.titulo || v.question}</div>
-                <div className="small opacity-50">{v.materia_nome || v.assunto}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* PLAYLIST PANEL GLASSMORPHISM */}
+      <AnimatePresence>
+        {modoPlaylist && (
+          <motion.div 
+            initial={{ x: 400, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 400, opacity: 0 }}
+            style={{ 
+              position: 'fixed', top: 100, right: 30, bottom: 30, width: 380, 
+              background: 'rgba(var(--color-bg-elevated-rgb), 0.85)', 
+              backdropFilter: 'blur(16px)', border: '1px solid var(--color-border)',
+              borderRadius: 30, zIndex: 2000, display: 'flex', flexDirection: 'column',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.15)'
+            }}
+          >
+            <div className="p-4 border-bottom d-flex justify-content-between align-items-center">
+              <h6 className="fw-bold m-0" style={{ letterSpacing: '-0.4px' }}>Playlist de Estudo</h6>
+              <CButton variant="ghost" className="rounded-circle p-2" onClick={() => setModoPlaylist(false)}>
+                <Icon icon="solar:close-circle-bold-duotone" style={{ color: tokens.foggy }} width="24" />
+              </CButton>
+            </div>
+            <div className="overflow-auto p-4 flex-grow-1">
+              {filteredItems.map((v, i) => (
+                <motion.div 
+                  key={v.id} 
+                  whileHover={{ x: 5 }}
+                  className={`p-3 rounded-4 mb-3 cursor-pointer border-0 shadow-sm ${assistidos.includes(v.id) ? 'bg-success bg-opacity-10' : 'bg-body-tertiary'}`} 
+                  onClick={() => document.getElementById(`vid-${v.id}`)?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  <div className="d-flex align-items-center gap-3">
+                    <span style={{ fontSize: 14, fontWeight: 800, color: assistidos.includes(v.id) ? tokens.babu : tokens.foggy }}>{String(i+1).padStart(2, '0')}</span>
+                    <div className="flex-grow-1 min-w-0">
+                      <div className="fw-bold text-truncate" style={{ fontSize: 13, color: 'var(--color-text-primary)' }}>{v.titulo || v.question}</div>
+                      <div style={{ fontSize: 11, color: tokens.foggy }}>{v.materia_nome || v.assunto}</div>
+                    </div>
+                    {assistidos.includes(v.id) && <Icon icon="solar:check-circle-bold" style={{ color: tokens.babu }} width="16" />}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       </CContainer>
     </div>
   )
