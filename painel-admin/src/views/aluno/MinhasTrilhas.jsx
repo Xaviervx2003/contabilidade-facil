@@ -183,35 +183,16 @@ const MinhasTrilhas = () => {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary text-text-primary font-sans p-4 md:p-8">
+    <div className="min-h-screen bg-light pt-4 px-3">
       <div className="max-w-5xl mx-auto">
-        {/* Header Premium */}
-        <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex-1"
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-3">
-              <Icon icon="solar:SquareAcademicCap-linear" width="14" />
-              Educação Continuada
-            </div>
-            <h2 className="text-text-primary text-3xl md:text-5xl font-normal tracking-tight mb-2">
-              Minhas Trilhas <span className="font-serif italic text-primary">de Aprendizado</span>
-            </h2>
-            <p className="text-text-secondary font-medium text-sm md:text-base opacity-70">
-              Siga os cursos e módulos elaborados pelos professores para guiar seus estudos.
-            </p>
-          </motion.div>
+        {/* Título e Subtítulo padronizados */}
+        <div className="mb-3">
+          <h3 className="h3 fw-bold mb-1">Minhas Trilhas de Aprendizado</h3>
+          <div className="text-muted small mb-3">Siga os cursos e módulos elaborados pelos professores para guiar seus estudos.</div>
         </div>
 
-        {errorMsg && <CAlert color="danger" className="premium-card mb-4 border-red-500/20">{errorMsg}</CAlert>}
-        {toastErro && (
-          <CAlert color="warning" className="premium-card mb-4 border-orange-500/20 py-2 small">
-            {toastErro}
-          </CAlert>
-        )}
-
+        {errorMsg && <CAlert color="danger" className="mb-4">{errorMsg}</CAlert>}
+        
         {trilhas.length === 0 ? (
           <CAlert color="info">Nenhuma trilha disponível no momento.</CAlert>
         ) : (
@@ -266,24 +247,33 @@ const MinhasTrilhas = () => {
                       />
                     </div>
 
-                    {/* Módulos (Lista Simples) */}
+                    {/* Módulos (Lista Simples com Descrição Truncada) */}
                     <div className="d-flex flex-column gap-1">
                       {t.modulos?.map((m) => (
                         <div
                           key={m.id}
-                          className={`px-3 py-2 rounded border d-flex justify-content-between align-items-center ${
+                          className={`px-3 py-2 rounded border d-flex flex-column gap-1 ${
                             m.concluido ? 'bg-light border-success' : 'bg-white'
                           }`}
                           style={{ cursor: 'pointer' }}
                           onClick={() => handleAcessarModulo(m)}
                         >
-                          <span 
-                            className={`small text-truncate ${m.concluido ? 'text-success fw-bold' : ''}`}
-                            style={{ fontSize: '13px' }}
+                          <div className="d-flex justify-content-between align-items-center">
+                            <span 
+                              className={`small text-truncate ${m.concluido ? 'text-success fw-bold' : ''}`}
+                              style={{ fontSize: '13px', maxWidth: '85%' }}
+                            >
+                              {m.ordem}. {m.nome}
+                            </span>
+                            {m.concluido && <CIcon icon={cilCheckCircle} className="text-success" size="sm" />}
+                          </div>
+                          {/* Descrição do módulo truncada em 1 linha */}
+                          <div 
+                            className="text-muted small text-truncate" 
+                            style={{ fontSize: '11px' }}
                           >
-                            {m.ordem}. {m.nome}
-                          </span>
-                          {m.concluido && <CIcon icon={cilCheckCircle} className="text-success" size="sm" />}
+                            {m.descricao}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -292,7 +282,7 @@ const MinhasTrilhas = () => {
                       color="primary" 
                       size="sm" 
                       className="w-100 mt-3"
-                      onClick={() => handleAcessarModulo(t)} // Ajustado para t ou lógica similar se necessário
+                      onClick={() => handleAcessarModulo(t)}
                     >
                       Acessar Trilha
                     </CButton>
