@@ -173,28 +173,16 @@ const DashboardAluno = () => {
   const primeiroNome = nomeExibicao.split(' ')[0]
 
   return (
-    <div className="min-h-screen bg-bg-primary text-text-primary font-sans p-4 md:p-8">
+    <div className="min-h-screen bg-light pt-4 px-3">
       <div className="max-w-5xl mx-auto">
-        {/* Header Premium */}
-        <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex-1"
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-3">
-              <Icon icon="solar:plain-bold" width="14" />
-              Visão Geral do Aluno
-            </div>
-            <h2 className="text-text-primary text-3xl md:text-5xl font-normal tracking-tight mb-2">
-              {saudacao()}, <span className="font-serif italic text-primary">{primeiroNome}!</span> 👋
-            </h2>
-            <p className="text-text-secondary font-medium text-sm md:text-base opacity-70">
-              {hoje.questoes > 0
-                ? `Você já respondeu ${hoje.questoes} questões hoje. Continue assim!`
-                : 'Que tal começar sua sessão de estudos agora?'}
-            </p>
-          </motion.div>
+        {/* Título e Subtítulo padronizados (Modelo Simples) */}
+        <div className="mb-3">
+          <h3 className="h3 fw-bold mb-1">{saudacao()}, {primeiroNome}! 👋</h3>
+          <div className="text-muted small">
+            {hoje.questoes > 0
+              ? `Você já respondeu ${hoje.questoes} questões hoje. Continue assim!`
+              : 'Que tal começar sua sessão de estudos agora?'}
+          </div>
         </div>
 
       {/* ── Cards de Métricas Rápidas ── */}

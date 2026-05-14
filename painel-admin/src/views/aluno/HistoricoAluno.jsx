@@ -609,38 +609,26 @@ const HistoricoAluno = () => {
     const ultima = resumo?.ultima_sessao ? new Date(resumo.ultima_sessao).toLocaleDateString('pt-BR') : '—'
 
     return (
-        <div className="min-h-screen bg-bg-primary text-text-primary font-sans p-4 md:p-8">
+        <div className="min-h-screen bg-light pt-4 px-3">
             <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
 
             {toast && <Toast mensagem={toast.mensagem} tipo={toast.tipo} onClose={() => setToast(null)} />}
             {modalSessoes && <ModalSessoes matricula={matricula} onClose={() => setModalSessoes(false)} />}
 
             <div className="max-w-5xl mx-auto">
-                <div className="mb-10 flex flex-col md:flex-row justify-between items-start gap-6">
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex-1"
-                    >
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-3">
-                            <Icon icon="solar:history-bold" width="14" />
-                            Evolução Contínua
-                        </div>
-                        <h2 className="text-text-primary text-3xl md:text-5xl font-normal tracking-tight mb-2">
-                            Meu Histórico <span className="font-serif italic text-primary">de Aprendizado</span>
-                        </h2>
-                        <p className="text-text-secondary font-medium text-sm md:text-base opacity-70">
-                            Acompanhe sua evolução, analise seus pontos fortes e descubra onde focar seus estudos.
-                        </p>
-                    </motion.div>
-                    <div className="d-flex gap-2 flex-wrap" style={{ alignSelf: 'flex-start' }}>
-                        <CButton color="secondary" variant="outline" size="sm" className="premium-card py-2" onClick={() => setModalSessoes(true)}>
+                <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h3 className="h3 fw-bold mb-1">Meu Histórico de Aprendizado</h3>
+                        <div className="text-muted small">Última sessão: {ultima}</div>
+                    </div>
+                    <div className="d-flex gap-2">
+                        <CButton color="secondary" variant="outline" size="sm" onClick={() => setModalSessoes(true)}>
                             <CIcon icon={cilHistory} className="me-1" /> Sessões
                         </CButton>
-                        <CButton color="success" variant="outline" size="sm" className="premium-card py-2" onClick={handleExportarCSV} disabled={!dados}>
+                        <CButton color="success" variant="outline" size="sm" onClick={handleExportarCSV} disabled={!dados}>
                             <CIcon icon={cilDataTransferDown} className="me-1" /> CSV
                         </CButton>
-                        <CButton color="primary" variant="outline" size="sm" className="premium-card py-2" onClick={handleShare}>
+                        <CButton color="primary" variant="outline" size="sm" onClick={handleShare}>
                             <CIcon icon={cilShare} className="me-1" /> Compartilhar
                         </CButton>
                     </div>
