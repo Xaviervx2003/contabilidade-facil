@@ -275,34 +275,36 @@ const DashboardAluno = () => {
         <CCol xs={12} lg={5}>
           <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.15s' }}>
             <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
-              <span style={{ fontSize: '1.2rem' }}>⚡</span> Guia Rápido
+              <Icon icon="solar:bolt-circle-bold-duotone" className="text-warning" width="22" />
+              Guia Rápido
             </h6>
             <div className="d-grid gap-2">
               <CButton
                 color="primary"
-                className="fw-bold d-flex align-items-center justify-content-between p-3 rounded-3"
+                className="fw-bold d-flex align-items-center justify-content-between p-3 rounded-4 border-0 shadow-sm"
                 onClick={() => navigate('/quiz')}
+                style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)' }}
               >
-                <span><CIcon icon={cilPuzzle} className="me-2" /> Iniciar Quiz</span>
-                <CIcon icon={cilArrowRight} />
+                <span className="d-flex align-items-center"><Icon icon="solar:play-circle-bold-duotone" className="me-2" width="20" /> Iniciar Novo Quiz</span>
+                <Icon icon="solar:arrow-right-linear" />
               </CButton>
               <CButton
                 variant="outline"
                 color="secondary"
-                className="fw-bold d-flex align-items-center justify-content-between p-3 rounded-3"
+                className="fw-bold d-flex align-items-center justify-content-between p-3 rounded-4 border-border"
                 onClick={() => navigate('/aluno/historico')}
               >
-                <span><CIcon icon={cilHistory} className="me-2" /> Meu Histórico</span>
-                <CIcon icon={cilArrowRight} />
+                <span className="d-flex align-items-center"><Icon icon="solar:history-bold-duotone" className="me-2" width="20" /> Meu Histórico</span>
+                <Icon icon="solar:arrow-right-linear" />
               </CButton>
               <CButton
                 variant="outline"
                 color="warning"
-                className="fw-bold d-flex align-items-center justify-content-between p-3 rounded-3"
+                className="fw-bold d-flex align-items-center justify-content-between p-3 rounded-4 border-border"
                 onClick={() => navigate('/conquistas')}
               >
-                <span><CIcon icon={cilStar} className="me-2" /> Minhas Conquistas</span>
-                <CIcon icon={cilArrowRight} />
+                <span className="d-flex align-items-center"><Icon icon="solar:cup-star-bold-duotone" className="me-2" width="20" /> Minhas Conquistas</span>
+                <Icon icon="solar:arrow-right-linear" />
               </CButton>
             </div>
           </div>
@@ -311,50 +313,52 @@ const DashboardAluno = () => {
         <CCol xs={12} lg={7}>
           <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.2s' }}>
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <span className="fw-bold">📊 Desempenho Semanal</span>
-              <CBadge color="info" shape="rounded-pill" className="px-3 py-2">
+              <span className="fw-bold d-flex align-items-center gap-2">
+                <Icon icon="solar:chart-square-bold-duotone" className="text-primary" width="20" />
+                Desempenho Semanal
+              </span>
+              <CBadge color="info" className="rounded-pill px-3 py-2 bg-opacity-10 text-info border border-info/20">
                 {semana.questoes} questões
               </CBadge>
             </div>
             {serie_semanal && serie_semanal.length > 0 ? (
-              <MiniBarChart data={serie_semanal} isDark={isDark} />
+              <div className="mt-4">
+                <MiniBarChart data={serie_semanal} isDark={isDark} />
+              </div>
             ) : (
-              <p className="text-muted text-center small">Nenhum dado nesta semana</p>
+              <div className="text-center py-4 text-body-secondary small">Nenhum dado nesta semana</div>
             )}
           </div>
         </CCol>
       </CRow>
 
-      {/* ── Progresso no Banco + Matérias Fracas + Fortes ── */}
+      {/* ── Progresso + Matérias ── */}
       <CRow className="g-3 mb-4">
         <CCol xs={12} lg={4}>
           <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.25s' }}>
             <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
-              <CIcon icon={cilChartLine} className="text-primary" />
+              <Icon icon="solar:target-bold-duotone" className="text-primary" width="20" />
               Progresso no Edital
             </h6>
             <div className="d-flex flex-column justify-content-center h-100 pb-3">
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="text-body-tertiary small">Progresso Geral</span>
-                <span className="fw-bold text-primary">{progresso.percentual}%</span>
+                <span className="text-body-secondary small">Evolução Geral</span>
+                <span className="fw-bold text-primary" style={{ fontSize: '1.2rem' }}>{progresso.percentual}%</span>
               </div>
-              <CProgress value={progresso.percentual} color="primary" />
-              <div className="mt-3">
-                <div className="d-flex align-items-center gap-2 mb-1">
-                  <div className="stat-icon-wrapper primary" style={{ width: 24, height: 24, fontSize: '0.8rem' }}>
-                    <CIcon icon={cilCheckCircle} />
-                  </div>
-                  <span className="small text-body-secondary">
-                    <strong>{progresso.respondidas}</strong> respondidas
-                  </span>
+              <div className="progress-container rounded-pill mb-4" style={{ height: '8px', background: 'var(--color-bg-tertiary)' }}>
+                <div 
+                  className="h-100 rounded-pill bg-primary shadow-sm" 
+                  style={{ width: `${progresso.percentual}%`, transition: 'width 1s ease' }} 
+                />
+              </div>
+              <div className="d-grid gap-2">
+                <div className="p-2 rounded-3 bg-body-tertiary d-flex align-items-center gap-2">
+                  <Icon icon="solar:check-circle-bold-duotone" className="text-success" />
+                  <span className="small text-body-secondary"><strong>{progresso.respondidas}</strong> respondidas</span>
                 </div>
-                <div className="d-flex align-items-center gap-2">
-                  <div className="stat-icon-wrapper secondary" style={{ width: 24, height: 24, fontSize: '0.8rem' }}>
-                    <CIcon icon={cilLibrary} />
-                  </div>
-                  <span className="small text-body-secondary">
-                    <strong>{progresso.total_banco.toLocaleString('pt-BR')}</strong> no banco
-                  </span>
+                <div className="p-2 rounded-3 bg-body-tertiary d-flex align-items-center gap-2">
+                  <Icon icon="solar:library-bold-duotone" className="text-secondary" />
+                  <span className="small text-body-secondary"><strong>{progresso.total_banco.toLocaleString('pt-BR')}</strong> no banco</span>
                 </div>
               </div>
             </div>
@@ -365,39 +369,24 @@ const DashboardAluno = () => {
           <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.3s' }}>
             <div className="d-flex align-items-center justify-content-between mb-3">
               <h6 className="fw-bold mb-0 d-flex align-items-center gap-2">
-                <CIcon icon={cilChartLine} className="text-danger" />
+                <Icon icon="solar:danger-bold-duotone" className="text-danger" width="20" />
                 Pontos Fracos
               </h6>
-              <CBadge color="danger" shape="rounded-pill" style={{ fontSize: 10 }}>Focar aqui</CBadge>
+              <CBadge color="danger" className="rounded-pill bg-opacity-10 text-danger" style={{ fontSize: 10 }}>Focar aqui</CBadge>
             </div>
-            {materias_fracas.length > 0 ? (
-              <div className="d-flex flex-column gap-3">
-                {materias_fracas.map((m, i) => (
-                  <div key={i} className={i !== 0 ? 'pt-2 border-top' : ''}>
-                    <div className="d-flex justify-content-between align-items-center mb-1">
-                      <span className="small fw-medium text-truncate" style={{ maxWidth: '70%' }}>
-                        {m.materia}
-                      </span>
-                      <span className="small fw-bold text-danger">
-                        {m.media_acerto}%
-                      </span>
-                    </div>
-                    <CProgress
-                      value={m.media_acerto}
-                      color="danger"
-                      className="thin"
-                    />
-                    <div className="d-flex justify-content-between mt-1">
-                      <small className="text-muted" style={{ fontSize: 9 }}>
-                        {m.questoes} questões
-                      </small>
-                    </div>
+            <div className="d-flex flex-column gap-3">
+              {materias_fracas.length > 0 ? materias_fracas.map((m, i) => (
+                <div key={i} className="p-2 rounded-3 hover-bg-tertiary transition-all">
+                  <div className="d-flex justify-content-between align-items-center mb-1">
+                    <span className="small fw-medium text-truncate" style={{ maxWidth: '70%', color: 'var(--color-text-primary)' }}>{m.materia}</span>
+                    <span className="small fw-bold text-danger">{m.media_acerto}%</span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted text-center small py-4">Continue estudando para ver suas métricas.</p>
-            )}
+                  <div className="progress-container rounded-pill" style={{ height: '4px', background: 'var(--color-bg-tertiary)' }}>
+                    <div className="h-100 rounded-pill bg-danger" style={{ width: `${m.media_acerto}%` }} />
+                  </div>
+                </div>
+              )) : <div className="text-center py-4 text-body-secondary small">Estude mais para gerar dados.</div>}
+            </div>
           </div>
         </CCol>
 
@@ -405,142 +394,96 @@ const DashboardAluno = () => {
           <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.35s' }}>
             <div className="d-flex align-items-center justify-content-between mb-3">
               <h6 className="fw-bold mb-0 d-flex align-items-center gap-2">
-                <CIcon icon={cilCheckCircle} className="text-success" />
+                <Icon icon="solar:verified-check-bold-duotone" className="text-success" width="20" />
                 Pontos Fortes
               </h6>
-              <CBadge color="success" shape="rounded-pill" style={{ fontSize: 10 }}>Mandando bem!</CBadge>
+              <CBadge color="success" className="rounded-pill bg-opacity-10 text-success" style={{ fontSize: 10 }}>Excelente!</CBadge>
             </div>
-            {materias_fortes.length > 0 ? (
-              <div className="d-flex flex-column gap-3">
-                {materias_fortes.map((m, i) => (
-                  <div key={i} className={i !== 0 ? 'pt-2 border-top' : ''}>
-                    <div className="d-flex justify-content-between align-items-center mb-1">
-                      <span className="small fw-medium text-truncate" style={{ maxWidth: '70%' }}>
-                        {m.materia}
-                      </span>
-                      <span className="small fw-bold text-success">
-                        {m.media_acerto}%
-                      </span>
-                    </div>
-                    <CProgress
-                      value={m.media_acerto}
-                      color="success"
-                      className="thin"
-                    />
-                    <div className="d-flex justify-content-between mt-1">
-                      <small className="text-muted" style={{ fontSize: 9 }}>
-                        {m.questoes} questões
-                      </small>
-                    </div>
+            <div className="d-flex flex-column gap-3">
+              {materias_fortes.length > 0 ? materias_fortes.map((m, i) => (
+                <div key={i} className="p-2 rounded-3 hover-bg-tertiary transition-all">
+                  <div className="d-flex justify-content-between align-items-center mb-1">
+                    <span className="small fw-medium text-truncate" style={{ maxWidth: '70%', color: 'var(--color-text-primary)' }}>{m.materia}</span>
+                    <span className="small fw-bold text-success">{m.media_acerto}%</span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted text-center small py-4">Ainda não há dados suficientes.</p>
-            )}
-          </div>
-        </CCol>
-      </CRow>
-
-      {/* ── Últimas Sessões ── */}
-      <CRow className="g-3 mb-4">
-        <CCol xs={12}>
-          <div className="premium-card fade-in-up" style={{ animationDelay: '0.4s', padding: 0, overflow: 'hidden' }}>
-            <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
-              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2">
-                <CIcon icon={cilHistory} className="text-info" />
-                Últimas Sessões
-              </h6>
-              <CButton
-                color="link"
-                size="sm"
-                className="p-0 fw-bold text-decoration-none small"
-                onClick={() => navigate('/aluno/historico')}
-              >
-                Ver histórico completo →
-              </CButton>
+                  <div className="progress-container rounded-pill" style={{ height: '4px', background: 'var(--color-bg-tertiary)' }}>
+                    <div className="h-100 rounded-pill bg-success" style={{ width: `${m.media_acerto}%` }} />
+                  </div>
+                </div>
+              )) : <div className="text-center py-4 text-body-secondary small">Continue assim para ver mais dados.</div>}
             </div>
-            {ultimas_sessoes.length > 0 ? (
-              <div className="table-responsive">
-                <CTable hover align="middle" className="mb-0">
-                  <CTableHead>
-                    <CTableRow>
-                      <CTableHeaderCell className="bg-body-tertiary px-3 py-2 small border-0">Matéria</CTableHeaderCell>
-                      <CTableHeaderCell className="bg-body-tertiary text-center small border-0">Questões</CTableHeaderCell>
-                      <CTableHeaderCell className="bg-body-tertiary text-center small border-0">Acerto</CTableHeaderCell>
-                      <CTableHeaderCell className="bg-body-tertiary text-center small border-0">Tempo</CTableHeaderCell>
-                      <CTableHeaderCell className="bg-body-tertiary text-end px-3 small border-0">Data</CTableHeaderCell>
-                    </CTableRow>
-                  </CTableHead>
-                  <CTableBody>
-                    {ultimas_sessoes.map((s, i) => (
-                      <CTableRow key={i}>
-                        <CTableDataCell className="px-3">
-                          <div className="d-flex align-items-center gap-2">
-                            <div className="stat-icon-wrapper secondary" style={{ width: 28, height: 28, fontSize: '0.75rem' }}>
-                              <CIcon icon={cilLibrary} />
-                            </div>
-                            <span className="fw-medium text-truncate" style={{ maxWidth: 200 }}>{s.materia}</span>
-                          </div>
-                        </CTableDataCell>
-                        <CTableDataCell className="text-center fw-bold">{s.questoes}</CTableDataCell>
-                        <CTableDataCell className="text-center">
-                          <CBadge color={s.acerto >= 70 ? 'success' : s.acerto >= 40 ? 'warning' : 'danger'} shape="rounded-pill">
-                            {s.acerto}%
-                          </CBadge>
-                        </CTableDataCell>
-                        <CTableDataCell className="text-center text-body-tertiary">{formatTempo(s.tempo_seg)}</CTableDataCell>
-                        <CTableDataCell className="text-end px-3 text-body-tertiary small">
-                          {s.data ? new Date(s.data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '—'}
-                        </CTableDataCell>
-                      </CTableRow>
-                    ))}
-                  </CTableBody>
-                </CTable>
-              </div>
-            ) : (
-              <div className="text-center py-5">
-                <p className="text-muted mb-3">Você ainda não realizou nenhuma sessão de estudos.</p>
-                <CButton color="primary" onClick={() => navigate('/quiz')}>
-                  Fazer meu primeiro Quiz
-                </CButton>
-              </div>
-            )}
           </div>
         </CCol>
       </CRow>
 
-      {/* ── Resumo All-Time ── */}
-      <CRow className="g-3 mb-4">
-        <CCol xs={12}>
-          <CCard className="border-0" style={{
-            background: isDark
-              ? 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(236,72,153,0.1))'
-              : 'linear-gradient(135deg, #f8fafc, #fdf2f8)',
-          }}>
-            <CCardBody>
-              <div className="d-flex flex-wrap justify-content-around text-center gap-3 py-2">
-                <div>
-                  <div className="fw-bold" style={{ fontSize: 28, color: '#6366f1' }}>{geral.total_sessoes}</div>
-                  <small className="text-muted">Sessões totais</small>
+      {/* ── Últimas Atividades (Feed Moderno) ── */}
+      <div className="premium-card mb-4 fade-in-up" style={{ animationDelay: '0.4s' }}>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h6 className="fw-bold mb-0 d-flex align-items-center gap-2">
+            <Icon icon="solar:history-bold-duotone" className="text-info" width="22" />
+            Atividades Recentes
+          </h6>
+          <CButton color="link" size="sm" className="p-0 fw-bold text-decoration-none small text-info" onClick={() => navigate('/aluno/historico')}>
+            Ver tudo <Icon icon="solar:double-alt-arrow-right-linear" />
+          </CButton>
+        </div>
+        
+        {ultimas_sessoes.length > 0 ? (
+          <div className="d-flex flex-column gap-2">
+            {ultimas_sessoes.map((s, i) => (
+              <div key={i} className="p-3 rounded-4 bg-body-tertiary border border-border/10 d-flex align-items-center gap-3 transition-all hover-translate-y">
+                <div className={`p-2 rounded-circle bg-opacity-10 text-${s.acerto >= 70 ? 'success' : s.acerto >= 40 ? 'warning' : 'danger'} bg-${s.acerto >= 70 ? 'success' : s.acerto >= 40 ? 'warning' : 'danger'}`}>
+                  <Icon icon={s.acerto >= 70 ? "solar:star-bold-duotone" : "solar:notification-lines-bold-duotone"} width="20" />
                 </div>
-                <div>
-                  <div className="fw-bold" style={{ fontSize: 28, color: '#22c55e' }}>{geral.total_questoes}</div>
-                  <small className="text-muted">Questões respondidas</small>
+                <div className="flex-1 min-w-0">
+                  <div className="fw-bold text-truncate" style={{ color: 'var(--color-text-primary)' }}>{s.materia}</div>
+                  <div className="text-body-secondary small d-flex align-items-center gap-2">
+                    <Icon icon="solar:document-text-linear" width="14" /> {s.questoes} questões
+                    <span className="opacity-50">•</span>
+                    <Icon icon="solar:clock-circle-linear" width="14" /> {formatTempo(s.tempo_seg)}
+                  </div>
                 </div>
-                <div>
-                  <div className="fw-bold" style={{ fontSize: 28, color: '#f59e0b' }}>{formatTempo(geral.tempo_total_seg)}</div>
-                  <small className="text-muted">Tempo total de estudo</small>
-                </div>
-                <div>
-                  <div className="fw-bold" style={{ fontSize: 28, color: '#ec4899' }}>{geral.media_geral}%</div>
-                  <small className="text-muted">Média geral de acerto</small>
+                <div className="text-end">
+                  <div className={`fw-bold text-${s.acerto >= 70 ? 'success' : s.acerto >= 40 ? 'warning' : 'danger'}`} style={{ fontSize: '1.1rem' }}>{s.acerto}%</div>
+                  <div className="text-body-secondary" style={{ fontSize: '10px' }}>
+                    {s.data ? new Date(s.data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '—'}
+                  </div>
                 </div>
               </div>
-            </CCardBody>
-          </CCard>
-        </CCol>
-      </CRow>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-5">
+            <Icon icon="solar:ghost-bold-duotone" width="48" className="text-body-secondary opacity-20 mb-3" />
+            <p className="text-body-secondary mb-3">Nenhuma atividade registrada ainda.</p>
+            <CButton color="primary" onClick={() => navigate('/quiz')} className="rounded-pill px-4 fw-bold">Começar Agora</CButton>
+          </div>
+        )}
+      </div>
+
+      {/* ── Resumo Global (Premium Glass) ── */}
+      <div className="premium-card border-0 mb-4 fade-in-up" style={{ 
+        animationDelay: '0.45s',
+        background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.05) 0%, rgba(var(--color-secondary-rgb), 0.05) 100%)',
+        backdropFilter: 'blur(10px)'
+      }}>
+        <div className="d-flex flex-wrap justify-content-around text-center gap-4 py-2">
+          {[
+            { label: 'Sessões Totais', value: geral.total_sessoes, color: 'var(--color-primary)', icon: 'solar:folder-check-bold-duotone' },
+            { label: 'Questões', value: geral.total_questoes, color: 'var(--color-success)', icon: 'solar:notes-bold-duotone' },
+            { label: 'Tempo Total', value: formatTempo(geral.tempo_total_seg), color: 'var(--color-warning)', icon: 'solar:clock-circle-bold-duotone' },
+            { label: 'Média Geral', value: `${geral.media_geral}%`, color: 'var(--color-accent)', icon: 'solar:star-bold-duotone' }
+          ].map((stat, i) => (
+            <div key={i}>
+              <div className="d-flex align-items-center justify-content-center gap-2 mb-1">
+                <Icon icon={stat.icon} style={{ color: stat.color }} width="24" />
+                <div className="fw-bold" style={{ fontSize: '1.75rem', color: 'var(--color-text-primary)', letterSpacing: '-1px' }}>{stat.value}</div>
+              </div>
+              <small className="text-body-secondary font-medium text-uppercase" style={{ fontSize: '10px', letterSpacing: '1px' }}>{stat.label}</small>
+            </div>
+          ))}
+        </div>
+      </div>
       </div>
     </div>
   )
