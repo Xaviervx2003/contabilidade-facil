@@ -38,6 +38,8 @@ import {
   cilCheck,
 } from '@coreui/icons'
 import { API_URL } from '../../config'
+import { motion } from 'framer-motion'
+import { Icon } from '@iconify/react'
 import { useTheme } from '../../context/themeContext'
 import { formatIsoToDateString } from '../../utils/formatDate'
 import { useNavigate } from 'react-router-dom'
@@ -181,20 +183,31 @@ const MinhasTrilhas = () => {
   }
 
   return (
-    <CRow>
-      <CCol xs={12}>
-        <div className="mb-4">
-          <h2 className="fw-bold" style={{ color: 'var(--color-primary)' }}>
-            Minhas Trilhas de Aprendizado
-          </h2>
-          <p className="text-body-secondary">
-            Siga os cursos e módulos elaborados pelos professores para guiar seus estudos.
-          </p>
+    <div className="min-h-screen bg-bg-primary text-text-primary font-sans p-4 md:p-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Header Premium */}
+        <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex-1"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-3">
+              <Icon icon="solar:SquareAcademicCap-linear" width="14" />
+              Educação Continuada
+            </div>
+            <h2 className="text-text-primary text-3xl md:text-5xl font-normal tracking-tight mb-2">
+              Minhas Trilhas <span className="font-serif italic text-primary">de Aprendizado</span>
+            </h2>
+            <p className="text-text-secondary font-medium text-sm md:text-base opacity-70">
+              Siga os cursos e módulos elaborados pelos professores para guiar seus estudos.
+            </p>
+          </motion.div>
         </div>
 
-        {errorMsg && <CAlert color="danger">{errorMsg}</CAlert>}
+        {errorMsg && <CAlert color="danger" className="premium-card mb-4 border-red-500/20">{errorMsg}</CAlert>}
         {toastErro && (
-          <CAlert color="warning" className="py-2 small">
+          <CAlert color="warning" className="premium-card mb-4 border-orange-500/20 py-2 small">
             {toastErro}
           </CAlert>
         )}
@@ -612,7 +625,8 @@ const MinhasTrilhas = () => {
           </div>
         </CModalFooter>
       </CModal>
-    </CRow>
+      </div>
+    </div>
   )
 }
 

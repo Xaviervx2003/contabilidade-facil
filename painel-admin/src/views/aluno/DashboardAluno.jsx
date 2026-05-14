@@ -33,6 +33,8 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { API_URL } from '../../config'
 import { useTheme } from '../../context/themeContext'
+import { motion } from 'framer-motion'
+import { Icon } from '@iconify/react'
 
 /* ── Helpers ──────────────────────────────────────────────── */
 const formatTempo = (seg) => {
@@ -171,20 +173,29 @@ const DashboardAluno = () => {
   const primeiroNome = nomeExibicao.split(' ')[0]
 
   return (
-    <div className="p-2 p-md-4" style={{ maxWidth: 1200, margin: '0 auto' }}>
-
-      {/* ── Cabeçalho ── */}
-      <div className="mb-4">
-        <h2 className="fw-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>
-          {saudacao()}, {primeiroNome}! 👋
-        </h2>
-        <p style={{ color: 'var(--color-text-tertiary)', fontSize: 14 }}>
-          {hoje.questoes > 0
-            ? `Você já respondeu ${hoje.questoes} questões hoje. Continue assim!`
-            : 'Que tal começar sua sessão de estudos agora?'
-          }
-        </p>
-      </div>
+    <div className="min-h-screen bg-bg-primary text-text-primary font-sans p-4 md:p-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Header Premium */}
+        <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex-1"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-3">
+              <Icon icon="solar:plain-bold" width="14" />
+              Visão Geral do Aluno
+            </div>
+            <h2 className="text-text-primary text-3xl md:text-5xl font-normal tracking-tight mb-2">
+              {saudacao()}, <span className="font-serif italic text-primary">{primeiroNome}!</span> 👋
+            </h2>
+            <p className="text-text-secondary font-medium text-sm md:text-base opacity-70">
+              {hoje.questoes > 0
+                ? `Você já respondeu ${hoje.questoes} questões hoje. Continue assim!`
+                : 'Que tal começar sua sessão de estudos agora?'}
+            </p>
+          </motion.div>
+        </div>
 
       {/* ── Cards de Métricas Rápidas ── */}
       <CRow className="g-3 mb-4">
@@ -497,6 +508,7 @@ const DashboardAluno = () => {
           </CCard>
         </CCol>
       </CRow>
+      </div>
     </div>
   )
 }
