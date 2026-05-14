@@ -76,12 +76,14 @@ const MeuRiscoPlano = () => {
         carregar()
     }, [])
 
-    const handleAddMissao = () => {
-        if (!novaMissao.trim()) return
+    const handleAddMissao = (textoSugestao = null) => {
+        const textoFinal = textoSugestao || novaMissao
+        if (!textoFinal.trim()) return
+
         const matricula = sessionStorage.getItem('matricula')
         const nova = { 
             id: `personal_${Date.now()}`, 
-            titulo: novaMissao, 
+            titulo: textoFinal, 
             dica: 'Missão pessoal criada por você.', 
             progresso: 0, 
             icon: 'solar:pen-new-square-bold-duotone',
@@ -90,8 +92,9 @@ const MeuRiscoPlano = () => {
         const atualizadas = [...missoesPessoais, nova]
         setMissoesPessoais(atualizadas)
         localStorage.setItem(`missoes_pessoais:${matricula}`, JSON.stringify(atualizadas))
-        setNovaMissao('')
-        toast.success('Missão pessoal adicionada! 🎯')
+        
+        if (!textoSugestao) setNovaMissao('')
+        toast.success('Missão adicionada com sucesso! 🎯')
     }
 
     const handleDeleteMissao = (id) => {
@@ -265,7 +268,7 @@ const MeuRiscoPlano = () => {
                                 style={{ fontSize: 14 }}
                             />
                             <CButton 
-                                onClick={handleAddMissao}
+                                onClick={() => handleAddMissao()}
                                 style={{ background: tokens.babu, color: '#fff', borderRadius: 10, border: 'none' }}
                                 className="px-3"
                             >
@@ -281,7 +284,7 @@ const MeuRiscoPlano = () => {
                                     key={opt}
                                     variant="ghost" 
                                     size="sm"
-                                    onClick={() => setNovaMissao(opt)}
+                                    onClick={() => handleAddMissao(opt)}
                                     style={{ 
                                         borderRadius: 20, 
                                         fontSize: 11, 
