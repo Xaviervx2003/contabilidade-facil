@@ -183,12 +183,26 @@ const MinhasTrilhas = () => {
   }
 
   return (
-    <div className="min-h-screen bg-light pt-4 px-3">
+    <div className="min-h-screen bg-bg-primary text-text-primary font-sans p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
-        {/* Título e Subtítulo padronizados */}
-        <div className="mb-3">
-          <h3 className="h3 fw-bold mb-1">Minhas Trilhas de Aprendizado</h3>
-          <div className="text-muted small mb-3">Siga os cursos e módulos elaborados pelos professores para guiar seus estudos.</div>
+        {/* Header Premium */}
+        <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex-1"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-3">
+              <Icon icon="solar:SquareAcademicCap-linear" width="14" />
+              Educação Continuada
+            </div>
+            <h2 className="text-text-primary text-3xl md:text-5xl font-normal tracking-tight mb-2">
+              Minhas Trilhas <span className="font-serif italic text-primary">de Aprendizado</span>
+            </h2>
+            <p className="text-text-secondary font-medium text-sm md:text-base opacity-70">
+              Siga os cursos e módulos elaborados pelos professores para guiar seus estudos.
+            </p>
+          </motion.div>
         </div>
 
         {errorMsg && <CAlert color="danger" className="mb-4">{errorMsg}</CAlert>}
