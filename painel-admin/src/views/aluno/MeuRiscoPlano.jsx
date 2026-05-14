@@ -1,236 +1,279 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import {
-  CAlert,
-  CBadge,
-  CButton,
-  CCard,
-  CCardBody,
-  CCol,
-  CProgress,
-  CRow,
-  CSpinner,
+    CCol, CRow, CBadge, CSpinner, CButton, CProgress, CAlert
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilArrowRight, cilCheckCircle, cilFire, cilFlagAlt } from '@coreui/icons'
 import { useNavigate } from 'react-router-dom'
 import { API_URL } from '../../config'
+import { useTheme } from '../../context/themeContext'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Icon } from '@iconify/react'
+import toast from 'react-hot-toast'
+import SCard from '../../components/premium/SCard'
 
-const StatBox = ({ icon, label, value, tone }) => (
-  <div className="stat-box h-100 fade-in-up">
-    <div className={`stat-icon-wrapper ${tone}`}>
-      <CIcon icon={icon} />
-    </div>
-    <div className="stat-info">
-      <div className="stat-value">{value}</div>
-      <div className="stat-desc">{label}</div>
-    </div>
-  </div>
-)
+/* ─── Tokens Airbnb-inspired ─────────────────────────────── */
+const tokens = {
+    rausch: '#FF385C',
+    babu: '#00A699',
+    arches: '#FC642D',
+    hof: '#484848',
+    foggy: '#767676',
+}
 
 const MeuRiscoPlano = () => {
-  const [loading, setLoading] = useState(true)
-  const [erro, setErro] = useState('')
-  const [dados, setDados] = useState(null)
-  const [resumoAluno, setResumoAluno] = useState(null)
-  const [missoesConcluidas, setMissoesConcluidas] = useState([])
-  const navigate = useNavigate()
+    const [loading, setLoading] = useState(true)
+    const [erro, setErro] = useState('')
+    const [dados, setDados] = useState(null)
+    const [resumoAluno, setResumoAluno] = useState(null)
+    const [missoesConcluidas, setMissoesConcluidas] = useState([])
+    const navigate = useNavigate()
+    const { isDark } = useTheme()
 
-  useEffect(() => {
-    const carregar = async () => {
-      const matricula = sessionStorage.getItem('matricula')
-      if (!matricula) {
-        setErro('Matrícula não encontrada na sessão.')
-        setLoading(false)
-        return
-      }
+    useEffect(() => {
+        const carregar = async () => {
+            const matricula = sessionStorage.getItem('matricula')
+            if (!matricula) {
+                setErro('Matrícula não encontrada.')
+                setLoading(false)
+                return
+            }
 
-      setLoading(true)
-      setErro('')
-      try {
-        const [resKpi, resResumo] = await Promise.all([
-          fetch(`${API_URL}/api/metricas-estudantes/desempenho/${encodeURIComponent(matricula)}`),
-          fetch(`${API_URL}/api/aluno/dashboard/${encodeURIComponent(matricula)}`),
-        ])
-        if (!resKpi.ok) throw new Error(`HTTP ${resKpi.status}`)
-        if (!resResumo.ok) throw new Error(`HTTP ${resResumo.status}`)
-        const [jsonKpi, jsonResumo] = await Promise.all([resKpi.json(), resResumo.json()])
-        setDados(jsonKpi)
-        setResumoAluno(jsonResumo)
-        const storageKey = `missoes_semanais:${matricula}`
-        const cache = sessionStorage.getItem(storageKey)
-        setMissoesConcluidas(cache ? JSON.parse(cache) : [])
-      } catch (e) {
-        setErro(`Falha ao carregar seus KPIs: ${e.message}`)
-      } finally {
-        setLoading(false)
-      }
+            setLoading(true)
+            try {
+                const [resKpi, resResumo] = await Promise.all([
+                    fetch(`${API_URL}/api/metricas-estudantes/desempenho/${encodeURIComponent(matricula)}`),
+                    fetch(`${API_URL}/api/aluno/dashboard/${encodeURIComponent(matricula)}`),
+                ])
+                const [jsonKpi, jsonResumo] = await Promise.all([resKpi.json(), resResumo.json()])
+                setDados(jsonKpi)
+                setResumoAluno(jsonResumo)
+                const storageKey = `missoes_semanais:${matricula}`
+                const cache = sessionStorage.getItem(storageKey)
+                setMissoesConcluidas(cache ? JSON.parse(cache) : [])
+            } catch (e) {
+                setErro(`Falha ao carregar dados: ${e.message}`)
+            } finally {
+                setLoading(false)
+            }
+        }
+        carregar()
+    }, [])
+
+    const plano = useMemo(() => {
+        if (!dados) return []
+        const churn = Number(dados.churn_risco_percentual || 0)
+        const mediaSemana = Number(resumoAluno?.semana?.media_acerto || 0)
+        const sessoesSemana = Number(resumoAluno?.semana?.sessoes || 0)
+
+        const missoes = [
+            {
+                id: 'sessoes',
+                titulo: 'Ritmo de Estudo',
+                dica: `Objetivo: 3 sessões. Atual: ${sessoesSemana}/3.`,
+                progresso: Math.min(100, (sessoesSemana / 3) * 100),
+                icon: 'solar:bolt-circle-bold-duotone'
+            },
+            {
+                id: 'simulados',
+                titulo: 'Excelência em Simulados',
+                dica: `Média atual: ${mediaSemana.toFixed(1)}%. Meta: 80%.`,
+                progresso: mediaSemana >= 80 ? 100 : Math.min(100, (mediaSemana / 80) * 100),
+                icon: 'solar:star-circle-bold-duotone'
+            },
+        ]
+
+        if (churn >= 70) {
+            missoes.unshift({
+                id: 'anti-churn',
+                titulo: 'Missão de Resgate 🚨',
+                dica: 'Estude hoje para quebrar o ciclo de inatividade.',
+                progresso: 20,
+                icon: 'solar:shield-warning-bold-duotone'
+            })
+        }
+        return missoes
+    }, [dados, resumoAluno])
+
+    const progressoGeral = useMemo(() => {
+        if (!plano.length) return 0
+        const soma = plano.reduce((acc, p) => acc + Number(p.progresso || 0), 0)
+        return Math.round(soma / plano.length)
+    }, [plano])
+
+    const toggleMissao = (id) => {
+        const matricula = sessionStorage.getItem('matricula')
+        const atual = missoesConcluidas.includes(id)
+            ? missoesConcluidas.filter((m) => m !== id)
+            : [...missoesConcluidas, id]
+        setMissoesConcluidas(atual)
+        sessionStorage.setItem(`missoes_semanais:${matricula}`, JSON.stringify(atual))
+        if (!missoesConcluidas.includes(id)) toast.success('Missão marcada como concluída! 💪')
     }
-    carregar()
-  }, [])
 
-  const plano = useMemo(() => {
-    if (!dados) return []
-    const churn = Number(dados.churn_risco_percentual || 0)
-    const conclusao = Number(dados.conclusao_simulado_percentual || 0)
-    const sessoesSemana = Number(resumoAluno?.semana?.sessoes || 0)
-    const mediaSemana = Number(resumoAluno?.semana?.media_acerto || 0)
+    if (loading) return (
+        <div className="d-flex justify-content-center align-items-center vh-100" style={{ background: 'var(--color-bg-primary)' }}>
+            <CSpinner style={{ color: tokens.rausch }} />
+        </div>
+    )
 
-    const missoes = [
-      {
-        id: 'sessoes',
-        titulo: '3 sessões em 5 dias',
-        dica: `Semana atual: ${sessoesSemana}/3 sessões.`,
-        progresso: Math.min(100, (sessoesSemana / 3) * 100),
-      },
-      {
-        id: 'simulados',
-        titulo: 'Concluir 2 simulados com >80%',
-        dica: `Média semanal atual: ${mediaSemana.toFixed(1)}%.`,
-        progresso: mediaSemana >= 80 ? Math.min(100, (sessoesSemana / 2) * 100) : Math.min(80, (mediaSemana / 80) * 80),
-      },
-    ]
+    if (erro) return <CAlert color="danger" className="m-4">{erro}</CAlert>
 
-    if (churn >= 70) {
-      missoes.unshift({
-        id: 'anti-churn',
-        titulo: 'Missão anti-churn: estudar hoje',
-        dica: 'Uma sessão hoje já reduz risco de evasão.',
-        progresso: 20,
-      })
-    }
-    if (conclusao < 70) {
-      missoes.push({
-        id: 'fluxo',
-        titulo: 'Fechar simulados sem pular etapas',
-        dica: 'Finalize toda a lista antes de sair.',
-        progresso: Math.min(100, conclusao),
-      })
-    }
-    return missoes
-  }, [dados, resumoAluno])
+    const churn = Number(dados?.churn_risco_percentual || 0)
+    const riscoStatus = churn >= 70 ? 'ALTO RISCO' : churn >= 40 ? 'RISCO MÉDIO' : 'RISCO BAIXO'
+    const riscoCor = churn >= 70 ? tokens.rausch : churn >= 40 ? tokens.arches : tokens.babu
 
-  const progressoGeral = useMemo(() => {
-    if (!plano.length) return 0
-    const soma = plano.reduce((acc, p) => acc + Number(p.progresso || 0), 0)
-    return Math.round(soma / plano.length)
-  }, [plano])
+    return (
+        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', padding: '32px 16px 48px', fontFamily: "'Nunito', sans-serif" }}>
+            <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
-  if (loading) return <CSpinner />
-  if (erro) return <CAlert color="danger">{erro}</CAlert>
-  if (!dados) return <CAlert color="warning">Sem dados para exibir.</CAlert>
+                {/* HEADER PREMIUM */}
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
+                    <div className="d-flex justify-content-between align-items-end">
+                        <div>
+                            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Estratégia de Aprendizado</div>
+                            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+                                Meu Risco + Plano 🛡️
+                            </div>
+                            <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+                                Analisamos seus dados para criar o caminho mais seguro até a aprovação.
+                            </div>
+                        </div>
+                        <CButton 
+                            onClick={() => navigate('/quiz')}
+                            style={{ background: tokens.rausch, color: '#fff', borderRadius: 12, fontWeight: 800, border: 'none' }}
+                            className="px-4 py-2 d-flex align-items-center gap-2"
+                        >
+                            Praticar Agora
+                            <Icon icon="solar:alt-arrow-right-bold" width="20" />
+                        </CButton>
+                    </div>
+                </motion.div>
 
-  const churn = Number(dados.churn_risco_percentual || 0)
-  const risco = churn >= 70 ? 'Alto' : churn >= 40 ? 'Médio' : 'Baixo'
-  const riscoColor = churn >= 70 ? 'danger' : churn >= 40 ? 'warning' : 'success'
-  const explicacaoRisco =
-    churn >= 70
-      ? 'Seu risco está alto por baixa recorrência recente de estudo. Faça uma sessão hoje para reduzir rapidamente.'
-      : churn >= 40
-        ? 'Seu risco está moderado. Mantenha frequência de estudo nos próximos dias para estabilizar.'
-        : 'Seu risco está controlado. Continue no ritmo atual para manter consistência.'
+                {/* CARDS DE KPIS */}
+                <CRow className="g-4 mb-4">
+                    <CCol xs={12} md={4}>
+                        <SCard padding="24px" style={{ borderLeft: `4px solid ${riscoCor}` }}>
+                            <div className="d-flex justify-content-between align-items-start mb-2">
+                                <div style={{ color: riscoCor }}><Icon icon="solar:fire-bold-duotone" width="32" /></div>
+                                <CBadge style={{ background: `${riscoCor}15`, color: riscoCor, borderRadius: 6 }}>{riscoStatus}</CBadge>
+                            </div>
+                            <div style={{ fontSize: 28, fontWeight: 800 }}>{churn.toFixed(1)}%</div>
+                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>RISCO DE EVASÃO</div>
+                            <p className="text-muted small mt-2 mb-0">
+                                {churn >= 70 ? 'Ação imediata necessária!' : 'Seu ritmo está sob controle.'}
+                            </p>
+                        </SCard>
+                    </CCol>
+                    <CCol xs={12} md={4}>
+                        <SCard padding="24px">
+                            <div style={{ color: tokens.babu, marginBottom: 8 }}><Icon icon="solar:graph-up-bold-duotone" width="32" /></div>
+                            <div style={{ fontSize: 28, fontWeight: 800 }}>{Number(dados?.retencao_30d_percentual || 0).toFixed(1)}%</div>
+                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>RETENÇÃO 30 DIAS</div>
+                            <p className="text-muted small mt-2 mb-0">Consistência no último mês.</p>
+                        </SCard>
+                    </CCol>
+                    <CCol xs={12} md={4}>
+                        <SCard padding="24px">
+                            <div style={{ color: tokens.arches, marginBottom: 8 }}><Icon icon="solar:check-circle-bold-duotone" width="32" /></div>
+                            <div style={{ fontSize: 28, fontWeight: 800 }}>{Number(dados?.conclusao_simulado_percentual || 0).toFixed(1)}%</div>
+                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>CONCLUSÃO DE ETAPAS</div>
+                            <p className="text-muted small mt-2 mb-0">Foco em finalizar o que começa.</p>
+                        </SCard>
+                    </CCol>
+                </CRow>
 
-  const toggleMissao = (id) => {
-    const matricula = sessionStorage.getItem('matricula')
-    if (!matricula) return
-    const storageKey = `missoes_semanais:${matricula}`
-    const atual = missoesConcluidas.includes(id)
-      ? missoesConcluidas.filter((m) => m !== id)
-      : [...missoesConcluidas, id]
-    setMissoesConcluidas(atual)
-    sessionStorage.setItem(storageKey, JSON.stringify(atual))
-  }
+                {/* MISSÕES SEMANAIS */}
+                <SCard title="🎯 Missões Estratégicas da Semana" icon={<Icon icon="solar:target-bold" width="18" />}>
+                    <div className="mb-4">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                            <span className="fw-bold small text-muted">PROGRESSO DO PLANO</span>
+                            <span className="fw-bold" style={{ color: tokens.babu }}>{progressoGeral}%</span>
+                        </div>
+                        <CProgress value={progressoGeral} color="success" height={10} className="rounded-pill" />
+                    </div>
 
-  return (
-    <div className="p-3 p-md-4">
-      <h4 className="mb-3">Meu Risco + Plano</h4>
-      <CRow className="g-3 mb-4">
-        <CCol xs={12} md={4}>
-          <StatBox icon={cilFire} label="Risco de Churn" value={`${churn.toFixed(1)}%`} tone="danger" />
-        </CCol>
-        <CCol xs={12} md={4}>
-          <StatBox icon={cilFlagAlt} label="Retenção 30d" value={`${Number(dados.retencao_30d_percentual || 0).toFixed(1)}%`} tone="success" />
-        </CCol>
-        <CCol xs={12} md={4}>
-          <StatBox icon={cilCheckCircle} label="Conclusão Simulados" value={`${Number(dados.conclusao_simulado_percentual || 0).toFixed(1)}%`} tone="primary" />
-        </CCol>
-      </CRow>
+                    <div className="d-flex flex-column gap-3">
+                        {plano.map((m, i) => {
+                            const done = missoesConcluidas.includes(m.id)
+                            return (
+                                <motion.div 
+                                    key={m.id}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.1 }}
+                                    style={{ 
+                                        background: 'var(--color-bg-tertiary)', 
+                                        borderRadius: 16, 
+                                        padding: '16px',
+                                        border: done ? `1.5px solid ${tokens.babu}40` : '1.5px solid transparent',
+                                        transition: '0.3s'
+                                    }}
+                                >
+                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <div className="d-flex align-items-center gap-3">
+                                            <div style={{ 
+                                                width: 40, height: 40, 
+                                                background: done ? tokens.babu : 'var(--color-bg-elevated)', 
+                                                borderRadius: 12, 
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                color: done ? '#fff' : tokens.foggy,
+                                                transition: '0.3s'
+                                            }}>
+                                                <Icon icon={m.icon} width="24" />
+                                            </div>
+                                            <div>
+                                                <div className="fw-bold" style={{ fontSize: 15, textDecoration: done ? 'line-through' : 'none', color: done ? tokens.foggy : 'var(--color-text-primary)' }}>
+                                                    {m.titulo}
+                                                </div>
+                                                <div className="small text-muted">{m.dica}</div>
+                                            </div>
+                                        </div>
+                                        <CButton 
+                                            size="sm" 
+                                            variant="ghost" 
+                                            onClick={() => toggleMissao(m.id)}
+                                            style={{ color: done ? tokens.babu : tokens.foggy }}
+                                        >
+                                            <Icon icon={done ? "solar:check-square-bold" : "solar:square-academic-cap-bold"} width="24" />
+                                        </CButton>
+                                    </div>
+                                    <CProgress value={m.progresso} height={4} className="mt-2" color={done ? 'success' : 'info'} />
+                                </motion.div>
+                            )
+                        })}
+                    </div>
+                </SCard>
 
-      <CCard className="mb-4 border-0 shadow-sm">
-        <CCardBody>
-          Status atual: <CBadge color={riscoColor}>{risco}</CBadge>
-          <p className="mb-0 mt-2 text-body-secondary">{explicacaoRisco}</p>
-        </CCardBody>
-      </CCard>
+                {/* BOX DE AVISO/RECOMENDAÇÃO */}
+                <motion.div 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    style={{ 
+                        marginTop: 24, 
+                        background: `${tokens.arches}10`, 
+                        borderRadius: 20, 
+                        padding: '24px', 
+                        border: `1px solid ${tokens.arches}30`,
+                        display: 'flex',
+                        gap: 16,
+                        alignItems: 'center'
+                    }}
+                >
+                    <div style={{ width: 48, height: 48, background: tokens.arches, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                        <Icon icon="solar:lightbulb-bold" width="24" />
+                    </div>
+                    <div>
+                        <div className="fw-bold" style={{ color: tokens.arches }}>Dica do Mentor</div>
+                        <div className="text-muted small">
+                            {churn >= 70 
+                                ? 'Foque em resolver pelo menos 5 questões hoje. Isso quebrará o sinal de alerta no sistema.' 
+                                : 'Você está no caminho certo! Tente manter essa média de conclusão para garantir sua vaga.'}
+                        </div>
+                    </div>
+                </motion.div>
 
-      <CCard className="border-0 shadow-sm">
-        <CCardBody>
-          <div className="d-flex justify-content-between align-items-center mb-2">
-            <strong>Missões Semanais</strong>
-            <CBadge color="info">{progressoGeral}%</CBadge>
-          </div>
-          <CProgress value={progressoGeral} className="mb-3" />
-
-          {plano.map((m) => {
-            const done = missoesConcluidas.includes(m.id)
-            return (
-              <div key={m.id} className="mb-3 p-3 rounded" style={{ background: 'var(--color-bg-elevated)' }}>
-                <div className="d-flex justify-content-between align-items-center">
-                  <div className="fw-semibold">{m.titulo}</div>
-                  <CBadge color={done ? 'success' : 'secondary'}>{done ? 'Concluída' : 'Em andamento'}</CBadge>
-                </div>
-                <small className="text-body-secondary d-block mb-2">{m.dica}</small>
-                <CProgress value={Number(m.progresso || 0)} className="mb-2" />
-                <CButton size="sm" color={done ? 'secondary' : 'success'} variant="outline" onClick={() => toggleMissao(m.id)}>
-                  {done ? 'Desmarcar' : 'Marcar como concluída'}
-                </CButton>
-              </div>
-            )
-          })}
-
-          <div className="d-flex justify-content-end">
-            <CButton color="primary" onClick={() => navigate('/quiz')}>
-              Começar agora <CIcon icon={cilArrowRight} className="ms-1" />
-            </CButton>
-          </div>
-        </CCardBody>
-      </CCard>
-
-      <style>{`
-        .stat-box {
-          background: var(--color-bg-elevated);
-          border: 1px solid var(--color-border-light);
-          border-radius: 12px;
-          padding: 16px;
-          display: flex;
-          gap: 12px;
-          align-items: center;
-          transition: transform .2s ease, box-shadow .2s ease;
-        }
-        .stat-box:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-        }
-        .stat-icon-wrapper {
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .stat-icon-wrapper.primary { background: rgba(59,130,246,0.15); color: #3b82f6; }
-        .stat-icon-wrapper.success { background: rgba(16,185,129,0.15); color: #10b981; }
-        .stat-icon-wrapper.danger { background: rgba(239,68,68,0.15); color: #ef4444; }
-        .stat-info .stat-value { font-size: 1.25rem; font-weight: 700; line-height: 1.1; }
-        .stat-info .stat-desc { font-size: 0.82rem; color: var(--color-text-tertiary); }
-        .fade-in-up { animation: fadeInUp .35s ease both; }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-    </div>
-  )
+            </div>
+        </div>
+    )
 }
 
 export default MeuRiscoPlano
