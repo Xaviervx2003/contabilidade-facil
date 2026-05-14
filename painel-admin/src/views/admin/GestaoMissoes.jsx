@@ -15,34 +15,59 @@ const tokens = {
 }
 
 const GestaoMissoes = () => {
-    const [missoes, setMissoes] = useState([
-        { id: 1, titulo: 'Ritmo de Estudo', dica: 'Objetivo: 3 sessões por semana.', tipo: 'Sistema' },
-        { id: 2, titulo: 'Excelência em Simulados', dica: 'Meta: 80% de acerto.', tipo: 'Sistema' },
-        { id: 3, titulo: 'Missão de Resgate', dica: 'Reduzir risco de churn.', tipo: 'Sistema' }
-    ])
+    const [missoes, setMissoes] = useState([])
     const [novoTitulo, setNovoTitulo] = useState('')
     const [novaDica, setNovaDica] = useState('')
+    const [loading, setLoading] = useState(true)
 
-    const handleAdd = () => {
+    const buscarMissoes = async () => {
+        setLoading(true)
+        try {
+            const res = await fetch(`${API_URL}/api/missoes/globais`)
+            const data = await res.json()
+            setMissoes(data)
+        } catch (e) {
+            toast.error('Erro ao buscar missões')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => { buscarMissoes() }, [])
+
+    const handleAdd = async () => {
         if (!novoTitulo || !novaDica) {
             toast.error('Preencha todos os campos!')
             return
         }
-        const nova = {
-            id: Date.now(),
-            titulo: novoTitulo,
-            dica: novaDica,
-            tipo: 'Desafio'
+        try {
+            const res = await fetch(`${API_URL}/api/admin/missoes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ titulo: novoTitulo, dica: novaDica, icon: 'solar:ranking-bold' })
+            })
+            if (res.ok) {
+                toast.success('Desafio lançado para os alunos! 🚀')
+                setNovoTitulo('')
+                setNovaDica('')
+                buscarMissoes()
+            }
+        } catch (e) {
+            toast.error('Erro ao salvar missão')
         }
-        setMissoes([...missoes, nova])
-        setNovoTitulo('')
-        setNovaDica('')
-        toast.success('Desafio lançado para os alunos! 🚀')
     }
 
-    const handleDelete = (id) => {
-        setMissoes(missoes.filter(m => m.id !== id))
-        toast.error('Missão removida.')
+    const handleDelete = async (id) => {
+        if (!window.confirm('Deseja remover este desafio?')) return
+        try {
+            const res = await fetch(`${API_URL}/api/admin/missoes/${id}`, { method: 'DELETE' })
+            if (res.ok) {
+                toast.error('Missão removida.')
+                buscarMissoes()
+            }
+        } catch (e) {
+            toast.error('Erro ao deletar')
+        }
     }
 
     return (

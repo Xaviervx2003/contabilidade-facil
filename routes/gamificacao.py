@@ -436,3 +436,59 @@ def get_leaderboard(
     except Exception as e:
         logger.error(f"Erro em leaderboard: {e}")
         raise HTTPException(status_code=500, detail=f"Erro ao buscar leaderboard: {str(e)}")
+
+
+# ==================== MISSÕES GLOBAIS ====================
+
+from pydantic import BaseModel
+
+class MissaoGlobalCreate(BaseModel):
+    titulo: str
+    dica: str
+    icon: str = "solar:target-bold"
+
+@router.get("/api/missoes/globais")
+def get_missoes_globais():
+    """Retorna lista de missões criadas pelo admin para todos os alunos."""
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, titulo, dica, icon FROM missoes_globais ORDER BY criado_em DESC")
+            rows = cursor.fetchall()
+            return [
+                {"id": r[0], "titulo": r[1], "dica": r[2], "icon": r[3]}
+                for r in rows
+            ]
+    except Exception as e:
+        logger.error(f"Erro em missoes globais: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar missões globais")
+
+@router.post("/api/admin/missoes")
+def create_missao_global(missao: MissaoGlobalCreate):
+    """Cria uma nova missão visível para todos os alunos (Admin only)."""
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO missoes_globais (titulo, dica, icon) VALUES (%s, %s, %s) RETURNING id",
+                (missao.titulo, missao.dica, missao.icon)
+            )
+            new_id = cursor.fetchone()[0]
+            conn.commit()
+            return {"sucesso": True, "id": new_id}
+    except Exception as e:
+        logger.error(f"Erro ao criar missão: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao criar missão global")
+
+@router.delete("/api/admin/missoes/{missao_id}")
+def delete_missao_global(missao_id: int):
+    """Remove uma missão global (Admin only)."""
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM missoes_globais WHERE id = %s", (missao_id,))
+            conn.commit()
+            return {"sucesso": True}
+    except Exception as e:
+        logger.error(f"Erro ao deletar missão: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao deletar missão global")

@@ -26,6 +26,7 @@ const MeuRiscoPlano = () => {
     const [resumoAluno, setResumoAluno] = useState(null)
     const [missoesConcluidas, setMissoesConcluidas] = useState([])
     const [missoesPessoais, setMissoesPessoais] = useState([])
+    const [missoesGlobais, setMissoesGlobais] = useState([])
     const [novaMissao, setNovaMissao] = useState('')
     const navigate = useNavigate()
     const { isDark } = useTheme()
@@ -41,13 +42,17 @@ const MeuRiscoPlano = () => {
 
             setLoading(true)
             try {
-                const [resKpi, resResumo] = await Promise.all([
+                const [resKpi, resResumo, resGlobais] = await Promise.all([
                     fetch(`${API_URL}/api/metricas-estudantes/desempenho/${encodeURIComponent(matricula)}`),
                     fetch(`${API_URL}/api/aluno/dashboard/${encodeURIComponent(matricula)}`),
+                    fetch(`${API_URL}/api/missoes/globais`)
                 ])
-                const [jsonKpi, jsonResumo] = await Promise.all([resKpi.json(), resResumo.json()])
+                const [jsonKpi, jsonResumo, jsonGlobais] = await Promise.all([
+                    resKpi.json(), resResumo.json(), resGlobais.json()
+                ])
                 setDados(jsonKpi)
                 setResumoAluno(jsonResumo)
+                setMissoesGlobais(jsonGlobais)
                 
                 const mKey = `missoes_semanais:${matricula}`
                 const pKey = `missoes_pessoais:${matricula}`
@@ -68,7 +73,7 @@ const MeuRiscoPlano = () => {
         const nova = { 
             id: `personal_${Date.now()}`, 
             titulo: novaMissao, 
-            dica: 'Missão criada por você.', 
+            dica: 'Missão pessoal criada por você.', 
             progresso: 0, 
             icon: 'solar:pen-new-square-bold-duotone',
             isPersonal: true 
@@ -120,8 +125,19 @@ const MeuRiscoPlano = () => {
                 icon: 'solar:shield-warning-bold-duotone'
             })
         }
-        return [...base, ...missoesPessoais]
-    }, [dados, resumoAluno, missoesPessoais])
+
+        // Converter missões globais (Admin) para o formato do plano
+        const globaisFormatadas = missoesGlobais.map(g => ({
+            id: `global_${g.id}`,
+            titulo: g.titulo,
+            dica: g.dica,
+            progresso: 0,
+            icon: g.icon || 'solar:target-bold',
+            isGlobal: true
+        }))
+
+        return [...base, ...globaisFormatadas, ...missoesPessoais]
+    }, [dados, resumoAluno, missoesPessoais, missoesGlobais])
 
     const progressoGeral = useMemo(() => {
         if (!plano.length) return 0

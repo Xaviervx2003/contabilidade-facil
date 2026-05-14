@@ -247,3 +247,17 @@ INSERT INTO questoes (assunto, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, re
 ON CONFLICT DO NOTHING;
 ALTER TABLE questoes
     ADD COLUMN IF NOT EXISTS dica TEXT DEFAULT NULL;
+
+-- ─── 9. MISSÕES GLOBAIS (Desafios do Admin para Alunos) ───────
+CREATE TABLE IF NOT EXISTS missoes_globais (
+    id SERIAL PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    dica TEXT,
+    icon VARCHAR(100) DEFAULT 'solar:target-bold',
+    criado_em TIMESTAMP DEFAULT NOW()
+);
+
+INSERT INTO missoes_globais (titulo, dica, icon) VALUES 
+('Semana do Contador', 'Resolva 50 questões de Contabilidade Geral nesta semana.', 'solar:ranking-bold'),
+('Maratona de Sábado', 'Conclua 2 simulados completos.', 'solar:fire-bold')
+ON CONFLICT DO NOTHING;
