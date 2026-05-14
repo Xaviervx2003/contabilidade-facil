@@ -617,302 +617,302 @@ const HistoricoAluno = () => {
 
             <div className="max-w-5xl mx-auto">
 
-        <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-            <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex-1"
-            >
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-3">
-                    <Icon icon="solar:history-bold" width="14" />
-                    Evolução Contínua
-                </div>
-                <h2 className="text-text-primary text-3xl md:text-5xl font-normal tracking-tight mb-2">
-                    Meu Histórico <span className="font-serif italic text-primary">de Aprendizado</span>
-                </h2>
-                <p className="text-text-secondary font-medium text-sm md:text-base opacity-70">
-                    Acompanhe sua evolução, analise seus pontos fortes e descubra onde focar seus estudos.
-                </p>
-            </motion.div>
-            <div className="d-flex gap-2 flex-wrap pb-1">
-                <CButton color="secondary" variant="outline" size="sm" className="premium-card py-2" onClick={() => setModalSessoes(true)}>
-                    <CIcon icon={cilHistory} className="me-1" /> Sessões
-                </CButton>
-                <CButton color="success" variant="outline" size="sm" className="premium-card py-2" onClick={handleExportarCSV} disabled={!dados}>
-                    <CIcon icon={cilDataTransferDown} className="me-1" /> CSV
-                </CButton>
-                <CButton color="primary" variant="outline" size="sm" className="premium-card py-2" onClick={handleShare}>
-                    <CIcon icon={cilShare} className="me-1" /> Compartilhar
-                </CButton>
-            </div>
-        </div>
-
-            {/* Filtros */}
-            <CCard className="mb-4" style={cardStyle}>
-                <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>
-                    <CIcon icon={cilFilter} className="me-2" /> Filtros
-                    {temFiltros && <CBadge color="primary" className="ms-2">Ativos</CBadge>}
-                </CCardHeader>
-                <CCardBody>
-                    <CRow className="g-3 align-items-end">
-                        <CCol xs={6} md={2}>
-                            <CFormLabel>Data Início</CFormLabel>
-                            <CFormInput type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
-                        </CCol>
-                        <CCol xs={6} md={2}>
-                            <CFormLabel>Data Fim</CFormLabel>
-                            <CFormInput type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
-                        </CCol>
-                        <CCol xs={6} md={3}>
-                            <CFormLabel>Matéria</CFormLabel>
-                            <CFormSelect value={filtroMateria} onChange={e => setFiltroMateria(e.target.value)}>
-                                <option value="">Todas</option>
-                                {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
-                            </CFormSelect>
-                        </CCol>
-                        <CCol xs={6} md={3}>
-                            <CFormLabel>Resultado</CFormLabel>
-                            <CFormSelect value={filtroAcerto} onChange={e => setFiltroAcerto(e.target.value)}>
-                                <option value="">Todos</option>
-                                <option value="acerto">Acertos</option>
-                                <option value="erro">Erros</option>
-                            </CFormSelect>
-                        </CCol>
-                        <CCol xs={12} md={2} className="d-flex align-items-end gap-2">
-                            <CButton color="secondary" variant="outline" size="sm" onClick={limparFiltros} disabled={!temFiltros}>
-                                <CIcon icon={cilX} className="me-1" /> Limpar
-                            </CButton>
-                        </CCol>
-                    </CRow>
-                </CCardBody>
-            </CCard>
-
-            {/* Ranking da Turma */}
-            {ranking && !loading && (
-                <div className="stat-box mb-4 fade-in-up" style={{ animationDelay: '0.15s', borderLeft: '4px solid #f9b115' }}>
-                    <div className="stat-icon-wrapper warning">
-                        <CIcon icon={cilStar} />
-                    </div>
-                    <div className="stat-info flex-grow-1">
-                        <div className="stat-desc">Seu Ranking na Turma</div>
-                        <div className="stat-value">
-                            {ranking.posicao}º lugar <small className="fw-normal text-body-tertiary">de {ranking.total_alunos} alunos</small>
+                <div className="mb-10 flex flex-col md:flex-row justify-between items-start gap-6">
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex-1"
+                    >
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-3">
+                            <Icon icon="solar:history-bold" width="14" />
+                            Evolução Contínua
                         </div>
-                        <CProgress value={100 - ((ranking.posicao - 1) / ranking.total_alunos * 100)} color="warning" className="mt-2" />
+                        <h2 className="text-text-primary text-3xl md:text-5xl font-normal tracking-tight mb-2">
+                            Meu Histórico <span className="font-serif italic text-primary">de Aprendizado</span>
+                        </h2>
+                        <p className="text-text-secondary font-medium text-sm md:text-base opacity-70">
+                            Acompanhe sua evolução, analise seus pontos fortes e descubra onde focar seus estudos.
+                        </p>
+                    </motion.div>
+                    <div className="d-flex gap-2 flex-wrap" style={{ alignSelf: 'flex-start' }}>
+                        <CButton color="secondary" variant="outline" size="sm" className="premium-card py-2" onClick={() => setModalSessoes(true)}>
+                            <CIcon icon={cilHistory} className="me-1" /> Sessões
+                        </CButton>
+                        <CButton color="success" variant="outline" size="sm" className="premium-card py-2" onClick={handleExportarCSV} disabled={!dados}>
+                            <CIcon icon={cilDataTransferDown} className="me-1" /> CSV
+                        </CButton>
+                        <CButton color="primary" variant="outline" size="sm" className="premium-card py-2" onClick={handleShare}>
+                            <CIcon icon={cilShare} className="me-1" /> Compartilhar
+                        </CButton>
                     </div>
-                    <CBadge color={ranking.percentil >= 80 ? 'success' : ranking.percentil >= 50 ? 'warning' : 'danger'} shape="rounded-pill" className="fs-6 px-3 py-2 ms-auto">
-                        Top {100 - ranking.percentil}%
-                    </CBadge>
                 </div>
-            )}
 
-            {/* Progresso Geral */}
-            <div className="premium-card mb-4 fade-in-up" style={{ animationDelay: '0.2s' }}>
-                <div className="d-flex align-items-center gap-3">
-                    {loading ? <Skeleton h={40} /> : (
-                        <>
-                            <div className="flex-grow-1">
-                                <h5 className="mb-2">📊 Progresso no Edital</h5>
-                                <CProgress value={progressoGeral?.percentual || 0} color="success" />
-                                <div className="d-flex justify-content-between mt-2">
-                                    <small className="text-body-tertiary">{progressoGeral?.respondidas || 0} de {progressoGeral?.total || 0} questões</small>
-                                    <span className="fw-bold text-success">{progressoGeral?.percentual || 0}%</span>
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </div>
-
-            {/* Mapa de Calor (Heatmap) */}
-            <CCard className="mb-4" style={cardStyle}>
-                <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>
-                    🔥 Mapa de Contribuição de Estudos
-                </CCardHeader>
-                <CCardBody style={{ overflowX: 'auto', padding: '16px 24px' }}>
-                    {loading ? <Skeleton h={160} /> : <Heatmap data={dados?.por_dia} />}
-                </CCardBody>
-            </CCard>
-
-            {/* Cards principais */}
-            <CRow className="g-3 mb-4">
-                <CCol xs={6} md={4} lg={3}>
-                    <StatCard loading={loading} icon={cilChartLine} titulo="Constância nos Estudos" valor={`${constancia.dias} dias`} sub={`Recorde: ${constancia.recorde} dias`} cor="#2eb85c">
-                        <CBadge color="success" shape="rounded-pill">{constancia.dias >= 7 ? '🔥 Excelente!' : '💪 Continue!'}</CBadge>
-                    </StatCard>
-                </CCol>
-                <CCol xs={6} md={4} lg={3}>
-                    <StatCard loading={loading} icon={cilCalendar} titulo="Estudo do Dia" valor={`${questoesHoje} questões`} sub={`Meta: ${metaDiaria} questões/dia`} cor="#7eb8f7">
-                        <div className="d-flex align-items-center gap-2 mt-2">
-                            <CButton color="link" size="sm" className="p-0 text-decoration-none fw-bold" onClick={() => setMostrarFinalizados(!mostrarFinalizados)}>
-                                {mostrarFinalizados ? 'OCULTAR' : 'MOSTRAR'}
-                            </CButton>
-                            {mostrarFinalizados && (
-                                <div style={{ flex: 1 }}>
-                                    <CProgress value={progressoMeta} color={progressoMeta >= 100 ? 'success' : progressoMeta >= 50 ? 'warning' : 'danger'} height={8} className="mt-1" />
-                                    <small className="text-body-secondary">{questoesHoje} de {metaDiaria} questões</small>
-                                </div>
-                            )}
-                        </div>
-                    </StatCard>
-                </CCol>
-                <CCol xs={6} md={4} lg={3}>
-                    <StatCard loading={loading} icon={cilClock} titulo="Tempo de Estudo" valor={formatarTempo((resumo?.tempo_medio_seg || 0) * (resumo?.total_sessoes || 0))} sub={`Média por sessão: ${formatarTempo(resumo?.tempo_medio_seg || 0)}`} cor="#f9b115" />
-                </CCol>
-                <CCol xs={6} md={4} lg={3}>
-                    <StatCard loading={loading} icon={cilLibrary} titulo="Questões Respondidas" valor={resumo?.total_questoes || 0} sub={`Média: ${resumo?.media_geral || 0}%`} cor="#9d7ef7">
-                        <span style={{ fontSize: 20 }}>{medalha(resumo?.media_geral || 0)}</span>
-                    </StatCard>
-                </CCol>
-            </CRow>
-
-            {/* Assuntos para Reforçar */}
-            {!loading && assuntosReforcar.length > 0 && (
-                <CCard className="mb-4" style={{ ...cardStyle, borderLeft: '4px solid #e55353' }}>
-                    <CCardHeader style={{ background: 'transparent', border: 'none', color: '#e55353', fontWeight: 700 }}>
-                        <CIcon icon={cilWarning} className="me-2" /> Estudar Hoje — Assuntos para Reforçar
+                {/* Filtros */}
+                <CCard className="mb-4" style={cardStyle}>
+                    <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>
+                        <CIcon icon={cilFilter} className="me-2" /> Filtros
+                        {temFiltros && <CBadge color="primary" className="ms-2">Ativos</CBadge>}
                     </CCardHeader>
                     <CCardBody>
-                        <CRow className="g-2">
-                            {assuntosReforcar.map((a, i) => (
-                                <CCol key={i} xs={12} md={6}>
-                                    <div style={{
-                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                        background: 'var(--color-bg-tertiary)',
-                                        border: `1px solid var(--color-border)`,
-                                        borderRadius: 8, padding: '10px 14px', gap: 10
-                                    }}>
-                                        <div>
-                                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>{a.assunto}</div>
-                                            <CBadge color="danger" variant="outline">{a.media_acerto}% de acerto</CBadge>
-                                        </div>
-                                        <CButton color="danger" size="sm" variant="outline" onClick={() => window.location.href = `/#/quiz?assunto=${encodeURIComponent(a.assunto)}`}>Praticar</CButton>
-                                    </div>
-                                </CCol>
-                            ))}
+                        <CRow className="g-3 align-items-end">
+                            <CCol xs={6} md={2}>
+                                <CFormLabel>Data Início</CFormLabel>
+                                <CFormInput type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
+                            </CCol>
+                            <CCol xs={6} md={2}>
+                                <CFormLabel>Data Fim</CFormLabel>
+                                <CFormInput type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
+                            </CCol>
+                            <CCol xs={6} md={3}>
+                                <CFormLabel>Matéria</CFormLabel>
+                                <CFormSelect value={filtroMateria} onChange={e => setFiltroMateria(e.target.value)}>
+                                    <option value="">Todas</option>
+                                    {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
+                                </CFormSelect>
+                            </CCol>
+                            <CCol xs={6} md={3}>
+                                <CFormLabel>Resultado</CFormLabel>
+                                <CFormSelect value={filtroAcerto} onChange={e => setFiltroAcerto(e.target.value)}>
+                                    <option value="">Todos</option>
+                                    <option value="acerto">Acertos</option>
+                                    <option value="erro">Erros</option>
+                                </CFormSelect>
+                            </CCol>
+                            <CCol xs={12} md={2} className="d-flex align-items-end gap-2">
+                                <CButton color="secondary" variant="outline" size="sm" onClick={limparFiltros} disabled={!temFiltros}>
+                                    <CIcon icon={cilX} className="me-1" /> Limpar
+                                </CButton>
+                            </CCol>
                         </CRow>
                     </CCardBody>
                 </CCard>
-            )}
 
-            {/* Planejamento + Meta Semanal */}
-            <CRow className="g-3 mb-4">
-                <CCol md={6}>
-                    <CCard style={cardStyle}>
-                        <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>📋 Planejamento do Dia</CCardHeader>
-                        <CCardBody>
-                            <div className="d-flex align-items-center gap-3 mb-3">
-                                <CFormLabel style={{ minWidth: 80 }}>Meta diária</CFormLabel>
-                                <CFormInput type="number" value={metaDiaria} onChange={e => setMetaDiaria(Number(e.target.value))} style={{ width: 80 }} />
-                                <CButton color="primary" variant="outline" size="sm" onClick={() => setMetaDiaria(v => v + 5)}><CIcon icon={cilPlus} /></CButton>
-                                <CButton color="primary" variant="outline" size="sm" onClick={() => setMetaDiaria(v => v - 5)} disabled={metaDiaria <= 5}><CIcon icon={cilMinus} /></CButton>
+                {/* Ranking da Turma */}
+                {ranking && !loading && (
+                    <div className="stat-box mb-4 fade-in-up" style={{ animationDelay: '0.15s', borderLeft: '4px solid #f9b115' }}>
+                        <div className="stat-icon-wrapper warning">
+                            <CIcon icon={cilStar} />
+                        </div>
+                        <div className="stat-info flex-grow-1">
+                            <div className="stat-desc">Seu Ranking na Turma</div>
+                            <div className="stat-value">
+                                {ranking.posicao}º lugar <small className="fw-normal text-body-tertiary">de {ranking.total_alunos} alunos</small>
                             </div>
-                            <CProgress value={progressoMeta} color={progressoMeta >= 100 ? 'success' : progressoMeta >= 50 ? 'warning' : 'danger'} height={24} className="rounded-pill">
-                                {questoesHoje} de {metaDiaria}
-                            </CProgress>
-                            <div className="text-end mt-2">
-                                <CButton color="primary" size="sm" onClick={() => window.location.href = '/#/quiz'}>🎯 Fazer Quiz</CButton>
-                            </div>
-                        </CCardBody>
-                    </CCard>
-                </CCol>
-                <CCol md={6}>
-                    <CCard style={cardStyle}>
-                        <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>🎯 Meta Semanal</CCardHeader>
-                        <CCardBody>
-                            <div className="d-flex align-items-center gap-3 mb-3">
-                                <CFormLabel style={{ minWidth: 80 }}>Meta semanal</CFormLabel>
-                                <CFormInput type="number" value={metaSemanal} onChange={e => setMetaSemanal(Number(e.target.value))} style={{ width: 80 }} />
-                            </div>
-                            <CProgress value={progressoSemanal} color={progressoSemanal >= 100 ? 'success' : progressoSemanal >= 50 ? 'warning' : 'danger'} height={24} className="rounded-pill">
-                                {questoesSemana} de {metaSemanal}
-                            </CProgress>
-                        </CCardBody>
-                    </CCard>
-                </CCol>
-            </CRow>
+                            <CProgress value={100 - ((ranking.posicao - 1) / ranking.total_alunos * 100)} color="warning" className="mt-2" />
+                        </div>
+                        <CBadge color={ranking.percentil >= 80 ? 'success' : ranking.percentil >= 50 ? 'warning' : 'danger'} shape="rounded-pill" className="fs-6 px-3 py-2 ms-auto">
+                            Top {100 - ranking.percentil}%
+                        </CBadge>
+                    </div>
+                )}
 
-            {/* Estudo Semanal */}
-            <CCard className="mb-4" style={cardStyle}>
-                <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>📅 Estudo Semanal</CCardHeader>
-                <CCardBody>
-                    {loading ? <Skeleton h={200} /> : ultimos7Dias.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={200}>
-                            <BarChart data={ultimos7Dias}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                                <XAxis dataKey="dia" stroke="var(--color-text-tertiary)" tick={{ fontSize: 12 }} />
-                                <YAxis stroke="var(--color-text-tertiary)" tick={{ fontSize: 12 }} />
-                                <Tooltip content={<TooltipCustom />} />
-                                <Bar dataKey="questoes" name="Questões" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <p className="text-center text-body-secondary">Sem dados no período.</p>
-                    )}
-                </CCardBody>
-            </CCard>
-
-            {/* Gráfico de evolução */}
-            {!loading && dadosGraficoEvolucao.length > 0 && (
-                <CCard className="mb-4" style={cardStyle}>
-                    <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>📈 Evolução da Taxa de Acerto</CCardHeader>
-                    <CCardBody>
-                        <ResponsiveContainer width="100%" height={220}>
-                            <LineChart data={dadosGraficoEvolucao}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                                <XAxis dataKey="label" stroke="var(--color-text-tertiary)" tick={{ fontSize: 12 }} />
-                                <YAxis domain={[0, 100]} stroke="var(--color-text-tertiary)" tick={{ fontSize: 12 }} tickFormatter={v => `${v}%`} />
-                                <Tooltip content={<TooltipCustom />} />
-                                <Line type="monotone" dataKey="media_acerto" name="Acerto (%)" stroke="#2eb85c" strokeWidth={2} dot={{ r: 3 }} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </CCardBody>
-                </CCard>
-            )}
-
-            {/* Tabela Desempenho por Assunto */}
-            {!loading && por_assunto && por_assunto.length > 0 && (
-                <CCard style={cardStyle}>
-                    <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>📚 Desempenho por Assunto</span>
-                        <CBadge color="secondary">{por_assunto.length} assuntos</CBadge>
-                    </CCardHeader>
-                    <CCardBody>
-                        <CTable responsive hover>
-                            <CTableHead>
-                                <CTableRow>
-                                    <CTableHeaderCell>Assunto</CTableHeaderCell>
-                                    <CTableHeaderCell className="text-center">Questões</CTableHeaderCell>
-                                    <CTableHeaderCell className="text-center">Média (%)</CTableHeaderCell>
-                                    <CTableHeaderCell className="text-center">Status</CTableHeaderCell>
-                                </CTableRow>
-                            </CTableHead>
-                            <CTableBody>
-                                {por_assunto.map((a, i) => (
-                                    <CTableRow key={i} style={a.media_acerto < 60 ? { background: 'var(--color-bg-danger-subtle)' } : {}}>
-                                        <CTableDataCell>{a.assunto}</CTableDataCell>
-                                        <CTableDataCell className="text-center">{a.questoes}</CTableDataCell>
-                                        <CTableDataCell className="text-center">
-                                            <CBadge color={a.media_acerto >= 80 ? 'success' : a.media_acerto >= 60 ? 'warning' : 'danger'}>
-                                                {a.media_acerto}%
-                                            </CBadge>
-                                        </CTableDataCell>
-                                        <CTableDataCell className="text-center">
-                                            {a.media_acerto >= 80 ? '✅ Dominado' : a.media_acerto >= 60 ? '📘 Em progresso' : '⚠️ Reforçar'}
-                                        </CTableDataCell>
-                                    </CTableRow>
-                                ))}
-                            </CTableBody>
-                        </CTable>
-                    </CCardBody>
-                </CCard>
-            )}
-
-            {loading && dados && (
-                <div style={{ textAlign: 'center', padding: 20 }}>
-                    <CSpinner color="primary" size="sm" /> <span style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>Atualizando...</span>
+                {/* Progresso Geral */}
+                <div className="premium-card mb-4 fade-in-up" style={{ animationDelay: '0.2s' }}>
+                    <div className="d-flex align-items-center gap-3">
+                        {loading ? <Skeleton h={40} /> : (
+                            <>
+                                <div className="flex-grow-1">
+                                    <h5 className="mb-2">📊 Progresso no Edital</h5>
+                                    <CProgress value={progressoGeral?.percentual || 0} color="success" />
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <small className="text-body-tertiary">{progressoGeral?.respondidas || 0} de {progressoGeral?.total || 0} questões</small>
+                                        <span className="fw-bold text-success">{progressoGeral?.percentual || 0}%</span>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
-            )}
+
+                {/* Mapa de Calor (Heatmap) */}
+                <CCard className="mb-4" style={cardStyle}>
+                    <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>
+                        🔥 Mapa de Contribuição de Estudos
+                    </CCardHeader>
+                    <CCardBody style={{ overflowX: 'auto', padding: '16px 24px' }}>
+                        {loading ? <Skeleton h={160} /> : <Heatmap data={dados?.por_dia} />}
+                    </CCardBody>
+                </CCard>
+
+                {/* Cards principais */}
+                <CRow className="g-3 mb-4">
+                    <CCol xs={6} md={4} lg={3}>
+                        <StatCard loading={loading} icon={cilChartLine} titulo="Constância nos Estudos" valor={`${constancia.dias} dias`} sub={`Recorde: ${constancia.recorde} dias`} cor="#2eb85c">
+                            <CBadge color="success" shape="rounded-pill">{constancia.dias >= 7 ? '🔥 Excelente!' : '💪 Continue!'}</CBadge>
+                        </StatCard>
+                    </CCol>
+                    <CCol xs={6} md={4} lg={3}>
+                        <StatCard loading={loading} icon={cilCalendar} titulo="Estudo do Dia" valor={`${questoesHoje} questões`} sub={`Meta: ${metaDiaria} questões/dia`} cor="#7eb8f7">
+                            <div className="d-flex align-items-center gap-2 mt-2">
+                                <CButton color="link" size="sm" className="p-0 text-decoration-none fw-bold" onClick={() => setMostrarFinalizados(!mostrarFinalizados)}>
+                                    {mostrarFinalizados ? 'OCULTAR' : 'MOSTRAR'}
+                                </CButton>
+                                {mostrarFinalizados && (
+                                    <div style={{ flex: 1 }}>
+                                        <CProgress value={progressoMeta} color={progressoMeta >= 100 ? 'success' : progressoMeta >= 50 ? 'warning' : 'danger'} height={8} className="mt-1" />
+                                        <small className="text-body-secondary">{questoesHoje} de {metaDiaria} questões</small>
+                                    </div>
+                                )}
+                            </div>
+                        </StatCard>
+                    </CCol>
+                    <CCol xs={6} md={4} lg={3}>
+                        <StatCard loading={loading} icon={cilClock} titulo="Tempo de Estudo" valor={formatarTempo((resumo?.tempo_medio_seg || 0) * (resumo?.total_sessoes || 0))} sub={`Média por sessão: ${formatarTempo(resumo?.tempo_medio_seg || 0)}`} cor="#f9b115" />
+                    </CCol>
+                    <CCol xs={6} md={4} lg={3}>
+                        <StatCard loading={loading} icon={cilLibrary} titulo="Questões Respondidas" valor={resumo?.total_questoes || 0} sub={`Média: ${resumo?.media_geral || 0}%`} cor="#9d7ef7">
+                            <span style={{ fontSize: 20 }}>{medalha(resumo?.media_geral || 0)}</span>
+                        </StatCard>
+                    </CCol>
+                </CRow>
+
+                {/* Assuntos para Reforçar */}
+                {!loading && assuntosReforcar.length > 0 && (
+                    <CCard className="mb-4" style={{ ...cardStyle, borderLeft: '4px solid #e55353' }}>
+                        <CCardHeader style={{ background: 'transparent', border: 'none', color: '#e55353', fontWeight: 700 }}>
+                            <CIcon icon={cilWarning} className="me-2" /> Estudar Hoje — Assuntos para Reforçar
+                        </CCardHeader>
+                        <CCardBody>
+                            <CRow className="g-2">
+                                {assuntosReforcar.map((a, i) => (
+                                    <CCol key={i} xs={12} md={6}>
+                                        <div style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            background: 'var(--color-bg-tertiary)',
+                                            border: `1px solid var(--color-border)`,
+                                            borderRadius: 8, padding: '10px 14px', gap: 10
+                                        }}>
+                                            <div>
+                                                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>{a.assunto}</div>
+                                                <CBadge color="danger" variant="outline">{a.media_acerto}% de acerto</CBadge>
+                                            </div>
+                                            <CButton color="danger" size="sm" variant="outline" onClick={() => window.location.href = `/#/quiz?assunto=${encodeURIComponent(a.assunto)}`}>Praticar</CButton>
+                                        </div>
+                                    </CCol>
+                                ))}
+                            </CRow>
+                        </CCardBody>
+                    </CCard>
+                )}
+
+                {/* Planejamento + Meta Semanal */}
+                <CRow className="g-3 mb-4">
+                    <CCol md={6}>
+                        <CCard style={cardStyle}>
+                            <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>📋 Planejamento do Dia</CCardHeader>
+                            <CCardBody>
+                                <div className="d-flex align-items-center gap-3 mb-3">
+                                    <CFormLabel style={{ minWidth: 80 }}>Meta diária</CFormLabel>
+                                    <CFormInput type="number" value={metaDiaria} onChange={e => setMetaDiaria(Number(e.target.value))} style={{ width: 80 }} />
+                                    <CButton color="primary" variant="outline" size="sm" onClick={() => setMetaDiaria(v => v + 5)}><CIcon icon={cilPlus} /></CButton>
+                                    <CButton color="primary" variant="outline" size="sm" onClick={() => setMetaDiaria(v => v - 5)} disabled={metaDiaria <= 5}><CIcon icon={cilMinus} /></CButton>
+                                </div>
+                                <CProgress value={progressoMeta} color={progressoMeta >= 100 ? 'success' : progressoMeta >= 50 ? 'warning' : 'danger'} height={24} className="rounded-pill">
+                                    {questoesHoje} de {metaDiaria}
+                                </CProgress>
+                                <div className="text-end mt-2">
+                                    <CButton color="primary" size="sm" onClick={() => window.location.href = '/#/quiz'}>🎯 Fazer Quiz</CButton>
+                                </div>
+                            </CCardBody>
+                        </CCard>
+                    </CCol>
+                    <CCol md={6}>
+                        <CCard style={cardStyle}>
+                            <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>🎯 Meta Semanal</CCardHeader>
+                            <CCardBody>
+                                <div className="d-flex align-items-center gap-3 mb-3">
+                                    <CFormLabel style={{ minWidth: 80 }}>Meta semanal</CFormLabel>
+                                    <CFormInput type="number" value={metaSemanal} onChange={e => setMetaSemanal(Number(e.target.value))} style={{ width: 80 }} />
+                                </div>
+                                <CProgress value={progressoSemanal} color={progressoSemanal >= 100 ? 'success' : progressoSemanal >= 50 ? 'warning' : 'danger'} height={24} className="rounded-pill">
+                                    {questoesSemana} de {metaSemanal}
+                                </CProgress>
+                            </CCardBody>
+                        </CCard>
+                    </CCol>
+                </CRow>
+
+                {/* Estudo Semanal */}
+                <CCard className="mb-4" style={cardStyle}>
+                    <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>📅 Estudo Semanal</CCardHeader>
+                    <CCardBody>
+                        {loading ? <Skeleton h={200} /> : ultimos7Dias.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={200}>
+                                <BarChart data={ultimos7Dias}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                                    <XAxis dataKey="dia" stroke="var(--color-text-tertiary)" tick={{ fontSize: 12 }} />
+                                    <YAxis stroke="var(--color-text-tertiary)" tick={{ fontSize: 12 }} />
+                                    <Tooltip content={<TooltipCustom />} />
+                                    <Bar dataKey="questoes" name="Questões" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <p className="text-center text-body-secondary">Sem dados no período.</p>
+                        )}
+                    </CCardBody>
+                </CCard>
+
+                {/* Gráfico de evolução */}
+                {!loading && dadosGraficoEvolucao.length > 0 && (
+                    <CCard className="mb-4" style={cardStyle}>
+                        <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700 }}>📈 Evolução da Taxa de Acerto</CCardHeader>
+                        <CCardBody>
+                            <ResponsiveContainer width="100%" height={220}>
+                                <LineChart data={dadosGraficoEvolucao}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                                    <XAxis dataKey="label" stroke="var(--color-text-tertiary)" tick={{ fontSize: 12 }} />
+                                    <YAxis domain={[0, 100]} stroke="var(--color-text-tertiary)" tick={{ fontSize: 12 }} tickFormatter={v => `${v}%`} />
+                                    <Tooltip content={<TooltipCustom />} />
+                                    <Line type="monotone" dataKey="media_acerto" name="Acerto (%)" stroke="#2eb85c" strokeWidth={2} dot={{ r: 3 }} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </CCardBody>
+                    </CCard>
+                )}
+
+                {/* Tabela Desempenho por Assunto */}
+                {!loading && por_assunto && por_assunto.length > 0 && (
+                    <CCard style={cardStyle}>
+                        <CCardHeader style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>📚 Desempenho por Assunto</span>
+                            <CBadge color="secondary">{por_assunto.length} assuntos</CBadge>
+                        </CCardHeader>
+                        <CCardBody>
+                            <CTable responsive hover>
+                                <CTableHead>
+                                    <CTableRow>
+                                        <CTableHeaderCell>Assunto</CTableHeaderCell>
+                                        <CTableHeaderCell className="text-center">Questões</CTableHeaderCell>
+                                        <CTableHeaderCell className="text-center">Média (%)</CTableHeaderCell>
+                                        <CTableHeaderCell className="text-center">Status</CTableHeaderCell>
+                                    </CTableRow>
+                                </CTableHead>
+                                <CTableBody>
+                                    {por_assunto.map((a, i) => (
+                                        <CTableRow key={i} style={a.media_acerto < 60 ? { background: 'var(--color-bg-danger-subtle)' } : {}}>
+                                            <CTableDataCell>{a.assunto}</CTableDataCell>
+                                            <CTableDataCell className="text-center">{a.questoes}</CTableDataCell>
+                                            <CTableDataCell className="text-center">
+                                                <CBadge color={a.media_acerto >= 80 ? 'success' : a.media_acerto >= 60 ? 'warning' : 'danger'}>
+                                                    {a.media_acerto}%
+                                                </CBadge>
+                                            </CTableDataCell>
+                                            <CTableDataCell className="text-center">
+                                                {a.media_acerto >= 80 ? '✅ Dominado' : a.media_acerto >= 60 ? '📘 Em progresso' : '⚠️ Reforçar'}
+                                            </CTableDataCell>
+                                        </CTableRow>
+                                    ))}
+                                </CTableBody>
+                            </CTable>
+                        </CCardBody>
+                    </CCard>
+                )}
+
+                {loading && dados && (
+                    <div style={{ textAlign: 'center', padding: 20 }}>
+                        <CSpinner color="primary" size="sm" /> <span style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>Atualizando...</span>
+                    </div>
+                )}
             </div>
         </div>
     )
