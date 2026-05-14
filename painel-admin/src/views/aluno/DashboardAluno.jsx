@@ -1,71 +1,31 @@
 import React, { useEffect, useState } from 'react'
 import {
-  CCard,
-  CCardBody,
-  CCardHeader,
   CCol,
   CRow,
-  CProgress,
   CSpinner,
   CAlert,
   CButton,
   CBadge,
-  CTable,
-  CTableHead,
-  CTableRow,
-  CTableHeaderCell,
-  CTableBody,
-  CTableDataCell,
+  CProgress,
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import {
-  cilPuzzle,
-  cilHistory,
-  cilStar,
-  cilChartLine,
-  cilFire,
-  cilCheckCircle,
-  cilClock,
-  cilSpeedometer,
-  cilArrowRight,
-  cilLibrary,
-} from '@coreui/icons'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { API_URL } from '../../config'
 import { useTheme } from '../../context/themeContext'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 
-/* ── Skeletons para Performance ─────────────────────────── */
-const Skeleton = ({ className, height }) => (
-  <div 
-    className={`bg-body-tertiary rounded-4 animate-pulse ${className}`} 
-    style={{ height: height || '100px', backgroundColor: 'var(--color-bg-tertiary)', opacity: 0.5 }} 
-  />
-)
+/* ─── Tokens Airbnb-inspired ─────────────────────────────── */
+const tokens = {
+  rausch: '#FF385C',   // Airbnb red/coral
+  babu: '#00A699',   // Airbnb teal
+  arches: '#FC642D',   // Airbnb orange
+  hof: '#484848',   // Airbnb dark text
+  foggy: '#767676',   // Airbnb secondary text
+  swiss: '#B0B0B0',   // Airbnb border/muted
+}
 
-const DashboardSkeleton = () => (
-  <div className="min-h-screen pt-4 px-3" style={{ background: 'var(--color-bg-primary)' }}>
-    <div className="max-w-5xl mx-auto">
-      <div className="mb-3">
-        <Skeleton height="32px" className="w-48 mb-2" />
-        <Skeleton height="16px" className="w-64" />
-      </div>
-      <CRow className="g-3 mb-4">
-        {[1, 2, 3, 4].map(i => (
-          <CCol key={i} xs={6} md={3}><Skeleton height="110px" /></CCol>
-        ))}
-      </CRow>
-      <CRow className="g-3">
-        <CCol md={8}><Skeleton height="300px" /></CCol>
-        <CCol md={4}><Skeleton height="300px" /></CCol>
-      </CRow>
-    </div>
-  </div>
-)
-
-/* ── Helpers ──────────────────────────────────────────────── */
+/* ─── Helpers ──────────────────────────────────────────────── */
 const formatTempo = (seg) => {
   if (!seg || seg === 0) return '0min'
   const h = Math.floor(seg / 3600)
@@ -75,52 +35,56 @@ const formatTempo = (seg) => {
 }
 
 const saudacao = () => {
-  const hora = new Date().getHours()
-  if (hora < 12) return 'Bom dia'
-  if (hora < 18) return 'Boa tarde'
+  const h = new Date().getHours()
+  if (h < 12) return 'Bom dia'
+  if (h < 18) return 'Boa tarde'
   return 'Boa noite'
 }
 
 const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
-/* ── Mini Gráfico de Barras (últimos 7 dias) ──────────────── */
+/* ─── Skeleton ───────────────────────────────────────────── */
+const SkeletonBlock = ({ h = 20, w = '100%', r = 12 }) => (
+  <div style={{
+    height: h, width: w, borderRadius: r,
+    background: 'linear-gradient(90deg, var(--sk1) 25%, var(--sk2) 50%, var(--sk1) 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'skshimmer 1.4s ease infinite',
+  }} />
+)
+
+/* ─── Mini Bar Chart ─────────────────────────────────────── */
 const MiniBarChart = React.memo(({ data, isDark }) => {
-  if (!data || data.length === 0) return null
+  if (!data?.length) return null
   const max = Math.max(...data.map(d => d.questoes), 1)
   return (
-    <div className="d-flex align-items-end gap-1" style={{ height: 80 }}>
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 72 }}>
       {data.map((d, i) => {
-        const pct = (d.questoes / max) * 100
+        const pct = Math.max((d.questoes / max) * 100, 3)
         const dt = new Date(d.dia + 'T00:00:00')
         const isHoje = i === data.length - 1
         return (
-          <div key={i} className="d-flex flex-column align-items-center flex-fill">
-            <small className="mb-1" style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>
-              {d.questoes > 0 ? d.questoes : ''}
-            </small>
-            <div
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            {d.questoes > 0 && (
+              <span style={{ fontSize: 10, color: isHoje ? tokens.rausch : tokens.foggy, fontWeight: 600 }}>
+                {d.questoes}
+              </span>
+            )}
+            <motion.div
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: 1 }}
+              transition={{ delay: i * 0.05, duration: 0.4, ease: 'easeOut' }}
               style={{
                 width: '100%',
-                maxWidth: 32,
-                height: `${Math.max(pct, 4)}%`,
-                borderRadius: '4px 4px 0 0',
-                background: isHoje
-                  ? 'linear-gradient(180deg, var(--color-primary), var(--color-secondary))'
-                  : d.questoes > 0
-                    ? 'var(--color-primary)'
-                    : 'var(--color-bg-tertiary)',
-                opacity: isHoje ? 1 : 0.4,
-                transition: 'height 0.5s ease',
+                height: `${pct}%`,
+                borderRadius: '6px 6px 0 0',
+                background: isHoje ? tokens.rausch : (d.questoes > 0 ? 'rgba(255,56,92,0.2)' : 'var(--color-bg-tertiary)'),
+                transformOrigin: 'bottom',
               }}
             />
-            <small style={{
-              fontSize: 9,
-              marginTop: 4,
-              fontWeight: isHoje ? 700 : 400,
-              color: isHoje ? 'var(--color-primary)' : 'var(--color-text-tertiary)',
-            }}>
+            <span style={{ fontSize: 9, color: isHoje ? tokens.rausch : tokens.foggy, fontWeight: isHoje ? 700 : 400 }}>
               {diasSemana[dt.getDay()]}
-            </small>
+            </span>
           </div>
         )
       })}
@@ -128,69 +92,201 @@ const MiniBarChart = React.memo(({ data, isDark }) => {
   )
 })
 
-/* ── Stat Card Premium ───────────────────────────────────── */
-const StatCard = ({ icon, label, value, sub, color, delay = 0 }) => (
+/* ─── Stat Card (Airbnb style) ───────────────────────────── */
+const StatCard = ({ icon, label, value, sub, accent = tokens.rausch, delay = 0 }) => (
   <motion.div
-    initial={{ opacity: 0, y: 15 }}
+    initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ delay }}
-    whileHover={{ y: -4, transition: { duration: 0.2 } }}
-    className="premium-card h-100 d-flex flex-column justify-content-between border-0 p-3 shadow-sm overflow-hidden position-relative"
+    transition={{ delay, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+    whileHover={{ y: -3, transition: { duration: 0.18 } }}
+    style={{
+      background: 'var(--color-bg-elevated)',
+      border: '1px solid var(--color-border)',
+      borderRadius: 16,
+      padding: '20px 20px',
+      height: '100%',
+      position: 'relative',
+      overflow: 'hidden',
+      cursor: 'default',
+    }}
   >
-    {/* Efeito de brilho sutil no fundo */}
-    <div 
-      className="position-absolute" 
-      style={{ 
-        top: -20, 
-        right: -20, 
-        width: 80, 
-        height: 80, 
-        background: `var(--color-${color})`, 
-        filter: 'blur(40px)', 
-        opacity: 0.15 
-      }} 
-    />
+    {/* accent strip top */}
+    <div style={{ position: 'absolute', top: 0, left: 20, right: 20, height: 3, borderRadius: '0 0 4px 4px', background: accent, opacity: 0.7 }} />
 
-    <div className="d-flex align-items-center gap-3 mb-2">
-      <div 
-        className="rounded-3 d-flex align-items-center justify-content-center" 
-        style={{ 
-          width: 42, 
-          height: 42, 
-          backgroundColor: `rgba(var(--color-${color}-rgb, 50, 31, 219), 0.12)`,
-          color: `var(--color-${color})`
-        }}
-      >
-        <Icon icon={icon} width="24" />
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+      <div style={{
+        width: 36, height: 36, borderRadius: 10,
+        background: `${accent}15`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: accent,
+      }}>
+        <Icon icon={icon} width="20" />
       </div>
-      <div>
-        <div className="text-body-secondary" style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          {label}
-        </div>
-      </div>
+      <span style={{ fontSize: 11, fontWeight: 600, color: tokens.foggy, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+        {label}
+      </span>
     </div>
 
-    <div className="mt-2">
-      <div className="h3 fw-bold mb-1" style={{ color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>
-        {value}
-      </div>
-      {sub && (
-        <div className="text-body-secondary d-flex align-items-center gap-1" style={{ fontSize: '11px' }}>
-          {sub}
-        </div>
-      )}
+    <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-text-primary)', lineHeight: 1, letterSpacing: '-0.5px', fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
+      {value}
     </div>
+    {sub && (
+      <div style={{ fontSize: 12, color: tokens.foggy, marginTop: 6 }}>
+        {sub}
+      </div>
+    )}
   </motion.div>
 )
 
-/* ── Componente Principal ─────────────────────────────────── */
+/* ─── Section Card ───────────────────────────────────────── */
+const SCard = ({ children, style = {}, delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay, duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] }}
+    style={{
+      background: 'var(--color-bg-elevated)',
+      border: '1px solid var(--color-border)',
+      borderRadius: 20,
+      padding: '24px',
+      height: '100%',
+      ...style,
+    }}
+  >
+    {children}
+  </motion.div>
+)
+
+/* ─── Progress Bar ───────────────────────────────────────── */
+const AirbnbProgress = ({ value, color = tokens.rausch }) => (
+  <div style={{ height: 6, background: 'var(--color-bg-tertiary)', borderRadius: 99, overflow: 'hidden' }}>
+    <motion.div
+      initial={{ width: 0 }}
+      animate={{ width: `${value}%` }}
+      transition={{ duration: 0.9, ease: 'easeOut', delay: 0.2 }}
+      style={{ height: '100%', background: color, borderRadius: 99 }}
+    />
+  </div>
+)
+
+/* ─── Divider ─────────────────────────────────────────────── */
+const Divider = () => <div style={{ height: 1, background: 'var(--color-border)', margin: '12px 0' }} />
+
+/* ─── Skeleton Screen ─────────────────────────────────────── */
+const DashboardSkeleton = () => (
+  <div style={{ padding: '32px 24px', background: 'var(--color-bg-primary)', minHeight: '100vh' }}>
+    <style>{`@keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+      <div style={{ marginBottom: 28 }}>
+        <SkeletonBlock h={34} w="260px" r={10} />
+        <div style={{ marginTop: 10 }}><SkeletonBlock h={16} w="380px" r={8} /></div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 }}>
+        {[0, 1, 2, 3].map(i => <SkeletonBlock key={i} h={120} r={16} />)}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '5fr 7fr', gap: 16 }}>
+        <SkeletonBlock h={280} r={20} />
+        <SkeletonBlock h={280} r={20} />
+      </div>
+    </div>
+  </div>
+)
+
+/* ─── Activity Row ───────────────────────────────────────── */
+const ActivityRow = ({ s, i }) => {
+  const isGood = s.acerto >= 70
+  const isMid = s.acerto >= 40
+  const color = isGood ? tokens.babu : isMid ? tokens.arches : tokens.rausch
+  const icon = isGood ? 'solar:star-bold-duotone' : isMid ? 'solar:notification-lines-bold-duotone' : 'solar:close-circle-bold-duotone'
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.05 * i }}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 14,
+        padding: '14px 0',
+        borderBottom: '1px solid var(--color-border)',
+      }}
+    >
+      <div style={{
+        width: 40, height: 40, borderRadius: 12,
+        background: `${color}15`,
+        color,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+        <Icon icon={icon} width="20" />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {s.materia}
+        </div>
+        <div style={{ fontSize: 12, color: tokens.foggy, marginTop: 2, display: 'flex', gap: 8, alignItems: 'center' }}>
+          <Icon icon="solar:document-text-linear" width="12" />
+          {s.questoes} questões
+          <span style={{ opacity: 0.4 }}>·</span>
+          <Icon icon="solar:clock-circle-linear" width="12" />
+          {formatTempo(s.tempo_seg)}
+        </div>
+      </div>
+      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+        <div style={{ fontWeight: 700, fontSize: 18, color, lineHeight: 1 }}>{s.acerto}%</div>
+        <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 3 }}>
+          {s.data ? new Date(s.data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '—'}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+/* ─── Quick Action Button ────────────────────────────────── */
+const QuickBtn = ({ icon, label, onClick, variant = 'ghost', accent }) => (
+  <motion.button
+    whileHover={{ scale: 1.01, x: 4 }}
+    whileTap={{ scale: 0.98 }}
+    onClick={onClick}
+    style={{
+      width: '100%', border: `1.5px solid ${accent || 'var(--color-border)'}`,
+      borderRadius: 14, padding: '14px 18px',
+      background: variant === 'filled' ? tokens.rausch : 'transparent',
+      color: variant === 'filled' ? '#fff' : 'var(--color-text-primary)',
+      cursor: 'pointer', display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between', fontWeight: 600, fontSize: 14,
+      fontFamily: "'Circular Std', 'Nunito', sans-serif",
+      transition: 'background 0.15s',
+    }}
+  >
+    <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <Icon icon={icon} width="20" />
+      {label}
+    </span>
+    <Icon icon="solar:alt-arrow-right-linear" width="16" style={{ opacity: 0.5 }} />
+  </motion.button>
+)
+
+/* ─── Matéria Row ─────────────────────────────────────────── */
+const MateriaRow = ({ m, i, color }) => (
+  <div style={{ paddingBottom: 12 }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>
+        {m.materia}
+      </span>
+      <span style={{ fontSize: 13, fontWeight: 700, color }}>{m.media_acerto}%</span>
+    </div>
+    <AirbnbProgress value={m.media_acerto} color={color} />
+    <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 4 }}>{m.questoes} questões respondidas</div>
+  </div>
+)
+
+/* ─── Componente Principal ───────────────────────────────── */
 const DashboardAluno = () => {
   const { isDark } = useTheme()
   const navigate = useNavigate()
   const matricula = sessionStorage.getItem('matricula')
   const nomeUsuario = sessionStorage.getItem('nome') || ''
 
-  // Cache inteligente com useQuery: Abre instantaneamente se os dados tiverem menos de 5 min
   const { data, isLoading, error } = useQuery({
     queryKey: ['dashboard-aluno', matricula],
     queryFn: async () => {
@@ -201,289 +297,243 @@ const DashboardAluno = () => {
       if (json.nome) sessionStorage.setItem('nome', json.nome)
       return json
     },
-    staleTime: 1000 * 60 * 5, // 5 minutos de dados "frescos"
-    enabled: !!matricula
+    staleTime: 1000 * 60 * 5,
+    enabled: !!matricula,
   })
 
   if (isLoading) return <DashboardSkeleton />
-  if (error) return <div className="p-4"><CAlert color="danger">{error.message}</CAlert></div>
+  if (error) return <div style={{ padding: 32 }}><CAlert color="danger">{error.message}</CAlert></div>
   if (!data) return null
 
   const { hoje, semana, geral, streak, progresso, materias_fracas, materias_fortes, ultimas_sessoes, serie_semanal } = data
-  const nomeExibicao = data.nome || nomeUsuario || 'Estudante'
-  const primeiroNome = nomeExibicao.split(' ')[0]
+  const primeiroNome = (data.nome || nomeUsuario || 'Estudante').split(' ')[0]
+
+  const containerStyle = {
+    minHeight: '100vh',
+    background: 'var(--color-bg-primary)',
+    padding: '32px 16px 48px',
+    '--sk1': isDark ? '#1e2535' : '#f0f0f0',
+    '--sk2': isDark ? '#252f42' : '#e0e0e0',
+  }
 
   return (
-    <div className="min-h-screen pt-4 px-3" style={{ background: 'var(--color-bg-primary)' }}>
-      <div className="max-w-5xl mx-auto">
-        {/* Título e Subtítulo padronizados (Modelo Simples) */}
-        <div className="mb-3">
-          <h3 className="h3 fw-bold mb-1">{saudacao()}, {primeiroNome}! 👋</h3>
-          <div className="text-body-secondary small">
+    <div style={containerStyle}>
+      <style>{`
+        @keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+      `}</style>
+
+      <div style={{ maxWidth: 960, margin: '0 auto', fontFamily: "'Nunito', sans-serif" }}>
+
+        {/* ── Header ── */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ marginBottom: 32 }}
+        >
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+            {saudacao()}, {primeiroNome}! 👋
+          </div>
+          <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
             {hoje.questoes > 0
-              ? `Você já respondeu ${hoje.questoes} questões hoje. Continue assim!`
+              ? `Você respondeu ${hoje.questoes} questões hoje — continue assim!`
               : 'Que tal começar sua sessão de estudos agora?'}
           </div>
-        </div>
+        </motion.div>
 
-      {/* ── Cards de Métricas Rápidas ── */}
-      <CRow className="g-3 mb-4">
-        <CCol xs={6} lg={3}>
-          <StatCard
-            icon="solar:fire-bold-duotone"
-            label="Streak"
-            value={`${streak} dias`}
-            sub={streak > 0 ? 'Sequência ativa 🔥' : 'Estude hoje para iniciar!'}
-            color="warning"
-            delay={0.1}
-          />
-        </CCol>
-        <CCol xs={6} lg={3}>
-          <StatCard
-            icon="solar:check-read-bold-duotone"
-            label="Hoje"
-            value={hoje.questoes}
-            sub={`${hoje.sessoes} sessões · ${formatTempo(hoje.tempo_seg)}`}
-            color="success"
-            delay={0.15}
-          />
-        </CCol>
-        <CCol xs={6} lg={3}>
-          <StatCard
-            icon="solar:calendar-bold-duotone"
-            label="Semana"
-            value={semana.questoes}
-            sub={`${semana.dias_estudados}/7 dias · ${formatTempo(semana.tempo_seg)}`}
-            color="primary"
-            delay={0.2}
-          />
-        </CCol>
-        <CCol xs={6} lg={3}>
-          <StatCard
-            icon="solar:graph-up-bold-duotone"
-            label="Média geral"
-            value={`${geral.media_geral}%`}
-            sub={`${geral.total_questoes} questões total`}
-            color="secondary"
-            delay={0.25}
-          />
-        </CCol>
-      </CRow>
+        {/* ── Stat Cards ── */}
+        <CRow className="g-3 mb-4">
+          {[
+            { icon: 'solar:fire-bold-duotone', label: 'Streak', value: `${streak} dias`, sub: streak > 0 ? 'Sequência ativa 🔥' : 'Estude hoje!', accent: tokens.arches, delay: 0.05 },
+            { icon: 'solar:check-read-bold-duotone', label: 'Hoje', value: hoje.questoes, sub: `${hoje.sessoes} sessão · ${formatTempo(hoje.tempo_seg)}`, accent: tokens.babu, delay: 0.1 },
+            { icon: 'solar:calendar-bold-duotone', label: 'Esta semana', value: semana.questoes, sub: `${semana.dias_estudados}/7 dias · ${formatTempo(semana.tempo_seg)}`, accent: tokens.rausch, delay: 0.15 },
+            { icon: 'solar:graph-up-bold-duotone', label: 'Média geral', value: `${geral.media_geral}%`, sub: `${geral.total_questoes} questões no total`, accent: '#8B5CF6', delay: 0.2 },
+          ].map((c, i) => (
+            <CCol key={i} xs={6} lg={3}>
+              <StatCard {...c} />
+            </CCol>
+          ))}
+        </CRow>
 
-      {/* ── Guia Rápido + Gráfico Semanal ── */}
-      <CRow className="g-3 mb-4">
-        <CCol xs={12} lg={5}>
-          <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.15s' }}>
-            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
-              <Icon icon="solar:bolt-circle-bold-duotone" className="text-warning" width="22" />
-              Guia Rápido
-            </h6>
-            <div className="d-grid gap-2">
-              <CButton
-                color="primary"
-                className="fw-bold d-flex align-items-center justify-content-between p-3 rounded-4 border-0 shadow-sm"
-                onClick={() => navigate('/quiz')}
-                style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)' }}
-              >
-                <span className="d-flex align-items-center"><Icon icon="solar:play-circle-bold-duotone" className="me-2" width="20" /> Iniciar Novo Quiz</span>
-                <Icon icon="solar:arrow-right-linear" />
-              </CButton>
-              <CButton
-                variant="outline"
-                color="secondary"
-                className="fw-bold d-flex align-items-center justify-content-between p-3 rounded-4 border-border"
-                onClick={() => navigate('/aluno/historico')}
-              >
-                <span className="d-flex align-items-center"><Icon icon="solar:history-bold-duotone" className="me-2" width="20" /> Meu Histórico</span>
-                <Icon icon="solar:arrow-right-linear" />
-              </CButton>
-              <CButton
-                variant="outline"
-                color="warning"
-                className="fw-bold d-flex align-items-center justify-content-between p-3 rounded-4 border-border"
-                onClick={() => navigate('/conquistas')}
-              >
-                <span className="d-flex align-items-center"><Icon icon="solar:cup-star-bold-duotone" className="me-2" width="20" /> Minhas Conquistas</span>
-                <Icon icon="solar:arrow-right-linear" />
-              </CButton>
-            </div>
-          </div>
-        </CCol>
-
-        <CCol xs={12} lg={7}>
-          <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <span className="fw-bold d-flex align-items-center gap-2">
-                <Icon icon="solar:chart-square-bold-duotone" className="text-primary" width="20" />
-                Desempenho Semanal
-              </span>
-              <CBadge color="info" className="rounded-pill px-3 py-2 bg-opacity-10 text-info border border-info/20">
-                {semana.questoes} questões
-              </CBadge>
-            </div>
-            {serie_semanal && serie_semanal.length > 0 ? (
-              <div className="mt-4">
-                <MiniBarChart data={serie_semanal} isDark={isDark} />
+        {/* ── Guia Rápido + Semanal ── */}
+        <CRow className="g-3 mb-4">
+          <CCol xs={12} lg={5}>
+            <SCard delay={0.22}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                <Icon icon="solar:bolt-circle-bold-duotone" style={{ color: tokens.rausch }} width="22" />
+                <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-primary)' }}>O que fazer hoje</span>
               </div>
-            ) : (
-              <div className="text-center py-4 text-body-secondary small">Nenhum dado nesta semana</div>
-            )}
-          </div>
-        </CCol>
-      </CRow>
-
-      {/* ── Progresso + Matérias ── */}
-      <CRow className="g-3 mb-4">
-        <CCol xs={12} lg={4}>
-          <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.25s' }}>
-            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
-              <Icon icon="solar:target-bold-duotone" className="text-primary" width="20" />
-              Progresso no Edital
-            </h6>
-            <div className="d-flex flex-column justify-content-center h-100 pb-3">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="text-body-secondary small">Evolução Geral</span>
-                <span className="fw-bold text-primary" style={{ fontSize: '1.2rem' }}>{progresso.percentual}%</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <QuickBtn icon="solar:play-circle-bold-duotone" label="Iniciar Novo Quiz" onClick={() => navigate('/quiz')} variant="filled" />
+                <QuickBtn icon="solar:history-bold-duotone" label="Ver Meu Histórico" onClick={() => navigate('/aluno/historico')} accent="var(--color-border)" />
+                <QuickBtn icon="solar:cup-star-bold-duotone" label="Minhas Conquistas" onClick={() => navigate('/conquistas')} accent={tokens.arches} />
               </div>
-              <div className="progress-container rounded-pill mb-4" style={{ height: '8px', background: 'var(--color-bg-tertiary)' }}>
-                <div 
-                  className="h-100 rounded-pill bg-primary shadow-sm" 
-                  style={{ width: `${progresso.percentual}%`, transition: 'width 1s ease' }} 
-                />
+            </SCard>
+          </CCol>
+
+          <CCol xs={12} lg={7}>
+            <SCard delay={0.26}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Icon icon="solar:chart-square-bold-duotone" style={{ color: tokens.rausch }} width="20" />
+                  <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-primary)' }}>Desempenho Semanal</span>
+                </div>
+                <span style={{
+                  background: `${tokens.rausch}15`, color: tokens.rausch,
+                  fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 99,
+                }}>
+                  {semana.questoes} questões
+                </span>
               </div>
-              <div className="d-grid gap-2">
-                <div className="p-2 rounded-3 bg-body-tertiary d-flex align-items-center gap-2">
-                  <Icon icon="solar:check-circle-bold-duotone" className="text-success" />
-                  <span className="small text-body-secondary"><strong>{progresso.respondidas}</strong> respondidas</span>
-                </div>
-                <div className="p-2 rounded-3 bg-body-tertiary d-flex align-items-center gap-2">
-                  <Icon icon="solar:library-bold-duotone" className="text-secondary" />
-                  <span className="small text-body-secondary"><strong>{progresso.total_banco.toLocaleString('pt-BR')}</strong> no banco</span>
-                </div>
+              {serie_semanal?.length > 0
+                ? <MiniBarChart data={serie_semanal} isDark={isDark} />
+                : <div style={{ textAlign: 'center', color: tokens.foggy, fontSize: 13, padding: '24px 0' }}>Nenhum dado nesta semana</div>
+              }
+            </SCard>
+          </CCol>
+        </CRow>
+
+        {/* ── Progresso + Matérias ── */}
+        <CRow className="g-3 mb-4">
+          <CCol xs={12} lg={4}>
+            <SCard delay={0.3}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                <Icon icon="solar:target-bold-duotone" style={{ color: tokens.rausch }} width="20" />
+                <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-primary)' }}>Progresso no Edital</span>
               </div>
-            </div>
-          </div>
-        </CCol>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 13, color: tokens.foggy }}>Evolução geral</span>
+                <span style={{ fontSize: 20, fontWeight: 800, color: tokens.rausch }}>{progresso.percentual}%</span>
+              </div>
+              <AirbnbProgress value={progresso.percentual} color={tokens.rausch} />
+              <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[
+                  { icon: 'solar:check-circle-bold-duotone', color: tokens.babu, label: `${progresso.respondidas} respondidas` },
+                  { icon: 'solar:library-bold-duotone', color: tokens.foggy, label: `${progresso.total_banco?.toLocaleString('pt-BR')} no banco` },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--color-bg-tertiary)', borderRadius: 12 }}>
+                    <Icon icon={item.icon} style={{ color: item.color }} width="18" />
+                    <span style={{ fontSize: 13, color: 'var(--color-text-primary)' }}>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </SCard>
+          </CCol>
 
-        <CCol xs={12} sm={6} lg={4}>
-          <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.3s' }}>
-            <div className="d-flex align-items-center justify-content-between mb-3">
-              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2">
-                <Icon icon="solar:danger-bold-duotone" className="text-danger" width="20" />
-                Pontos Fracos
-              </h6>
-              <CBadge color="danger" className="rounded-pill bg-opacity-10 text-danger" style={{ fontSize: 10 }}>Focar aqui</CBadge>
-            </div>
-            <div className="d-flex flex-column gap-3">
-              {materias_fracas.length > 0 ? materias_fracas.map((m, i) => (
-                <div key={i} className="p-2 rounded-3 hover-bg-tertiary transition-all">
-                  <div className="d-flex justify-content-between align-items-center mb-1">
-                    <span className="small fw-medium text-truncate" style={{ maxWidth: '70%', color: 'var(--color-text-primary)' }}>{m.materia}</span>
-                    <span className="small fw-bold text-danger">{m.media_acerto}%</span>
-                  </div>
-                  <div className="progress-container rounded-pill" style={{ height: '4px', background: 'var(--color-bg-tertiary)' }}>
-                    <div className="h-100 rounded-pill bg-danger" style={{ width: `${m.media_acerto}%` }} />
-                  </div>
+          <CCol xs={12} sm={6} lg={4}>
+            <SCard delay={0.34}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Icon icon="solar:danger-bold-duotone" style={{ color: tokens.rausch }} width="20" />
+                  <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-primary)' }}>Pontos Fracos</span>
                 </div>
-              )) : <div className="text-center py-4 text-body-secondary small">Estude mais para gerar dados.</div>}
-            </div>
-          </div>
-        </CCol>
+                <span style={{ fontSize: 10, fontWeight: 700, background: `${tokens.rausch}15`, color: tokens.rausch, padding: '3px 10px', borderRadius: 99 }}>
+                  Focar aqui
+                </span>
+              </div>
+              {materias_fracas.length > 0
+                ? materias_fracas.map((m, i) => (
+                  <div key={i}>
+                    <MateriaRow m={m} i={i} color={tokens.rausch} />
+                    {i < materias_fracas.length - 1 && <Divider />}
+                  </div>
+                ))
+                : <div style={{ textAlign: 'center', color: tokens.foggy, fontSize: 13, padding: '24px 0' }}>Continue estudando para ver suas métricas.</div>
+              }
+            </SCard>
+          </CCol>
 
-        <CCol xs={12} sm={6} lg={4}>
-          <div className="premium-card h-100 fade-in-up" style={{ animationDelay: '0.35s' }}>
-            <div className="d-flex align-items-center justify-content-between mb-3">
-              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2">
-                <Icon icon="solar:verified-check-bold-duotone" className="text-success" width="20" />
-                Pontos Fortes
-              </h6>
-              <CBadge color="success" className="rounded-pill bg-opacity-10 text-success" style={{ fontSize: 10 }}>Excelente!</CBadge>
-            </div>
-            <div className="d-flex flex-column gap-3">
-              {materias_fortes.length > 0 ? materias_fortes.map((m, i) => (
-                <div key={i} className="p-2 rounded-3 hover-bg-tertiary transition-all">
-                  <div className="d-flex justify-content-between align-items-center mb-1">
-                    <span className="small fw-medium text-truncate" style={{ maxWidth: '70%', color: 'var(--color-text-primary)' }}>{m.materia}</span>
-                    <span className="small fw-bold text-success">{m.media_acerto}%</span>
-                  </div>
-                  <div className="progress-container rounded-pill" style={{ height: '4px', background: 'var(--color-bg-tertiary)' }}>
-                    <div className="h-100 rounded-pill bg-success" style={{ width: `${m.media_acerto}%` }} />
-                  </div>
+          <CCol xs={12} sm={6} lg={4}>
+            <SCard delay={0.38}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Icon icon="solar:verified-check-bold-duotone" style={{ color: tokens.babu }} width="20" />
+                  <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-primary)' }}>Pontos Fortes</span>
                 </div>
-              )) : <div className="text-center py-4 text-body-secondary small">Continue assim para ver mais dados.</div>}
-            </div>
-          </div>
-        </CCol>
-      </CRow>
+                <span style={{ fontSize: 10, fontWeight: 700, background: `${tokens.babu}15`, color: tokens.babu, padding: '3px 10px', borderRadius: 99 }}>
+                  Mandando bem!
+                </span>
+              </div>
+              {materias_fortes.length > 0
+                ? materias_fortes.map((m, i) => (
+                  <div key={i}>
+                    <MateriaRow m={m} i={i} color={tokens.babu} />
+                    {i < materias_fortes.length - 1 && <Divider />}
+                  </div>
+                ))
+                : <div style={{ textAlign: 'center', color: tokens.foggy, fontSize: 13, padding: '24px 0' }}>Continue assim para ver seus pontos fortes.</div>
+              }
+            </SCard>
+          </CCol>
+        </CRow>
 
-      {/* ── Últimas Atividades (Feed Moderno) ── */}
-      <div className="premium-card mb-4 fade-in-up" style={{ animationDelay: '0.4s' }}>
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h6 className="fw-bold mb-0 d-flex align-items-center gap-2">
-            <Icon icon="solar:history-bold-duotone" className="text-info" width="22" />
-            Atividades Recentes
-          </h6>
-          <CButton color="link" size="sm" className="p-0 fw-bold text-decoration-none small text-info" onClick={() => navigate('/aluno/historico')}>
-            Ver tudo <Icon icon="solar:double-alt-arrow-right-linear" />
-          </CButton>
-        </div>
-        
-        {ultimas_sessoes.length > 0 ? (
-          <div className="d-flex flex-column gap-2">
-            {ultimas_sessoes.map((s, i) => (
-              <div key={i} className="p-3 rounded-4 bg-body-tertiary border border-border/10 d-flex align-items-center gap-3 transition-all hover-translate-y">
-                <div className={`p-2 rounded-circle bg-opacity-10 text-${s.acerto >= 70 ? 'success' : s.acerto >= 40 ? 'warning' : 'danger'} bg-${s.acerto >= 70 ? 'success' : s.acerto >= 40 ? 'warning' : 'danger'}`}>
-                  <Icon icon={s.acerto >= 70 ? "solar:star-bold-duotone" : "solar:notification-lines-bold-duotone"} width="20" />
+        {/* ── Atividades Recentes ── */}
+        <SCard delay={0.42} style={{ marginBottom: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon icon="solar:history-bold-duotone" style={{ color: tokens.rausch }} width="22" />
+              <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-primary)' }}>Atividades Recentes</span>
+            </div>
+            <button
+              onClick={() => navigate('/aluno/historico')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, color: tokens.rausch, textDecoration: 'underline', textDecorationColor: 'transparent', fontFamily: 'inherit' }}
+            >
+              Ver tudo →
+            </button>
+          </div>
+
+          {ultimas_sessoes.length > 0
+            ? ultimas_sessoes.map((s, i) => <ActivityRow key={i} s={s} i={i} />)
+            : (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <Icon icon="solar:ghost-bold-duotone" width="48" style={{ color: tokens.swiss, marginBottom: 12 }} />
+                <div style={{ color: tokens.foggy, marginBottom: 16, fontSize: 14 }}>Nenhuma atividade ainda.</div>
+                <motion.button
+                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate('/quiz')}
+                  style={{
+                    background: tokens.rausch, color: '#fff', border: 'none',
+                    borderRadius: 99, padding: '12px 28px', fontWeight: 700,
+                    fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  Fazer meu primeiro quiz
+                </motion.button>
+              </div>
+            )
+          }
+        </SCard>
+
+        {/* ── Resumo Global ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.46, duration: 0.4 }}
+          style={{
+            borderRadius: 20,
+            border: `1px solid ${tokens.rausch}25`,
+            background: `linear-gradient(135deg, ${tokens.rausch}08 0%, ${tokens.babu}08 100%)`,
+            padding: '24px 32px',
+          }}
+        >
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', gap: 24, textAlign: 'center' }}>
+            {[
+              { label: 'Sessões Totais', value: geral.total_sessoes, color: tokens.rausch, icon: 'solar:folder-check-bold-duotone' },
+              { label: 'Questões', value: geral.total_questoes, color: tokens.babu, icon: 'solar:notes-bold-duotone' },
+              { label: 'Tempo Total', value: formatTempo(geral.tempo_total_seg), color: tokens.arches, icon: 'solar:clock-circle-bold-duotone' },
+              { label: 'Média Geral', value: `${geral.media_geral}%`, color: '#8B5CF6', icon: 'solar:star-bold-duotone' },
+            ].map((stat, i) => (
+              <div key={i}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 4 }}>
+                  <Icon icon={stat.icon} style={{ color: stat.color }} width="22" />
+                  <span style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-1px' }}>{stat.value}</span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="fw-bold text-truncate" style={{ color: 'var(--color-text-primary)' }}>{s.materia}</div>
-                  <div className="text-body-secondary small d-flex align-items-center gap-2">
-                    <Icon icon="solar:document-text-linear" width="14" /> {s.questoes} questões
-                    <span className="opacity-50">•</span>
-                    <Icon icon="solar:clock-circle-linear" width="14" /> {formatTempo(s.tempo_seg)}
-                  </div>
-                </div>
-                <div className="text-end">
-                  <div className={`fw-bold text-${s.acerto >= 70 ? 'success' : s.acerto >= 40 ? 'warning' : 'danger'}`} style={{ fontSize: '1.1rem' }}>{s.acerto}%</div>
-                  <div className="text-body-secondary" style={{ fontSize: '10px' }}>
-                    {s.data ? new Date(s.data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '—'}
-                  </div>
-                </div>
+                <div style={{ fontSize: 11, color: tokens.foggy, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>{stat.label}</div>
               </div>
             ))}
           </div>
-        ) : (
-          <div className="text-center py-5">
-            <Icon icon="solar:ghost-bold-duotone" width="48" className="text-body-secondary opacity-20 mb-3" />
-            <p className="text-body-secondary mb-3">Nenhuma atividade registrada ainda.</p>
-            <CButton color="primary" onClick={() => navigate('/quiz')} className="rounded-pill px-4 fw-bold">Começar Agora</CButton>
-          </div>
-        )}
-      </div>
+        </motion.div>
 
-      {/* ── Resumo Global (Premium Glass) ── */}
-      <div className="premium-card border-0 mb-4 fade-in-up" style={{ 
-        animationDelay: '0.45s',
-        background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.05) 0%, rgba(var(--color-secondary-rgb), 0.05) 100%)',
-        backdropFilter: 'blur(10px)'
-      }}>
-        <div className="d-flex flex-wrap justify-content-around text-center gap-4 py-2">
-          {[
-            { label: 'Sessões Totais', value: geral.total_sessoes, color: 'var(--color-primary)', icon: 'solar:folder-check-bold-duotone' },
-            { label: 'Questões', value: geral.total_questoes, color: 'var(--color-success)', icon: 'solar:notes-bold-duotone' },
-            { label: 'Tempo Total', value: formatTempo(geral.tempo_total_seg), color: 'var(--color-warning)', icon: 'solar:clock-circle-bold-duotone' },
-            { label: 'Média Geral', value: `${geral.media_geral}%`, color: 'var(--color-accent)', icon: 'solar:star-bold-duotone' }
-          ].map((stat, i) => (
-            <div key={i}>
-              <div className="d-flex align-items-center justify-content-center gap-2 mb-1">
-                <Icon icon={stat.icon} style={{ color: stat.color }} width="24" />
-                <div className="fw-bold" style={{ fontSize: '1.75rem', color: 'var(--color-text-primary)', letterSpacing: '-1px' }}>{stat.value}</div>
-              </div>
-              <small className="text-body-secondary font-medium text-uppercase" style={{ fontSize: '10px', letterSpacing: '1px' }}>{stat.label}</small>
-            </div>
-          ))}
-        </div>
-      </div>
       </div>
     </div>
   )
