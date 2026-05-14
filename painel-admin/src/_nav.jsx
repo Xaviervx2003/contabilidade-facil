@@ -15,6 +15,7 @@ import {
   cilMoon,
   cilSun,
   cilWarning,
+  cilFlagAlt,
 } from '@coreui/icons'
 import { CNavItem, CNavTitle } from '@coreui/react'
 import { useTheme } from './context/themeContext'
