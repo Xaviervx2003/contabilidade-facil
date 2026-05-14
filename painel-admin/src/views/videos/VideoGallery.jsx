@@ -10,6 +10,7 @@ import {
 import { API_URL } from '../../config'
 import { useTheme } from '../../context/themeContext'
 import FolderCard from '../../components/premium/FolderCard'
+import { agruparPorMateria } from '../../utils/grouping'
 
 /* ─── Tokens Airbnb-inspired ─────────────────────────────── */
 const tokens = {
@@ -253,24 +254,8 @@ const VideoGallery = () => {
 
   const perc = questoesComVideo.length ? Math.round((assistidos.length / questoesComVideo.length) * 100) : 0
 
-  // Agrupar itens por matéria para as pastas
-  const folders = useMemo(() => {
-    const map = {}
-    questoesComVideo.forEach(q => {
-      const nome = q.materia_nome || q.assunto || 'Geral'
-      const mid = q.materia_id || q.materia_ids?.[0] || 0
-      if (!map[mid]) {
-        map[mid] = { id: mid, title: nome, count: 0, items: [], completed: 0 }
-      }
-      map[mid].count++
-      map[mid].items.push(q)
-      if (assistidos.includes(q.id)) map[mid].completed++
-    })
-    return Object.values(map).map(f => ({
-      ...f,
-      progress: Math.round((f.completed / f.count) * 100)
-    }))
-  }, [questoesComVideo, assistidos])
+  // Agrupar itens por matéria para as pastas (Usa utilitário externo para performance)
+  const folders = useMemo(() => agruparPorMateria(questoesComVideo, assistidos), [questoesComVideo, assistidos])
 
   const handleFolderClick = (folder) => {
     setActiveFolder(folder)
@@ -418,6 +403,7 @@ const VideoGallery = () => {
                     title={f.title}
                     itemCount={f.count}
                     progress={f.progress}
+                    icon={f.icon}
                     color={i % 3 === 0 ? tokens.rausch : i % 3 === 1 ? tokens.babu : tokens.arches}
                     onClick={() => handleFolderClick(f)}
                   />

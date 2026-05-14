@@ -130,7 +130,7 @@ const InboxDuvidas = () => {
         ) : (
           <CRow className="g-4">
             {/* LISTA DE DÚVIDAS */}
-            <CCol lg={selectedDuvida ? 4 : 12}>
+            <CCol lg={selectedDuvida ? 4 : 12} className={selectedDuvida ? 'd-none d-lg-block' : 'd-block'}>
               <div className="d-flex flex-column gap-3">
                 {filteredDuvidas.map((d, i) => (
                   <motion.div
@@ -172,11 +172,11 @@ const InboxDuvidas = () => {
             {/* DETALHE E RESPOSTA */}
             <AnimatePresence>
               {selectedDuvida && (
-                <CCol lg={8}>
+                <CCol lg={8} className="d-block">
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.98 }}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
                     style={{
                       background: 'var(--color-bg-elevated)',
                       border: '1.5px solid var(--color-border)',
@@ -186,6 +186,17 @@ const InboxDuvidas = () => {
                       boxShadow: '0 10px 30px rgba(0,0,0,0.05)'
                     }}
                   >
+                    {/* BOTÃO VOLTAR MOBILE */}
+                    <CButton 
+                      variant="ghost" 
+                      className="d-lg-none mb-3 p-0 fw-bold d-flex align-items-center gap-2"
+                      style={{ color: tokens.rausch }}
+                      onClick={() => setSelectedDuvida(null)}
+                    >
+                      <Icon icon="solar:alt-arrow-left-bold-duotone" width="20" />
+                      Voltar para a Lista
+                    </CButton>
+
                     <div className="d-flex justify-content-between align-items-start mb-4">
                       <div className="d-flex align-items-center gap-3">
                         <div style={{ width: 48, height: 48, background: 'var(--color-bg-tertiary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justify: 'center' }}>
