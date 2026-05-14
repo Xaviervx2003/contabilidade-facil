@@ -252,133 +252,136 @@ const VideoGallery = () => {
 
   return (
     <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
-      <CContainer fluid className="px-3 px-md-5">
+      <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
       <style>{`
         @keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
         .search-field { background: var(--color-bg-elevated); border: 1.5px solid var(--color-border); border-radius: 14px; transition: 0.2s; }
         .search-field:focus-within { border-color: ${tokens.rausch}; box-shadow: 0 0 0 4px rgba(255, 56, 92, 0.1); }
       `}</style>
 
-      {/* HEADER PREMIUM */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }} 
-        animate={{ opacity: 1, y: 0 }}
-        className="pt-5 pb-4 mb-4 border-bottom"
-      >
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-4">
-          <div>
-            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>Centro de Aprendizado</div>
-            <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px', color: 'var(--color-text-primary)', marginBottom: 6 }}>Aprenda no seu Ritmo 🎓</h1>
-            <p style={{ color: tokens.foggy, fontSize: 15, maxWidth: 450, lineHeight: 1.4 }}>Assista às aulas exclusivas e domine os conceitos fundamentais da contabilidade.</p>
-          </div>
-          <div style={{ minWidth: 260 }}>
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Seu Progresso</span>
-              <span style={{ fontSize: 18, fontWeight: 800, color: tokens.rausch }}>{perc}%</span>
+      <div style={{ maxWidth: 960, margin: '0 auto' }}>
+        {/* HEADER PREMIUM ALINHADO */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="pb-4 mb-4"
+        >
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-4">
+            <div>
+              <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>Centro de Aprendizado</div>
+              <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--color-text-primary)', marginBottom: 6, lineHeight: 1.2 }}>Aprenda no seu Ritmo 🎓</h1>
+              <p style={{ color: tokens.foggy, fontSize: 14, maxWidth: 450, lineHeight: 1.4, marginTop: 6 }}>Assista às aulas exclusivas e domine os conceitos fundamentais da contabilidade.</p>
             </div>
-            <AirbnbProgress value={perc} />
-            <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 8, fontWeight: 600 }}>{assistidos.length} de {questoesComVideo.length} aulas concluídas</div>
+            <div style={{ minWidth: 260 }}>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Seu Progresso</span>
+                <span style={{ fontSize: 18, fontWeight: 800, color: tokens.rausch }}>{perc}%</span>
+              </div>
+              <AirbnbProgress value={perc} />
+              <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 8, fontWeight: 600 }}>{assistidos.length} de {questoesComVideo.length} aulas concluídas</div>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* FILTROS E BUSCA */}
-      <CRow className="mb-5 g-3">
-        <CCol lg={5}>
-          <div className="search-field d-flex align-items-center px-3 py-1">
-            <Icon icon="solar:magnifer-linear" style={{ color: tokens.foggy }} width="20" />
-            <CFormInput 
-              placeholder="Pesquisar por título ou assunto..." 
-              value={busca} 
-              onChange={e => setBusca(e.target.value)} 
-              className="bg-transparent border-0 shadow-none py-2"
+        {/* FILTROS E BUSCA */}
+        <CRow className="mb-5 g-3">
+          <CCol lg={5}>
+            <div className="search-field d-flex align-items-center px-3 py-1">
+              <Icon icon="solar:magnifer-linear" style={{ color: tokens.foggy }} width="20" />
+              <CFormInput 
+                placeholder="Pesquisar por título ou assunto..." 
+                value={busca} 
+                onChange={e => setBusca(e.target.value)} 
+                className="bg-transparent border-0 shadow-none py-2"
+                style={{ fontSize: 15 }}
+              />
+            </div>
+          </CCol>
+          <CCol lg={3}>
+            <CFormSelect 
+              value={materiaFiltro} 
+              onChange={e => setMateriaFiltro(e.target.value)} 
+              className="search-field py-2 h-100 ps-3 shadow-none"
               style={{ fontSize: 15 }}
-            />
-          </div>
-        </CCol>
-        <CCol lg={3}>
-          <CFormSelect 
-            value={materiaFiltro} 
-            onChange={e => setMateriaFiltro(e.target.value)} 
-            className="search-field py-2 h-100 ps-3 shadow-none"
-            style={{ fontSize: 15 }}
-          >
-            <option value="">Todas as matérias</option>
-            {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
-          </CFormSelect>
-        </CCol>
-        <CCol lg={4} className="d-flex justify-content-lg-end gap-3">
-          <div className="d-flex bg-body-tertiary p-1 rounded-4 border">
-            <CButton 
-              onClick={() => setModoVis('grade')}
-              style={{ background: modoVis === 'grade' ? 'var(--color-bg-elevated)' : 'transparent', border: 'none', borderRadius: 10, padding: '8px 12px' }}
             >
-              <Icon icon="solar:widget-2-bold-duotone" style={{ color: modoVis === 'grade' ? tokens.rausch : tokens.foggy }} />
-            </CButton>
-            <CButton 
-              onClick={() => setModoVis('lista')}
-              style={{ background: modoVis === 'lista' ? 'var(--color-bg-elevated)' : 'transparent', border: 'none', borderRadius: 10, padding: '8px 12px' }}
-            >
-              <Icon icon="solar:list-bold-duotone" style={{ color: modoVis === 'lista' ? tokens.rausch : tokens.foggy }} />
-            </CButton>
-          </div>
-          <motion.button 
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="fw-bold border-0 px-4 shadow-sm"
-            style={{ background: tokens.rausch, color: '#fff', borderRadius: 14, fontSize: 14 }}
-            onClick={() => setModoPlaylist(!modoPlaylist)}
-          >
-            <Icon icon="solar:play-stream-bold-duotone" className="me-2" /> {modoPlaylist ? 'Fechar Playlist' : 'Modo Playlist'}
-          </motion.button>
-        </CCol>
-      </CRow>
-
-      {/* RECOMENDADOS (CARD ESTILO SCard) */}
-      {recomendados.length > 0 && !busca && (
-        <SCard delay={0.1} style={{ marginBottom: 48, borderLeft: `6px solid ${tokens.arches}`, background: `linear-gradient(90deg, ${tokens.arches}05 0%, transparent 100%)` }}>
-          <div className="d-flex align-items-center gap-3 mb-4">
-            <div className="rounded-3 d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, background: `${tokens.arches}15`, color: tokens.arches }}>
-              <Icon icon="solar:star-bold-duotone" width="22" />
+              <option value="">Todas as matérias</option>
+              {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
+            </CFormSelect>
+          </CCol>
+          <CCol lg={4} className="d-flex justify-content-lg-end gap-3">
+            <div className="d-flex bg-body-tertiary p-1 rounded-4 border">
+              <CButton 
+                onClick={() => setModoVis('grade')}
+                style={{ background: modoVis === 'grade' ? 'var(--color-bg-elevated)' : 'transparent', border: 'none', borderRadius: 10, padding: '8px 12px' }}
+              >
+                <Icon icon="solar:widget-2-bold-duotone" style={{ color: modoVis === 'grade' ? tokens.rausch : tokens.foggy }} />
+              </CButton>
+              <CButton 
+                onClick={() => setModoVis('lista')}
+                style={{ background: modoVis === 'lista' ? 'var(--color-bg-elevated)' : 'transparent', border: 'none', borderRadius: 10, padding: '8px 12px' }}
+              >
+                <Icon icon="solar:list-bold-duotone" style={{ color: modoVis === 'lista' ? tokens.rausch : tokens.foggy }} />
+              </CButton>
             </div>
-            <h5 className="mb-0 fw-bold" style={{ letterSpacing: '-0.5px' }}>Recomendado para você</h5>
-          </div>
-          <CRow className="g-3">
-            {recomendados.map((q, i) => (
-              <CCol key={q.id} md={4}>
-                <motion.div 
-                  whileHover={{ x: 4, background: 'var(--color-bg-elevated)' }}
-                  className="p-3 rounded-4 d-flex align-items-center gap-3 cursor-pointer border" 
-                  onClick={() => setModoPlaylist(true)}
-                >
-                  <img src={obterThumbnail(q.link_video)} style={{ width: 80, height: 45, borderRadius: 10, objectFit: 'cover' }} alt="" />
-                  <div className="text-truncate fw-bold small" style={{ color: 'var(--color-text-primary)' }}>{q.titulo || q.question}</div>
-                </motion.div>
-              </CCol>
-            ))}
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="fw-bold border-0 px-4 shadow-sm"
+              style={{ background: tokens.rausch, color: '#fff', borderRadius: 14, fontSize: 14 }}
+              onClick={() => setModoPlaylist(!modoPlaylist)}
+            >
+              <Icon icon="solar:play-stream-bold-duotone" className="me-2" /> {modoPlaylist ? 'Fechar' : 'Playlist'}
+            </motion.button>
+          </CCol>
+        </CRow>
+
+        {/* RECOMENDADOS (CARD ESTILO SCard) */}
+        {recomendados.length > 0 && !busca && (
+          <SCard delay={0.1} style={{ marginBottom: 48, borderLeft: `6px solid ${tokens.arches}`, background: `linear-gradient(90deg, ${tokens.arches}05 0%, transparent 100%)` }}>
+            <div className="d-flex align-items-center gap-3 mb-4">
+              <div className="rounded-3 d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, background: `${tokens.arches}15`, color: tokens.arches }}>
+                <Icon icon="solar:star-bold-duotone" width="22" />
+              </div>
+              <h5 className="mb-0 fw-bold" style={{ letterSpacing: '-0.5px' }}>Recomendado para você</h5>
+            </div>
+            <CRow className="g-3">
+              {recomendados.map((q, i) => (
+                <CCol key={q.id} md={4}>
+                  <motion.div 
+                    whileHover={{ x: 4, background: 'var(--color-bg-elevated)' }}
+                    className="p-3 rounded-4 d-flex align-items-center gap-3 cursor-pointer border" 
+                    onClick={() => setModoPlaylist(true)}
+                  >
+                    <img src={obterThumbnail(q.link_video)} style={{ width: 80, height: 45, borderRadius: 10, objectFit: 'cover' }} alt="" />
+                    <div className="text-truncate fw-bold small" style={{ color: 'var(--color-text-primary)' }}>{q.titulo || q.question}</div>
+                  </motion.div>
+                </CCol>
+              ))}
+            </CRow>
+          </SCard>
+        )}
+
+        {/* GRID DE VÍDEOS */}
+        {loading ? (
+          <CRow className="g-4">
+            {[1,2,3,4,5,6].map(i => <CCol key={i} xs={12} md={6} xl={4}><div style={{ height: 320, background: 'var(--color-bg-tertiary)', borderRadius: 20 }} className="animate-pulse" /></CCol>)}
           </CRow>
-        </SCard>
-      )}
+        ) : (
+          <CRow className="g-4">
+            {filteredItems.map((v, i) => (
+              <VideoCard key={v.id} q={v} isDark={isDark} modoLista={modoVis === 'lista'} assistido={assistidos.includes(v.id)} onMarcarAssistido={marcarAssistido} />
+            ))}
+            {!filteredItems.length && (
+              <div className="text-center py-5">
+                <Icon icon="solar:ghost-bold-duotone" width="64" style={{ color: tokens.swiss, opacity: 0.3 }} />
+                <h5 className="mt-3" style={{ color: tokens.foggy }}>Nenhuma aula encontrada</h5>
+              </div>
+            )}
+          </CRow>
+        )}
+      </div>
 
-      {/* GRID DE VÍDEOS */}
-      {loading ? (
-        <CRow className="g-4">
-          {[1,2,3,4,5,6].map(i => <CCol key={i} xs={12} md={6} xl={4}><div style={{ height: 320, background: 'var(--color-bg-tertiary)', borderRadius: 20 }} className="animate-pulse" /></CCol>)}
-        </CRow>
-      ) : (
-        <CRow className="g-4">
-          {filteredItems.map((v, i) => (
-            <VideoCard key={v.id} q={v} isDark={isDark} modoLista={modoVis === 'lista'} assistido={assistidos.includes(v.id)} onMarcarAssistido={marcarAssistido} />
-          ))}
-          {!filteredItems.length && (
-            <div className="text-center py-5">
-              <Icon icon="solar:ghost-bold-duotone" width="64" style={{ color: tokens.swiss, opacity: 0.3 }} />
-              <h5 className="mt-3" style={{ color: tokens.foggy }}>Nenhuma aula encontrada</h5>
-            </div>
-          )}
-        </CRow>
-      )}
-
+      {/* PLAYLIST PANEL GLASSMORPHISM */}
       {/* PLAYLIST PANEL GLASSMORPHISM */}
       <AnimatePresence>
         {modoPlaylist && (
