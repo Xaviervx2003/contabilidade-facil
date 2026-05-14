@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import {
-    CCol, CRow, CBadge, CSpinner, CButton, CProgress, CAlert
+    CCol, CRow, CBadge, CSpinner, CButton, CProgress, CAlert, CFormInput
 } from '@coreui/react'
 import { useNavigate } from 'react-router-dom'
 import { API_URL } from '../../config'
