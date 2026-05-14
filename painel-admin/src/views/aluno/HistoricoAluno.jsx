@@ -172,27 +172,50 @@ const HistoricoAluno = () => {
     const [modalSessoes, setModalSessoes] = useState(false)
     const [materias, setMaterias] = useState([])
     const [filtroMateria, setFiltroMateria] = useState('')
+    const [dataInicio, setDataInicio] = useState('')
+    const [dataFim, setDataFim] = useState('')
+    const [filtroResultado, setFiltroResultado] = useState('')
     const [progressoGeral, setProgressoGeral] = useState(null)
     const [ranking, setRanking] = useState(null)
     const matricula = sessionStorage.getItem('matricula')
 
-    useEffect(() => {
+    const buscarDados = useCallback(async () => {
         if (!matricula) return
         setLoading(true)
-        Promise.all([
-            fetchJSON(`${API_URL}/api/admin/materias`),
-            fetchJSON(`${API_URL}/api/aluno/historico-grafico/${matricula}`),
-            fetchJSON(`${API_URL}/api/aluno/historico-diario/${matricula}`),
-            fetchJSON(`${API_URL}/api/aluno/progresso/${matricula}`),
-            fetchJSON(`${API_URL}/api/aluno/ranking/${matricula}`).catch(() => null)
-        ]).then(([mats, mensal, diario, prog, rank]) => {
+        try {
+            const params = new URLSearchParams()
+            if (filtroMateria) params.set('materia_id', filtroMateria)
+            if (dataInicio) params.set('data_inicio', dataInicio)
+            if (dataFim) params.set('data_fim', dataFim)
+            if (filtroResultado) params.set('acerto', filtroResultado)
+            const qs = params.toString() ? `?${params.toString()}` : ''
+
+            const [mats, mensal, diario, prog, rank] = await Promise.all([
+                fetchJSON(`${API_URL}/api/admin/materias`),
+                fetchJSON(`${API_URL}/api/aluno/historico-grafico/${matricula}${qs}`),
+                fetchJSON(`${API_URL}/api/aluno/historico-diario/${matricula}${qs}`),
+                fetchJSON(`${API_URL}/api/aluno/progresso/${matricula}${qs}`),
+                fetchJSON(`${API_URL}/api/aluno/ranking/${matricula}`).catch(() => null)
+            ])
             setMaterias(mats)
             setDados({ ...mensal, por_dia: diario.serie_diaria })
             setProgressoGeral(prog)
             setRanking(rank)
+        } catch (e) {
+            console.error(e)
+        } finally {
             setLoading(false)
-        }).catch(() => setLoading(false))
-    }, [matricula])
+        }
+    }, [matricula, filtroMateria, dataInicio, dataFim, filtroResultado])
+
+    useEffect(() => { buscarDados() }, [buscarDados])
+
+    const limparFiltros = () => {
+        setFiltroMateria('')
+        setDataInicio('')
+        setDataFim('')
+        setFiltroResultado('')
+    }
 
     const constancia = useMemo(() => {
         if (!dados?.por_dia?.length) return { dias: 0, recorde: 0, tendencia: 'estavel' }
@@ -261,11 +284,11 @@ const HistoricoAluno = () => {
                     </div>
                 </motion.div>
 
-                {/* FILTROS RÁPIDOS */}
+                {/* FILTROS RÁPIDOS AVANÇADOS */}
                 <SCard className="mb-4" padding="16px">
                     <CRow className="g-3 align-items-end">
-                        <CCol md={6}>
-                            <CFormLabel className="small fw-bold text-muted">FILTRAR POR MATÉRIA</CFormLabel>
+                        <CCol md={3}>
+                            <CFormLabel className="small fw-bold text-muted">MATÉRIA</CFormLabel>
                             <CFormSelect 
                                 value={filtroMateria} 
                                 onChange={e => setFiltroMateria(e.target.value)}
@@ -275,10 +298,42 @@ const HistoricoAluno = () => {
                                 {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
                             </CFormSelect>
                         </CCol>
-                        <CCol md={6}>
-                            <CProgress value={progressoGeral?.percentual || 0} color="success" height={32} className="rounded-3">
-                                <span className="fw-bold" style={{ fontSize: 12 }}>{progressoGeral?.percentual || 0}% DO EDITAL</span>
-                            </CProgress>
+                        <CCol md={2}>
+                            <CFormLabel className="small fw-bold text-muted">RESULTADO</CFormLabel>
+                            <CFormSelect 
+                                value={filtroResultado} 
+                                onChange={e => setFiltroResultado(e.target.value)}
+                                className="border-0 bg-body-tertiary rounded-3 shadow-none"
+                            >
+                                <option value="">Todos</option>
+                                <option value="acerto">Acertos</option>
+                                <option value="erro">Erros</option>
+                            </CFormSelect>
+                        </CCol>
+                        <CCol md={2}>
+                            <CFormLabel className="small fw-bold text-muted">INÍCIO</CFormLabel>
+                            <CFormInput type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} className="border-0 bg-body-tertiary rounded-3 shadow-none" />
+                        </CCol>
+                        <CCol md={2}>
+                            <CFormLabel className="small fw-bold text-muted">FIM</CFormLabel>
+                            <CFormInput type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} className="border-0 bg-body-tertiary rounded-3 shadow-none" />
+                        </CCol>
+                        <CCol md={3} className="d-flex gap-2">
+                            <CButton 
+                                onClick={limparFiltros}
+                                variant="ghost" 
+                                className="flex-grow-1 fw-bold" 
+                                style={{ color: tokens.foggy, borderRadius: 12 }}
+                            >
+                                Limpar
+                            </CButton>
+                            <CButton 
+                                onClick={buscarDados}
+                                className="flex-grow-1 fw-bold" 
+                                style={{ background: tokens.hof, color: '#fff', borderRadius: 12, border: 'none' }}
+                            >
+                                Filtrar
+                            </CButton>
                         </CCol>
                     </CRow>
                 </SCard>
@@ -318,6 +373,21 @@ const HistoricoAluno = () => {
                         </SCard>
                     </CCol>
                 </CRow>
+
+                {/* PROGRESSO NO EDITAL DE DESTAQUE */}
+                <SCard className="mb-4" padding="20px">
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                        <div className="d-flex align-items-center gap-2">
+                            <Icon icon="solar:chart-square-bold-duotone" width="24" style={{ color: tokens.babu }} />
+                            <span style={{ fontWeight: 800, fontSize: 16 }}>Progresso no Edital</span>
+                        </div>
+                        <span style={{ fontWeight: 800, color: tokens.babu }}>{progressoGeral?.percentual || 0}%</span>
+                    </div>
+                    <CProgress value={progressoGeral?.percentual || 0} color="success" height={12} className="rounded-pill" />
+                    <div className="mt-2 small text-muted fw-bold">
+                        {progressoGeral?.respondidas || 0} QUESTÕES RESOLVIDAS DE {progressoGeral?.total || 0} NO TOTAL
+                    </div>
+                </SCard>
 
                 {/* HEATMAP E GRÁFICOS */}
                 <CRow className="g-4 mb-4">
