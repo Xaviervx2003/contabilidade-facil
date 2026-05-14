@@ -42,24 +42,31 @@ const MeuRiscoPlano = () => {
 
             setLoading(true)
             try {
-                const [resKpi, resResumo, resGlobais] = await Promise.all([
-                    fetch(`${API_URL}/api/metricas-estudantes/desempenho/${encodeURIComponent(matricula)}`),
-                    fetch(`${API_URL}/api/aluno/dashboard/${encodeURIComponent(matricula)}`),
-                    fetch(`${API_URL}/api/missoes/globais`)
-                ])
+                // Carregamento resiliente: se um falhar, o restante continua
+                const carregarIndiv = async (url) => {
+                    try {
+                        const res = await fetch(url)
+                        if (!res.ok) return null
+                        return await res.json()
+                    } catch (e) { return null }
+                }
+
                 const [jsonKpi, jsonResumo, jsonGlobais] = await Promise.all([
-                    resKpi.json(), resResumo.json(), resGlobais.json()
+                    carregarIndiv(`${API_URL}/api/metricas-estudantes/desempenho/${encodeURIComponent(matricula)}`),
+                    carregarIndiv(`${API_URL}/api/aluno/dashboard/${encodeURIComponent(matricula)}`),
+                    carregarIndiv(`${API_URL}/api/missoes/globais`)
                 ])
-                setDados(jsonKpi)
-                setResumoAluno(jsonResumo)
-                setMissoesGlobais(jsonGlobais)
+
+                if (jsonKpi) setDados(jsonKpi)
+                if (jsonResumo) setResumoAluno(jsonResumo)
+                if (jsonGlobais) setMissoesGlobais(jsonGlobais)
                 
                 const mKey = `missoes_semanais:${matricula}`
                 const pKey = `missoes_pessoais:${matricula}`
                 setMissoesConcluidas(JSON.parse(sessionStorage.getItem(mKey) || '[]'))
                 setMissoesPessoais(JSON.parse(localStorage.getItem(pKey) || '[]'))
             } catch (e) {
-                setErro(`Falha ao carregar dados: ${e.message}`)
+                console.error("Erro no processamento:", e)
             } finally {
                 setLoading(false)
             }
@@ -126,15 +133,17 @@ const MeuRiscoPlano = () => {
             })
         }
 
-        // Converter missões globais (Admin) para o formato do plano
-        const globaisFormatadas = missoesGlobais.map(g => ({
-            id: `global_${g.id}`,
-            titulo: g.titulo,
-            dica: g.dica,
-            progresso: 0,
-            icon: g.icon || 'solar:target-bold',
-            isGlobal: true
-        }))
+        // Converter missões globais (Admin) para o formato do plano com trava de segurança
+        const globaisFormatadas = Array.isArray(missoesGlobais) 
+            ? missoesGlobais.map(g => ({
+                id: `global_${g.id}`,
+                titulo: g.titulo,
+                dica: g.dica,
+                progresso: 0,
+                icon: g.icon || 'solar:target-bold',
+                isGlobal: true
+            }))
+            : []
 
         return [...base, ...globaisFormatadas, ...missoesPessoais]
     }, [dados, resumoAluno, missoesPessoais, missoesGlobais])
