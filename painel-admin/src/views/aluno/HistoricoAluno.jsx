@@ -49,6 +49,7 @@ const fetchJSON = async (url) => {
 
 /* ─── Heatmap de Contribuição ─── */
 const Heatmap = ({ data }) => {
+    const [tooltip, setTooltip] = useState(null)
     const CELL_SIZE = 12
     const CELL_GAP = 4
     const TOTAL_WEEKS = 18
@@ -86,29 +87,59 @@ const Heatmap = ({ data }) => {
     }
 
     return (
-        <div style={{ width: '100%', overflowX: 'auto', padding: '10px 0' }}>
-            <div style={{ display: 'flex', gap: CELL_GAP }}>
-                {grid.map((week, wi) => (
-                    <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: CELL_GAP }}>
-                        {week.map((cell, di) => (
-                            <div
-                                key={di}
-                                title={`${cell.dia}: ${cell.questoes} questões`}
-                                style={{
-                                    width: CELL_SIZE, height: CELL_SIZE, borderRadius: 3,
-                                    background: getColor(cell.questoes),
-                                    transition: '0.2s'
-                                }}
-                            />
-                        ))}
-                    </div>
-                ))}
+        <div style={{ width: '100%', position: 'relative' }}>
+            <div style={{ width: '100%', overflowX: 'auto', padding: '10px 0' }}>
+                <div style={{ display: 'flex', gap: CELL_GAP }}>
+                    {grid.map((week, wi) => (
+                        <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: CELL_GAP }}>
+                            {week.map((cell, di) => (
+                                <div
+                                    key={di}
+                                    onMouseEnter={(e) => {
+                                        const rect = e.target.getBoundingClientRect()
+                                        setTooltip({ 
+                                            x: rect.left + rect.width / 2, 
+                                            y: rect.top - 10, 
+                                            text: `${new Date(cell.dia + 'T12:00:00').toLocaleDateString('pt-BR')}: ${cell.questoes} questões` 
+                                        })
+                                    }}
+                                    onMouseLeave={() => setTooltip(null)}
+                                    style={{
+                                        width: CELL_SIZE, height: CELL_SIZE, borderRadius: 3,
+                                        background: getColor(cell.questoes),
+                                        transition: '0.2s',
+                                        cursor: 'pointer'
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    ))}
+                </div>
+                <div className="d-flex justify-content-end align-items-center mt-3 gap-2">
+                    <span style={{ fontSize: 10, color: tokens.foggy, fontWeight: 700 }}>MENOS</span>
+                    {[0, 5, 15, 30, 50].map(n => <div key={n} style={{ width: 10, height: 10, borderRadius: 2, background: getColor(n+1) }} />)}
+                    <span style={{ fontSize: 10, color: tokens.foggy, fontWeight: 700 }}>MAIS</span>
+                </div>
             </div>
-            <div className="d-flex justify-content-end align-items-center mt-3 gap-2">
-                <span style={{ fontSize: 10, color: tokens.foggy, fontWeight: 700 }}>MENOS</span>
-                {[0, 5, 15, 30, 50].map(n => <div key={n} style={{ width: 10, height: 10, borderRadius: 2, background: getColor(n+1) }} />)}
-                <span style={{ fontSize: 10, color: tokens.foggy, fontWeight: 700 }}>MAIS</span>
-            </div>
+
+            <AnimatePresence>
+                {tooltip && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 5, x: '-50%' }}
+                        animate={{ opacity: 1, y: 0, x: '-50%' }}
+                        exit={{ opacity: 0, y: 5, x: '-50%' }}
+                        style={{
+                            position: 'fixed', left: tooltip.x, top: tooltip.y,
+                            background: '#222', color: '#fff', padding: '6px 12px',
+                            borderRadius: 8, fontSize: 11, fontWeight: 700,
+                            pointerEvents: 'none', whiteSpace: 'nowrap', zIndex: 9999,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                        }}
+                    >
+                        {tooltip.text}
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }
@@ -400,6 +431,14 @@ const HistoricoAluno = () => {
                         <SCard title="📈 Engajamento Semanal" icon={<Icon icon="solar:chart-square-bold" width="18" />}>
                             <ResponsiveContainer width="100%" height={160}>
                                 <BarChart data={dados?.por_dia?.slice(-7)}>
+                                    <XAxis 
+                                        dataKey="dia" 
+                                        hide={false} 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{ fontSize: 10, fill: tokens.foggy, fontWeight: 700 }}
+                                        tickFormatter={(v) => new Date(v + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase()}
+                                    />
                                     <Bar dataKey="questoes" fill={tokens.rausch} radius={[4, 4, 0, 0]} />
                                     <Tooltip cursor={{ fill: 'transparent' }} content={({ active, payload }) => {
                                         if (active && payload && payload.length) {
@@ -409,6 +448,12 @@ const HistoricoAluno = () => {
                                     }} />
                                 </BarChart>
                             </ResponsiveContainer>
+                            <div className="d-flex justify-content-center gap-3 mt-2">
+                                <div className="d-flex align-items-center gap-1">
+                                    <div style={{ width: 8, height: 8, borderRadius: 2, background: tokens.rausch }} />
+                                    <span style={{ fontSize: 10, fontWeight: 800, color: tokens.foggy }}>QUESTÕES RESOLVIDAS</span>
+                                </div>
+                            </div>
                         </SCard>
                     </CCol>
                 </CRow>
