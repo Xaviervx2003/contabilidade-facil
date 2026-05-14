@@ -218,123 +218,84 @@ const MinhasTrilhas = () => {
           <CRow>
             {trilhas.map((t, index) => (
               <CCol xs={12} lg={6} xl={4} key={t.id} className="mb-4">
-                <CCard
-                  className="h-100 border-0 overflow-hidden premium-card fade-in-up"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
+                <CCard className="h-100 border-0 shadow-sm overflow-hidden">
+                  {/* 1. Card Roxo (Header Compacto) */}
                   {t.capa_url ? (
-                    <div style={{ height: '160px', overflow: 'hidden', position: 'relative' }}>
-                      <img
-                        src={t.capa_url}
-                        alt={t.nome}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      <div style={{ position: 'absolute', bottom: '10px', left: '10px' }}>
-                        {t.nivel && (
-                          <CBadge
-                            color="dark"
-                            style={{
-                              backdropFilter: 'blur(4px)',
-                              backgroundColor: 'rgba(0,0,0,0.5)',
-                            }}
-                          >
-                            {t.nivel}
-                          </CBadge>
-                        )}
-                      </div>
+                    <div style={{ height: '140px', overflow: 'hidden' }}>
+                      <img src={t.capa_url} alt={t.nome} className="w-100 h-100 object-cover" />
                     </div>
                   ) : (
-                    <CCardHeader className="bg-primary text-white px-4 py-3 d-flex align-items-center justify-content-between">
-                        <h5 className="fw-bold mb-0 text-capitalize">{t.nome}</h5>
-                        {t.nivel && (
-                          <CBadge color="light" text="dark" className="ms-2">
-                            {t.nivel}
-                          </CBadge>
-                        )}
+                    <CCardHeader 
+                      className="bg-primary text-white px-3 d-flex align-items-center justify-content-between" 
+                      style={{ height: '48px' }}
+                    >
+                      <span className="fw-semibold text-truncate">{t.nome}</span>
+                      {t.nivel && <CBadge color="light" text="dark" size="sm">{t.nivel}</CBadge>}
                     </CCardHeader>
                   )}
-                  <CCardHeader className="bg-body-tertiary border-bottom-0 px-4 py-3">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <h5 className="fw-bold mb-0 text-truncate text-capitalize">{t.nome}</h5>
-                      <div className="d-flex align-items-center gap-2 ms-2">
-                        <CBadge color={t.progresso_percentual === 100 ? 'success' : 'primary'}>
-                          {t.progresso_percentual}%
-                        </CBadge>
-                      </div>
+
+                  {/* 2. Card Branco (Título + 100%) */}
+                  <CCardHeader className="bg-white border-bottom-0 px-3 py-2">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <h6 className="fw-bold mb-0 text-truncate" style={{ maxWidth: '75%' }}>{t.nome}</h6>
+                      <CBadge color={t.progresso_percentual === 100 ? 'success' : 'primary'}>
+                        {t.progresso_percentual}%
+                      </CBadge>
                     </div>
+                    {/* Descrição em 1 linha com ellipsis */}
                     <div 
-                      className="text-body-secondary small mb-1 line-clamp-2" 
-                      style={{ minHeight: '2.5rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                      className="text-muted small mt-1" 
+                      style={{ 
+                        overflow: 'hidden', 
+                        whiteSpace: 'nowrap', 
+                        textOverflow: 'ellipsis',
+                        fontSize: '13px'
+                      }}
                     >
-                      {t.descricao || 'Explore este curso e aprofunde seus conhecimentos em contabilidade.'}
+                      {t.descricao}
                     </div>
                   </CCardHeader>
-                  <CCardBody className="px-4 pb-4">
-                    <div className="mb-4 mt-2">
-                      <div className="d-flex justify-content-between small text-body-secondary mb-1">
-                        <span className="fw-medium">Progresso Geral</span>
-                        <span className="fw-bold">{t.progresso_percentual}%</span>
-                      </div>
+
+                  <CCardBody className="p-3">
+                    {/* Progresso Simples */}
+                    <div className="mb-3">
                       <CProgress
                         value={t.progresso_percentual}
                         color={t.progresso_percentual === 100 ? 'success' : 'info'}
-                        height={6}
-                        className="rounded-pill"
+                        height={4}
                       />
                     </div>
 
-                    <h6 className="fw-bold mb-3 border-bottom pb-2" style={{ fontSize: '0.9rem' }}>
-                      Módulos ({t.modulos?.length || 0})
-                    </h6>
-
-                    {t.modulos?.length > 0 ? (
-                      <div className="d-flex flex-column gap-2">
-                        {t.modulos.map((m, idx) => (
-                          <div
-                            key={m.id}
-                            className={`px-4 py-3 rounded-3 border d-flex align-items-center justify-content-between ${m.concluido ? 'bg-body-tertiary border-success/30' : 'bg-body-elevated border-border/50'}`}
+                    {/* Módulos (Lista Simples) */}
+                    <div className="d-flex flex-column gap-1">
+                      {t.modulos?.map((m) => (
+                        <div
+                          key={m.id}
+                          className={`px-3 py-2 rounded border d-flex justify-content-between align-items-center ${
+                            m.concluido ? 'bg-light border-success' : 'bg-white'
+                          }`}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handleAcessarModulo(m)}
+                        >
+                          <span 
+                            className={`small text-truncate ${m.concluido ? 'text-success fw-bold' : ''}`}
+                            style={{ fontSize: '13px' }}
                           >
-                            <div className="text-truncate flex-1">
-                                <div
-                                  className={`fw-bold text-truncate ${m.concluido ? 'text-success' : 'text-body'}`}
-                                  style={{ fontSize: '0.9rem' }}
-                                >
-                                  {m.ordem}. {m.nome}
-                                </div>
-                                {m.duracao_minutos && (
-                                  <div className="text-body-tertiary" style={{ fontSize: '10px' }}>
-                                    <Icon icon="solar:clock-circle-linear" width="12" className="me-1" />
-                                    {m.duracao_minutos} min
-                                  </div>
-                                )}
-                            </div>
-                            <div className="ms-3 flex-shrink-0">
-                              {m.concluido ? (
-                                <div style={{ width: '28px', height: '28px' }}>
-                                  <DotLottieReact
-                                    src="https://lottie.host/80a969b7-0c7f-4ca7-b249-1d373c23c721/tL4Kk5D64X.lottie"
-                                    autoplay
-                                    loop={false}
-                                  />
-                                </div>
-                              ) : (
-                                <CButton
-                                  size="sm"
-                                  color="primary"
-                                  variant="ghost"
-                                  className="p-1 rounded-circle"
-                                  onClick={() => handleAcessarModulo(m)}
-                                >
-                                  <Icon icon="solar:play-circle-bold" width="24" />
-                                </CButton>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-body-secondary small italic py-2">Módulos sendo preparados...</div>
-                    )}
+                            {m.ordem}. {m.nome}
+                          </span>
+                          {m.concluido && <CIcon icon={cilCheckCircle} className="text-success" size="sm" />}
+                        </div>
+                      ))}
+                    </div>
+
+                    <CButton 
+                      color="primary" 
+                      size="sm" 
+                      className="w-100 mt-3"
+                      onClick={() => handleAcessarModulo(t)} // Ajustado para t ou lógica similar se necessário
+                    >
+                      Acessar Trilha
+                    </CButton>
                   </CCardBody>
                 </CCard>
               </CCol>
