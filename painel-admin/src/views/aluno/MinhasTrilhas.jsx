@@ -185,12 +185,6 @@ const MinhasTrilhas = () => {
   return (
     <div className="min-h-screen pt-4 px-3" style={{ background: 'var(--color-bg-primary)' }}>
       <div className="max-w-5xl mx-auto">
-  return (
-    <div className="min-h-screen pt-4 px-3" style={{ background: 'var(--color-bg-primary)' }}>
-      <div className="max-w-5xl mx-auto">
-  return (
-    <div className="min-h-screen pt-4 px-3" style={{ background: 'var(--color-bg-primary)' }}>
-      <div className="max-w-5xl mx-auto">
         {/* Título e Subtítulo padronizados - Mantendo h3 para alinhamento total */}
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
