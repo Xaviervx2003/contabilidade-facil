@@ -616,7 +616,6 @@ const HistoricoAluno = () => {
             {modalSessoes && <ModalSessoes matricula={matricula} onClose={() => setModalSessoes(false)} />}
 
             <div className="max-w-5xl mx-auto">
-
                 <div className="mb-10 flex flex-col md:flex-row justify-between items-start gap-6">
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
