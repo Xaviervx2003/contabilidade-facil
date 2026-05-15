@@ -520,22 +520,23 @@ def listar_missoes_aluno(matricula: str):
             elif m["metrica_tipo"] == "manual":
                 progresso = 100 if m["concluida"] else 0
 
+            # Lógica de Status e Prazo (refinada via Claude)
+            data_lim = m["data_limite"].date() if m["data_limite"] else None
+
             if m["concluida"] or (m["metrica_tipo"] != "manual" and progresso >= 100):
                 status = "concluida"
-            elif m["data_limite"] and m["data_limite"].date() < hoje:
+            elif data_lim and data_lim < hoje:
                 status = "expirada"
             else:
                 status = "pendente"
 
-            dias_restantes = None
-            if m["data_limite"] and status == "pendente":
-                dias_restantes = (m["data_limite"].date() - hoje).days
+            dias_restantes = (data_lim - hoje).days if data_lim and status == "pendente" else None
 
             m.update({
                 "progresso": progresso,
                 "status": status,
                 "dias_restantes": dias_restantes,
-                "data_limite": m["data_limite"].isoformat() if m["data_limite"] else None,
+                "data_limite": data_lim.isoformat() if data_lim else None,
             })
             resultado.append(m)
 
