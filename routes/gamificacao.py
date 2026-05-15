@@ -22,7 +22,7 @@ from datetime import datetime, timedelta, date
 import logging
 
 from database import get_conexao
-from utils.jwt_auth import verificar_admin, verificar_proprio_ou_admin
+from utils.jwt_auth import verificar_admin, verificar_proprio_ou_admin, usuario_autenticado
 
 # ───────────────────────────────────────────────────────────────────────────
 router = APIRouter(tags=["Gamificação"])
@@ -419,15 +419,14 @@ def criar_missao_global(missao: MissaoGlobalCreate, token: dict = Depends(verifi
         raise HTTPException(status_code=500, detail="Erro ao criar missão global")
 
 
-@router.get("/api/missoes/globais/{matricula}")
-def listar_missoes_aluno(matricula: str):
-    """Lista todas as missões globais com status e progresso para o aluno."""
+def _listar_missoes_base(matricula: Optional[str] = None):
+    """Lógica central para listar missões globais com ou sem progresso de aluno."""
     hoje = date.today()
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
 
-            # Missões + flag de conclusão individual
+            # 1. Missões + flag de conclusão (se matricula fornecida)
             cursor.execute("""
                 SELECT
                     m.id, m.titulo, m.dica AS descricao, m.xp,
@@ -443,35 +442,38 @@ def listar_missoes_aluno(matricula: str):
             columns = [col[0] for col in cursor.description]
             missoes = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-            # KPIs da semana atual
-            cursor.execute("""
-                SELECT
-                    COUNT(*)                              AS total_sessoes,
-                    COALESCE(AVG(taxa_acerto), 0)::int    AS media_acerto
-                FROM sessoes_estudo
-                WHERE matricula_aluno = %s
-                  AND criado_em >= date_trunc('week', NOW());
-            """, (matricula,))
-            kpi_cols = [col[0] for col in cursor.description]
-            kpis_row = cursor.fetchone()
-            kpis = dict(zip(kpi_cols, kpis_row)) if kpis_row else {"total_sessoes": 0, "media_acerto": 0}
-
-        sessoes_semana = kpis["total_sessoes"]
-        media_semana   = kpis["media_acerto"]
+            # 2. KPIs da semana atual (somente se houver matrícula)
+            sessoes_semana = 0
+            media_semana = 0
+            if matricula:
+                cursor.execute("""
+                    SELECT
+                        COUNT(*)                              AS total_sessoes,
+                        COALESCE(AVG(taxa_acerto), 0)::int    AS media_acerto
+                    FROM sessoes_estudo
+                    WHERE matricula_aluno = %s
+                      AND criado_em >= date_trunc('week', NOW());
+                """, (matricula,))
+                kpis_row = cursor.fetchone()
+                if kpis_row:
+                    sessoes_semana = kpis_row[0]
+                    media_semana = kpis_row[1]
 
         resultado = []
         for m in missoes:
             # ── Calcular progresso ──────────────────────────────────────
-            if m["metrica_tipo"] == "sessoes":
+            if not matricula:
+                progresso = 0
+            elif m["metrica_tipo"] == "sessoes":
                 progresso = min(int((sessoes_semana / (m["metrica_alvo"] or 1)) * 100), 100)
             elif m["metrica_tipo"] == "media_acerto":
                 progresso = min(int((media_semana   / (m["metrica_alvo"] or 1)) * 100), 100)
             elif m["metrica_tipo"] == "questoes":
-                progresso = 0   # expandir futuramente com KPI de questões
+                progresso = 0   # expandir futuramente
             else:  # manual
                 progresso = 100 if m["concluida"] else 0
 
-            # ── Converter data_limite antes de qualquer comparação ──────
+            # ── Converter data_limite ───────────────────────────────────
             data_lim: Optional[date] = None
             if m["data_limite"]:
                 data_lim = (
@@ -501,8 +503,20 @@ def listar_missoes_aluno(matricula: str):
         return resultado
 
     except Exception as e:
-        logger.error(f"Erro ao listar missoes do aluno {matricula}: {e}")
+        logger.error(f"Erro em _listar_missoes_base (mat={matricula}): {e}")
         raise HTTPException(status_code=500, detail="Erro interno")
+
+
+@router.get("/api/missoes/globais/{matricula}")
+def listar_missoes_aluno(matricula: str, token: dict = Depends(verificar_proprio_ou_admin)):
+    """Lista missões globais com progresso REAL do aluno."""
+    return _listar_missoes_base(matricula)
+
+
+@router.get("/api/missoes/globais")
+def listar_missoes_fallback(token: dict = Depends(usuario_autenticado)):
+    """Endpoint de fallback que retorna a lista de missões sem progresso individual."""
+    return _listar_missoes_base(None)
 
 
 @router.post("/api/missoes/concluir")

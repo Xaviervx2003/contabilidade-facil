@@ -96,6 +96,10 @@ export default defineConfig(() => {
         // https://vitejs.dev/config/server-options.html
       },
     },
+    test: {
+      globals: true,
+      environment: 'jsdom',
+    },
   }
 })
 

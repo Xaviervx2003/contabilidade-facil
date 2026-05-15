@@ -301,21 +301,34 @@ const DashboardAluno = () => {
     enabled: !!matricula,
   })
 
-  const { data: missoesGlobais } = useQuery({
-    queryKey: ['missoes-globais'],
+  const { data: missoesGlobais, isLoading: loadingMissoes, isError: erroMissoes } = useQuery({
+    queryKey: ['missoes-globais', matricula],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/missoes/globais`)
+      const token = sessionStorage.getItem('token')
+      const url = matricula 
+        ? `${API_URL}/api/missoes/globais/${matricula}`
+        : `${API_URL}/api/missoes/globais`
+      
+      const res = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (!res.ok) throw new Error('Erro ao buscar missões')
       return res.json()
     },
     staleTime: 1000 * 60 * 10,
   })
 
-  if (isLoading) return <DashboardSkeleton />
-  if (error) return <div style={{ padding: 32 }}><CAlert color="danger">{error.message}</CAlert></div>
-  if (!data) return null
+  const { hoje, semana, geral, streak, progresso, materias_fracas, materias_fortes, ultimas_sessoes, serie_semanal } = data || {
+    hoje: {}, semana: {}, geral: {}, streak: 0, progresso: {}, 
+    materias_fracas: [], materias_fortes: [], ultimas_sessoes: [], serie_semanal: []
+  }
 
-  const { hoje, semana, geral, streak, progresso, materias_fracas, materias_fortes, ultimas_sessoes, serie_semanal } = data
-  const primeiroNome = (data.nome || nomeUsuario || 'Estudante').split(' ')[0]
+  if (isLoading && matricula) return <DashboardSkeleton />
+  if (error && matricula) return <div style={{ padding: 32 }}><CAlert color="danger">{error.message}</CAlert></div>
+  // Se não tem matrícula e não tem dados, ainda podemos mostrar as missões globais (fallback)
+  const primeiroNome = (data?.nome || nomeUsuario || 'Estudante').split(' ')[0]
 
   const containerStyle = {
     minHeight: '100vh',
@@ -494,7 +507,19 @@ const DashboardAluno = () => {
             </CButton>
           </div>
           <CRow className="g-4">
-            {(Array.isArray(missoesGlobais) ? missoesGlobais.slice(0, 3) : []).map((m, i) => (
+            {loadingMissoes ? (
+              [0, 1, 2].map(i => (
+                <CCol key={i} xs={12} md={4}>
+                  <div style={{ height: 160, background: 'var(--color-bg-tertiary)', borderRadius: 20, animation: 'skshimmer 1.4s ease infinite', backgroundSize: '200% 100%' }} />
+                </CCol>
+              ))
+            ) : erroMissoes ? (
+              <CCol xs={12}>
+                <CAlert color="warning" style={{ borderRadius: 16, fontSize: 13 }}>
+                  Não foi possível carregar os desafios agora.
+                </CAlert>
+              </CCol>
+            ) : (Array.isArray(missoesGlobais) ? missoesGlobais.slice(0, 3) : []).map((m, i) => (
               <CCol key={i} xs={12} md={4}>
                 <SCard delay={0.4 + (i * 0.05)} style={{ padding: '24px', border: `1px solid var(--color-border)`, boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 16 }}>
@@ -504,19 +529,27 @@ const DashboardAluno = () => {
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-primary)', lineHeight: 1.2 }}>{m.titulo}</div>
                       <div style={{ fontSize: 12, color: tokens.foggy, marginTop: 4, lineHeight: 1.4, height: 34, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                        {m.dica}
+                        {m.descricao || m.dica}
                       </div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: tokens.babu, textTransform: 'uppercase' }}>Progresso</span>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: tokens.foggy }}>0%</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: tokens.foggy }}>{m.progresso || 0}%</span>
                   </div>
-                  <AirbnbProgress value={0} color={tokens.babu} />
+                  <AirbnbProgress value={m.progresso || 0} color={tokens.babu} />
+                  
+                  {/* Indicador de "Carregando progresso" se estiver em fallback */}
+                  {!matricula && (
+                    <div style={{ marginTop: 8, fontSize: 10, color: tokens.rausch, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <CSpinner size="sm" style={{ width: 10, height: 10, borderWidth: '1.5px' }} />
+                      Sincronizando seu progresso...
+                    </div>
+                  )}
                 </SCard>
               </CCol>
             ))}
-            {(!missoesGlobais || missoesGlobais.length === 0) && (
+            {(!loadingMissoes && !erroMissoes && (!missoesGlobais || missoesGlobais.length === 0)) && (
               <CCol xs={12}>
                 <div style={{ padding: '40px', textAlign: 'center', background: 'var(--color-bg-tertiary)', border: '1px dashed var(--color-border)', borderRadius: 24, color: tokens.foggy }}>
                   <Icon icon="solar:medal-star-bold-duotone" width="40" className="mb-3" style={{ opacity: 0.2 }} />

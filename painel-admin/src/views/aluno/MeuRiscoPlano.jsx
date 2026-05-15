@@ -234,10 +234,18 @@ const MeuRiscoPlano = () => {
     const matricula = sessionStorage.getItem('matricula')
 
     const fetchMissoes = useCallback(async () => {
-        if (!matricula) return
         setLoading(true)
         try {
-            const r = await fetch(`${API_URL}/api/missoes/globais/${matricula}`)
+            const token = sessionStorage.getItem('token')
+            const url = matricula 
+                ? `${API_URL}/api/missoes/globais/${matricula}`
+                : `${API_URL}/api/missoes/globais`
+
+            const r = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
             if (!r.ok) throw new Error()
             setMissoes(await r.json())
         } catch {
@@ -311,81 +319,81 @@ const MeuRiscoPlano = () => {
                         <div style={{ fontSize: 14, color: T.muted, marginTop: 6 }}>Complete missões para ganhar XP e subir no ranking.</div>
                     </motion.div>
 
-                {/* Erro */}
-                {erro && (
-                    <CAlert color="danger" style={{ borderRadius: 14, marginBottom: 20 }}>
-                        {erro}
-                    </CAlert>
-                )}
+                    {/* Erro */}
+                    {erro && (
+                        <CAlert color="danger" style={{ borderRadius: 14, marginBottom: 20 }}>
+                            {erro}
+                        </CAlert>
+                    )}
 
-                {/* Loading */}
-                {loading ? (
-                    <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                        <CSpinner color="primary" />
-                        <div style={{ color: T.muted, fontSize: 13, marginTop: 12 }}>Carregando seus desafios...</div>
-                    </div>
-                ) : missoes.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                        <Icon icon="solar:ghost-bold-duotone" width="56" style={{ color: T.muted, opacity: 0.3 }} />
-                        <div style={{ color: T.muted, fontSize: 15, marginTop: 12 }}>Nenhum desafio disponível no momento.</div>
-                    </div>
-                ) : (
-                    <>
-                        {/* ── Pendentes ── */}
-                        {pendentes.length > 0 && (
-                            <section style={{ marginBottom: 32 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                                    <Icon icon="solar:fire-bold-duotone" style={{ color: T.coral }} width="20" />
-                                    <span style={{ fontWeight: 700, fontSize: 15, color: T.text }}>Em Andamento</span>
-                                    <span style={{ fontSize: 12, background: `${T.coral}12`, color: T.coral, padding: '2px 10px', borderRadius: 99, fontWeight: 700 }}>{pendentes.length}</span>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                    <AnimatePresence>
-                                        {pendentes.map(m => (
+                    {/* Loading */}
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                            <CSpinner color="primary" />
+                            <div style={{ color: T.muted, fontSize: 13, marginTop: 12 }}>Carregando seus desafios...</div>
+                        </div>
+                    ) : missoes.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                            <Icon icon="solar:ghost-bold-duotone" width="56" style={{ color: T.muted, opacity: 0.3 }} />
+                            <div style={{ color: T.muted, fontSize: 15, marginTop: 12 }}>Nenhum desafio disponível no momento.</div>
+                        </div>
+                    ) : (
+                        <>
+                            {/* ── Pendentes ── */}
+                            {pendentes.length > 0 && (
+                                <section style={{ marginBottom: 32 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                                        <Icon icon="solar:fire-bold-duotone" style={{ color: T.coral }} width="20" />
+                                        <span style={{ fontWeight: 700, fontSize: 15, color: T.text }}>Em Andamento</span>
+                                        <span style={{ fontSize: 12, background: `${T.coral}12`, color: T.coral, padding: '2px 10px', borderRadius: 99, fontWeight: 700 }}>{pendentes.length}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                        <AnimatePresence>
+                                            {pendentes.map(m => (
+                                                <MissaoCard key={m.id} m={m} onConcluir={handleConcluir} concluindo={concluindo} />
+                                            ))}
+                                        </AnimatePresence>
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* ── Concluídas ── */}
+                            {concluidas.length > 0 && (
+                                <section style={{ marginBottom: 32 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                                        <Icon icon="solar:verified-check-bold-duotone" style={{ color: T.teal }} width="20" />
+                                        <span style={{ fontWeight: 700, fontSize: 15, color: T.text }}>Concluídas</span>
+                                        <span style={{ fontSize: 12, background: `${T.teal}12`, color: T.teal, padding: '2px 10px', borderRadius: 99, fontWeight: 700 }}>{concluidas.length}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                        {concluidas.map(m => (
                                             <MissaoCard key={m.id} m={m} onConcluir={handleConcluir} concluindo={concluindo} />
                                         ))}
-                                    </AnimatePresence>
-                                </div>
-                            </section>
-                        )}
+                                    </div>
+                                </section>
+                            )}
 
-                        {/* ── Concluídas ── */}
-                        {concluidas.length > 0 && (
-                            <section style={{ marginBottom: 32 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                                    <Icon icon="solar:verified-check-bold-duotone" style={{ color: T.teal }} width="20" />
-                                    <span style={{ fontWeight: 700, fontSize: 15, color: T.text }}>Concluídas</span>
-                                    <span style={{ fontSize: 12, background: `${T.teal}12`, color: T.teal, padding: '2px 10px', borderRadius: 99, fontWeight: 700 }}>{concluidas.length}</span>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                    {concluidas.map(m => (
-                                        <MissaoCard key={m.id} m={m} onConcluir={handleConcluir} concluindo={concluindo} />
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* ── Expiradas ── */}
-                        {expiradas.length > 0 && (
-                            <section style={{ marginBottom: 32 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                                    <Icon icon="solar:clock-circle-bold-duotone" style={{ color: '#ef4444' }} width="20" />
-                                    <span style={{ fontWeight: 700, fontSize: 15, color: '#ef4444' }}>Expiradas</span>
-                                    <span style={{ fontSize: 12, background: '#ef444412', color: '#ef4444', padding: '2px 10px', borderRadius: 99, fontWeight: 700 }}>{expiradas.length}</span>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                    {expiradas.map(m => (
-                                        <MissaoCard key={m.id} m={m} onConcluir={handleConcluir} concluindo={concluindo} />
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-                    </>
-                )}
-            </div>
-        </CContainer>
-    </div>
-  )
+                            {/* ── Expiradas ── */}
+                            {expiradas.length > 0 && (
+                                <section style={{ marginBottom: 32 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                                        <Icon icon="solar:clock-circle-bold-duotone" style={{ color: '#ef4444' }} width="20" />
+                                        <span style={{ fontWeight: 700, fontSize: 15, color: '#ef4444' }}>Expiradas</span>
+                                        <span style={{ fontSize: 12, background: '#ef444412', color: '#ef4444', padding: '2px 10px', borderRadius: 99, fontWeight: 700 }}>{expiradas.length}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                        {expiradas.map(m => (
+                                            <MissaoCard key={m.id} m={m} onConcluir={handleConcluir} concluindo={concluindo} />
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+                        </>
+                    )}
+                </div>
+            </CContainer>
+        </div>
+    )
 }
 
 export default MeuRiscoPlano
