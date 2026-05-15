@@ -36,7 +36,7 @@ def _b64url_encode(data: bytes) -> str:
 
 
 def _b64url_decode(s: str) -> bytes:
-    padding = 4 - len(s) % 4
+    padding = -len(s) % 4
     s += "=" * padding
     return base64.urlsafe_b64decode(s)
 
@@ -56,7 +56,9 @@ def criar_token(matricula: str, papel: str, user_id: int) -> str:
     payload_b64 = _b64url_encode(json.dumps(payload, separators=(",", ":")).encode())
     signing_input = f"{header_b64}.{payload_b64}"
     signature = hmac.new(
-        JWT_SECRET.encode(), signing_input.encode(), hashlib.sha256
+        JWT_SECRET.encode(), 
+        signing_input.encode(), 
+        digestmod=hashlib.sha256
     ).digest()
     sig_b64 = _b64url_encode(signature)
     return f"{signing_input}.{sig_b64}"
@@ -71,7 +73,9 @@ def decodificar_token(token: str) -> dict:
 
         signing_input = f"{parts[0]}.{parts[1]}"
         expected_sig = hmac.new(
-            JWT_SECRET.encode(), signing_input.encode(), hashlib.sha256
+            JWT_SECRET.encode(), 
+            signing_input.encode(), 
+            digestmod=hashlib.sha256
         ).digest()
         actual_sig = _b64url_decode(parts[2])
 
