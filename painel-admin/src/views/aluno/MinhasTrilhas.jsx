@@ -1,3 +1,26 @@
+import React, { useState } from 'react'
+import {
+  CContainer,
+  CRow,
+  CCol,
+  CBadge,
+  CButton,
+  CModal,
+  CModalHeader,
+  CModalBody,
+  CModalFooter,
+  CSpinner,
+  CFormTextarea,
+} from '@coreui/react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Icon } from '@iconify/react'
+import { toast } from 'react-hot-toast'
+import { API_URL } from '../../config'
+import { getAlunoMatricula } from '../../utils/auth'
+import { useTheme } from '../../context/ThemeContext'
+
 /* ─── Tokens Airbnb-inspired ─────────────────────────────── */
 const tokens = {
   rausch: '#FF385C',
@@ -6,6 +29,19 @@ const tokens = {
   hof: '#484848',
   foggy: '#767676',
   swiss: '#B0B0B0',
+}
+
+/* ─── Helpers ─── */
+const getEmbedUrl = (url) => {
+  if (!url) return ''
+  if (url.includes('youtube.com/watch?v=')) return url.replace('watch?v=', 'embed/')
+  if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'youtube.com/embed/')
+  return url
+}
+
+const formatIsoToDateString = (iso) => {
+  if (!iso) return ''
+  return new Date(iso).toLocaleDateString('pt-BR')
 }
 
 /* ─── SCard Component ─── */
@@ -48,6 +84,7 @@ const MinhasTrilhas = () => {
   const [salvando, setSalvando] = useState(null)
   const [abaAtiva, setAbaAtiva] = useState('aula')
   const [novaDuvida, setNovaDuvida] = useState('')
+  const [enviandoDuvida, setEnviandoDuvida] = useState(false)
   const [filtro, setFiltro] = useState('todas') // todas, progresso, concluida
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -89,6 +126,32 @@ const MinhasTrilhas = () => {
     },
     onSettled: () => setSalvando(null),
   })
+
+  const mutationDuvida = useMutation({
+    mutationFn: async ({ moduloId, texto }) => {
+      const res = await fetch(`${API_URL}/api/trilhas/modulos/${moduloId}/duvidas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matricula, texto }),
+      })
+      if (!res.ok) throw new Error('Erro ao enviar comentário')
+      return res.json()
+    },
+    onMutate: () => setEnviandoDuvida(true),
+    onSuccess: () => {
+      toast.success('Comentário enviado!')
+      setNovaDuvida('')
+      refetchDuvidas()
+    },
+    onSettled: () => setEnviandoDuvida(false),
+  })
+
+  const enviarDuvida = () => {
+    if (!novaDuvida.trim()) return
+    mutationDuvida.mutate({ moduloId: moduloAtivo.id, texto: novaDuvida })
+  }
+
+  const marcarConcluido = (id) => mutationConcluir.mutate(id)
 
   const handleAcessarModulo = (m) => {
     if (m.link_video || m.texto_teorico) {
