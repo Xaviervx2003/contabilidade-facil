@@ -9,7 +9,8 @@ Endpoints:
   GET /api/aluno/leaderboard?tipo=streak&limite=10
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
+from utils.jwt_auth import verificar_admin, verificar_proprio_ou_admin
 from database import get_conexao
 from datetime import datetime, timedelta, date
 import logging
