@@ -340,6 +340,7 @@ const DashboardAluno = () => {
           animate={{ opacity: 1, y: 0 }}
           style={{ marginBottom: 32 }}
         >
+          <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Painel de Estudos</div>
           <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
             {saudacao()}, {primeiroNome}! 👋
           </div>

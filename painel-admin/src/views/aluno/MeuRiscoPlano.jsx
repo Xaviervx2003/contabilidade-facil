@@ -326,6 +326,7 @@ const MeuRiscoPlano = () => {
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
         {/* Header */}
         <motion.div initial={{ opacity:0, y:-10 }} animate={{ opacity:1, y:0 }} style={{ marginBottom: 28 }}>
+          <div style={{ color: T.coral, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Missões e Gamificação</div>
           <div style={{ fontSize: 26, fontWeight: 800, color: T.text, letterSpacing: '-0.5px' }}>
             🎯 Meus Desafios
           </div>
