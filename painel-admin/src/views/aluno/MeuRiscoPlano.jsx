@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { CAlert, CSpinner } from '@coreui/react'
+import { CAlert, CSpinner, CContainer } from '@coreui/react'
 import { API_URL } from '../../config'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
@@ -273,60 +273,43 @@ const MeuRiscoPlano = () => {
     const expiradas = missoes.filter(m => m.status === 'expirada')
 
     return (
-        <div style={{
-            padding: '32px 16px 48px',
-            fontFamily: "'Nunito', sans-serif",
-            minHeight: '100vh',
-            background: 'var(--color-bg-primary)',
-        }}>
-            {/* Fonte Nunito */}
+        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Nunito', sans-serif" }}>
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');`}</style>
 
-            {/* Toast */}
-            <AnimatePresence>
-                {toast && (
+            <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
+                {/* Toast */}
+                <AnimatePresence>
+                    {toast && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            style={{
+                                position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
+                                background: toast.tipo === 'success' ? T.teal : '#ef4444',
+                                color: '#fff', borderRadius: 16, padding: '14px 20px',
+                                fontWeight: 700, fontSize: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                                display: 'flex', alignItems: 'center', gap: 10, maxWidth: 340,
+                            }}
+                        >
+                            <Icon icon={toast.tipo === 'success' ? 'solar:star-bold-duotone' : 'solar:danger-bold-duotone'} width="22" />
+                            {toast.msg}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                <div style={{ maxWidth: 960, margin: '0 auto' }}>
+
+                    {/* HEADER PREMIUM IDENTICO AO PAINEL / TRILHAS */}
                     <motion.div
-                        initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        style={{
-                            position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-                            background: toast.tipo === 'success' ? T.teal : '#ef4444',
-                            color: '#fff', borderRadius: 16, padding: '14px 20px',
-                            fontWeight: 700, fontSize: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                            display: 'flex', alignItems: 'center', gap: 10, maxWidth: 340,
-                        }}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{ marginBottom: 32 }}
                     >
-                        <Icon icon={toast.tipo === 'success' ? 'solar:star-bold-duotone' : 'solar:danger-bold-duotone'} width="22" />
-                        {toast.msg}
+                        <div style={{ color: T.coral, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Missões e Gamificação</div>
+                        <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>Meus Desafios 🎯</div>
+                        <div style={{ fontSize: 14, color: T.muted, marginTop: 6 }}>Complete missões para ganhar XP e subir no ranking.</div>
                     </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* ── Container centralizado (960px para alinhar com as outras abas) ── */}
-            <div style={{ maxWidth: 960, margin: '0 auto' }}>
-
-                {/* HEADER PREMIUM IDENTICO AO PAINEL */}
-                <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{ marginBottom: 32 }}
-                >
-                    {/* Camada 1 — Tag Superior */}
-                    <div style={{ color: T.coral, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
-                        Missões e Gamificação
-                    </div>
-
-                    {/* Camada 2 — Título Principal */}
-                    <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
-                        Meus Desafios 🎯
-                    </div>
-
-                    {/* Camada 3 — Subtítulo */}
-                    <div style={{ fontSize: 14, color: T.muted, marginTop: 6 }}>
-                        Complete missões para ganhar XP e subir no ranking.
-                    </div>
-                </motion.div>
 
                 {/* Erro */}
                 {erro && (
@@ -400,8 +383,9 @@ const MeuRiscoPlano = () => {
                     </>
                 )}
             </div>
-        </div>
-    )
+        </CContainer>
+    </div>
+  )
 }
 
 export default MeuRiscoPlano
