@@ -274,13 +274,13 @@ const MeuRiscoPlano = () => {
 
     return (
         <div style={{
-            padding: '28px 16px',
+            padding: '32px 16px 48px',
             fontFamily: "'Nunito', sans-serif",
             minHeight: '100vh',
             background: 'var(--color-bg-primary)',
         }}>
             {/* Fonte Nunito */}
-            <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');`}</style>
+            <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');`}</style>
 
             {/* Toast */}
             <AnimatePresence>
@@ -303,22 +303,16 @@ const MeuRiscoPlano = () => {
                 )}
             </AnimatePresence>
 
-            {/* ── Container centralizado ── */}
-            <div style={{ maxWidth: 760, margin: '0 auto' }}>
+            {/* ── Container centralizado (960px para alinhar com as outras abas) ── */}
+            <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
-                {/* ════════════════════════════════════════
-            HEADER PREMIUM — padrão Airbnb
-            Camada 1 → tag superior coral
-            Camada 2 → título principal
-            Camada 3 → subtítulo
-        ════════════════════════════════════════ */}
+                {/* HEADER PREMIUM IDENTICO AO PAINEL */}
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, ease: 'easeOut' }}
                     style={{ marginBottom: 32 }}
                 >
-                    {/* Camada 1 — Tag Superior (padrão Premium) */}
+                    {/* Camada 1 — Tag Superior */}
                     <div style={{ color: T.coral, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
                         Missões e Gamificação
                     </div>
@@ -329,7 +323,7 @@ const MeuRiscoPlano = () => {
                     </div>
 
                     {/* Camada 3 — Subtítulo */}
-                    <div style={{ fontSize: 14, color: T.muted, marginTop: 6, fontWeight: 400 }}>
+                    <div style={{ fontSize: 14, color: T.muted, marginTop: 6 }}>
                         Complete missões para ganhar XP e subir no ranking.
                     </div>
                 </motion.div>
