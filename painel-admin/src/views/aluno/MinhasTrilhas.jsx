@@ -495,8 +495,8 @@ const MinhasTrilhas = () => {
             </div>
           </CModalFooter>
         </CModal>
+      </CContainer>
     </div>
-    </div >
   )
 }
 
