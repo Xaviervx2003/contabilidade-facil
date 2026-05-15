@@ -237,6 +237,11 @@ const MeuRiscoPlano = () => {
         setLoading(true)
         try {
             const token = sessionStorage.getItem('token')
+            if (!token) {
+                setErro('Faça login para ver seus desafios.')
+                return
+            }
+
             const url = matricula 
                 ? `${API_URL}/api/missoes/globais/${matricula}`
                 : `${API_URL}/api/missoes/globais`

@@ -305,6 +305,8 @@ const DashboardAluno = () => {
     queryKey: ['missoes-globais', matricula],
     queryFn: async () => {
       const token = sessionStorage.getItem('token')
+      if (!token) throw new Error('Sem token')
+
       const url = matricula 
         ? `${API_URL}/api/missoes/globais/${matricula}`
         : `${API_URL}/api/missoes/globais`
@@ -318,6 +320,7 @@ const DashboardAluno = () => {
       return res.json()
     },
     staleTime: 1000 * 60 * 10,
+    enabled: !!sessionStorage.getItem('token'),
   })
 
   const { hoje, semana, geral, streak, progresso, materias_fracas, materias_fortes, ultimas_sessoes, serie_semanal } = data || {
