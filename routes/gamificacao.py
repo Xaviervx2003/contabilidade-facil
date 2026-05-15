@@ -4,17 +4,27 @@ routes/gamificacao.py — Sistema de gamificação com dados REAIS do banco.
 Calcula streaks, medalhas e leaderboard a partir de sessoes_estudo.
 
 Endpoints:
-  GET /api/aluno/streak/{matricula}
-  GET /api/aluno/conquistas/{matricula}
-  GET /api/aluno/leaderboard?tipo=streak&limite=10
+  GET  /api/aluno/streak/{matricula}
+  GET  /api/aluno/conquistas/{matricula}
+  GET  /api/aluno/leaderboard?tipo=streak&limite=10
+  GET  /api/missoes/globais/{matricula}
+  POST /api/missoes/concluir
+  POST /api/admin/missoes
+  GET  /api/admin/missoes
+  DELETE /api/admin/missoes/{missao_id}
 """
 
+# ── Imports (todos no topo, sem duplicatas) ─────────────────────────────────
 from fastapi import APIRouter, HTTPException, Query, Depends
-from utils.jwt_auth import verificar_admin, verificar_proprio_ou_admin
-from database import get_conexao
+from pydantic import BaseModel
+from typing import Optional, Literal
 from datetime import datetime, timedelta, date
 import logging
 
+from database import get_conexao
+from utils.jwt_auth import verificar_admin, verificar_proprio_ou_admin
+
+# ───────────────────────────────────────────────────────────────────────────
 router = APIRouter(tags=["Gamificação"])
 logger = logging.getLogger(__name__)
 
@@ -92,7 +102,7 @@ MEDALHAS_TIPOS = [
 # ==================== FUNÇÕES AUXILIARES ====================
 
 
-def _calcular_streak(datas_estudo: list[date]) -> tuple[int, int]:
+def _calcular_streak(datas_estudo: list) -> tuple:
     """
     Calcula streak atual e streak máximo a partir de uma lista de datas
     DISTINTAS em que o aluno estudou, ordenadas DESC.
@@ -103,50 +113,37 @@ def _calcular_streak(datas_estudo: list[date]) -> tuple[int, int]:
         return 0, 0
 
     hoje = date.today()
-    streak_atual = 0
     streak_maximo = 0
     streak_corrente = 1
 
-    # As datas já vêm ordenadas DESC do banco
     # Verificar se o aluno estudou hoje ou ontem (streak ativo)
     primeira_data = datas_estudo[0]
     diff_hoje = (hoje - primeira_data).days
 
-    if diff_hoje > 1:
-        # Não estudou hoje nem ontem — streak atual = 0
-        # Mas ainda calculamos o streak máximo
-        streak_atual = 0
-    else:
-        streak_atual = 1  # pelo menos 1 dia (hoje ou ontem)
-
-    # Percorrer as datas para calcular streaks
+    # Percorrer as datas para calcular streak máximo
     for i in range(1, len(datas_estudo)):
         diff = (datas_estudo[i - 1] - datas_estudo[i]).days
-
         if diff == 1:
-            # Dias consecutivos
             streak_corrente += 1
         elif diff == 0:
-            # Mesmo dia (não deveria acontecer com DISTINCT)
-            continue
+            continue  # Mesmo dia — não deveria acontecer com DISTINCT
         else:
-            # Gap encontrado — finaliza streak corrente
             streak_maximo = max(streak_maximo, streak_corrente)
             streak_corrente = 1
 
-    # Finalizar último streak
     streak_maximo = max(streak_maximo, streak_corrente)
 
-    # O streak atual só conta se o aluno estudou hoje/ontem
-    if diff_hoje <= 1:
-        # streak_atual = streak consecutivo a partir de hoje/ontem
-        streak_atual = 1
-        for i in range(1, len(datas_estudo)):
-            diff = (datas_estudo[i - 1] - datas_estudo[i]).days
-            if diff == 1:
-                streak_atual += 1
-            else:
-                break
+    # O streak atual só conta se o aluno estudou hoje ou ontem
+    if diff_hoje > 1:
+        return 0, streak_maximo
+
+    streak_atual = 1
+    for i in range(1, len(datas_estudo)):
+        diff = (datas_estudo[i - 1] - datas_estudo[i]).days
+        if diff == 1:
+            streak_atual += 1
+        else:
+            break
 
     return streak_atual, streak_maximo
 
@@ -154,30 +151,31 @@ def _calcular_streak(datas_estudo: list[date]) -> tuple[int, int]:
 def _buscar_metricas_aluno(matricula: str) -> dict:
     """
     Busca todas as métricas do aluno diretamente do banco.
-    Retorna dict com: nome, datas_estudo, total_questoes, total_sessoes, tempo_total_seg, ultima_sessao.
+    Retorna dict com: nome, datas_estudo, total_questoes, total_sessoes,
+    tempo_total_seg, ultima_sessao.
     """
     with get_conexao() as conn:
         cursor = conn.cursor()
 
-        # 1. Buscar usuario e garantir que a matricula pertence a um aluno
+        # 1. Buscar usuario e garantir que a matrícula pertence a um aluno
         cursor.execute(
             "SELECT nome, papel FROM usuarios WHERE matricula = %s",
             (matricula,)
         )
         row_usuario = cursor.fetchone()
         if not row_usuario:
-            raise HTTPException(status_code=404, detail="Aluno nao encontrado")
+            raise HTTPException(status_code=404, detail="Aluno não encontrado")
         if row_usuario[1] != "aluno":
-            raise HTTPException(status_code=403, detail="Esta rota e exclusiva para alunos")
+            raise HTTPException(status_code=403, detail="Esta rota é exclusiva para alunos")
         nome = row_usuario[0]
 
         # 2. Métricas agregadas
         cursor.execute("""
             SELECT
-                COUNT(id) AS total_sessoes,
-                COALESCE(SUM(questoes_respondidas), 0) AS total_questoes,
-                COALESCE(SUM(tempo_gasto_segundos), 0) AS tempo_total_seg,
-                MAX(criado_em) AS ultima_sessao
+                COUNT(id)                                   AS total_sessoes,
+                COALESCE(SUM(questoes_respondidas), 0)      AS total_questoes,
+                COALESCE(SUM(tempo_gasto_segundos), 0)      AS tempo_total_seg,
+                MAX(criado_em)                              AS ultima_sessao
             FROM sessoes_estudo
             WHERE COALESCE(matricula_aluno, nome_aluno) = %s
               AND eh_teste_professor IS NOT TRUE;
@@ -194,86 +192,69 @@ def _buscar_metricas_aluno(matricula: str) -> dict:
         """, (matricula,))
         datas_rows = cursor.fetchall()
 
-    total_sessoes = int(metricas[0] or 0)
-    total_questoes = int(metricas[1] or 0)
-    tempo_total_seg = int(metricas[2] or 0)
-    ultima_sessao = metricas[3]  # datetime ou None
-    datas_estudo = [row[0] for row in datas_rows]  # list[date]
-
     return {
         "nome": nome,
         "matricula": matricula,
-        "datas_estudo": datas_estudo,
-        "total_questoes": total_questoes,
-        "total_sessoes": total_sessoes,
-        "tempo_total_seg": tempo_total_seg,
-        "ultima_sessao": ultima_sessao,
+        "datas_estudo": [row[0] for row in datas_rows],
+        "total_questoes": int(metricas[1] or 0),
+        "total_sessoes": int(metricas[0] or 0),
+        "tempo_total_seg": int(metricas[2] or 0),
+        "ultima_sessao": metricas[3],
     }
 
 
-def _avaliar_medalhas(total_questoes: int, total_sessoes: int, streak_atual: int, streak_maximo: int) -> list[dict]:
+def _avaliar_medalhas(total_questoes: int, total_sessoes: int, streak_atual: int, streak_maximo: int) -> list:
     """Avalia quais medalhas o aluno desbloqueou e calcula progresso."""
     medalhas = []
-
     for m in MEDALHAS_TIPOS:
         campo = m["campo"]
-        meta = m["meta"]
+        meta  = m["meta"]
 
         if campo == "questoes":
             valor_atual = total_questoes
         elif campo == "sessoes":
             valor_atual = total_sessoes
         elif campo == "streak":
-            valor_atual = streak_maximo  # Usa máximo para medalhas de streak
+            valor_atual = streak_maximo  # usa máximo para medalhas de streak
         else:
             valor_atual = 0
 
-        desbloqueada = valor_atual >= meta
         progresso = min(round((valor_atual / meta) * 100, 1), 100) if meta > 0 else 0
 
         medalhas.append({
-            "nome": m["nome"],
-            "tipo": m["tipo"],
-            "descricao": m["descricao"],
-            "desbloqueada": desbloqueada,
-            "data_desbloqueio": None,  # Futuro: persistir data no banco
-            "progresso": progresso,
+            "nome":             m["nome"],
+            "tipo":             m["tipo"],
+            "descricao":        m["descricao"],
+            "desbloqueada":     valor_atual >= meta,
+            "data_desbloqueio": None,   # Futuro: persistir data no banco
+            "progresso":        progresso,
         })
-
     return medalhas
 
 
-# ==================== ENDPOINTS ====================
+# ==================== ENDPOINTS — STREAK / CONQUISTAS / LEADERBOARD ====================
 
 
 @router.get("/api/aluno/streak/{matricula}")
 def get_streak(matricula: str, token: dict = Depends(verificar_proprio_ou_admin)):
-    """
-    Retorna informações do streak do aluno calculado a partir do banco.
-    """
+    """Retorna informações do streak do aluno calculado a partir do banco."""
     try:
         if not matricula or not matricula.strip():
-            raise HTTPException(status_code=422, detail="Matricula invalida ou vazia")
+            raise HTTPException(status_code=422, detail="Matrícula inválida ou vazia")
 
         metricas = _buscar_metricas_aluno(matricula.strip())
         streak_atual, streak_maximo = _calcular_streak(metricas["datas_estudo"])
 
-        # Calcular próxima data para manter
         ultima = metricas["ultima_sessao"]
-        if ultima:
-            proxima = ultima + timedelta(days=1)
-            ultima_iso = ultima.isoformat()
-            proxima_iso = proxima.isoformat()
-        else:
-            ultima_iso = None
-            proxima_iso = None
+        proxima_iso = (ultima + timedelta(days=1)).isoformat() if ultima else None
+        ultima_iso  = ultima.isoformat() if ultima else None
 
         return {
-            "dias_atuais": streak_atual,
-            "dias_maximo": streak_maximo,
-            "ultima_atividade": ultima_iso,
+            "dias_atuais":              streak_atual,
+            "dias_maximo":              streak_maximo,
+            "ultima_atividade":         ultima_iso,
             "proxima_data_para_manter": proxima_iso,
-            "emoji": "\U0001f525" if streak_atual > 0 else "\u2744\ufe0f",
+            "emoji":                    "🔥" if streak_atual > 0 else "❄️",
         }
 
     except HTTPException:
@@ -285,51 +266,33 @@ def get_streak(matricula: str, token: dict = Depends(verificar_proprio_ou_admin)
 
 @router.get("/api/aluno/conquistas/{matricula}")
 def get_conquistas(matricula: str, token: dict = Depends(verificar_proprio_ou_admin)):
-    """
-    Retorna todas as conquistas do aluno: streak, medalhas e estatísticas.
-    Todos os dados são calculados a partir de sessoes_estudo.
-    """
+    """Retorna todas as conquistas do aluno: streak, medalhas e estatísticas."""
     try:
         if not matricula or not matricula.strip():
-            raise HTTPException(status_code=422, detail="Matricula invalida ou vazia")
+            raise HTTPException(status_code=422, detail="Matrícula inválida ou vazia")
 
         metricas = _buscar_metricas_aluno(matricula.strip())
         streak_atual, streak_maximo = _calcular_streak(metricas["datas_estudo"])
 
-        # Streak info
         ultima = metricas["ultima_sessao"]
-        if ultima:
-            proxima = ultima + timedelta(days=1)
-            ultima_iso = ultima.isoformat()
-            proxima_iso = proxima.isoformat()
-        else:
-            ultima_iso = None
-            proxima_iso = None
-
         streak_data = {
-            "dias_atuais": streak_atual,
-            "dias_maximo": streak_maximo,
-            "ultima_atividade": ultima_iso,
-            "proxima_data_para_manter": proxima_iso,
+            "dias_atuais":              streak_atual,
+            "dias_maximo":              streak_maximo,
+            "ultima_atividade":         ultima.isoformat() if ultima else None,
+            "proxima_data_para_manter": (ultima + timedelta(days=1)).isoformat() if ultima else None,
         }
 
-        # Medalhas
-        medalhas = _avaliar_medalhas(
-            metricas["total_questoes"],
-            metricas["total_sessoes"],
-            streak_atual,
-            streak_maximo,
-        )
-
-        # Tempo em minutos
-        tempo_minutos = metricas["tempo_total_seg"] // 60
-
         return {
-            "streak": streak_data,
-            "medalhas": medalhas,
-            "total_questoes_respondidas": metricas["total_questoes"],
-            "total_sessoes": metricas["total_sessoes"],
-            "tempo_estudo_total_minutos": tempo_minutos,
+            "streak":                       streak_data,
+            "medalhas":                     _avaliar_medalhas(
+                                                metricas["total_questoes"],
+                                                metricas["total_sessoes"],
+                                                streak_atual,
+                                                streak_maximo,
+                                            ),
+            "total_questoes_respondidas":   metricas["total_questoes"],
+            "total_sessoes":                metricas["total_sessoes"],
+            "tempo_estudo_total_minutos":   metricas["tempo_total_seg"] // 60,
         }
 
     except HTTPException:
@@ -341,13 +304,10 @@ def get_conquistas(matricula: str, token: dict = Depends(verificar_proprio_ou_ad
 
 @router.get("/api/aluno/leaderboard")
 def get_leaderboard(
-    tipo: str = Query("streak", description="streak ou questoes"),
+    tipo:   str = Query("streak", description="streak ou questoes"),
     limite: int = Query(10, ge=1, le=100, description="Limite de resultados"),
 ):
-    """
-    Retorna ranking dos alunos por streak ou questões.
-    Dados calculados diretamente do banco.
-    """
+    """Retorna ranking dos alunos por streak ou questões."""
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
@@ -359,76 +319,59 @@ def get_leaderboard(
                         u.matricula,
                         COALESCE(SUM(s.questoes_respondidas), 0) AS total_q
                     FROM usuarios u
-                    JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
+                    JOIN sessoes_estudo s
+                         ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
                     WHERE u.papel = 'aluno'
                       AND s.eh_teste_professor IS NOT TRUE
                     GROUP BY u.nome, u.matricula
                     ORDER BY total_q DESC
                     LIMIT %s;
                 """, (limite,))
-
                 rows = cursor.fetchall()
                 return [
-                    {
-                        "posicao": idx,
-                        "nome": r[0],
-                        "matricula": r[1],
-                        "valor": int(r[2]),
-                        "emoji": "\u2753",
-                    }
+                    {"posicao": idx, "nome": r[0], "matricula": r[1], "valor": int(r[2]), "emoji": "❓"}
                     for idx, r in enumerate(rows, 1)
                 ]
 
             elif tipo == "streak":
-                # Para streak, precisamos buscar datas de cada aluno
                 cursor.execute("""
                     SELECT
                         u.nome,
                         u.matricula,
-                        ARRAY_AGG(DISTINCT DATE(s.criado_em) ORDER BY DATE(s.criado_em) DESC) AS datas
+                        ARRAY_AGG(DISTINCT DATE(s.criado_em)
+                                  ORDER BY DATE(s.criado_em) DESC) AS datas
                     FROM usuarios u
-                    JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
+                    JOIN sessoes_estudo s
+                         ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
                     WHERE u.papel = 'aluno'
                       AND s.eh_teste_professor IS NOT TRUE
                     GROUP BY u.nome, u.matricula;
                 """)
-
                 rows = cursor.fetchall()
+
                 alunos_streaks = []
-
-                for r in rows:
-                    nome, mat, datas = r[0], r[1], r[2]
-                    if datas:
-                        streak_at, streak_max = _calcular_streak(datas)
-                    else:
-                        streak_at, streak_max = 0, 0
-
+                for nome, mat, datas in rows:
+                    streak_at, streak_max = _calcular_streak(datas) if datas else (0, 0)
                     alunos_streaks.append({
-                        "nome": nome,
-                        "matricula": mat,
-                        "streak_atual": streak_at,
-                        "streak_maximo": streak_max,
+                        "nome": nome, "matricula": mat,
+                        "streak_atual": streak_at, "streak_maximo": streak_max,
                     })
 
-                # Ordenar por streak atual (DESC), depois máximo
                 alunos_streaks.sort(
                     key=lambda x: (x["streak_atual"], x["streak_maximo"]),
                     reverse=True,
                 )
-
                 return [
-                    {
-                        "posicao": idx,
-                        "nome": a["nome"],
-                        "matricula": a["matricula"],
-                        "valor": a["streak_atual"],
-                        "emoji": "\U0001f525",
-                    }
+                    {"posicao": idx, "nome": a["nome"], "matricula": a["matricula"],
+                     "valor": a["streak_atual"], "emoji": "🔥"}
                     for idx, a in enumerate(alunos_streaks[:limite], 1)
                 ]
 
             else:
-                raise HTTPException(status_code=400, detail=f"Tipo invalido: {tipo}. Use 'streak' ou 'questoes'.")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Tipo inválido: '{tipo}'. Use 'streak' ou 'questoes'."
+                )
 
     except HTTPException:
         raise
@@ -437,23 +380,19 @@ def get_leaderboard(
         raise HTTPException(status_code=500, detail=f"Erro ao buscar leaderboard: {str(e)}")
 
 
-from utils.jwt_auth import verificar_admin, verificar_proprio_ou_admin
-
 # ==================== MISSÕES GLOBAIS ====================
 
-from pydantic import BaseModel
-from typing import Optional, Literal
-from datetime import date
 
 class MissaoGlobalCreate(BaseModel):
-    titulo:        str
-    descricao:     str
-    xp:            int = 100
-    icone:         Optional[str] = "🎯"
-    cor:           Optional[str] = "#FF385C"
-    metrica_tipo:  Literal["manual", "sessoes", "media_acerto", "questoes"] = "manual"
-    metrica_alvo:  Optional[int] = None
-    data_limite:   Optional[date] = None
+    titulo:       str
+    descricao:    str
+    xp:           int = 100
+    icone:        Optional[str] = "🎯"
+    cor:          Optional[str] = "#FF385C"
+    metrica_tipo: Literal["manual", "sessoes", "media_acerto", "questoes"] = "manual"
+    metrica_alvo: Optional[int] = None
+    data_limite:  Optional[date] = None
+
 
 @router.post("/api/admin/missoes")
 def criar_missao_global(missao: MissaoGlobalCreate, token: dict = Depends(verificar_admin)):
@@ -465,10 +404,13 @@ def criar_missao_global(missao: MissaoGlobalCreate, token: dict = Depends(verifi
             cursor.execute("""
                 INSERT INTO missoes_globais
                     (titulo, dica, xp, icon, cor, metrica_tipo, metrica_alvo, data_limite)
-                VALUES
-                    (%s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id
-            """, (missao.titulo, missao.descricao, missao.xp, missao.icone, missao.cor, missao.metrica_tipo, missao.metrica_alvo, missao.data_limite))
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id;
+            """, (
+                missao.titulo, missao.descricao, missao.xp,
+                missao.icone, missao.cor, missao.metrica_tipo,
+                missao.metrica_alvo, missao.data_limite,
+            ))
             new_id = cursor.fetchone()[0]
             conn.commit()
             return {"sucesso": True, "id": new_id}
@@ -476,29 +418,36 @@ def criar_missao_global(missao: MissaoGlobalCreate, token: dict = Depends(verifi
         logger.error(f"Erro ao criar missão: {e}")
         raise HTTPException(status_code=500, detail="Erro ao criar missão global")
 
+
 @router.get("/api/missoes/globais/{matricula}")
 def listar_missoes_aluno(matricula: str):
+    """Lista todas as missões globais com status e progresso para o aluno."""
     hoje = date.today()
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
-            
+
+            # Missões + flag de conclusão individual
             cursor.execute("""
-                SELECT 
-                    m.id, m.titulo, m.dica as descricao, m.xp, m.icon as icone, m.cor, m.metrica_tipo, m.metrica_alvo, m.data_limite,
+                SELECT
+                    m.id, m.titulo, m.dica AS descricao, m.xp,
+                    m.icon AS icone, m.cor,
+                    m.metrica_tipo, m.metrica_alvo, m.data_limite,
                     CASE WHEN mc.id IS NOT NULL THEN TRUE ELSE FALSE END AS concluida
                 FROM missoes_globais m
-                LEFT JOIN missoes_concluidas mc ON mc.missao_id = m.id AND mc.matricula = %s
+                LEFT JOIN missoes_concluidas mc
+                       ON mc.missao_id = m.id AND mc.matricula = %s
                 ORDER BY m.data_limite ASC NULLS LAST, m.id DESC;
             """, (matricula,))
-            
+
             columns = [col[0] for col in cursor.description]
             missoes = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+            # KPIs da semana atual
             cursor.execute("""
                 SELECT
-                    COUNT(*) AS total_sessoes,
-                    COALESCE(AVG(taxa_acerto), 0)::int AS media_acerto
+                    COUNT(*)                              AS total_sessoes,
+                    COALESCE(AVG(taxa_acerto), 0)::int    AS media_acerto
                 FROM sessoes_estudo
                 WHERE matricula_aluno = %s
                   AND criado_em >= date_trunc('week', NOW());
@@ -508,21 +457,30 @@ def listar_missoes_aluno(matricula: str):
             kpis = dict(zip(kpi_cols, kpis_row)) if kpis_row else {"total_sessoes": 0, "media_acerto": 0}
 
         sessoes_semana = kpis["total_sessoes"]
-        media_semana = kpis["media_acerto"]
+        media_semana   = kpis["media_acerto"]
 
         resultado = []
         for m in missoes:
-            progresso = 0
+            # ── Calcular progresso ──────────────────────────────────────
             if m["metrica_tipo"] == "sessoes":
                 progresso = min(int((sessoes_semana / (m["metrica_alvo"] or 1)) * 100), 100)
             elif m["metrica_tipo"] == "media_acerto":
-                progresso = min(int((media_semana / (m["metrica_alvo"] or 1)) * 100), 100)
-            elif m["metrica_tipo"] == "manual":
+                progresso = min(int((media_semana   / (m["metrica_alvo"] or 1)) * 100), 100)
+            elif m["metrica_tipo"] == "questoes":
+                progresso = 0   # expandir futuramente com KPI de questões
+            else:  # manual
                 progresso = 100 if m["concluida"] else 0
 
-            # Lógica de Status e Prazo (refinada via Claude)
-            data_lim = m["data_limite"].date() if m["data_limite"] else None
+            # ── Converter data_limite antes de qualquer comparação ──────
+            data_lim: Optional[date] = None
+            if m["data_limite"]:
+                data_lim = (
+                    m["data_limite"].date()
+                    if hasattr(m["data_limite"], "date")
+                    else m["data_limite"]
+                )
 
+            # ── Determinar status ───────────────────────────────────────
             if m["concluida"] or (m["metrica_tipo"] != "manual" and progresso >= 100):
                 status = "concluida"
             elif data_lim and data_lim < hoje:
@@ -533,17 +491,19 @@ def listar_missoes_aluno(matricula: str):
             dias_restantes = (data_lim - hoje).days if data_lim and status == "pendente" else None
 
             m.update({
-                "progresso": progresso,
-                "status": status,
+                "progresso":      progresso,
+                "status":         status,
                 "dias_restantes": dias_restantes,
-                "data_limite": data_lim.isoformat() if data_lim else None,
+                "data_limite":    data_lim.isoformat() if data_lim else None,
             })
             resultado.append(m)
 
         return resultado
+
     except Exception as e:
-        logger.error(f"Erro ao listar missoes do aluno: {e}")
+        logger.error(f"Erro ao listar missoes do aluno {matricula}: {e}")
         raise HTTPException(status_code=500, detail="Erro interno")
+
 
 @router.post("/api/missoes/concluir")
 def concluir_missao(payload: dict):
@@ -552,14 +512,16 @@ def concluir_missao(payload: dict):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT metrica_tipo, xp FROM missoes_globais WHERE id = %s", (missao_id,))
+            cursor.execute(
+                "SELECT metrica_tipo, xp FROM missoes_globais WHERE id = %s",
+                (missao_id,)
+            )
             m = cursor.fetchone()
             if not m:
-                raise HTTPException(status_code=404, detail="Missao não encontrada")
-            
+                raise HTTPException(status_code=404, detail="Missão não encontrada")
             if m[0] != "manual":
                 raise HTTPException(status_code=400, detail="Esta missão é validada automaticamente")
-            
+
             cursor.execute("""
                 INSERT INTO missoes_concluidas (matricula, missao_id)
                 VALUES (%s, %s)
@@ -567,18 +529,23 @@ def concluir_missao(payload: dict):
                 RETURNING id;
             """, (matricula, missao_id))
             inserido = cursor.fetchone()
-            
+
             if not inserido:
                 return {"ok": False, "msg": "Missão já estava concluída"}
-                
-            cursor.execute("UPDATE usuarios SET xp = COALESCE(xp, 0) + %s WHERE matricula = %s", (m[1], matricula))
+
+            cursor.execute(
+                "UPDATE usuarios SET xp = COALESCE(xp, 0) + %s WHERE matricula = %s",
+                (m[1], matricula)
+            )
             conn.commit()
             return {"ok": True, "msg": "Missão concluída"}
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Erro ao concluir: {e}")
+        logger.error(f"Erro ao concluir missão: {e}")
         raise HTTPException(status_code=500, detail="Erro interno")
+
 
 @router.delete("/api/admin/missoes/{missao_id}")
 def delete_missao_global(missao_id: int, token: dict = Depends(verificar_admin)):
@@ -589,16 +556,23 @@ def delete_missao_global(missao_id: int, token: dict = Depends(verificar_admin))
             conn.commit()
             return {"sucesso": True}
     except Exception as e:
-        logger.error(f"Erro ao deletar missão: {e}")
+        logger.error(f"Erro ao deletar missão {missao_id}: {e}")
         raise HTTPException(status_code=500, detail="Erro ao deletar")
 
+
 @router.get("/api/admin/missoes")
-def get_missoes_admin():
+def get_missoes_admin(token: dict = Depends(verificar_admin)):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT id, titulo, dica as descricao, xp, icon as icone, cor, metrica_tipo, metrica_alvo, data_limite FROM missoes_globais ORDER BY criado_em DESC")
+            cursor.execute("""
+                SELECT id, titulo, dica AS descricao, xp,
+                       icon AS icone, cor, metrica_tipo, metrica_alvo, data_limite
+                FROM missoes_globais
+                ORDER BY criado_em DESC;
+            """)
             cols = [col[0] for col in cursor.description]
             return [dict(zip(cols, row)) for row in cursor.fetchall()]
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Erro ao buscar missoes admin")
+        logger.error(f"Erro ao buscar missoes admin: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar missões admin")
