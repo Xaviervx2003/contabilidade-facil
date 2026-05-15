@@ -49,6 +49,7 @@ const Login = () => {
         sessionStorage.setItem('papel', data.dados.papel)
         sessionStorage.setItem('nome', data.dados.nome)
         sessionStorage.setItem('matricula', data.dados.matricula)
+        sessionStorage.setItem('token', data.dados.token)
 
         if (data.dados.papel === 'admin' || data.dados.papel === 'professor') {
           navigate('/dashboard')
