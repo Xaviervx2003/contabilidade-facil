@@ -318,42 +318,18 @@ const MeuRiscoPlano = () => {
                     transition={{ duration: 0.35, ease: 'easeOut' }}
                     style={{ marginBottom: 32 }}
                 >
-                    {/* Camada 1 — tag superior */}
-                    <div style={{
-                        color: '#FF385C',
-                        fontWeight: 800,
-                        fontSize: 10,
-                        textTransform: 'uppercase',
-                        letterSpacing: '1px',
-                        marginBottom: 4,
-                        fontFamily: "'Nunito', sans-serif",
-                    }}>
+                    {/* Camada 1 — Tag Superior (padrão Premium) */}
+                    <div style={{ color: T.coral, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
                         Missões e Gamificação
                     </div>
 
-                    {/* Camada 2 — título principal */}
-                    <div style={{
-                        fontSize: 28,
-                        fontWeight: 800,
-                        color: 'var(--color-text-primary)',
-                        letterSpacing: '-0.5px',
-                        lineHeight: 1.2,
-                        fontFamily: "'Nunito', sans-serif",
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                    }}>
-                        🎯 Meus Desafios
+                    {/* Camada 2 — Título Principal */}
+                    <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+                        Meus Desafios 🎯
                     </div>
 
-                    {/* Camada 3 — subtítulo */}
-                    <div style={{
-                        fontSize: 14,
-                        color: '#767676',
-                        marginTop: 6,
-                        fontWeight: 400,
-                        fontFamily: "'Nunito', sans-serif",
-                    }}>
+                    {/* Camada 3 — Subtítulo */}
+                    <div style={{ fontSize: 14, color: T.muted, marginTop: 6, fontWeight: 400 }}>
                         Complete missões para ganhar XP e subir no ranking.
                     </div>
                 </motion.div>
