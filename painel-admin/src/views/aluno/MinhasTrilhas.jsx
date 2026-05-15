@@ -19,7 +19,7 @@ import { Icon } from '@iconify/react'
 import { toast } from 'react-hot-toast'
 import { API_URL } from '../../config'
 import { getAlunoMatricula } from '../../utils/auth'
-import { useTheme } from '../../context/ThemeContext'
+import { useTheme } from '../../context/themeContext'
 
 /* ─── Tokens Airbnb-inspired ─────────────────────────────── */
 const tokens = {
