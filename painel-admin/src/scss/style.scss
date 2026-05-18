@@ -999,30 +999,235 @@ table {
 // ════════════════════════════════════════════════════════════════════════════════
 
 .quiz-glass-card {
-  background: rgba(255, 255, 255, 0.6) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
-}
+  border-radius: 24px !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-[data-theme="dark"] .quiz-glass-card {
-  background: rgba(21, 21, 21, 0.7) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-}
-
-.quiz-option {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  
-  &:active {
-    transform: scale(0.98);
+  .card-header {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+    padding: 20px 24px !important;
   }
-  
+
+  // Airbnb Signature Premium Buttons
+  .btn-primary {
+    background: linear-gradient(135deg, #FF385C 0%, #E61E4D 100%) !important;
+    border: none !important;
+    color: #ffffff !important;
+    border-radius: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em;
+    padding: 12px 28px !important;
+    box-shadow: 0 4px 18px rgba(255, 56, 92, 0.3) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(255, 56, 92, 0.45) !important;
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      background: #b0b0b0 !important;
+      box-shadow: none !important;
+    }
+  }
+
+  .btn-outline-primary {
+    color: #FF385C !important;
+    border: 1.5px solid #FF385C !important;
+    background: transparent !important;
+    border-radius: 14px !important;
+    font-weight: 700 !important;
+    padding: 8px 20px !important;
+    transition: all 0.2s ease !important;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 56, 92, 0.05) !important;
+      color: #FF385C !important;
+    }
+  }
+
+  .btn-success {
+    background: #00A699 !important;
+    border: none !important;
+    color: #ffffff !important;
+    border-radius: 14px !important;
+    font-weight: 700 !important;
+    padding: 12px 28px !important;
+    box-shadow: 0 4px 18px rgba(0, 166, 153, 0.25) !important;
+    transition: all 0.2s ease !important;
+
+    &:hover:not(:disabled) {
+      background: #00877C !important;
+      box-shadow: 0 6px 24px rgba(0, 166, 153, 0.4) !important;
+    }
+  }
+
+  .btn-info {
+    background: #00A699 !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+  }
+
+  .btn-warning {
+    color: #ffffff !important;
+    background: #f59e0b !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+  }
+
+  // Progress Bar
+  .progress {
+    height: 8px !important;
+    border-radius: 10px !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    overflow: hidden;
+
+    .progress-bar {
+      background: linear-gradient(90deg, #FF385C 0%, #FF5A5F 100%) !important;
+      border-radius: 10px !important;
+    }
+  }
+
+  // Badges & Labels
+  .badge-primary, .bg-primary {
+    background-color: #FF385C !important;
+    color: #ffffff !important;
+  }
+
+  .badge-success, .bg-success {
+    background-color: #00A699 !important;
+    color: #ffffff !important;
+  }
+
+  .text-primary {
+    color: #FF385C !important;
+  }
+
+  .text-success {
+    color: #00A699 !important;
+  }
+
+  .border-primary {
+    border-color: rgba(255, 56, 92, 0.4) !important;
+    
+    &:focus-within {
+      border-color: #FF385C !important;
+    }
+  }
+
+  // Active steps in checklist
+  .rounded-circle.bg-primary {
+    background-color: #FF385C !important;
+    color: #ffffff !important;
+  }
+}
+
+// Dark Mode Overrides
+[data-theme="dark"] .quiz-glass-card {
+  background: rgba(26, 26, 26, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25) !important;
+
+  .card-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+  }
+
+  .progress {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+  }
+}
+
+// Premium Airbnb Quiz Options
+.quiz-option {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border-radius: 16px !important;
+  border: 1.5px solid rgba(0, 0, 0, 0.08) !important;
+  background: rgba(255, 255, 255, 0.4) !important;
+  min-height: 64px;
+
+  &:active {
+    transform: scale(0.985);
+  }
+
   &:hover:not(.disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    background: linear-gradient(135deg, rgba(var(--cui-primary-rgb), 0.03) 0%, rgba(var(--cui-primary-rgb), 0.08) 100%) !important;
-    border-color: rgba(var(--cui-primary-rgb), 0.3) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04) !important;
+    background: rgba(255, 56, 92, 0.03) !important;
+    border-color: rgba(255, 56, 92, 0.3) !important;
+
+    .rounded-circle {
+      background-color: #FF385C !important;
+      color: #ffffff !important;
+    }
+  }
+
+  &.bg-primary {
+    &.bg-opacity-10 {
+      background-color: rgba(255, 56, 92, 0.06) !important;
+    }
+  }
+
+  &.border-primary {
+    border-color: #FF385C !important;
+  }
+
+  &.bg-success {
+    &.bg-opacity-10 {
+      background-color: rgba(0, 166, 153, 0.06) !important;
+    }
+  }
+
+  &.border-success {
+    border-color: #00A699 !important;
+  }
+
+  &.bg-danger {
+    &.bg-opacity-10 {
+      background-color: rgba(255, 90, 95, 0.06) !important;
+    }
+  }
+
+  &.border-danger {
+    border-color: #FF5A5F !important;
+  }
+
+  // Circles inside options
+  .rounded-circle.bg-primary {
+    background-color: #FF385C !important;
+    color: #ffffff !important;
+  }
+
+  .rounded-circle.bg-success {
+    background-color: #00A699 !important;
+    color: #ffffff !important;
+  }
+
+  .rounded-circle.bg-danger {
+    background-color: #FF5A5F !important;
+    color: #ffffff !important;
+  }
+}
+
+[data-theme="dark"] .quiz-option {
+  border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+
+  &:hover:not(.disabled) {
+    background: rgba(255, 56, 92, 0.05) !important;
+    border-color: rgba(255, 56, 92, 0.4) !important;
   }
 }
