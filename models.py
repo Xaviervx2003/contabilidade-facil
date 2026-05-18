@@ -49,7 +49,7 @@ class AlteraSenhaRequest(BaseModel):
 
 
 class FeedbackRequest(BaseModel):
-    questao_id: int
+    questao_id: Optional[int] = None
     nome_aluno: str
     texto: Optional[str] = ""
     marcada_confusa: bool

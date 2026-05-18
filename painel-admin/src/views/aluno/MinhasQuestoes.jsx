@@ -14,6 +14,9 @@ import {
     CModalBody,
     CModalFooter,
     CBadge,
+    CFormTextarea,
+    CFormCheck,
+    CFormLabel,
 } from '@coreui/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
@@ -62,7 +65,59 @@ const MinhasQuestoes = () => {
     const [modalOpen, setModalOpen] = useState(false)
     const [errorDetail, setErrorDetail] = useState(null)
 
+    // Estados do Modal de Dúvida Integrada (Helpdesk)
+    const [duvidaModalOpen, setDuvidaModalOpen] = useState(false)
+    const [textoDuvida, setTextoDuvida] = useState('')
+    const [marcadaConfusa, setMarcadaConfusa] = useState(false)
+    const [submittingDuvida, setSubmittingDuvida] = useState(false)
+    const [duvidaMessage, setDuvidaMessage] = useState(null)
+
+    const nome = sessionStorage.getItem('nome')
     const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
+
+    // Submissão de dúvida integrada
+    const handleSubmitDuvida = (e) => {
+        e.preventDefault()
+        if (!textoDuvida.trim()) {
+            setDuvidaMessage({ tipo: 'danger', texto: 'Escreva a sua dúvida ou sugestão.' })
+            return
+        }
+
+        setSubmittingDuvida(true)
+        setDuvidaMessage(null)
+
+        fetch(`${API_URL}/api/feedbacks_questoes`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                questao_id: selectedQuestaoId,
+                nome_aluno: nome || 'Aluno Anônimo',
+                texto: textoDuvida,
+                marcada_confusa: marcadaConfusa
+            })
+        })
+        .then(res => res.json())
+        .then(resData => {
+            setSubmittingDuvida(false)
+            if (resData.sucesso || resData.id) {
+                setDuvidaMessage({ tipo: 'success', texto: 'Dúvida enviada com sucesso ao professor!' })
+                setTimeout(() => {
+                    setDuvidaModalOpen(false)
+                    setTextoDuvida('')
+                    setMarcadaConfusa(false)
+                    setDuvidaMessage(null)
+                }, 1800)
+            } else {
+                setDuvidaMessage({ tipo: 'danger', texto: resData.mensagem || 'Erro ao enviar dúvida.' })
+            }
+        })
+        .catch(() => {
+            setSubmittingDuvida(false)
+            setDuvidaMessage({ tipo: 'danger', texto: 'Erro de conexão ao enviar.' })
+        })
+    }
 
     // Fechar dropdowns ao clicar fora
     useEffect(() => {
@@ -74,8 +129,8 @@ const MinhasQuestoes = () => {
                 setActiveDropdown(null)
             }
         }
-        document.addEventListener('mousedown', handleClickOutside)
-        return () => document.removeEventListener('mousedown', handleClickOutside)
+        document.addEventListener('click', handleClickOutside)
+        return () => document.removeEventListener('click', handleClickOutside)
     }, [activeDropdown])
 
     // Carregar matérias para os filtros
@@ -188,7 +243,7 @@ const MinhasQuestoes = () => {
     )
 
     return (
-        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Nunito', sans-serif" }}>
+        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
             <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
                 <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
@@ -314,7 +369,10 @@ const MinhasQuestoes = () => {
                                 style={{ flex: 1, width: '100%', position: 'relative' }}
                             >
                                 <div 
-                                    onClick={() => setActiveDropdown(activeDropdown === 'status' ? null : 'status')}
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        setActiveDropdown(activeDropdown === 'status' ? null : 'status')
+                                    }}
                                     style={{
                                         background: tokens.bg,
                                         border: `1px solid ${activeDropdown === 'status' ? tokens.rausch : tokens.border}`,
@@ -415,7 +473,10 @@ const MinhasQuestoes = () => {
                                 style={{ flex: 1, width: '100%', position: 'relative' }}
                             >
                                 <div 
-                                    onClick={() => setActiveDropdown(activeDropdown === 'materia' ? null : 'materia')}
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        setActiveDropdown(activeDropdown === 'materia' ? null : 'materia')
+                                    }}
                                     style={{
                                         background: tokens.bg,
                                         border: `1px solid ${activeDropdown === 'materia' ? tokens.rausch : tokens.border}`,
@@ -716,7 +777,7 @@ const MinhasQuestoes = () => {
                 onClose={() => setModalOpen(false)} 
                 size="lg"
                 backdrop="static"
-                style={{ fontFamily: "'Nunito', sans-serif" }}
+                style={{ fontFamily: "'Circular Std', 'Nunito', sans-serif" }}
             >
                 <CModalHeader style={{ borderBottom: `1px solid ${tokens.border}` }}>
                     <CModalTitle style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -864,15 +925,128 @@ const MinhasQuestoes = () => {
                         </div>
                     ) : null}
                 </CModalBody>
-                <CModalFooter style={{ borderTop: `1px solid ${tokens.border}` }}>
+                <CModalFooter style={{ borderTop: `1px solid ${tokens.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <CButton
+                        onClick={() => {
+                            setDuvidaMessage(null)
+                            setTextoDuvida('')
+                            setMarcadaConfusa(false)
+                            setDuvidaModalOpen(true)
+                        }}
+                        style={{
+                            background: tokens.rausch,
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 12,
+                            padding: '8px 16px',
+                            fontWeight: 700,
+                            fontSize: 12,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            boxShadow: '0 4px 10px rgba(255, 56, 92, 0.15)',
+                            fontFamily: "'Circular Std', 'Nunito', sans-serif"
+                        }}
+                    >
+                        <Icon icon="solar:chat-round-plus-bold" width="16" /> Mande sua Dúvida
+                    </CButton>
                     <CButton 
                         color="secondary" 
                         onClick={() => setModalOpen(false)}
-                        style={{ borderRadius: 10, fontWeight: 700, fontSize: 12 }}
+                        style={{ borderRadius: 10, fontWeight: 700, fontSize: 12, fontFamily: "'Circular Std', 'Nunito', sans-serif" }}
                     >
                         Fechar Revisão
                     </CButton>
                 </CModalFooter>
+            </CModal>
+
+            {/* MODAL DE SUBMISSÃO DE DÚVIDA INTEGRADA (HELPDESK) */}
+            <CModal
+                visible={duvidaModalOpen}
+                onClose={() => setDuvidaModalOpen(false)}
+                size="md"
+                backdrop="static"
+                style={{ fontFamily: "'Circular Std', 'Nunito', sans-serif" }}
+            >
+                <CModalHeader closeButton style={{ borderBottom: `1px solid ${tokens.border}` }}>
+                    <CModalTitle style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text-primary)' }}>
+                        Mande sua Dúvida — Questão #{selectedQuestaoId}
+                    </CModalTitle>
+                </CModalHeader>
+                <form onSubmit={handleSubmitDuvida}>
+                    <CModalBody style={{ background: 'var(--color-bg-primary)' }}>
+                        {duvidaMessage && (
+                            <CAlert color={duvidaMessage.tipo} className="mb-4" style={{ borderRadius: 12, fontSize: 12, fontWeight: 650 }}>
+                                {duvidaMessage.texto}
+                            </CAlert>
+                        )}
+
+                        <div className="mb-4">
+                            <CFormLabel style={{ fontSize: 12, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase' }}>
+                                Explique o que não ficou claro ou qual a sua dúvida:
+                            </CFormLabel>
+                            <CFormTextarea
+                                rows={4}
+                                placeholder="Digite aqui sua dúvida com riqueza de detalhes..."
+                                value={textoDuvida}
+                                onChange={e => setTextoDuvida(e.target.value)}
+                                required
+                                style={{
+                                    borderRadius: 14,
+                                    border: `1px solid ${tokens.border}`,
+                                    background: tokens.bg,
+                                    color: 'var(--color-text-primary)',
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    padding: '12px 14px',
+                                    outline: 'none',
+                                    fontFamily: "'Circular Std', 'Nunito', sans-serif"
+                                }}
+                            />
+                        </div>
+
+                        <div style={{
+                            background: `${tokens.rausch}05`,
+                            border: `1px dashed ${tokens.rausch}30`,
+                            borderRadius: 16,
+                            padding: 16,
+                            marginBottom: 4
+                        }}>
+                            <CFormCheck
+                                id="marcadaConfusa"
+                                label="Marcar esta questão como CONFUSA"
+                                checked={marcadaConfusa}
+                                onChange={e => setMarcadaConfusa(e.target.checked)}
+                                style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text-primary)', cursor: 'pointer' }}
+                            />
+                            <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 4, marginLeft: 24 }}>
+                                Se você acha que o enunciado, gabarito ou as alternativas estão incorretos ou confusos.
+                            </div>
+                        </div>
+                    </CModalBody>
+                    <CModalFooter style={{ borderTop: `1px solid ${tokens.border}` }}>
+                        <CButton
+                            color="secondary"
+                            onClick={() => setDuvidaModalOpen(false)}
+                            style={{ borderRadius: 10, fontWeight: 700, fontSize: 12, fontFamily: "'Circular Std', 'Nunito', sans-serif" }}
+                            disabled={submittingDuvida}
+                        >
+                            Cancelar
+                        </CButton>
+                        <CButton
+                            type="submit"
+                            style={{
+                                background: tokens.rausch, color: '#fff', border: 'none',
+                                borderRadius: 10, fontWeight: 700, fontSize: 12,
+                                display: 'flex', alignItems: 'center', gap: 6,
+                                fontFamily: "'Circular Std', 'Nunito', sans-serif"
+                            }}
+                            disabled={submittingDuvida}
+                        >
+                            {submittingDuvida ? <CSpinner size="sm" /> : 'Enviar Pergunta 🚀'}
+                        </CButton>
+                    </CModalFooter>
+                </form>
             </CModal>
         </div>
     )

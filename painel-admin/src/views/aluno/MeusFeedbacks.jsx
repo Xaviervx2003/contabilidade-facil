@@ -237,19 +237,24 @@ const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => {
                             </CRow>
 
                             {/* Integração Estudo: Botão de Revisão Direta */}
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: `1px solid ${tokens.border}`, marginTop: 16, paddingTop: 12 }}>
-                                <CButton
-                                    onClick={() => onRevisarQuestao(item.questao_id)}
-                                    style={{
-                                        background: `${tokens.rausch}15`, color: tokens.rausch, border: 'none',
-                                        borderRadius: 10, padding: '6px 12px',
-                                        fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', gap: 6,
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    <Icon icon="solar:book-bookmark-bold" /> Revisar Questão Associada
-                                </CButton>
-                            </div>
+                            {item.questao_id && (
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: `1px solid ${tokens.border}`, marginTop: 16, paddingTop: 12 }}>
+                                    <CButton
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            onRevisarQuestao(item.questao_id)
+                                        }}
+                                        style={{
+                                            background: `${tokens.rausch}15`, color: tokens.rausch, border: 'none',
+                                            borderRadius: 10, padding: '6px 12px',
+                                            fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', gap: 6,
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        <Icon icon="solar:book-bookmark-bold" /> Revisar Questão Associada
+                                    </CButton>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 )}
@@ -321,10 +326,6 @@ const MeusFeedbacks = () => {
     // Submissão do novo feedback
     const handleSubmitDuvida = (e) => {
         e.preventDefault()
-        if (!selectedQuestaoParaDuvida) {
-            setDuvidaMessage({ tipo: 'danger', texto: 'Selecione uma questão associada.' })
-            return
-        }
         if (!textoDuvida.trim()) {
             setDuvidaMessage({ tipo: 'danger', texto: 'Escreva a sua dúvida ou sugestão.' })
             return
@@ -339,8 +340,8 @@ const MeusFeedbacks = () => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                questao_id: parseInt(selectedQuestaoParaDuvida),
-                nome_aluno: nome,
+                questao_id: selectedQuestaoParaDuvida ? parseInt(selectedQuestaoParaDuvida) : null,
+                nome_aluno: nome || 'Aluno Anônimo',
                 texto: textoDuvida,
                 marcada_confusa: marcadaConfusa
             })
@@ -415,7 +416,7 @@ const MeusFeedbacks = () => {
     }, [search, feedbacks])
 
     if (!nome) return (
-        <div className="min-h-screen bg-bg-primary p-8 flex items-center justify-center" style={{ background: 'var(--color-bg-primary)', fontFamily: "'Nunito', sans-serif" }}>
+        <div className="min-h-screen bg-bg-primary p-8 flex items-center justify-center" style={{ background: 'var(--color-bg-primary)', fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
             <CAlert color="warning" className="max-w-md w-full premium-card border-orange-500/20">
                 <div className="flex items-center gap-3">
                     <Icon icon="solar:user-block-linear" width="24" className="text-orange-500" />
@@ -426,22 +427,24 @@ const MeusFeedbacks = () => {
     )
 
     return (
-        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Nunito', sans-serif" }}>
+        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
             <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
                 <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
-                    {/* HEADER PREMIUM */}
-                    <div className="mb-5 d-flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4">
+                    {/* HEADER PREMIUM & METRICS */}
+                    <div className="mb-5 d-flex flex-column lg:flex-row justify-content-between align-items-start lg:align-items-end gap-4">
                         <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="flex-1"
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            style={{ flex: 1 }}
                         >
-                            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Central de Dúvidas</div>
-                            <h2 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+                            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: 6 }}>
+                                Área do Aluno
+                            </div>
+                            <h2 style={{ fontSize: 32, fontWeight: 850, color: 'var(--color-text-primary)', letterSpacing: '-1px', lineHeight: 1.1 }}>
                                 Suporte <span style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', color: tokens.rausch }}>& Feedbacks</span> 💬
                             </h2>
-                            <p style={{ fontSize: 14, color: tokens.foggy, marginTop: 6, maxWidth: 600 }}>
+                            <p style={{ fontSize: 14, color: tokens.foggy, fontWeight: 550, marginTop: 8, maxWidth: 500, lineHeight: 1.5 }}>
                                 Consulte suas dúvidas anteriores, mande novas perguntas aos professores e estude de forma totalmente integrada ao seu progresso.
                             </p>
                         </motion.div>
@@ -580,7 +583,7 @@ const MeusFeedbacks = () => {
                 onClose={() => setFormModalOpen(false)}
                 backdrop="static"
                 size="lg"
-                style={{ fontFamily: "'Nunito', sans-serif" }}
+                style={{ fontFamily: "'Circular Std', 'Nunito', sans-serif" }}
             >
                 <CModalHeader style={{ borderBottom: `1px solid ${tokens.border}` }}>
                     <CModalTitle style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -619,7 +622,7 @@ const MeusFeedbacks = () => {
                                         outline: 'none'
                                     }}
                                 >
-                                    <option value="">Selecione uma questão do seu histórico</option>
+                                    <option value="">Dúvida Geral / Sem questão específica 🌍</option>
                                     {questoesResolvidas.map(q => (
                                         <option key={q.questao_id} value={q.questao_id}>
                                             Questão #{q.questao_id} — {q.materias} (Gabarito: {q.acertou ? 'Acertou ✅' : 'Errou ❌'})
@@ -694,7 +697,7 @@ const MeusFeedbacks = () => {
                 onClose={() => setRevisaoModalOpen(false)} 
                 size="lg"
                 backdrop="static"
-                style={{ fontFamily: "'Nunito', sans-serif" }}
+                style={{ fontFamily: "'Circular Std', 'Nunito', sans-serif" }}
             >
                 <CModalHeader style={{ borderBottom: `1px solid ${tokens.border}` }}>
                     <CModalTitle style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
