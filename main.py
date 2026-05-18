@@ -69,16 +69,18 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 # Configuração de CORS Dinâmico
+allow_origins = [
+    "https://contabilidade-facil-chi.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://contabilidade-facil.vercel.app"
+]
 allowed_origins_str = os.getenv("ALLOWED_ORIGINS")
 if allowed_origins_str:
-    allow_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
-else:
-    allow_origins = [
-        "https://contabilidade-facil-chi.vercel.app",
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "https://contabilidade-facil.vercel.app"
-    ]
+    for origin in allowed_origins_str.split(","):
+        o = origin.strip()
+        if o and o not in allow_origins:
+            allow_origins.append(o)
 
 app.add_middleware(
     CORSMiddleware,

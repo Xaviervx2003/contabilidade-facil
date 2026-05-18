@@ -20,7 +20,6 @@ import {
 } from '@coreui/react'
 import { API_URL } from '../../config'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 import { getAlunoMatricula } from '../../utils/auth'
 
 /* ── Tokens de Design (Airbnb Premium Style) ────────────── */
@@ -542,12 +541,13 @@ const MeusFeedbacks = () => {
                                     textAlign: 'center'
                                 }}
                             >
-                                <div className="w-32 h-32 mx-auto mb-3 opacity-80">
-                                    <DotLottieReact
-                                        src="https://lottie.host/805626a5-3f33-4f9e-a89c-a1f73b64f3d1/9XvGjZ6zQ6.lottie"
-                                        loop
-                                        autoplay
-                                    />
+                                <div style={{
+                                    width: 72, height: 72, borderRadius: '50%',
+                                    background: 'var(--color-bg-tertiary)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    margin: '0 auto 20px', color: tokens.foggy
+                                }}>
+                                    <Icon icon="solar:chat-round-line-broken" width="32" />
                                 </div>
                                 <h5 style={{ fontWeight: 800, color: 'var(--color-text-primary)' }}>Nenhum chamado de feedback encontrado</h5>
                                 <p style={{ color: tokens.foggy, fontSize: 13, maxWidth: 420, margin: '8px auto 0' }}>
