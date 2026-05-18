@@ -17,7 +17,7 @@ from utils.security import get_password_hash, verify_password
 from utils.responses import api_response
 from utils.logger import setup_logger
 from utils.rate_limit import rate_limiter
-from utils.jwt_auth import criar_token, verificar_proprio_ou_admin
+from utils.jwt_auth import criar_token, verificar_proprio_ou_admin, usuario_autenticado
 
 logger = setup_logger(__name__)
 router = APIRouter(prefix="/api", tags=["Autenticação"])
@@ -163,8 +163,12 @@ def redefinir_senha(dados: RedefineSenhaRequest):
 
 
 @router.post("/alterar-senha")
-def alterar_senha(dados: AlteraSenhaRequest):
+def alterar_senha(dados: AlteraSenhaRequest, token_data: dict = Depends(usuario_autenticado)):
     try:
+        # Garante que só pode alterar a própria senha, exceto se for admin
+        if token_data.get("sub") != dados.matricula and token_data.get("papel") != "admin":
+            return api_response(sucesso=False, mensagem="Você só pode alterar sua própria senha.", status_code=403)
+
         if len(dados.nova_senha) < 6:
             return api_response(sucesso=False, mensagem="A nova senha deve ter pelo menos 6 caracteres.", status_code=400)
 
