@@ -289,38 +289,74 @@ const MeusFeedbacks = () => {
     const nome = sessionStorage.getItem('nome')
     const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
 
+    // Sistema de Diagnóstico Integrado
+    const [debugLogs, setDebugLogs] = useState([])
+    const [showDebugPanel, setShowDebugPanel] = useState(false)
+    const addDebugLog = (msg, type = 'info') => {
+        setDebugLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), msg, type }])
+        console.log(`[Diagnostic] [${type}] ${msg}`)
+    }
+
     // Carregar feedbacks
     const { data: feedbacks = [], isLoading: loading } = useQuery({
         queryKey: ['meusFeedbacks', nome],
         queryFn: async () => {
-            const res = await fetch(`${API_URL}/api/aluno/meus-feedbacks/${encodeURIComponent(nome)}?por_pagina=50`)
-            if (!res.ok) throw new Error('Erro ao carregar feedbacks')
-            const data = await res.json()
-            return data.feedbacks || []
+            addDebugLog(`Carregando feedbacks para: ${nome}...`, 'info')
+            try {
+                const res = await fetch(`${API_URL}/api/aluno/meus-feedbacks/${encodeURIComponent(nome)}?por_pagina=50`)
+                addDebugLog(`Resposta de feedbacks: ${res.status}`, res.ok ? 'success' : 'error')
+                if (!res.ok) throw new Error(`HTTP ${res.status}`)
+                const data = await res.json()
+                addDebugLog(`Feedbacks carregados: ${data.feedbacks?.length || 0} itens.`, 'success')
+                return data.feedbacks || []
+            } catch (err) {
+                addDebugLog(`Erro ao carregar feedbacks: ${err.message}`, 'error')
+                throw err;
+            }
         },
         enabled: !!nome,
     })
 
     // Carregar últimas questões resolvidas do aluno para o Dropdown do formulário
     const carregarQuestoesParaForm = () => {
-        if (!matricula) return
+        if (!matricula) {
+            addDebugLog('Aviso: matrícula do aluno está vazia ou não identificada.', 'warning')
+            return
+        }
+        addDebugLog(`Carregando questões resolvidas para matrícula: ${matricula}...`, 'info')
         setLoadingQuestoes(true)
         fetch(`${API_URL}/api/aluno/questoes-respondidas?matricula=${matricula}&por_pagina=30`)
-            .then(res => res.json())
+            .then(res => {
+                addDebugLog(`API de questões resolvidas respondeu com status: ${res.status}`, res.ok ? 'success' : 'error')
+                if (!res.ok) throw new Error(`HTTP ${res.status}`)
+                return res.json()
+            })
             .then(data => {
-                setQuestoesResolvidas(data.questoes || [])
+                const questoes = data.questoes || []
+                addDebugLog(`Carregadas ${questoes.length} questões resolvidas com sucesso.`, 'success')
+                setQuestoesResolvidas(questoes)
                 setLoadingQuestoes(false)
             })
-            .catch(() => setLoadingQuestoes(false))
+            .catch(err => {
+                addDebugLog(`Falha ao buscar questões resolvidas: ${err.message}`, 'error')
+                setLoadingQuestoes(false)
+            })
     }
 
     const abrirNovaPergunta = () => {
-        setDuvidaMessage(null)
-        setTextoDuvida('')
-        setMarcadaConfusa(false)
-        setSelectedQuestaoParaDuvida('')
-        setFormModalOpen(true)
-        carregarQuestoesParaForm()
+        try {
+            addDebugLog('Abrindo modal de nova dúvida acadêmica...', 'info')
+            setDuvidaMessage(null)
+            setTextoDuvida('')
+            setMarcadaConfusa(false)
+            setSelectedQuestaoParaDuvida('')
+            setFormModalOpen(true)
+            addDebugLog('Modal de dúvidas aberto com sucesso.', 'success')
+            carregarQuestoesParaForm()
+        } catch (err) {
+            addDebugLog(`Erro de runtime ao abrir modal: ${err.message}`, 'error')
+            alert('Erro de runtime ao abrir modal: ' + err.message)
+        }
     }
 
     // Submissão do novo feedback
@@ -850,6 +886,109 @@ const MeusFeedbacks = () => {
                     </CButton>
                 </CModalFooter>
             </CModal>
+
+            {/* PAINEL DE DIAGNÓSTICO INTEGRADO */}
+            <div style={{
+                position: 'fixed',
+                bottom: 24,
+                right: 24,
+                zIndex: 99999,
+                fontFamily: "'Circular Std', 'Nunito', sans-serif"
+            }}>
+                <CButton
+                    color="dark"
+                    size="sm"
+                    onClick={() => setShowDebugPanel(!showDebugPanel)}
+                    style={{
+                        borderRadius: 30,
+                        padding: '10px 18px',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        fontWeight: 700,
+                        fontSize: 12,
+                        background: '#1e293b',
+                        color: '#fff',
+                        border: 'none'
+                    }}
+                >
+                    <Icon 
+                        icon="solar:shield-warning-bold" 
+                        width="16" 
+                        style={{ color: debugLogs.some(l => l.type === 'error') ? tokens.rausch : '#10b981' }} 
+                    />
+                    Console de Diagnóstico {debugLogs.filter(l => l.type === 'error').length > 0 && `(${debugLogs.filter(l => l.type === 'error').length} 🚨)`}
+                </CButton>
+
+                {showDebugPanel && (
+                    <div style={{
+                        position: 'absolute',
+                        bottom: 54,
+                        right: 0,
+                        width: 350,
+                        maxHeight: 450,
+                        background: 'var(--color-bg-elevated)',
+                        border: `1px solid ${tokens.border}`,
+                        borderRadius: 20,
+                        boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                        <div style={{
+                            padding: '14px 18px',
+                            borderBottom: `1px solid ${tokens.border}`,
+                            fontWeight: 850,
+                            fontSize: 13,
+                            background: 'rgba(255, 56, 92, 0.08)',
+                            color: tokens.rausch,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <Icon icon="solar:bug-bold" /> PAINEL DE DIAGNÓSTICO
+                            </span>
+                            <CButton 
+                                size="sm" 
+                                color="link" 
+                                onClick={() => setDebugLogs([])} 
+                                style={{ fontSize: 11, padding: 0, color: tokens.foggy, textDecoration: 'none', fontWeight: 700 }}
+                            >
+                                Limpar
+                            </CButton>
+                        </div>
+                        <div style={{ 
+                            padding: 16, 
+                            overflowY: 'auto', 
+                            flex: 1, 
+                            fontSize: 12, 
+                            background: 'var(--color-bg-primary)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 12
+                        }}>
+                            {debugLogs.length === 0 ? (
+                                <div style={{ color: tokens.foggy, textAlign: 'center', padding: '32px 16px', fontWeight: 600 }}>
+                                    Nenhum log registrado ainda.<br/>Clique no botão de dúvida para testar a integração.
+                                </div>
+                            ) : (
+                                debugLogs.map((log, i) => (
+                                    <div key={i} style={{
+                                        borderBottom: `1px solid ${tokens.border}`,
+                                        paddingBottom: 8,
+                                        color: log.type === 'error' ? tokens.rausch : log.type === 'success' ? '#10b981' : log.type === 'warning' ? '#f59e0b' : 'var(--color-text-primary)'
+                                    }}>
+                                        <div style={{ fontSize: 10, opacity: 0.6, fontWeight: 700, marginBottom: 2 }}>[{log.time}]</div>
+                                        <div style={{ fontWeight: 650, lineHeight: 1.4 }}>{log.msg}</div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

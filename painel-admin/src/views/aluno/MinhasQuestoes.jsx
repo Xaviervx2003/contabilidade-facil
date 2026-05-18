@@ -72,6 +72,14 @@ const MinhasQuestoes = () => {
     const [submittingDuvida, setSubmittingDuvida] = useState(false)
     const [duvidaMessage, setDuvidaMessage] = useState(null)
 
+    // Sistema de Diagnóstico Integrado
+    const [debugLogs, setDebugLogs] = useState([])
+    const [showDebugPanel, setShowDebugPanel] = useState(false)
+    const addDebugLog = (msg, type = 'info') => {
+        setDebugLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), msg, type }])
+        console.log(`[Diagnostic] [${type}] ${msg}`)
+    }
+
     const nome = sessionStorage.getItem('nome')
     const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
 
@@ -83,6 +91,7 @@ const MinhasQuestoes = () => {
             return
         }
 
+        addDebugLog(`Iniciando submissão de dúvida para questão #${selectedQuestaoId}...`, 'info')
         setSubmittingDuvida(true)
         setDuvidaMessage(null)
 
@@ -98,10 +107,15 @@ const MinhasQuestoes = () => {
                 marcada_confusa: marcadaConfusa
             })
         })
-        .then(res => res.json())
+        .then(res => {
+            addDebugLog(`API respondeu com status: ${res.status}`, res.ok ? 'success' : 'error')
+            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            return res.json()
+        })
         .then(resData => {
             setSubmittingDuvida(false)
             if (resData.sucesso || resData.id) {
+                addDebugLog('Dúvida enviada com sucesso ao banco de dados!', 'success')
                 setDuvidaMessage({ tipo: 'success', texto: 'Dúvida enviada com sucesso ao professor!' })
                 setTimeout(() => {
                     setDuvidaModalOpen(false)
@@ -110,10 +124,12 @@ const MinhasQuestoes = () => {
                     setDuvidaMessage(null)
                 }, 1800)
             } else {
+                addDebugLog(`API retornou falha lógica: ${resData.mensagem}`, 'error')
                 setDuvidaMessage({ tipo: 'danger', texto: resData.mensagem || 'Erro ao enviar dúvida.' })
             }
         })
-        .catch(() => {
+        .catch(err => {
+            addDebugLog(`Erro na requisição: ${err.message}`, 'error')
             setSubmittingDuvida(false)
             setDuvidaMessage({ tipo: 'danger', texto: 'Erro de conexão ao enviar.' })
         })
@@ -1048,6 +1064,109 @@ const MinhasQuestoes = () => {
                     </CModalFooter>
                 </form>
             </CModal>
+
+            {/* PAINEL DE DIAGNÓSTICO INTEGRADO */}
+            <div style={{
+                position: 'fixed',
+                bottom: 24,
+                right: 24,
+                zIndex: 99999,
+                fontFamily: "'Circular Std', 'Nunito', sans-serif"
+            }}>
+                <CButton
+                    color="dark"
+                    size="sm"
+                    onClick={() => setShowDebugPanel(!showDebugPanel)}
+                    style={{
+                        borderRadius: 30,
+                        padding: '10px 18px',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        fontWeight: 700,
+                        fontSize: 12,
+                        background: '#1e293b',
+                        color: '#fff',
+                        border: 'none'
+                    }}
+                >
+                    <Icon 
+                        icon="solar:shield-warning-bold" 
+                        width="16" 
+                        style={{ color: debugLogs.some(l => l.type === 'error') ? tokens.rausch : '#10b981' }} 
+                    />
+                    Console de Diagnóstico {debugLogs.filter(l => l.type === 'error').length > 0 && `(${debugLogs.filter(l => l.type === 'error').length} 🚨)`}
+                </CButton>
+
+                {showDebugPanel && (
+                    <div style={{
+                        position: 'absolute',
+                        bottom: 54,
+                        right: 0,
+                        width: 350,
+                        maxHeight: 450,
+                        background: 'var(--color-bg-elevated)',
+                        border: `1px solid ${tokens.border}`,
+                        borderRadius: 20,
+                        boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                        <div style={{
+                            padding: '14px 18px',
+                            borderBottom: `1px solid ${tokens.border}`,
+                            fontWeight: 850,
+                            fontSize: 13,
+                            background: 'rgba(255, 56, 92, 0.08)',
+                            color: tokens.rausch,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <Icon icon="solar:bug-bold" /> PAINEL DE DIAGNÓSTICO
+                            </span>
+                            <CButton 
+                                size="sm" 
+                                color="link" 
+                                onClick={() => setDebugLogs([])} 
+                                style={{ fontSize: 11, padding: 0, color: tokens.foggy, textDecoration: 'none', fontWeight: 700 }}
+                            >
+                                Limpar
+                            </CButton>
+                        </div>
+                        <div style={{ 
+                            padding: 16, 
+                            overflowY: 'auto', 
+                            flex: 1, 
+                            fontSize: 12, 
+                            background: 'var(--color-bg-primary)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 12
+                        }}>
+                            {debugLogs.length === 0 ? (
+                                <div style={{ color: tokens.foggy, textAlign: 'center', padding: '32px 16px', fontWeight: 600 }}>
+                                    Nenhum log registrado ainda.<br/>Abra a revisão e clique no botão de dúvida para testar.
+                                </div>
+                            ) : (
+                                debugLogs.map((log, i) => (
+                                    <div key={i} style={{
+                                        borderBottom: `1px solid ${tokens.border}`,
+                                        paddingBottom: 8,
+                                        color: log.type === 'error' ? tokens.rausch : log.type === 'success' ? '#10b981' : log.type === 'warning' ? '#f59e0b' : 'var(--color-text-primary)'
+                                    }}>
+                                        <div style={{ fontSize: 10, opacity: 0.6, fontWeight: 700, marginBottom: 2 }}>[{log.time}]</div>
+                                        <div style={{ fontWeight: 650, lineHeight: 1.4 }}>{log.msg}</div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }
