@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
@@ -6,13 +6,37 @@ import {
     CAlert,
     CRow,
     CCol,
+    CContainer,
+    CButton,
+    CModal,
+    CModalHeader,
+    CModalTitle,
+    CModalBody,
+    CModalFooter,
+    CBadge,
+    CFormTextarea,
+    CFormCheck,
+    CFormLabel,
 } from '@coreui/react'
 import { API_URL } from '../../config'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'
+import { getAlunoMatricula } from '../../utils/auth'
 
-// ── Helpers & Components ─────────────────────────────────────────────
+/* ── Tokens de Design (Airbnb Premium Style) ────────────── */
+const tokens = {
+    rausch: '#FF385C',  // Coral principal
+    babu: '#00A699',    // Teal/Verde
+    arches: '#FC642D',  // Laranja
+    hof: '#484848',
+    foggy: '#767676',   // Cinza Muted
+    border: 'var(--color-border)',
+    bg: 'var(--color-bg-elevated)',
+    bgSub: 'var(--color-bg-tertiary)',
+    text: 'var(--color-text-primary)',
+}
 
+// ── Skeleton Loader ─────────────────────────────────────────────
 const Skeleton = ({ h = 20, w = '100%', radius = 12, className = '' }) => (
     <div 
         className={`placeholder-glow ${className}`} 
@@ -27,7 +51,7 @@ const Skeleton = ({ h = 20, w = '100%', radius = 12, className = '' }) => (
 )
 
 const FeedbackSkeleton = () => (
-    <div className="mb-4 p-5 rounded-2xl border border-border bg-bg-elevated/50">
+    <div style={{ background: tokens.bg, border: `1px solid ${tokens.border}`, borderRadius: 20, padding: 20, marginBottom: 12 }}>
         <div className="flex justify-between gap-4">
             <div className="flex-1">
                 <div className="flex gap-2 mb-3">
@@ -42,30 +66,56 @@ const FeedbackSkeleton = () => (
     </div>
 )
 
-const StatCard = ({ icon, label, value, colorClass = 'text-primary' }) => (
-    <div className="premium-card p-4 flex items-center gap-4 flex-1 min-w-[160px]">
-        <div className={`w-10 h-10 rounded-xl bg-bg-tertiary flex items-center justify-center ${colorClass}`}>
-            <Icon icon={icon} width="24" />
+// ── Metric Cards ────────────────────────────────────────────────
+const StatCard = ({ icon, label, value, color }) => (
+    <div style={{
+        background: tokens.bg,
+        border: `1px solid ${tokens.border}`,
+        borderRadius: 18,
+        padding: '14px 18px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        flex: 1,
+        minWidth: 140,
+        boxShadow: '0 4px 15px rgba(0,0,0,0.01)'
+    }}>
+        <div style={{
+            width: 38, height: 38, borderRadius: 10,
+            background: `${color}15`, color: color,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+            <Icon icon={icon} width="20" />
         </div>
         <div>
-            <div className="text-[10px] uppercase tracking-widest text-text-muted font-bold leading-none mb-1">{label}</div>
-            <div className="text-xl font-bold leading-none">{value}</div>
+            <div style={{ fontSize: 9, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--color-text-primary)', marginTop: 2 }}>{value}</div>
         </div>
     </div>
 )
 
-const FAQItem = ({ item, isOpen, onToggle, index }) => {
+// ── FAQ Item Component (Doubt Row) ──────────────────────────────
+const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => {
     const shouldReduceMotion = useReducedMotion()
+    const statusCor = item.resolvido ? tokens.babu : tokens.arches
+    const statusBg = item.resolvido ? `${tokens.babu}15` : `${tokens.arches}15`
     
     return (
         <motion.div
             initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: shouldReduceMotion ? 0 : index * 0.05 }}
-            className={`mb-4 rounded-2xl border overflow-hidden transition-all duration-300 quiz-glass-card ${
-                isOpen ? 'border-primary shadow-lg' : 'border-border hover:border-primary/30'
-            }`}
+            transition={{ delay: shouldReduceMotion ? 0 : index * 0.04 }}
+            style={{
+                background: tokens.bg,
+                border: `1px solid ${isOpen ? tokens.rausch : tokens.border}`,
+                borderRadius: 20,
+                marginBottom: 12,
+                overflow: 'hidden',
+                transition: 'border-color 0.2s, box-shadow 0.2s',
+                boxShadow: isOpen ? '0 8px 30px rgba(0,0,0,0.03)' : '0 4px 15px rgba(0,0,0,0.005)'
+            }}
         >
+            {/* Header Accordion */}
             <div
                 role="button"
                 tabIndex={0}
@@ -75,60 +125,131 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => {
                         onToggle()
                     }
                 }}
-                className="p-4 md:p-5 cursor-pointer flex justify-between items-start gap-4"
                 onClick={onToggle}
+                style={{
+                    padding: '16px 20px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    gap: 16
+                }}
             >
-                <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] uppercase tracking-widest text-text-muted font-bold">
-                            {new Date(item.data).toLocaleDateString('pt-BR')}
+                <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <span style={{ fontSize: 10, color: tokens.foggy, fontWeight: 800 }}>
+                            {item.data ? new Date(item.data).toLocaleDateString('pt-BR') : 'Sem data'}
                         </span>
-                        {item.resolvido ? (
-                            <span className="px-2 py-0.5 rounded-lg bg-green-500/10 text-green-500 text-[9px] font-bold uppercase tracking-wider border border-green-500/20">Resolvido</span>
-                        ) : (
-                            <span className="px-2 py-0.5 rounded-lg bg-orange-500/10 text-orange-500 text-[9px] font-bold uppercase tracking-wider border border-orange-500/20">Pendente</span>
+                        <span style={{
+                            fontSize: 10, fontWeight: 800,
+                            background: statusBg, color: statusCor,
+                            padding: '3px 8px', borderRadius: 8
+                        }}>
+                            {item.resolvido ? 'Resolvido ✅' : 'Aguardando Professor ⏳'}
+                        </span>
+                        {item.marcada_confusa && (
+                            <span style={{
+                                fontSize: 10, fontWeight: 800,
+                                background: `${tokens.rausch}15`, color: tokens.rausch,
+                                padding: '3px 8px', borderRadius: 8
+                            }}>
+                                ⚠️ Questão Confusa
+                            </span>
                         )}
                     </div>
-                    <h4 className="text-text-primary text-sm md:text-base font-semibold leading-snug mb-1">
-                        {item.enunciado}
+                    <h4 style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1.4, margin: '0 0 4px 0' }}>
+                        Questão #{item.questao_id}: {item.enunciado}
                     </h4>
-                    <p className="text-text-secondary text-xs md:text-sm font-medium opacity-70">
+                    <p style={{ fontSize: 12, color: tokens.foggy, fontWeight: 600, margin: 0, fontStyle: 'italic' }}>
                         "{(item.texto || 'Sem descrição').substring(0, 100)}..."
                     </p>
                 </div>
-                <div className={`mt-1 w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center transition-all duration-300 ${isOpen ? 'rotate-180 text-primary bg-primary/10 shadow-inner' : 'text-text-muted'}`}>
-                    <Icon icon="solar:alt-arrow-down-linear" width="20" />
+                <div style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    background: isOpen ? `${tokens.rausch}15` : tokens.bgSub,
+                    color: isOpen ? tokens.rausch : tokens.foggy,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transform: isOpen ? 'rotate(180deg)' : 'none',
+                    transition: 'all 0.2s',
+                    flexShrink: 0,
+                    marginTop: 4
+                }}>
+                    <Icon icon="solar:alt-arrow-down-linear" width="18" />
                 </div>
             </div>
 
+            {/* Expanded Content */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: 'easeInOut' }}
+                        transition={{ duration: 0.25, ease: 'easeInOut' }}
                     >
-                        <div className="px-5 pb-5 pt-2 border-t border-divider/50 bg-bg-secondary/30">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                                <div>
-                                    <div className="text-text-tertiary text-[10px] uppercase tracking-widest mb-3 font-bold opacity-60">Minha Dúvida</div>
-                                    <div className="text-text-secondary text-sm leading-relaxed bg-bg-elevated/50 p-4 rounded-xl border border-divider/50 italic shadow-sm">
+                        <div style={{
+                            padding: '16px 20px 20px 20px',
+                            borderTop: `1px solid ${tokens.border}`,
+                            background: tokens.bgSub,
+                        }}>
+                            <CRow className="g-4">
+                                <CCol xs={12} md={6}>
+                                    <div style={{ fontSize: 10, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                                        Minha Dúvida Enviada
+                                    </div>
+                                    <div style={{
+                                        background: tokens.bg,
+                                        border: `1px solid ${tokens.border}`,
+                                        borderRadius: 14,
+                                        padding: 14,
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        color: 'var(--color-text-secondary)',
+                                        lineHeight: 1.5,
+                                        fontStyle: 'italic'
+                                    }}>
                                         {item.texto || 'Nenhuma descrição detalhada enviada.'}
                                     </div>
-                                </div>
-                                <div>
-                                    <div className="text-primary text-[10px] uppercase tracking-widest mb-3 font-bold">Resposta do Professor</div>
-                                    <div className="text-text-primary text-sm leading-relaxed bg-primary/5 p-4 rounded-xl border border-primary/10 shadow-sm backdrop-blur-sm">
+                                </CCol>
+
+                                <CCol xs={12} md={6}>
+                                    <div style={{ fontSize: 10, color: tokens.babu, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                                        Resposta da Equipe Técnica / Professor
+                                    </div>
+                                    <div style={{
+                                        background: item.resolvido ? `${tokens.babu}05` : tokens.bg,
+                                        border: `1px solid ${item.resolvido ? tokens.babu : tokens.border}`,
+                                        borderRadius: 14,
+                                        padding: 14,
+                                        fontSize: 13,
+                                        fontWeight: 700,
+                                        color: item.resposta_professor ? 'var(--color-text-primary)' : tokens.foggy,
+                                        lineHeight: 1.5
+                                    }}>
                                         {item.resposta_professor ? (
                                             item.resposta_professor
                                         ) : (
-                                            <span className="text-text-muted italic font-light">
-                                                Aguardando resposta do professor. Você será notificado assim que for respondido.
+                                            <span style={{ fontStyle: 'italic', fontWeight: 500 }}>
+                                                Aguardando resposta do professor. Você será notificado neste painel assim que for respondido.
                                             </span>
                                         )}
                                     </div>
-                                </div>
+                                </CCol>
+                            </CRow>
+
+                            {/* Integração Estudo: Botão de Revisão Direta */}
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: `1px solid ${tokens.border}`, marginTop: 16, paddingTop: 12 }}>
+                                <CButton
+                                    onClick={() => onRevisarQuestao(item.questao_id)}
+                                    style={{
+                                        background: `${tokens.rausch}15`, color: tokens.rausch, border: 'none',
+                                        borderRadius: 10, padding: '6px 12px',
+                                        fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', gap: 6,
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <Icon icon="solar:book-bookmark-bold" /> Revisar Questão Associada
+                                </CButton>
                             </div>
                         </div>
                     </motion.div>
@@ -140,10 +261,31 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => {
 
 const MeusFeedbacks = () => {
     const shouldReduceMotion = useReducedMotion()
+    const queryClient = useQueryClient()
     const [search, setSearch] = useState('')
     const [expandedId, setExpandedId] = useState(null)
-    const nome = sessionStorage.getItem('nome')
+    
+    // Estados do Formulário de Nova Dúvida (Helpdesk)
+    const [formModalOpen, setFormModalOpen] = useState(false)
+    const [questoesResolvidas, setQuestoesResolvidas] = useState([])
+    const [loadingQuestoes, setLoadingQuestoes] = useState(false)
+    const [selectedQuestaoParaDuvida, setSelectedQuestaoParaDuvida] = useState('')
+    const [textoDuvida, setTextoDuvida] = useState('')
+    const [marcadaConfusa, setMarcadaConfusa] = useState(false)
+    const [submittingDuvida, setSubmittingDuvida] = useState(false)
+    const [duvidaMessage, setDuvidaMessage] = useState(null)
 
+    // Estados do Modal de Revisão Integrada
+    const [selectedQuestaoId, setSelectedQuestaoId] = useState(null)
+    const [questaoDetail, setQuestaoDetail] = useState(null)
+    const [loadingDetail, setLoadingDetail] = useState(false)
+    const [revisaoModalOpen, setRevisaoModalOpen] = useState(false)
+    const [errorDetail, setErrorDetail] = useState(null)
+
+    const nome = sessionStorage.getItem('nome')
+    const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
+
+    // Carregar feedbacks
     const { data: feedbacks = [], isLoading: loading } = useQuery({
         queryKey: ['meusFeedbacks', nome],
         queryFn: async () => {
@@ -154,6 +296,107 @@ const MeusFeedbacks = () => {
         },
         enabled: !!nome,
     })
+
+    // Carregar últimas questões resolvidas do aluno para o Dropdown do formulário
+    const carregarQuestoesParaForm = () => {
+        if (!matricula) return
+        setLoadingQuestoes(true)
+        fetch(`${API_URL}/api/aluno/questoes-respondidas?matricula=${matricula}&por_pagina=30`)
+            .then(res => res.json())
+            .then(data => {
+                setQuestoesResolvidas(data.questoes || [])
+                setLoadingQuestoes(false)
+            })
+            .catch(() => setLoadingQuestoes(false))
+    }
+
+    const abrirNovaPergunta = () => {
+        setDuvidaMessage(null)
+        setTextoDuvida('')
+        setMarcadaConfusa(false)
+        setSelectedQuestaoParaDuvida('')
+        setFormModalOpen(true)
+        carregarQuestoesParaForm()
+    }
+
+    // Submissão do novo feedback
+    const handleSubmitDuvida = (e) => {
+        e.preventDefault()
+        if (!selectedQuestaoParaDuvida) {
+            setDuvidaMessage({ tipo: 'danger', texto: 'Selecione uma questão associada.' })
+            return
+        }
+        if (!textoDuvida.trim()) {
+            setDuvidaMessage({ tipo: 'danger', texto: 'Escreva a sua dúvida ou sugestão.' })
+            return
+        }
+
+        setSubmittingDuvida(true)
+        setDuvidaMessage(null)
+
+        fetch(`${API_URL}/api/feedbacks_questoes`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                questao_id: parseInt(selectedQuestaoParaDuvida),
+                nome_aluno: nome,
+                texto: textoDuvida,
+                marcada_confusa: marcadaConfusa
+            })
+        })
+        .then(res => res.json())
+        .then(resData => {
+            setSubmittingDuvida(false)
+            if (resData.sucesso) {
+                setDuvidaMessage({ tipo: 'success', texto: 'Dúvida enviada com sucesso ao professor!' })
+                queryClient.invalidateQueries({ queryKey: ['meusFeedbacks', nome] })
+                setTimeout(() => {
+                    setFormModalOpen(false)
+                }, 1500)
+            } else {
+                setDuvidaMessage({ tipo: 'danger', texto: resData.mensagem || 'Erro ao enviar dúvida.' })
+            }
+        })
+        .catch(() => {
+            setSubmittingDuvida(false)
+            setDuvidaMessage({ tipo: 'danger', texto: 'Erro de conexão ao enviar.' })
+        })
+    }
+
+    // Abrir Modal de Revisão Completa da Questão
+    const handleRevisarQuestao = (questaoId) => {
+        setSelectedQuestaoId(questaoId)
+        setQuestaoDetail(null)
+        setRevisaoModalOpen(true)
+    }
+
+    // Carregar detalhes da questão
+    useEffect(() => {
+        if (!selectedQuestaoId) return
+        setLoadingDetail(true)
+        setErrorDetail(null)
+
+        fetch(`${API_URL}/api/questoes?ids=${selectedQuestaoId}`)
+            .then(res => {
+                if (!res.ok) throw new Error('Erro')
+                return res.json()
+            })
+            .then(resData => {
+                const questaoLista = resData.dados?.data || resData.dados || resData || []
+                if (questaoLista.length > 0) {
+                    setQuestaoDetail(questaoLista[0])
+                } else {
+                    setErrorDetail('Questão não encontrada.')
+                }
+                setLoadingDetail(false)
+            })
+            .catch(() => {
+                setErrorDetail('Erro ao carregar detalhes.')
+                setLoadingDetail(false)
+            })
+    }, [selectedQuestaoId])
 
     const stats = useMemo(() => {
         const total = feedbacks.length
@@ -167,12 +410,13 @@ const MeusFeedbacks = () => {
         const s = search.toLowerCase()
         return feedbacks.filter(f => 
             (f.enunciado && f.enunciado.toLowerCase().includes(s)) || 
-            (f.texto && f.texto.toLowerCase().includes(s))
+            (f.texto && f.texto.toLowerCase().includes(s)) ||
+            String(f.questao_id).includes(s)
         )
     }, [search, feedbacks])
 
     if (!nome) return (
-        <div className="min-h-screen bg-bg-primary p-8 flex items-center justify-center">
+        <div className="min-h-screen bg-bg-primary p-8 flex items-center justify-center" style={{ background: 'var(--color-bg-primary)', fontFamily: "'Nunito', sans-serif" }}>
             <CAlert color="warning" className="max-w-md w-full premium-card border-orange-500/20">
                 <div className="flex items-center gap-3">
                     <Icon icon="solar:user-block-linear" width="24" className="text-orange-500" />
@@ -183,119 +427,426 @@ const MeusFeedbacks = () => {
     )
 
     return (
-        <div className="min-h-screen bg-bg-primary text-text-primary font-sans p-4 md:p-8">
-            <div className="max-w-5xl mx-auto">
-                <div className="mb-10 flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex-1"
-                    >
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-3">
-                            <Icon icon="solar:chat-round-check-bold" width="14" />
-                            Central de Atendimento
-                        </div>
-                        <h2 className="text-text-primary text-3xl md:text-5xl font-normal tracking-tight mb-2">
-                            Suporte <span className="font-serif italic text-primary">& Feedbacks</span>
-                        </h2>
-                        <p className="text-text-secondary font-medium text-sm md:text-base opacity-70">
-                            Consulte suas dúvidas anteriores e acompanhe as explicações dos nossos especialistas.
-                        </p>
-                    </motion.div>
+        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Nunito', sans-serif" }}>
+            <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
+                <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
-                    <div className="flex flex-wrap gap-3 w-full lg:w-auto pb-1">
-                        <StatCard icon="solar:document-text-linear" label="Total" value={stats.total} />
-                        <StatCard icon="solar:check-circle-linear" label="Resolvidos" value={stats.resolvidos} colorClass="text-green-500" />
-                        <StatCard icon="solar:clock-circle-linear" label="Pendentes" value={stats.pendentes} colorClass="text-orange-500" />
-                    </div>
-                </div>
-
-                {/* Search Bar Premium */}
-                <motion.div
-                    initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: shouldReduceMotion ? 0 : 0.2 }}
-                    className="relative mb-12"
-                >
-                    <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-text-muted">
-                        <Icon icon="solar:magnifer-linear" width="22" />
-                    </div>
-                    <input
-                        type="text"
-                        placeholder="Pesquisar em suas dúvidas ou questões..."
-                        aria-label="Pesquisar em suas dúvidas"
-                        autoComplete="off"
-                        className="w-full bg-bg-elevated/50 backdrop-blur-md border border-border rounded-2xl py-5 pl-14 pr-12 text-sm md:text-base text-text-primary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all placeholder:text-text-muted/60 shadow-lg shadow-black/5"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                    {search && (
-                        <button 
-                            onClick={() => setSearch('')}
-                            className="absolute inset-y-0 right-5 border-0 bg-transparent text-text-muted hover:text-primary transition-colors"
+                    {/* HEADER PREMIUM */}
+                    <div className="mb-5 d-flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="flex-1"
                         >
-                            <Icon icon="solar:close-circle-bold" width="22" />
-                        </button>
-                    )}
-                </motion.div>
-
-                {/* Feedback List */}
-                <div className="relative">
-                    {loading ? (
-                        <div className="grid grid-cols-1 gap-1">
-                            {[...Array(5)].map((_, i) => <FeedbackSkeleton key={i} />)}
-                        </div>
-                    ) : filteredFeedbacks.length === 0 ? (
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="text-center py-20 bg-bg-elevated/50 backdrop-blur-sm rounded-3xl border border-border border-dashed"
-                        >
-                            <div className="w-48 h-48 mx-auto mb-6 opacity-80">
-                                <DotLottieReact
-                                    src="https://lottie.host/805626a5-3f33-4f9e-a89c-a1f73b64f3d1/9XvGjZ6zQ6.lottie"
-                                    loop
-                                    autoplay
-                                />
-                            </div>
-                            <h3 className="text-xl font-semibold mb-2">Nada por aqui ainda</h3>
-                            <p className="text-text-secondary font-medium opacity-60 max-w-sm mx-auto">
-                                {search 
-                                    ? `Não encontramos resultados para "${search}". Tente outros termos.` 
-                                    : "Você ainda não enviou nenhuma dúvida. Quando precisar de ajuda, conte conosco!"}
+                            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Central de Dúvidas</div>
+                            <h2 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+                                Suporte <span style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', color: tokens.rausch }}>& Feedbacks</span> 💬
+                            </h2>
+                            <p style={{ fontSize: 14, color: tokens.foggy, marginTop: 6, maxWidth: 600 }}>
+                                Consulte suas dúvidas anteriores, mande novas perguntas aos professores e estude de forma totalmente integrada ao seu progresso.
                             </p>
+                        </motion.div>
+
+                        {/* KPI METRIC CARDS */}
+                        <div className="d-flex flex-wrap gap-3 w-100 lg:w-auto" style={{ maxWidth: 500 }}>
+                            <StatCard icon="solar:document-text-linear" label="Total de Chamados" value={stats.total} color={tokens.rausch} />
+                            <StatCard icon="solar:check-circle-linear" label="Respondidos" value={stats.resolvidos} color={tokens.babu} />
+                            <StatCard icon="solar:clock-circle-linear" label="Em Aberto" value={stats.pendentes} color={tokens.arches} />
+                        </div>
+                    </div>
+
+                    {/* BUSCA E SUPORTE DE CONTATO (AIRBNB STYLE) */}
+                    <motion.div
+                        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: shouldReduceMotion ? 0 : 0.15 }}
+                        className="d-flex flex-column flex-md-row gap-3 align-items-center mb-4"
+                    >
+                        {/* Search Bar */}
+                        <div style={{ position: 'relative', flex: 1, width: '100%' }}>
+                            <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: tokens.foggy, pointerEvents: 'none' }}>
+                                <Icon icon="solar:magnifer-linear" width="20" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Pesquisar em suas dúvidas ou por ID da questão..."
+                                className="w-100"
+                                style={{
+                                    background: tokens.bg,
+                                    border: `1px solid ${tokens.border}`,
+                                    borderRadius: 16,
+                                    padding: '14px 16px 14px 44px',
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    color: 'var(--color-text-primary)',
+                                    outline: 'none',
+                                    transition: 'border-color 0.2s',
+                                    boxShadow: '0 4px 15px rgba(0,0,0,0.01)'
+                                }}
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
                             {search && (
                                 <button 
                                     onClick={() => setSearch('')}
-                                    className="mt-6 text-primary font-bold hover:underline"
+                                    style={{
+                                        position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
+                                        background: 'none', border: 'none', color: tokens.foggy
+                                    }}
                                 >
-                                    Limpar busca
+                                    <Icon icon="solar:close-circle-bold" width="18" />
                                 </button>
                             )}
-                        </motion.div>
-                    ) : (
-                        <div className="grid grid-cols-1 gap-1">
-                            {filteredFeedbacks.map((item, idx) => (
-                                <FAQItem
-                                    key={item.id}
-                                    item={item}
-                                    index={idx}
-                                    isOpen={expandedId === item.id}
-                                    onToggle={() => setExpandedId(prev => prev === item.id ? null : item.id)}
-                                />
-                            ))}
                         </div>
-                    )}
-                </div>
-                
-                {/* Footer Insight */}
-                <div className="mt-20 text-center border-t border-divider pt-10 pb-20">
-                    <div className="inline-flex items-center gap-2 text-text-muted text-xs tracking-widest uppercase font-bold opacity-40">
-                        <Icon icon="solar:shield-check-linear" width="16" />
-                        Área Segura & Monitorada
+
+                        {/* Botão de Nova Dúvida (Helpdesk) */}
+                        <CButton
+                            onClick={abrirNovaPergunta}
+                            style={{
+                                background: tokens.rausch,
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: 16,
+                                padding: '14px 24px',
+                                fontWeight: 800,
+                                fontSize: 13,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 8,
+                                boxShadow: '0 4px 15px rgba(255, 56, 92, 0.15)',
+                                height: 50,
+                                width: '100%',
+                                mdWidth: 'auto',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            <Icon icon="solar:chat-round-plus-bold" width="20" /> Mande sua Dúvida
+                        </CButton>
+                    </motion.div>
+
+                    {/* FEED DE CHAMADOS */}
+                    <div className="relative">
+                        {loading ? (
+                            <div className="grid grid-cols-1 gap-1">
+                                {[...Array(4)].map((_, i) => <FeedbackSkeleton key={i} />)}
+                            </div>
+                        ) : filteredFeedbacks.length === 0 ? (
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.98 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                style={{
+                                    background: tokens.bg,
+                                    border: `1px solid ${tokens.border}`,
+                                    borderRadius: 24,
+                                    padding: '50px 20px',
+                                    textAlign: 'center'
+                                }}
+                            >
+                                <div className="w-32 h-32 mx-auto mb-3 opacity-80">
+                                    <DotLottieReact
+                                        src="https://lottie.host/805626a5-3f33-4f9e-a89c-a1f73b64f3d1/9XvGjZ6zQ6.lottie"
+                                        loop
+                                        autoplay
+                                    />
+                                </div>
+                                <h5 style={{ fontWeight: 800, color: 'var(--color-text-primary)' }}>Nenhum chamado de feedback encontrado</h5>
+                                <p style={{ color: tokens.foggy, fontSize: 13, maxWidth: 420, margin: '8px auto 0' }}>
+                                    {search 
+                                        ? `Não encontramos resultados para a busca "${search}".` 
+                                        : "Tudo limpo por aqui! Quando tiver dúvidas sobre alguma alternativa ou gabarito, mande para nossa equipe."}
+                                </p>
+                            </motion.div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                {filteredFeedbacks.map((item, idx) => (
+                                    <FAQItem
+                                        key={item.id}
+                                        item={item}
+                                        index={idx}
+                                        isOpen={expandedId === item.id}
+                                        onToggle={() => setExpandedId(prev => prev === item.id ? null : item.id)}
+                                        onRevisarQuestao={handleRevisarQuestao}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
-            </div>
+            </CContainer>
+
+            {/* MODAL / FORMULÁRIO DE NOVA DÚVIDA (HELPDESK ACADÊMICO) */}
+            <CModal
+                visible={formModalOpen}
+                onClose={() => setFormModalOpen(false)}
+                backdrop="static"
+                size="lg"
+                style={{ fontFamily: "'Nunito', sans-serif" }}
+            >
+                <CModalHeader style={{ borderBottom: `1px solid ${tokens.border}` }}>
+                    <CModalTitle style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Icon icon="solar:chat-round-plus-bold" style={{ color: tokens.rausch }} />
+                        Mande sua Dúvida Acadêmica
+                    </CModalTitle>
+                </CModalHeader>
+                <form onSubmit={handleSubmitDuvida}>
+                    <CModalBody style={{ padding: 24 }}>
+                        {duvidaMessage && (
+                            <CAlert color={duvidaMessage.tipo} className="mb-3">
+                                {duvidaMessage.texto}
+                            </CAlert>
+                        )}
+
+                        {/* Dropdown de Questões Resolvidas */}
+                        <div className="mb-4">
+                            <CFormLabel style={{ fontSize: 12, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase' }}>
+                                Questão Relacionada
+                            </CFormLabel>
+                            {loadingQuestoes ? (
+                                <div className="py-2"><CSpinner size="sm" color="danger" /> Carregando seu histórico...</div>
+                            ) : (
+                                <select
+                                    value={selectedQuestaoParaDuvida}
+                                    onChange={e => setSelectedQuestaoParaDuvida(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px 14px',
+                                        borderRadius: 12,
+                                        border: `1px solid ${tokens.border}`,
+                                        background: tokens.bgSub,
+                                        color: 'var(--color-text-primary)',
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        outline: 'none'
+                                    }}
+                                >
+                                    <option value="">Selecione uma questão do seu histórico</option>
+                                    {questoesResolvidas.map(q => (
+                                        <option key={q.questao_id} value={q.questao_id}>
+                                            Questão #{q.questao_id} — {q.materias} (Gabarito: {q.acertou ? 'Acertou ✅' : 'Errou ❌'})
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                            <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 4 }}>
+                                Selecione a questão sobre a qual você deseja tirar dúvidas com o professor.
+                            </div>
+                        </div>
+
+                        {/* Descrição Detalhada da Dúvida */}
+                        <div className="mb-4">
+                            <CFormLabel style={{ fontSize: 12, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase' }}>
+                                O que te deixou confuso(a) nessa questão?
+                            </CFormLabel>
+                            <CFormTextarea
+                                rows={4}
+                                placeholder="Explique em detalhes qual é a sua dúvida em relação ao gabarito, alternativa ou explicação teórica da questão..."
+                                value={textoDuvida}
+                                onChange={e => setTextoDuvida(e.target.value)}
+                                style={{
+                                    borderRadius: 14,
+                                    border: `1px solid ${tokens.border}`,
+                                    background: tokens.bgSub,
+                                    color: 'var(--color-text-primary)',
+                                    padding: 14,
+                                    fontSize: 13,
+                                    fontWeight: 600
+                                }}
+                            />
+                        </div>
+
+                        {/* Checkbox Confusa */}
+                        <div className="mb-2">
+                            <CFormCheck
+                                id="confusaCheck"
+                                label="Marcar esta questão como contendo erro de enunciado ou gabarito ambíguo"
+                                checked={marcadaConfusa}
+                                onChange={e => setMarcadaConfusa(e.target.checked)}
+                                style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-secondary)' }}
+                            />
+                        </div>
+                    </CModalBody>
+                    <CModalFooter style={{ borderTop: `1px solid ${tokens.border}` }}>
+                        <CButton
+                            color="secondary"
+                            onClick={() => setFormModalOpen(false)}
+                            style={{ borderRadius: 10, fontWeight: 700, fontSize: 12 }}
+                            disabled={submittingDuvida}
+                        >
+                            Cancelar
+                        </CButton>
+                        <CButton
+                            type="submit"
+                            style={{
+                                background: tokens.rausch, color: '#fff', border: 'none',
+                                borderRadius: 10, fontWeight: 700, fontSize: 12
+                            }}
+                            disabled={submittingDuvida}
+                        >
+                            {submittingDuvida ? <CSpinner size="sm" /> : 'Enviar Pergunta 🚀'}
+                        </CButton>
+                    </CModalFooter>
+                </form>
+            </CModal>
+
+            {/* MODAL DE REVISÃO INTEGRADA (Carrega detalhes reais da questão) */}
+            <CModal 
+                visible={revisaoModalOpen} 
+                onClose={() => setRevisaoModalOpen(false)} 
+                size="lg"
+                backdrop="static"
+                style={{ fontFamily: "'Nunito', sans-serif" }}
+            >
+                <CModalHeader style={{ borderBottom: `1px solid ${tokens.border}` }}>
+                    <CModalTitle style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Icon icon="solar:document-bold" style={{ color: tokens.rausch }} />
+                        Revisão de Questão #{selectedQuestaoId}
+                    </CModalTitle>
+                </CModalHeader>
+                <CModalBody style={{ padding: 24, maxHeight: '70vh', overflowY: 'auto' }}>
+                    {loadingDetail ? (
+                        <div className="text-center py-5">
+                            <CSpinner color="danger" />
+                            <p className="mt-3 text-body-secondary" style={{ fontWeight: 600 }}>Carregando dados da questão...</p>
+                        </div>
+                    ) : errorDetail ? (
+                        <CAlert color="danger" className="d-flex align-items-center gap-2">
+                            <Icon icon="solar:danger-bold-duotone" width="20" />
+                            <span>{errorDetail}</span>
+                        </CAlert>
+                    ) : questaoDetail ? (
+                        <div>
+                            {/* Tags */}
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+                                {questaoDetail.banca && (
+                                    <CBadge color="light" className="text-dark" style={{ padding: '6px 10px', fontSize: 10, fontWeight: 700 }}>
+                                        Banca: {questaoDetail.banca}
+                                    </CBadge>
+                                )}
+                                {questaoDetail.ano && (
+                                    <CBadge color="light" className="text-dark" style={{ padding: '6px 10px', fontSize: 10, fontWeight: 700 }}>
+                                        Ano: {questaoDetail.ano}
+                                    </CBadge>
+                                )}
+                                {questaoDetail.dificuldade && (
+                                    <CBadge color="light" className="text-dark" style={{ padding: '6px 10px', fontSize: 10, fontWeight: 700 }}>
+                                        Dificuldade: {questaoDetail.dificuldade}
+                                    </CBadge>
+                                )}
+                            </div>
+
+                            {/* Enunciado Integral */}
+                            <div style={{ background: tokens.bgSub, borderRadius: 16, padding: 20, border: `1px solid ${tokens.border}`, marginBottom: 24 }}>
+                                <h6 style={{ fontWeight: 800, fontSize: 12, color: tokens.foggy, textTransform: 'uppercase', marginBottom: 8 }}>Enunciado da Questão</h6>
+                                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
+                                    {questaoDetail.question}
+                                </p>
+                            </div>
+
+                            {/* Alternativas */}
+                            <h6 style={{ fontWeight: 800, fontSize: 12, color: tokens.foggy, textTransform: 'uppercase', marginBottom: 12 }}>Alternativas Cadastradas</h6>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+                                {questaoDetail.options?.map((opcao, idx) => {
+                                    const letra = String.fromCharCode(65 + idx)
+                                    const ehCorreta = letra === questaoDetail.answer?.toUpperCase()
+                                    
+                                    return (
+                                        <div 
+                                            key={idx}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'flex-start',
+                                                gap: 12,
+                                                padding: '14px 16px',
+                                                borderRadius: 14,
+                                                background: ehCorreta ? `${tokens.babu}10` : 'transparent',
+                                                border: `1px solid ${ehCorreta ? tokens.babu : tokens.border}`,
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            <span style={{
+                                                width: 24, height: 24, borderRadius: '50%',
+                                                background: ehCorreta ? tokens.babu : tokens.bgSub,
+                                                color: ehCorreta ? '#fff' : tokens.foggy,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: 12, fontWeight: 800, flexShrink: 0
+                                            }}>
+                                                {letra}
+                                            </span>
+                                            <div style={{ 
+                                                fontSize: 13, 
+                                                fontWeight: ehCorreta ? 700 : 600, 
+                                                color: ehCorreta ? tokens.babu : 'var(--color-text-primary)',
+                                                lineHeight: 1.4
+                                            }}>
+                                                {opcao}
+                                            </div>
+                                            {ehCorreta && (
+                                                <Icon 
+                                                    icon="solar:check-circle-bold" 
+                                                    style={{ color: tokens.babu, marginLeft: 'auto', alignSelf: 'center', flexShrink: 0 }} 
+                                                    width="18" 
+                                                />
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+
+                            {/* Explicação Teórica */}
+                            {questaoDetail.explicacao && (
+                                <div style={{ background: 'var(--color-bg-tertiary)', borderRadius: 16, padding: 20, border: `1px solid ${tokens.border}`, marginBottom: 24 }}>
+                                    <h6 style={{ fontWeight: 800, fontSize: 12, color: tokens.foggy, textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <Icon icon="solar:lightbulb-bold-duotone" style={{ color: tokens.arches }} />
+                                        Explicação do Professor
+                                    </h6>
+                                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
+                                        {questaoDetail.explicacao}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Vídeo */}
+                            {questaoDetail.link_video && (
+                                <div style={{ background: `${tokens.rausch}08`, borderRadius: 16, padding: 20, border: `1px dashed ${tokens.rausch}` }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                                        <div>
+                                            <h6 style={{ fontWeight: 800, fontSize: 13, color: tokens.rausch, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                <Icon icon="solar:videocamera-record-bold-duotone" />
+                                                Resolução em Vídeo Disponível!
+                                            </h6>
+                                            <p style={{ fontSize: 11, color: tokens.foggy, margin: 0 }}>
+                                                Assista à explicação detalhada desta questão com o professor.
+                                            </p>
+                                        </div>
+                                        <CButton 
+                                            href={questaoDetail.link_video}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                background: tokens.rausch, color: '#fff', border: 'none',
+                                                borderRadius: 12, padding: '8px 16px',
+                                                fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6,
+                                                boxShadow: '0 4px 10px rgba(255, 56, 92, 0.15)'
+                                            }}
+                                        >
+                                            <Icon icon="solar:play-bold" /> Assistir Resolução
+                                        </CButton>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : null}
+                </CModalBody>
+                <CModalFooter style={{ borderTop: `1px solid ${tokens.border}` }}>
+                    <CButton 
+                        color="secondary" 
+                        onClick={() => setRevisaoModalOpen(false)}
+                        style={{ borderRadius: 10, fontWeight: 700, fontSize: 12 }}
+                    >
+                        Fechar Revisão
+                    </CButton>
+                </CModalFooter>
+            </CModal>
         </div>
     )
 }
