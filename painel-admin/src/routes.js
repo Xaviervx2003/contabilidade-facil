@@ -20,7 +20,6 @@ const VideoGallery = React.lazy(() => import('./views/videos/VideoGallery'))
 const Relatorios = React.lazy(() => import('./views/relatorios/Relatorios'))
 const HistoricoAluno = React.lazy(() => import('./views/aluno/HistoricoAluno'))
 const MinhasQuestoes = React.lazy(() => import('./views/aluno/MinhasQuestoes'))
-const MeusFeedbacks = React.lazy(() => import('./views/aluno/MeusFeedbacks'))
 const GestaoTrilhas = React.lazy(() => import('./views/admin/GestaoTrilhas'))
 const MinhasTrilhas = React.lazy(() => import('./views/aluno/MinhasTrilhas'))
 const Conquistas = React.lazy(() => import('./views/gamificacao/Conquistas'))
@@ -44,8 +43,7 @@ export const routes = [
   { path: '/quiz', name: 'Quiz', element: Quiz },
   { path: '/videos', name: 'Vídeo-Aulas', element: VideoGallery },
 
-  { path: '/aluno/questoes', name: 'Minhas Questões', element: MinhasQuestoes, allowedRoles: ['aluno'] },
-  { path: '/aluno/feedbacks', name: 'Meus Feedbacks', element: MeusFeedbacks, allowedRoles: ['aluno'] },
+  { path: '/aluno/questoes', name: 'Histórico & Dúvidas', element: MinhasQuestoes, allowedRoles: ['aluno'] },
   {
     path: '/questoes',
     name: 'Gestão de Questões',

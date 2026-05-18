@@ -81,15 +81,9 @@ const getNavItens = () => {
       },
       {
         component: CNavItem,
-        name: 'Minhas Questões',
+        name: 'Histórico & Dúvidas',
         to: '/aluno/questoes',
         icon: <CIcon icon={cilListRich} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Meus Feedbacks',
-        to: '/aluno/feedbacks',
-        icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
