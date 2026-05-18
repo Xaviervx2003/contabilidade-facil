@@ -55,6 +55,9 @@ const Perfil = () => {
   const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
   const token = sessionStorage.getItem('token')
 
+  const [activeTab, setActiveTab] = useState('dados') // 'dados' | 'seguranca'
+
+
   // Estados do formulário de senha
   const [senhaAtual, setSenhaAtual] = useState('')
   const [novaSenha, setNovaSenha] = useState('')
@@ -170,10 +173,45 @@ const Perfil = () => {
           </p>
         </div>
 
-        <CRow className="g-4">
+        {/* TABS DE NAVEGAÇÃO */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: `1px solid ${tokens.border}`, paddingBottom: 16 }}>
+            <div 
+                onClick={() => setActiveTab('dados')}
+                style={{
+                    padding: '10px 20px',
+                    borderRadius: 20,
+                    cursor: 'pointer',
+                    fontWeight: 800,
+                    fontSize: 14,
+                    background: activeTab === 'dados' ? 'var(--color-text-primary)' : 'transparent',
+                    color: activeTab === 'dados' ? 'var(--color-bg-primary)' : tokens.foggy,
+                    transition: 'all 0.2s'
+                }}
+            >
+                👤 Informações Pessoais
+            </div>
+            <div 
+                onClick={() => setActiveTab('seguranca')}
+                style={{
+                    padding: '10px 20px',
+                    borderRadius: 20,
+                    cursor: 'pointer',
+                    fontWeight: 800,
+                    fontSize: 14,
+                    background: activeTab === 'seguranca' ? 'var(--color-text-primary)' : 'transparent',
+                    color: activeTab === 'seguranca' ? 'var(--color-bg-primary)' : tokens.foggy,
+                    transition: 'all 0.2s'
+                }}
+            >
+                🔒 Segurança da Conta
+            </div>
+        </div>
+
+        <div className="fade-in">
           
           {/* PAINEL DE INFORMAÇÕES PESSOAIS */}
-          <CCol xs={12} lg={6}>
+          {activeTab === 'dados' && (
+            <CCol xs={12}>
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
@@ -253,9 +291,11 @@ const Perfil = () => {
               </div>
             </motion.div>
           </CCol>
+          )}
 
           {/* PAINEL DE SEGURANÇA (ALTERAR SENHA) */}
-          <CCol xs={12} lg={6}>
+          {activeTab === 'seguranca' && (
+          <CCol xs={12}>
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
@@ -376,8 +416,9 @@ const Perfil = () => {
               </CForm>
             </motion.div>
           </CCol>
+          )}
 
-        </CRow>
+        </div>
       </div>
     </CContainer>
   )
