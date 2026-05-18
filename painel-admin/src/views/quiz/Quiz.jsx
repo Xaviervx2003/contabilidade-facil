@@ -33,9 +33,9 @@ import { useTheme } from '../../context/themeContext'
 import { getMatricula } from '../../utils/auth'
 
 /* ─── Utilitários Locais (Bulletproof) ───────────────────────────────────────── */
-const calculateScore = (total, correct) => {
-  if (!total || total === 0) return 0
-  return Number(((correct * 100) / total).toFixed(2))
+const calculateCorrectAnswersPercentage = (totalQuestionsCount, correctAnswersCount) => {
+  if (!totalQuestionsCount || totalQuestionsCount === 0) return 0
+  return Number(((correctAnswersCount * 100) / totalQuestionsCount).toFixed(2))
 }
 
 /* ─── Constantes e tokens ────────────────────────────────────────────────────── */
@@ -62,13 +62,17 @@ const QTD_OPTIONS = [
 const LETTERS = ['A', 'B', 'C', 'D', 'E']
 const SESSION_KEY = 'contabilidade_quiz_state'
 
-const obterLinkEmbed = (url) => {
-  if (!url) return null
-  let e = url
-  if (url.includes('youtube.com/watch?v=')) e = url.replace('watch?v=', 'embed/').split('&')[0]
-  else if (url.includes('youtu.be/')) e = url.replace('youtu.be/', 'www.youtube.com/embed/')
-  else if (url.includes('vimeo.com/')) e = url.replace('vimeo.com/', 'player.vimeo.com/video/')
-  return e
+const obterLinkEmbed = (videoUrl) => {
+  if (!videoUrl) return null
+  let embedUrl = videoUrl
+  if (videoUrl.includes('youtube.com/watch?v=')) {
+    embedUrl = videoUrl.replace('watch?v=', 'embed/').split('&')[0]
+  } else if (videoUrl.includes('youtu.be/')) {
+    embedUrl = videoUrl.replace('youtu.be/', 'www.youtube.com/embed/')
+  } else if (videoUrl.includes('vimeo.com/')) {
+    embedUrl = videoUrl.replace('vimeo.com/', 'player.vimeo.com/video/')
+  }
+  return embedUrl
 }
 
 const playSound = (correct, enabled) => {
@@ -298,10 +302,12 @@ const ReadyScreen = ({
     { nome: 'Direito', icon: '📜', peso: 'Média' },
   ]
 
-  const selecionarSugerido = (nome) => {
-    const d = materias.find(m => m.nome.toLowerCase().includes(nome.toLowerCase()) && !m.parent_id)
-    if (d) {
-      setDisciplinaPai(d.id)
+  const selecionarSugerido = (nomeMateria) => {
+    const matchedMateria = materias.find(
+      (materia) => materia.nome.toLowerCase().includes(nomeMateria.toLowerCase()) && !materia.parent_id
+    )
+    if (matchedMateria) {
+      setDisciplinaPai(matchedMateria.id)
       setActiveStep(1)
     }
   }
@@ -319,15 +325,15 @@ const ReadyScreen = ({
     { id: 4, title: 'Foco', icon: '5', completed: true },
   ]
 
-  const progressValue = (steps.filter((s) => s.completed).length / steps.length) * 100
+  const progressValue = (steps.filter((step) => step.completed).length / steps.length) * 100
 
   const raizes = useMemo(() => {
     return materias
-      .filter((m) => !m.parent_id)
-      .filter((m) => m.nome.toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter((materia) => !materia.parent_id)
+      .filter((materia) => materia.nome.toLowerCase().includes(searchTerm.toLowerCase()))
   }, [materias, searchTerm])
 
-  const disciplinaNome = disciplinaPai ? materias.find((r) => r.id === disciplinaPai)?.nome : ''
+  const disciplinaNome = disciplinaPai ? materias.find((materia) => materia.id === disciplinaPai)?.nome : ''
 
   return (
     <div style={{ animation: 'fade-up .35s ease' }}>
@@ -374,20 +380,20 @@ const ReadyScreen = ({
               🔥 Temas Relevantes (CFC)
             </div>
             <div className="d-flex flex-wrap gap-2">
-              {TOPICOS_RELEVANTES.map((t) => (
+              {TOPICOS_RELEVANTES.map((topico) => (
                 <div
-                  key={t.nome}
+                  key={topico.nome}
                   role="button"
                   tabIndex={0}
-                  onClick={() => selecionarSugerido(t.nome)}
-                  onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && selecionarSugerido(t.nome)}
+                  onClick={() => selecionarSugerido(topico.nome)}
+                  onKeyDown={(event) => (event.key === 'Enter' || event.key === ' ') && selecionarSugerido(topico.nome)}
                   className="px-3 py-2 rounded-pill border bg-body d-flex align-items-center gap-2 transition-all hover-translate-y-px shadow-sm"
                   style={{ cursor: 'pointer', fontSize: 12 }}
                 >
-                  <span>{t.icon}</span>
-                  <span className="fw-semibold text-body-primary">{t.nome}</span>
-                  <CBadge color={t.peso === 'Alta' ? 'danger' : 'warning'} className="rounded-pill" style={{ fontSize: 9 }}>
-                    {t.peso}
+                  <span>{topico.icon}</span>
+                  <span className="fw-semibold text-body-primary">{topico.nome}</span>
+                  <CBadge color={topico.peso === 'Alta' ? 'danger' : 'warning'} className="rounded-pill" style={{ fontSize: 9 }}>
+                    {topico.peso}
                   </CBadge>
                 </div>
               ))}
@@ -405,8 +411,8 @@ const ReadyScreen = ({
                 size="sm"
                 placeholder="🔍 Pesquisar disciplina..."
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value)
+                onChange={(event) => {
+                  setSearchTerm(event.target.value)
                   setVisibleLimit(6) // Reseta o limite ao pesquisar
                 }}
                 className="rounded-pill bg-body-tertiary border-0 px-3"
@@ -415,37 +421,37 @@ const ReadyScreen = ({
             </div>
           </div>
           <CRow className="g-3">
-            {raizes.slice(0, visibleLimit).map((r) => (
-              <CCol key={r.id} xs={12} sm={6}>
+            {raizes.slice(0, visibleLimit).map((materiaRaiz) => (
+              <CCol key={materiaRaiz.id} xs={12} sm={6}>
                 <div
-                  className={`p-3 rounded-4 border cursor-pointer h-100 transition-all ${disciplinaPai === r.id ? 'border-primary bg-primary bg-opacity-10 shadow-sm' : 'bg-body-tertiary border-transparent hover-shadow-sm'}`}
+                  className={`p-3 rounded-4 border cursor-pointer h-100 transition-all ${disciplinaPai === materiaRaiz.id ? 'border-primary bg-primary bg-opacity-10 shadow-sm' : 'bg-body-tertiary border-transparent hover-shadow-sm'}`}
                   style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      setDisciplinaPai(r.id)
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      setDisciplinaPai(materiaRaiz.id)
                       setActiveStep(1)
                     }
                   }}
                   onClick={() => {
-                    setDisciplinaPai(r.id)
+                    setDisciplinaPai(materiaRaiz.id)
                     setActiveStep(1)
                   }}
                 >
                   <div className="d-flex flex-column h-100 justify-content-between">
                     <div className="d-flex align-items-center gap-2 mb-2">
-                      <div className={`rounded-circle d-flex align-items-center justify-content-center ${disciplinaPai === r.id ? 'bg-primary text-white' : 'bg-body border text-secondary'}`} style={{ width: 32, height: 32, fontSize: 14 }}>
+                      <div className={`rounded-circle d-flex align-items-center justify-content-center ${disciplinaPai === materiaRaiz.id ? 'bg-primary text-white' : 'bg-body border text-secondary'}`} style={{ width: 32, height: 32, fontSize: 14 }}>
                         📖
                       </div>
-                      <span className={`fw-bold ${disciplinaPai === r.id ? 'text-primary' : 'text-body-primary'}`} style={{ fontSize: 14 }}>
-                        {r.nome}
+                      <span className={`fw-bold ${disciplinaPai === materiaRaiz.id ? 'text-primary' : 'text-body-primary'}`} style={{ fontSize: 14 }}>
+                        {materiaRaiz.nome}
                       </span>
                     </div>
                     <div className="d-flex justify-content-end">
-                      <CBadge color={disciplinaPai === r.id ? 'primary' : 'secondary'} variant="outline" className="rounded-pill px-2 py-1" style={{ fontSize: 10 }}>
-                        {r.total_questoes} Questões
+                      <CBadge color={disciplinaPai === materiaRaiz.id ? 'primary' : 'secondary'} variant="outline" className="rounded-pill px-2 py-1" style={{ fontSize: 10 }}>
+                        {materiaRaiz.total_questoes} Questões
                       </CBadge>
                     </div>
                   </div>
@@ -505,14 +511,14 @@ const ReadyScreen = ({
               {materiasSelected.length === 0 ? (
                 <span className="text-body-secondary small italic">Nenhum assunto selecionado</span>
               ) : (
-                materiasSelected.map(id => {
-                  const m = materias.find(x => String(x.id) === id)
+                materiasSelected.map((selectedId) => {
+                  const materia = materias.find((materiaObj) => String(materiaObj.id) === selectedId)
                   return (
-                    <CBadge key={id} color="primary" className="p-2 d-flex align-items-center gap-2 rounded-pill shadow-sm">
-                      <span style={{ fontSize: 12 }}>{m?.nome || id}</span>
+                    <CBadge key={selectedId} color="primary" className="p-2 d-flex align-items-center gap-2 rounded-pill shadow-sm">
+                      <span style={{ fontSize: 12 }}>{materia?.nome || selectedId}</span>
                       <span 
                         role="button" 
-                        onClick={() => setMateriasSelected(prev => prev.filter(x => x !== id))}
+                        onClick={() => setMateriasSelected((prevSelected) => prevSelected.filter((id) => id !== selectedId))}
                         className="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center"
                         style={{ cursor: 'pointer', fontSize: 10, width: 16, height: 16, fontWeight: 'bold' }}
                       >
@@ -555,12 +561,12 @@ const ReadyScreen = ({
               size="sm"
               className="rounded-3"
               value={bancaSelecionada}
-              onChange={(e) => setBancaSelecionada(e.target.value)}
+              onChange={(event) => setBancaSelecionada(event.target.value)}
             >
               <option value="">Todas as Bancas</option>
-              {filtrosDisponiveis.bancas.map((b) => (
-                <option key={b} value={b}>
-                  {b}
+              {filtrosDisponiveis.bancas.map((banca) => (
+                <option key={banca} value={banca}>
+                  {banca}
                 </option>
               ))}
             </CFormSelect>
@@ -573,12 +579,12 @@ const ReadyScreen = ({
               size="sm"
               className="rounded-3"
               value={orgaoSelecionado}
-              onChange={(e) => setOrgaoSelecionado(e.target.value)}
+              onChange={(event) => setOrgaoSelecionado(event.target.value)}
             >
               <option value="">Todos os Órgãos</option>
-              {filtrosDisponiveis.orgaos.map((o) => (
-                <option key={o} value={o}>
-                  {o}
+              {filtrosDisponiveis.orgaos.map((orgao) => (
+                <option key={orgao} value={orgao}>
+                  {orgao}
                 </option>
               ))}
             </CFormSelect>
@@ -591,12 +597,12 @@ const ReadyScreen = ({
               size="sm"
               className="rounded-3"
               value={cargoSelecionado}
-              onChange={(e) => setCargoSelecionado(e.target.value)}
+              onChange={(event) => setCargoSelecionado(event.target.value)}
             >
               <option value="">Todos os Cargos</option>
-              {filtrosDisponiveis.cargos.map((c) => (
-                <option key={c} value={c}>
-                  {c}
+              {filtrosDisponiveis.cargos.map((cargo) => (
+                <option key={cargo} value={cargo}>
+                  {cargo}
                 </option>
               ))}
             </CFormSelect>
@@ -609,12 +615,12 @@ const ReadyScreen = ({
               size="sm"
               className="rounded-3"
               value={anoSelecionado}
-              onChange={(e) => setAnoSelecionado(e.target.value)}
+              onChange={(event) => setAnoSelecionado(event.target.value)}
             >
               <option value="">Todos os Anos</option>
-              {filtrosDisponiveis.anos.map((a) => (
-                <option key={a} value={a}>
-                  {a}
+              {filtrosDisponiveis.anos.map((ano) => (
+                <option key={ano} value={ano}>
+                  {ano}
                 </option>
               ))}
             </CFormSelect>
@@ -639,16 +645,16 @@ const ReadyScreen = ({
               Selecione a Quantidade
             </label>
             <div className="d-flex flex-wrap gap-2 mb-3">
-              {[10, 20, 50, 0].map(val => (
+              {[10, 20, 50, 0].map((quantidadeOpcao) => (
                 <CButton
-                  key={val}
+                  key={quantidadeOpcao}
                   size="sm"
                   color="primary"
-                  variant={quantidade === val ? 'solid' : 'outline'}
+                  variant={quantidade === quantidadeOpcao ? 'solid' : 'outline'}
                   className="rounded-pill px-3"
-                  onClick={() => setQuantidade(val)}
+                  onClick={() => setQuantidade(quantidadeOpcao)}
                 >
-                  {val === 0 ? 'Todas' : val}
+                  {quantidadeOpcao === 0 ? 'Todas' : quantidadeOpcao}
                 </CButton>
               ))}
               <CButton
@@ -668,7 +674,7 @@ const ReadyScreen = ({
                 className="mt-2 rounded-3"
                 placeholder="Digite a qtd..."
                 value={quantidade}
-                onChange={(e) => setQuantidade(Math.max(1, Number(e.target.value)))}
+                onChange={(event) => setQuantidade(Math.max(1, Number(event.target.value)))}
               />
             )}
           </CCol>
@@ -680,11 +686,11 @@ const ReadyScreen = ({
               size="sm"
               className="rounded-3"
               value={tempoLimite}
-              onChange={(e) => setTempoLimite(Number(e.target.value))}
+              onChange={(event) => setTempoLimite(Number(event.target.value))}
             >
-              {TIME_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
+              {TIME_OPTIONS.map((tempoOpcao) => (
+                <option key={tempoOpcao.value} value={tempoOpcao.value}>
+                  {tempoOpcao.label}
                 </option>
               ))}
             </CFormSelect>
@@ -712,24 +718,24 @@ const ReadyScreen = ({
             { id: 'todas', icon: '📋', label: 'Todas', desc: 'Geral' },
             { id: 'nao_respondidas', icon: '🆕', label: 'Inéditas', desc: 'Novas' },
             { id: 'erros', icon: '❌', label: 'Erros', desc: 'Revisão' },
-          ].map((m) => (
-            <CCol key={m.id} xs={4}>
+          ].map((modoOpcao) => (
+            <CCol key={modoOpcao.id} xs={4}>
               <div
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    setModoEstudo(m.id)
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    setModoEstudo(modoOpcao.id)
                   }
                 }}
-                onClick={() => setModoEstudo(m.id)}
-                className={`rounded-4 p-3 text-center transition-all h-100 ${modoEstudo === m.id ? 'bg-primary text-white shadow-sm' : 'bg-body-tertiary border hover-shadow-sm'}`}
-                style={{ cursor: 'pointer', transition: 'all 0.2s ease', transform: modoEstudo === m.id ? 'scale(1.05)' : 'scale(1)' }}
+                onClick={() => setModoEstudo(modoOpcao.id)}
+                className={`rounded-4 p-3 text-center transition-all h-100 ${modoEstudo === modoOpcao.id ? 'bg-primary text-white shadow-sm' : 'bg-body-tertiary border hover-shadow-sm'}`}
+                style={{ cursor: 'pointer', transition: 'all 0.2s ease', transform: modoEstudo === modoOpcao.id ? 'scale(1.05)' : 'scale(1)' }}
               >
-                <div style={{ fontSize: 24, marginBottom: 4 }}>{m.icon}</div>
-                <div className="fw-bold" style={{ fontSize: 13 }}>{m.label}</div>
-                <div className={`small opacity-75 ${modoEstudo === m.id ? 'text-white' : 'text-secondary'}`} style={{ fontSize: 10 }}>{m.desc}</div>
+                <div style={{ fontSize: 24, marginBottom: 4 }}>{modoOpcao.icon}</div>
+                <div className="fw-bold" style={{ fontSize: 13 }}>{modoOpcao.label}</div>
+                <div className={`small opacity-75 ${modoEstudo === modoOpcao.id ? 'text-white' : 'text-secondary'}`} style={{ fontSize: 10 }}>{modoOpcao.desc}</div>
               </div>
             </CCol>
           ))}
@@ -785,7 +791,6 @@ const ReadyScreen = ({
 }
 
 const QuizRunning = ({
-  T,
   isDark,
   currentQuestion,
   queue,
@@ -819,12 +824,10 @@ const QuizRunning = ({
   handleFinishEarly,
   setError,
 }) => {
-  const ValLetra = (idx) => LETTERS[idx]
-
   // Ponto 12: Atalhos de teclado — A/B/C/D/E seleciona, Enter confirma, N próxima
   useEffect(() => {
-    const handler = (e) => {
-      const target = e.target
+    const handleKeyDown = (event) => {
+      const target = event.target
       if (
         target.tagName === 'INPUT' || 
         target.tagName === 'TEXTAREA' || 
@@ -832,29 +835,29 @@ const QuizRunning = ({
         target.isContentEditable
       ) return
 
-      const key = e.key.toUpperCase()
+      const key = event.key.toUpperCase()
 
       if (!isAnswerConfirmed && LETTERS.includes(key)) {
-        const idx = LETTERS.indexOf(key)
-        if (idx < currentQuestion.options.length) {
-          e.preventDefault()
+        const letterIndex = LETTERS.indexOf(key)
+        if (letterIndex < currentQuestion.options.length) {
+          event.preventDefault()
           onSelectOption(key)
         }
       }
 
       if (key === 'ENTER' && selectedOption && !isAnswerConfirmed) {
-        e.preventDefault()
+        event.preventDefault()
         onConfirmAnswer()
       }
 
       if ((key === 'N' || key === 'ARROWRIGHT') && isAnswerConfirmed) {
-        e.preventDefault()
+        event.preventDefault()
         onNextQuestion()
       }
     }
 
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isAnswerConfirmed, selectedOption, currentQuestion, onSelectOption, onConfirmAnswer, onNextQuestion])
 
   return (
@@ -913,9 +916,9 @@ const QuizRunning = ({
             currentQuestion.cargo,
           ]
             .filter(Boolean)
-            .map((tag, idx) => (
+            .map((tag, tagIndex) => (
               <CBadge
-                key={idx}
+                key={tagIndex}
                 color="info"
                 variant="outline"
                 shape="rounded-pill"
@@ -961,10 +964,10 @@ const QuizRunning = ({
       </div>
 
       <div className="d-flex flex-column gap-2 mb-4">
-        {currentQuestion.options.map((option, idx) => {
-          const val = LETTERS[idx]
-          const isSelected = selectedOption === val
-          const isCorrectAnswer = val === currentQuestion.answer
+        {currentQuestion.options.map((option, optionIndex) => {
+          const optionLetter = LETTERS[optionIndex]
+          const isSelected = selectedOption === optionLetter
+          const isCorrectAnswer = optionLetter === currentQuestion.answer
           
           let stateClass = 'bg-body border'
           let circleClass = 'bg-body-tertiary text-body-secondary'
@@ -984,11 +987,11 @@ const QuizRunning = ({
 
           return (
             <div
-              key={val}
+              key={optionLetter}
               role="button"
               tabIndex={isAnswerConfirmed ? -1 : 0}
-              onClick={() => !isAnswerConfirmed && onSelectOption(val)}
-              onKeyDown={(e) => !isAnswerConfirmed && (e.key === 'Enter' || e.key === ' ') && onSelectOption(val)}
+              onClick={() => !isAnswerConfirmed && onSelectOption(optionLetter)}
+              onKeyDown={(event) => !isAnswerConfirmed && (event.key === 'Enter' || event.key === ' ') && onSelectOption(optionLetter)}
               className={`d-flex align-items-center gap-3 p-3 rounded-4 transition-all quiz-option ${stateClass} ${!isAnswerConfirmed ? 'cursor-pointer hover-translate-y-px' : ''}`}
               style={{ cursor: isAnswerConfirmed ? 'default' : 'pointer', minHeight: 64 }}
             >
@@ -996,7 +999,7 @@ const QuizRunning = ({
                 className={`rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 transition-colors ${circleClass}`}
                 style={{ width: 32, height: 32, fontSize: 14 }}
               >
-                {val}
+                {optionLetter}
               </div>
               <div className={`flex-grow-1 ${isSelected || (isAnswerConfirmed && isCorrectAnswer) ? 'fw-bold' : ''}`} style={{ fontSize: 14, lineHeight: 1.5 }}>
                 {option}
@@ -1100,22 +1103,22 @@ const QuizRunning = ({
                   💬 Comentários da Comunidade
                 </div>
                 <div className="p-3">
-                  {currentQuestion.comentarios_publicos.map((c, i) => (
+                  {currentQuestion.comentarios_publicos.map((comentario, comentarioIndex) => (
                     <div
-                      key={i}
-                      className={`${i < currentQuestion.comentarios_publicos.length - 1 ? 'mb-3' : ''}`}
+                      key={comentarioIndex}
+                      className={`${comentarioIndex < currentQuestion.comentarios_publicos.length - 1 ? 'mb-3' : ''}`}
                     >
                       <div className="d-flex justify-content-between">
-                        <strong className="text-success small">{c.nome_aluno}</strong>
+                        <strong className="text-success small">{comentario.nome_aluno}</strong>
                         <small className="text-body-secondary">
-                          {new Date(c.data_criacao).toLocaleDateString('pt-BR')}
+                          {new Date(comentario.data_criacao).toLocaleDateString('pt-BR')}
                         </small>
                       </div>
-                      <p className="small fst-italic mt-1 mb-0">"{c.texto}"</p>
-                      {c.resposta_professor && (
+                      <p className="small fst-italic mt-1 mb-0">"{comentario.texto}"</p>
+                      {comentario.resposta_professor && (
                         <div className="mt-2 ms-3 p-2 bg-primary bg-opacity-10 border-start border-primary border-3 rounded-end">
                           <small className="fw-bold text-primary">👨🏫 Professor:</small>{' '}
-                          <small className="text-body-secondary">{c.resposta_professor}</small>
+                          <small className="text-body-secondary">{comentario.resposta_professor}</small>
                         </div>
                       )}
                     </div>
@@ -1171,7 +1174,6 @@ const QuizRunning = ({
 }
 
 const FinishedScreen = ({
-  T,
   grade,
   gradeColor,
   finalScore,
@@ -1763,7 +1765,7 @@ const Quiz = () => {
     setError('')
     try {
       const respondidas = questionsAndAnswers.length
-      const porcentagem = calculateScore(respondidas, score)
+      const porcentagem = calculateCorrectAnswersPercentage(respondidas, score)
       const matriculaOuNome = matricula || nomeAluno
       const materiaLabel =
         materiasSelected.length > 0
@@ -1822,7 +1824,7 @@ const Quiz = () => {
 
   const handleShare = useCallback(async () => {
     const totalResp = questionsAndAnswers.length
-    const scorePerc = calculateScore(totalResp || questions.length, score)
+    const scorePerc = calculateCorrectAnswersPercentage(totalResp || questions.length, score)
     const m = Math.floor(elapsedSeconds / 60)
     const s = elapsedSeconds % 60
     const text = `🎓 Fiz o Quiz de Contabilidade Fácil!\n✅ ${score} acertos de ${totalResp} (${scorePerc}%)\n⏱ Tempo: ${m}m ${s}s\n📘 Estude também em Contabilidade Fácil!`
@@ -1841,7 +1843,7 @@ const Quiz = () => {
   const currentQuestion = (status === 'quiz' && queue.length > 0) ? (questions[currentIndex] ?? null) : null
   const totalAnswered = questionsAndAnswers.length
   const totalQuestions = questions.length
-  const finalScore = calculateScore(totalAnswered || totalQuestions, score)
+  const finalScore = calculateCorrectAnswersPercentage(totalAnswered || totalQuestions, score)
   const timerCritical = remainingSeconds <= 60
   const progress = totalQuestions ? (totalAnswered / totalQuestions) * 100 : 0
   const isRevisiting = status === 'quiz' && skippedSet.has(currentIndex)
