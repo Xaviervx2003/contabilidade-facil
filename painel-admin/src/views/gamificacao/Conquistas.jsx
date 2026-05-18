@@ -38,12 +38,14 @@ const Conquistas = () => {
                 console.log('✅ Matrícula carregada:', matricula)
 
                 const url = `${API_URL}/api/aluno/conquistas/${matricula}`
+                const token = sessionStorage.getItem('token')
 
                 console.log('📍 Buscando de:', url)
 
                 const res = await fetch(url, {
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                 })
 
