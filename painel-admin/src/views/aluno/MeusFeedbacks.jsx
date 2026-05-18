@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
@@ -21,6 +21,7 @@ import {
 import { API_URL } from '../../config'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getAlunoMatricula } from '../../utils/auth'
+import toast from 'react-hot-toast'
 
 /* ── Tokens de Design (Airbnb Premium Style) ────────────── */
 const tokens = {
@@ -160,7 +161,11 @@ const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => {
                         Questão #{item.questao_id}: {item.enunciado}
                     </h4>
                     <p style={{ fontSize: 12, color: tokens.foggy, fontWeight: 600, margin: 0, fontStyle: 'italic' }}>
-                        "{(item.texto || 'Sem descrição').substring(0, 100)}..."
+                        {item.texto
+                            ? item.texto.length > 100
+                                ? `"${item.texto.substring(0, 100)}..."`
+                                : `"${item.texto}"`
+                            : 'Sem descrição'}
                     </p>
                 </div>
                 <div style={{
@@ -271,8 +276,6 @@ const MeusFeedbacks = () => {
     
     // Estados do Formulário de Nova Dúvida (Helpdesk)
     const [formModalOpen, setFormModalOpen] = useState(false)
-    const [questoesResolvidas, setQuestoesResolvidas] = useState([])
-    const [loadingQuestoes, setLoadingQuestoes] = useState(false)
     const [selectedQuestaoParaDuvida, setSelectedQuestaoParaDuvida] = useState('')
     const [textoDuvida, setTextoDuvida] = useState('')
     const [marcadaConfusa, setMarcadaConfusa] = useState(false)
@@ -288,117 +291,110 @@ const MeusFeedbacks = () => {
 
     const nome = sessionStorage.getItem('nome')
     const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
+    const token = sessionStorage.getItem('token')
 
-    // Sistema de Diagnóstico Integrado
+    // ── Sistema de Diagnóstico (apenas em desenvolvimento) ────────
     const [debugLogs, setDebugLogs] = useState([])
     const [showDebugPanel, setShowDebugPanel] = useState(false)
-    const addDebugLog = (msg, type = 'info') => {
-        setDebugLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), msg, type }])
-        console.log(`[Diagnostic] [${type}] ${msg}`)
-    }
+    // useCallback → função estável, não recriada a cada render
+    const addDebugLog = useCallback((msg, type = 'info') => {
+        // Limita o buffer a 50 entradas para evitar vazamento de memória
+        setDebugLogs(prev => [...prev.slice(-49), { time: new Date().toLocaleTimeString(), msg, type }])
+        if (import.meta.env.DEV) console.log(`[Diagnostic] [${type}] ${msg}`)
+    }, [])
 
-    // Carregar feedbacks
+    // ── Carregar feedbacks via nova rota autenticada (v2) ─────────
     const { data: feedbacks = [], isLoading: loading } = useQuery({
-        queryKey: ['meusFeedbacks', nome],
+        queryKey: ['meusFeedbacks', matricula], // usa matricula — identificador único e imutável
         queryFn: async () => {
-            addDebugLog(`Carregando feedbacks para: ${nome}...`, 'info')
-            try {
-                const res = await fetch(`${API_URL}/api/aluno/meus-feedbacks/${encodeURIComponent(nome)}?por_pagina=50`)
-                addDebugLog(`Resposta de feedbacks: ${res.status}`, res.ok ? 'success' : 'error')
-                if (!res.ok) throw new Error(`HTTP ${res.status}`)
-                const data = await res.json()
-                addDebugLog(`Feedbacks carregados: ${data.feedbacks?.length || 0} itens.`, 'success')
-                return data.feedbacks || []
-            } catch (err) {
-                addDebugLog(`Erro ao carregar feedbacks: ${err.message}`, 'error')
-                throw err;
-            }
+            addDebugLog(`Carregando feedbacks para matrícula: ${matricula}...`, 'info')
+            const res = await fetch(`${API_URL}/api/aluno/meus-feedbacks-v2?por_pagina=50`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            addDebugLog(`Resposta de feedbacks: ${res.status}`, res.ok ? 'success' : 'error')
+            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            const data = await res.json()
+            addDebugLog(`Feedbacks carregados: ${data.feedbacks?.length || 0} itens.`, 'success')
+            return data.feedbacks || []
         },
-        enabled: !!nome,
+        enabled: !!matricula && !!token,
+        staleTime: 1000 * 60 * 2, // cache 2 minutos
     })
 
-    // Carregar últimas questões resolvidas do aluno para o Dropdown do formulário
-    const carregarQuestoesParaForm = () => {
-        if (!matricula) {
-            addDebugLog('Aviso: matrícula do aluno está vazia ou não identificada.', 'warning')
-            return
-        }
-        addDebugLog(`Carregando questões resolvidas para matrícula: ${matricula}...`, 'info')
-        setLoadingQuestoes(true)
-        fetch(`${API_URL}/api/aluno/questoes-respondidas?matricula=${matricula}&por_pagina=30`)
-            .then(res => {
-                addDebugLog(`API de questões resolvidas respondeu com status: ${res.status}`, res.ok ? 'success' : 'error')
-                if (!res.ok) throw new Error(`HTTP ${res.status}`)
-                return res.json()
-            })
-            .then(data => {
-                const questoes = data.questoes || []
-                addDebugLog(`Carregadas ${questoes.length} questões resolvidas com sucesso.`, 'success')
-                setQuestoesResolvidas(questoes)
-                setLoadingQuestoes(false)
-            })
-            .catch(err => {
-                addDebugLog(`Falha ao buscar questões resolvidas: ${err.message}`, 'error')
-                setLoadingQuestoes(false)
-            })
-    }
+    // ── Questoes resolvidas para o dropdown (com cache de 5min) ──
+    const { data: questoesResolvidas = [], isLoading: loadingQuestoes } = useQuery({
+        queryKey: ['questoes-resolvidas-form', matricula],
+        queryFn: async () => {
+            addDebugLog(`Carregando questões resolvidas para matrícula: ${matricula}...`, 'info')
+            const res = await fetch(
+                `${API_URL}/api/aluno/questoes-respondidas?matricula=${matricula}&por_pagina=30`,
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            )
+            addDebugLog(`API de questões respondeu com status: ${res.status}`, res.ok ? 'success' : 'error')
+            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            const data = await res.json()
+            addDebugLog(`Carregadas ${data.questoes?.length || 0} questões resolvidas.`, 'success')
+            return data.questoes || []
+        },
+        enabled: formModalOpen && !!matricula && !!token,
+        staleTime: 1000 * 60 * 5, // cache 5 minutos — não faz fetch toda vez que o modal abre
+    })
 
     const abrirNovaPergunta = () => {
-        try {
-            addDebugLog('Abrindo modal de nova dúvida acadêmica...', 'info')
-            setDuvidaMessage(null)
-            setTextoDuvida('')
-            setMarcadaConfusa(false)
-            setSelectedQuestaoParaDuvida('')
-            setFormModalOpen(true)
-            addDebugLog('Modal de dúvidas aberto com sucesso.', 'success')
-            carregarQuestoesParaForm()
-        } catch (err) {
-            addDebugLog(`Erro de runtime ao abrir modal: ${err.message}`, 'error')
-            alert('Erro de runtime ao abrir modal: ' + err.message)
-        }
+        addDebugLog('Abrindo modal de nova dúvida acadêmica...', 'info')
+        setDuvidaMessage(null)
+        setTextoDuvida('')
+        setMarcadaConfusa(false)
+        setSelectedQuestaoParaDuvida('')
+        setFormModalOpen(true)
+        addDebugLog('Modal de dúvidas aberto com sucesso.', 'success')
     }
 
-    // Submissão do novo feedback
-    const handleSubmitDuvida = (e) => {
+    // ── Submissão do novo feedback ───────────────────────────────
+    const handleSubmitDuvida = async (e) => {
         e.preventDefault()
         if (!textoDuvida.trim()) {
             setDuvidaMessage({ tipo: 'danger', texto: 'Escreva a sua dúvida ou sugestão.' })
             return
         }
 
+        addDebugLog(`Enviando dúvida para a API...`, 'info')
         setSubmittingDuvida(true)
         setDuvidaMessage(null)
 
-        fetch(`${API_URL}/api/feedbacks_questoes`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                questao_id: selectedQuestaoParaDuvida ? parseInt(selectedQuestaoParaDuvida) : null,
-                nome_aluno: nome || 'Aluno Anônimo',
-                texto: textoDuvida,
-                marcada_confusa: marcadaConfusa
+        try {
+            const res = await fetch(`${API_URL}/api/feedbacks_questoes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // segurança: token JWT
+                },
+                body: JSON.stringify({
+                    questao_id: selectedQuestaoParaDuvida ? parseInt(selectedQuestaoParaDuvida) : null,
+                    nome_aluno: nome || 'Aluno Anônimo',
+                    texto: textoDuvida,
+                    marcada_confusa: marcadaConfusa
+                })
             })
-        })
-        .then(res => res.json())
-        .then(resData => {
+
+            // Verificar status HTTP antes de parsear JSON
+            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            const resData = await res.json()
+            addDebugLog(`API respondeu: ${resData.sucesso ? 'sucesso' : resData.mensagem}`, resData.sucesso ? 'success' : 'warning')
+
             setSubmittingDuvida(false)
-            if (resData.sucesso) {
+            if (resData.sucesso || resData.id) {
                 setDuvidaMessage({ tipo: 'success', texto: 'Dúvida enviada com sucesso ao professor!' })
-                queryClient.invalidateQueries({ queryKey: ['meusFeedbacks', nome] })
-                setTimeout(() => {
-                    setFormModalOpen(false)
-                }, 1500)
+                queryClient.invalidateQueries({ queryKey: ['meusFeedbacks', matricula] })
+                setTimeout(() => { setFormModalOpen(false) }, 1500)
             } else {
                 setDuvidaMessage({ tipo: 'danger', texto: resData.mensagem || 'Erro ao enviar dúvida.' })
             }
-        })
-        .catch(() => {
+        } catch (err) {
+            addDebugLog(`Erro na submissão: ${err.message}`, 'error')
             setSubmittingDuvida(false)
-            setDuvidaMessage({ tipo: 'danger', texto: 'Erro de conexão ao enviar.' })
-        })
+            setDuvidaMessage({ tipo: 'danger', texto: `Erro de conexão: ${err.message}` })
+        }
     }
 
     // Abrir Modal de Revisão Completa da Questão
@@ -889,7 +885,8 @@ const MeusFeedbacks = () => {
                 </div>
             </CModal>
 
-            {/* PAINEL DE DIAGNÓSTICO INTEGRADO */}
+            {/* PAINEL DE DIAGNÓSTICO — apenas em desenvolvimento */}
+            {import.meta.env.DEV && (
             <div style={{
                 position: 'fixed',
                 bottom: 24,
@@ -991,6 +988,7 @@ const MeusFeedbacks = () => {
                     </div>
                 )}
             </div>
+            )}
         </div>
     )
 }

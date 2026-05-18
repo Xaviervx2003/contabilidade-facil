@@ -72,16 +72,21 @@ const MinhasQuestoes = () => {
     const [submittingDuvida, setSubmittingDuvida] = useState(false)
     const [duvidaMessage, setDuvidaMessage] = useState(null)
 
-    // Sistema de Diagnóstico Integrado
-    const [debugLogs, setDebugLogs] = useState([])
-    const [showDebugPanel, setShowDebugPanel] = useState(false)
-    const addDebugLog = (msg, type = 'info') => {
-        setDebugLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), msg, type }])
-        console.log(`[Diagnostic] [${type}] ${msg}`)
-    }
-
     const nome = sessionStorage.getItem('nome')
     const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
+    const token = sessionStorage.getItem('token')
+
+    // ── Diagnóstico (apenas em desenvolvimento) ────────────────────────
+    const [debugLogs, setDebugLogs] = useState([])
+    const [showDebugPanel, setShowDebugPanel] = useState(false)
+    // useCallback: função estável — não recriada em cada render
+    const addDebugLog = useCallback((msg, type = 'info') => {
+        setDebugLogs(prev => [...prev.slice(-49), { time: new Date().toLocaleTimeString(), msg, type }])
+        if (import.meta.env.DEV) console.log(`[Diagnostic] [${type}] ${msg}`)
+    }, [])
+
+    // ── Ref para cleanup do setTimeout (evita setState em componente desmontado) ──
+    const closeTimerRef = useRef(null)
 
     // Submissão de dúvida integrada
     const handleSubmitDuvida = (e) => {
@@ -98,7 +103,8 @@ const MinhasQuestoes = () => {
         fetch(`${API_URL}/api/feedbacks_questoes`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // autenticado
             },
             body: JSON.stringify({
                 questao_id: selectedQuestaoId,
@@ -117,7 +123,8 @@ const MinhasQuestoes = () => {
             if (resData.sucesso || resData.id) {
                 addDebugLog('Dúvida enviada com sucesso ao banco de dados!', 'success')
                 setDuvidaMessage({ tipo: 'success', texto: 'Dúvida enviada com sucesso ao professor!' })
-                setTimeout(() => {
+                // Salvar ref do timer para cleanup seguro
+                closeTimerRef.current = setTimeout(() => {
                     setDuvidaModalOpen(false)
                     setTextoDuvida('')
                     setMarcadaConfusa(false)
@@ -134,6 +141,11 @@ const MinhasQuestoes = () => {
             setDuvidaMessage({ tipo: 'danger', texto: 'Erro de conexão ao enviar.' })
         })
     }
+
+    // Limpar timer ao desmontar o componente
+    useEffect(() => {
+        return () => { if (closeTimerRef.current) clearTimeout(closeTimerRef.current) }
+    }, [])
 
     // Fechar dropdowns ao clicar fora
     useEffect(() => {
@@ -159,14 +171,11 @@ const MinhasQuestoes = () => {
 
     // Carregar métricas de performance do estudante
     useEffect(() => {
-        if (!matricula) return
+        if (!matricula || !token) return
         setLoadingMetrics(true)
-        const token = sessionStorage.getItem('token')
         
         fetch(`${API_URL}/api/metricas-estudantes/desempenho/${matricula}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         })
         .then(res => res.ok ? res.json() : null)
         .then(data => {
@@ -174,7 +183,7 @@ const MinhasQuestoes = () => {
             setLoadingMetrics(false)
         })
         .catch(() => setLoadingMetrics(false))
-    }, [matricula])
+    }, [matricula, token])
 
     // Carregar lista de questões respondidas com paginação e filtros
     const carregarQuestoes = useCallback(() => {
@@ -188,7 +197,9 @@ const MinhasQuestoes = () => {
         if (filtroAcerto) params.set('acerto', filtroAcerto)
         if (filtroMateria) params.set('materia_id', filtroMateria)
 
-        fetch(`${API_URL}/api/aluno/questoes-respondidas?${params.toString()}`)
+        fetch(`${API_URL}/api/aluno/questoes-respondidas?${params.toString()}`, {
+            headers: { 'Authorization': `Bearer ${token}` } // autenticado
+        })
             .then(res => {
                 if (!res.ok) throw new Error('Erro na requisição')
                 return res.json()
@@ -198,7 +209,7 @@ const MinhasQuestoes = () => {
                 setLoading(false)
             })
             .catch(() => setLoading(false))
-    }, [matricula, pagina, filtroAcerto, filtroMateria])
+    }, [matricula, pagina, filtroAcerto, filtroMateria, token])
 
     useEffect(() => {
         carregarQuestoes()
@@ -225,7 +236,7 @@ const MinhasQuestoes = () => {
                 setLoadingDetail(false)
             })
             .catch(err => {
-                console.error(err)
+                if (import.meta.env.DEV) console.error('[MinhasQuestoes] Erro ao carregar detalhe:', err)
                 setErrorDetail('Erro ao carregar detalhes da questão.')
                 setLoadingDetail(false)
             })
@@ -1067,7 +1078,8 @@ const MinhasQuestoes = () => {
                 </div>
             </CModal>
 
-            {/* PAINEL DE DIAGNÓSTICO INTEGRADO */}
+            {/* PAINEL DE DIAGNÓSTICO — apenas em desenvolvimento */}
+            {import.meta.env.DEV && (
             <div style={{
                 position: 'fixed',
                 bottom: 24,
@@ -1169,6 +1181,7 @@ const MinhasQuestoes = () => {
                     </div>
                 )}
             </div>
+            )}
         </div>
     )
 }

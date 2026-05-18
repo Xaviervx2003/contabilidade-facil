@@ -291,7 +291,10 @@ const DashboardAluno = () => {
     queryKey: ['dashboard-aluno', matricula],
     queryFn: async () => {
       if (!matricula) throw new Error('Faça login primeiro')
-      const res = await fetch(`${API_URL}/api/aluno/dashboard/${matricula}`)
+      const token = sessionStorage.getItem('token')
+      const res = await fetch(`${API_URL}/api/aluno/dashboard/${matricula}`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      })
       if (!res.ok) throw new Error('Erro ao buscar dados')
       const json = await res.json()
       if (json.nome) sessionStorage.setItem('nome', json.nome)
@@ -345,7 +348,6 @@ const DashboardAluno = () => {
     <div style={containerStyle}>
       <style>{`
         @keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
       `}</style>
 
       <div style={{ maxWidth: 960, margin: '0 auto', fontFamily: "'Nunito', sans-serif" }}>

@@ -4,14 +4,16 @@ routes/aluno.py — Funcionalidades da visão do Aluno.
 Rotas:
   GET /api/aluno/historico-grafico/{matricula}   — dados agregados por mês para gráficos
   GET /api/aluno/questoes-respondidas            — histórico detalhado de tentativas
-  GET /api/aluno/meus-feedbacks/{nome}           — feedbacks do aluno
+  GET /api/aluno/meus-feedbacks/{nome}           — feedbacks do aluno (legado)
+  GET /api/aluno/meus-feedbacks-v2               — feedbacks por matricula (seguro)
   GET /api/aluno/historico-diario/{matricula}    — série diária de questões
   GET /api/aluno/historico-filtrado/{matricula}  — dados filtrados por período/matéria/acerto
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional
 from database import get_conexao
+from utils.jwt_auth import usuario_autenticado
 
 router = APIRouter(prefix="/api/aluno", tags=["Aluno"])
 
@@ -244,6 +246,84 @@ def meus_feedbacks(
                     "id": r[0],
                     "questao_id": r[1],
                     "enunciado": r[2][:120] + "..." if len(r[2]) > 120 else r[2],
+                    "texto": r[3],
+                    "marcada_confusa": r[4],
+                    "resolvido": r[5],
+                    "resposta_professor": r[6],
+                    "data": r[7].isoformat() if r[7] else None,
+                })
+
+        return {
+            "feedbacks": resultados,
+            "total": total,
+            "pagina": pagina,
+            "por_pagina": por_pagina,
+            "total_paginas": -(-total // por_pagina),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar feedbacks: {str(e)}")
+
+
+@router.get("/meus-feedbacks-v2")
+def meus_feedbacks_por_matricula(
+    pagina: int = Query(1, ge=1),
+    por_pagina: int = Query(50, ge=1, le=100),
+    payload: dict = Depends(usuario_autenticado),
+):
+    """
+    Retorna feedbacks do aluno logado com base na matrícula do JWT.
+    Mais seguro que a rota legada que usa nome como parâmetro.
+    """
+    matricula = payload.get("sub")
+    if not matricula:
+        raise HTTPException(status_code=401, detail="Matrícula não encontrada no token.")
+
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+
+            # Buscar o nome do aluno pela matrícula
+            cursor.execute(
+                "SELECT nome FROM usuarios WHERE matricula = %s",
+                (matricula,)
+            )
+            row = cursor.fetchone()
+            nome_aluno = row[0] if row else None
+
+            if not nome_aluno:
+                return {"feedbacks": [], "total": 0, "pagina": pagina, "por_pagina": por_pagina, "total_paginas": 0}
+
+            cursor.execute(
+                "SELECT COUNT(*) FROM feedbacks_questoes WHERE nome_aluno = %s",
+                (nome_aluno,)
+            )
+            total = cursor.fetchone()[0]
+
+            cursor.execute("""
+                SELECT
+                    f.id,
+                    f.questao_id,
+                    q.enunciado,
+                    f.texto,
+                    f.marcada_confusa,
+                    f.resolvido,
+                    f.resposta_professor,
+                    f.data_criacao
+                FROM feedbacks_questoes f
+                LEFT JOIN questoes q ON q.id = f.questao_id
+                WHERE f.nome_aluno = %s
+                ORDER BY f.data_criacao DESC
+                LIMIT %s OFFSET %s
+            """, (nome_aluno, por_pagina, (pagina - 1) * por_pagina))
+
+            rows = cursor.fetchall()
+            resultados = []
+            for r in rows:
+                enunciado = r[2] or ''
+                resultados.append({
+                    "id": r[0],
+                    "questao_id": r[1],
+                    "enunciado": enunciado[:120] + "..." if len(enunciado) > 120 else enunciado,
                     "texto": r[3],
                     "marcada_confusa": r[4],
                     "resolvido": r[5],
