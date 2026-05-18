@@ -1,15 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
     CContainer,
     CRow,
     CCol,
-    CCard,
-    CCardBody,
     CSpinner,
     CAlert,
     CButton,
-    CFormSelect,
-    CFormLabel,
     CPagination,
     CPaginationItem,
     CModal,
@@ -51,6 +47,14 @@ const MinhasQuestoes = () => {
     const [metrics, setMetrics] = useState(null)
     const [loadingMetrics, setLoadingMetrics] = useState(true)
 
+    // Estados dos Custom Dropdowns (Airbnb Style)
+    const [activeDropdown, setActiveDropdown] = useState(null) // 'status' ou 'materia' ou null
+    const [buscaMateria, setBuscaMateria] = useState('')
+    
+    // Refs para fechar ao clicar fora
+    const dropdownStatusRef = useRef(null)
+    const dropdownMateriaRef = useRef(null)
+
     // Estados do Modal de Detalhes da Questão
     const [selectedQuestaoId, setSelectedQuestaoId] = useState(null)
     const [questaoDetail, setQuestaoDetail] = useState(null)
@@ -59,6 +63,20 @@ const MinhasQuestoes = () => {
     const [errorDetail, setErrorDetail] = useState(null)
 
     const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
+
+    // Fechar dropdowns ao clicar fora
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (activeDropdown === 'status' && dropdownStatusRef.current && !dropdownStatusRef.current.contains(event.target)) {
+                setActiveDropdown(null)
+            }
+            if (activeDropdown === 'materia' && dropdownMateriaRef.current && !dropdownMateriaRef.current.contains(event.target)) {
+                setActiveDropdown(null)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [activeDropdown])
 
     // Carregar matérias para os filtros
     useEffect(() => {
@@ -127,7 +145,6 @@ const MinhasQuestoes = () => {
                 return res.json()
             })
             .then(resData => {
-                // O endpoint /api/questoes retorna { sucesso: true, dados: [...] } ou array direto
                 const questaoLista = resData.dados?.data || resData.dados || resData || []
                 if (questaoLista.length > 0) {
                     setQuestaoDetail(questaoLista[0])
@@ -151,6 +168,25 @@ const MinhasQuestoes = () => {
 
     const { questoes, total, total_paginas } = dados
 
+    // Rótulo amigável do status de acerto
+    const obterRotuloStatus = () => {
+        if (filtroAcerto === 'acerto') return 'Apenas Acertos ✅'
+        if (filtroAcerto === 'erro') return 'Apenas Erros ❌'
+        return 'Todas as resoluções'
+    }
+
+    // Rótulo amigável da matéria selecionada
+    const obterRotuloMateria = () => {
+        if (!filtroMateria) return 'Todas as matérias'
+        const mat = materias.find(m => String(m.id) === String(filtroMateria))
+        return mat ? mat.nome : 'Todas as matérias'
+    }
+
+    // Filtrar matérias na busca interna do dropdown
+    const materiasFiltradas = materias.filter(m => 
+        m.nome.toLowerCase().includes(buscaMateria.toLowerCase())
+    )
+
     return (
         <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Nunito', sans-serif" }}>
             <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
@@ -165,7 +201,7 @@ const MinhasQuestoes = () => {
                         <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Sua Performance</div>
                         <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>Minhas Questões 📝</div>
                         <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
-                            Acompanhe seu histórico detalhado de tentativas, analise erros e assista a resoluções em vídeo.
+                            Acompanhe seu histórico detalhado de resoluções e revise explicações com apoio em vídeo.
                         </div>
                     </motion.div>
 
@@ -268,64 +304,242 @@ const MinhasQuestoes = () => {
                         </CCol>
                     </CRow>
 
-                    {/* FILTROS GLASSMORPHIC */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        style={{
-                            background: tokens.bg,
-                            border: `1px solid ${tokens.border}`,
-                            borderRadius: 24,
-                            padding: 20,
-                            marginBottom: 24,
-                            boxShadow: '0 8px 30px rgba(0,0,0,0.02)'
-                        }}
-                    >
-                        <CRow className="g-3">
-                            <CCol xs={12} md={6}>
-                                <CFormLabel style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>Status de Acerto</CFormLabel>
-                                <CFormSelect 
-                                    value={filtroAcerto} 
-                                    onChange={e => { setFiltroAcerto(e.target.value); setPagina(1) }}
+                    {/* FILTROS EXCLUSIVOS AIRBNB STYLE */}
+                    <div style={{ position: 'relative', zIndex: 10 }}>
+                        <div className="d-flex flex-column flex-md-row gap-3 align-items-center mb-4">
+                            
+                            {/* Segmento 1: Status de Acertos */}
+                            <div 
+                                ref={dropdownStatusRef}
+                                style={{ flex: 1, width: '100%', position: 'relative' }}
+                            >
+                                <div 
+                                    onClick={() => setActiveDropdown(activeDropdown === 'status' ? null : 'status')}
                                     style={{
-                                        borderRadius: 12,
-                                        border: `1px solid ${tokens.border}`,
-                                        background: tokens.bgSub,
-                                        color: 'var(--color-text-primary)',
-                                        padding: '10px 14px',
-                                        fontSize: 13,
-                                        fontWeight: 600
+                                        background: tokens.bg,
+                                        border: `1px solid ${activeDropdown === 'status' ? tokens.rausch : tokens.border}`,
+                                        borderRadius: 20,
+                                        padding: '12px 20px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        transition: 'all 0.2s',
+                                        boxShadow: '0 8px 24px rgba(0,0,0,0.02)'
                                     }}
                                 >
-                                    <option value="">Todas as resoluções</option>
-                                    <option value="acerto">Apenas Acertos</option>
-                                    <option value="erro">Apenas Erros</option>
-                                </CFormSelect>
-                            </CCol>
-                            <CCol xs={12} md={6}>
-                                <CFormLabel style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>Matéria Relacionada</CFormLabel>
-                                <CFormSelect 
-                                    value={filtroMateria} 
-                                    onChange={e => { setFiltroMateria(e.target.value); setPagina(1) }}
+                                    <div>
+                                        <div style={{ fontSize: 9, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status da Resolução</div>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginTop: 2 }}>
+                                            {obterRotuloStatus()}
+                                        </div>
+                                    </div>
+                                    <Icon 
+                                        icon="solar:alt-arrow-down-bold" 
+                                        style={{ color: tokens.foggy, transition: 'transform 0.2s', transform: activeDropdown === 'status' ? 'rotate(180deg)' : 'none' }} 
+                                        width="14"
+                                    />
+                                </div>
+
+                                <AnimatePresence>
+                                    {activeDropdown === 'status' && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            transition={{ duration: 0.15 }}
+                                            style={{
+                                                position: 'absolute',
+                                                top: '108%',
+                                                left: 0,
+                                                width: '100%',
+                                                background: tokens.bg,
+                                                border: `1px solid ${tokens.border}`,
+                                                borderRadius: 18,
+                                                boxShadow: '0 12px 36px rgba(0,0,0,0.1)',
+                                                padding: 10,
+                                                zIndex: 99,
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                                {/* Option 1: Todas */}
+                                                <div 
+                                                    onClick={() => { setFiltroAcerto(''); setPagina(1); setActiveDropdown(null) }}
+                                                    style={{
+                                                        padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
+                                                        display: 'flex', alignItems: 'center', gap: 10,
+                                                        background: filtroAcerto === '' ? 'var(--color-bg-tertiary)' : 'transparent',
+                                                        transition: 'background 0.2s'
+                                                    }}
+                                                >
+                                                    <Icon icon="solar:checklist-bold-duotone" style={{ color: tokens.foggy }} width="18" />
+                                                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Todas as resoluções</span>
+                                                </div>
+
+                                                {/* Option 2: Acertos */}
+                                                <div 
+                                                    onClick={() => { setFiltroAcerto('acerto'); setPagina(1); setActiveDropdown(null) }}
+                                                    style={{
+                                                        padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
+                                                        display: 'flex', alignItems: 'center', gap: 10,
+                                                        background: filtroAcerto === 'acerto' ? 'var(--color-bg-tertiary)' : 'transparent',
+                                                        transition: 'background 0.2s'
+                                                    }}
+                                                >
+                                                    <Icon icon="solar:check-circle-bold-duotone" style={{ color: tokens.babu }} width="18" />
+                                                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Apenas Acertos</span>
+                                                </div>
+
+                                                {/* Option 3: Erros */}
+                                                <div 
+                                                    onClick={() => { setFiltroAcerto('erro'); setPagina(1); setActiveDropdown(null) }}
+                                                    style={{
+                                                        padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
+                                                        display: 'flex', alignItems: 'center', gap: 10,
+                                                        background: filtroAcerto === 'erro' ? 'var(--color-bg-tertiary)' : 'transparent',
+                                                        transition: 'background 0.2s'
+                                                    }}
+                                                >
+                                                    <Icon icon="solar:bill-cross-bold-duotone" style={{ color: tokens.rausch }} width="18" />
+                                                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Apenas Erros</span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            {/* Segmento 2: Matéria Relacionada */}
+                            <div 
+                                ref={dropdownMateriaRef}
+                                style={{ flex: 1, width: '100%', position: 'relative' }}
+                            >
+                                <div 
+                                    onClick={() => setActiveDropdown(activeDropdown === 'materia' ? null : 'materia')}
                                     style={{
-                                        borderRadius: 12,
-                                        border: `1px solid ${tokens.border}`,
-                                        background: tokens.bgSub,
-                                        color: 'var(--color-text-primary)',
-                                        padding: '10px 14px',
-                                        fontSize: 13,
-                                        fontWeight: 600
+                                        background: tokens.bg,
+                                        border: `1px solid ${activeDropdown === 'materia' ? tokens.rausch : tokens.border}`,
+                                        borderRadius: 20,
+                                        padding: '12px 20px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        transition: 'all 0.2s',
+                                        boxShadow: '0 8px 24px rgba(0,0,0,0.02)'
                                     }}
                                 >
-                                    <option value="">Todas as matérias</option>
-                                    {materias.map(m => (
-                                        <option key={m.id} value={m.id}>{m.nome}</option>
-                                    ))}
-                                </CFormSelect>
-                            </CCol>
-                        </CRow>
-                    </motion.div>
+                                    <div>
+                                        <div style={{ fontSize: 9, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Matéria Relacionada</div>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginTop: 2, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: 280 }}>
+                                            {obterRotuloMateria()}
+                                        </div>
+                                    </div>
+                                    <Icon 
+                                        icon="solar:alt-arrow-down-bold" 
+                                        style={{ color: tokens.foggy, transition: 'transform 0.2s', transform: activeDropdown === 'materia' ? 'rotate(180deg)' : 'none' }} 
+                                        width="14"
+                                    />
+                                </div>
+
+                                <AnimatePresence>
+                                    {activeDropdown === 'materia' && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            transition={{ duration: 0.15 }}
+                                            style={{
+                                                position: 'absolute',
+                                                top: '108%',
+                                                right: 0,
+                                                width: '100%',
+                                                minWidth: 280,
+                                                background: tokens.bg,
+                                                border: `1px solid ${tokens.border}`,
+                                                borderRadius: 18,
+                                                boxShadow: '0 12px 36px rgba(0,0,0,0.1)',
+                                                padding: 14,
+                                                zIndex: 99,
+                                            }}
+                                        >
+                                            {/* Busca Interna estilo Airbnb */}
+                                            <div style={{ position: 'relative', marginBottom: 12 }}>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Buscar matéria..."
+                                                    value={buscaMateria}
+                                                    onChange={e => setBuscaMateria(e.target.value)}
+                                                    onClick={e => e.stopPropagation()} // Impede fechar ao clicar na busca
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '10px 14px 10px 36px',
+                                                        borderRadius: 12,
+                                                        border: `1px solid ${tokens.border}`,
+                                                        background: tokens.bgSub,
+                                                        color: 'var(--color-text-primary)',
+                                                        fontSize: 12,
+                                                        fontWeight: 600,
+                                                        outline: 'none'
+                                                    }}
+                                                />
+                                                <Icon 
+                                                    icon="solar:magnifer-linear" 
+                                                    style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: tokens.foggy }} 
+                                                    width="16"
+                                                />
+                                            </div>
+
+                                            {/* Lista Scrollável */}
+                                            <div style={{ maxHeight: 220, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, paddingRight: 2 }}>
+                                                {/* Opção Todas */}
+                                                <div 
+                                                    onClick={() => { setFiltroMateria(''); setPagina(1); setActiveDropdown(null); setBuscaMateria('') }}
+                                                    style={{
+                                                        padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
+                                                        display: 'flex', alignItems: 'center', gap: 8,
+                                                        background: filtroMateria === '' ? 'var(--color-bg-tertiary)' : 'transparent',
+                                                        transition: 'background 0.2s'
+                                                    }}
+                                                >
+                                                    <Icon icon="solar:book-bookmark-bold-duotone" style={{ color: tokens.foggy }} width="16" />
+                                                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Todas as matérias</span>
+                                                </div>
+
+                                                {/* Lista Filtrada */}
+                                                {materiasFiltradas.length === 0 ? (
+                                                    <div style={{ textAlign: 'center', color: tokens.foggy, fontSize: 11, padding: '10px 0' }}>
+                                                        Nenhuma matéria encontrada.
+                                                    </div>
+                                                ) : (
+                                                    materiasFiltradas.map(m => {
+                                                        const isSelected = String(filtroMateria) === String(m.id)
+                                                        return (
+                                                            <div 
+                                                                key={m.id}
+                                                                onClick={() => { setFiltroMateria(String(m.id)); setPagina(1); setActiveDropdown(null); setBuscaMateria('') }}
+                                                                style={{
+                                                                    padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
+                                                                    display: 'flex', alignItems: 'center', gap: 8,
+                                                                    background: isSelected ? 'var(--color-bg-tertiary)' : 'transparent',
+                                                                    transition: 'background 0.2s'
+                                                                }}
+                                                            >
+                                                                <Icon icon="solar:notebook-bold-duotone" style={{ color: isSelected ? tokens.rausch : tokens.foggy }} width="16" />
+                                                                <span style={{ fontSize: 12, fontWeight: 700, color: isSelected ? tokens.rausch : 'var(--color-text-primary)' }}>
+                                                                    {m.nome}
+                                                                </span>
+                                                            </div>
+                                                        )
+                                                    })
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* FEED DE QUESTÕES */}
                     {loading ? (
