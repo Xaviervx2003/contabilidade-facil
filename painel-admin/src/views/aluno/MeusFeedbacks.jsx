@@ -619,15 +619,15 @@ const MeusFeedbacks = () => {
                 onClose={() => setFormModalOpen(false)}
                 backdrop="static"
                 size="lg"
-                style={{ fontFamily: "'Circular Std', 'Nunito', sans-serif" }}
             >
-                <CModalHeader style={{ borderBottom: `1px solid ${tokens.border}` }}>
-                    <CModalTitle style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Icon icon="solar:chat-round-plus-bold" style={{ color: tokens.rausch }} />
-                        Mande sua Dúvida Acadêmica
-                    </CModalTitle>
-                </CModalHeader>
-                <form onSubmit={handleSubmitDuvida}>
+                <div style={{ fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
+                    <CModalHeader style={{ borderBottom: `1px solid ${tokens.border}` }}>
+                        <CModalTitle style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon icon="solar:chat-round-plus-bold" style={{ color: tokens.rausch }} />
+                            Mande sua Dúvida Acadêmica
+                        </CModalTitle>
+                    </CModalHeader>
+                    <form onSubmit={handleSubmitDuvida}>
                     <CModalBody style={{ padding: 24 }}>
                         {duvidaMessage && (
                             <CAlert color={duvidaMessage.tipo} className="mb-3">
@@ -725,6 +725,7 @@ const MeusFeedbacks = () => {
                         </CButton>
                     </CModalFooter>
                 </form>
+                </div>
             </CModal>
 
             {/* MODAL DE REVISÃO INTEGRADA (Carrega detalhes reais da questão) */}
@@ -733,14 +734,14 @@ const MeusFeedbacks = () => {
                 onClose={() => setRevisaoModalOpen(false)} 
                 size="lg"
                 backdrop="static"
-                style={{ fontFamily: "'Circular Std', 'Nunito', sans-serif" }}
             >
-                <CModalHeader style={{ borderBottom: `1px solid ${tokens.border}` }}>
-                    <CModalTitle style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Icon icon="solar:document-bold" style={{ color: tokens.rausch }} />
-                        Revisão de Questão #{selectedQuestaoId}
-                    </CModalTitle>
-                </CModalHeader>
+                <div style={{ fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
+                    <CModalHeader style={{ borderBottom: `1px solid ${tokens.border}` }}>
+                        <CModalTitle style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Icon icon="solar:document-bold" style={{ color: tokens.rausch }} />
+                            Revisão de Questão #{selectedQuestaoId}
+                        </CModalTitle>
+                    </CModalHeader>
                 <CModalBody style={{ padding: 24, maxHeight: '70vh', overflowY: 'auto' }}>
                     {loadingDetail ? (
                         <div className="text-center py-5">
@@ -885,6 +886,7 @@ const MeusFeedbacks = () => {
                         Fechar Revisão
                     </CButton>
                 </CModalFooter>
+                </div>
             </CModal>
 
             {/* PAINEL DE DIAGNÓSTICO INTEGRADO */}
