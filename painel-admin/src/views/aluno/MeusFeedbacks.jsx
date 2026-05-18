@@ -289,7 +289,7 @@ const MeusFeedbacks = () => {
     const { data: feedbacks = [], isLoading: loading } = useQuery({
         queryKey: ['meusFeedbacks', nome],
         queryFn: async () => {
-            const res = await fetch(`${API_URL}/api/aluno/meus-feedbacks/${encodeURIComponent(nome)}?por_pagina=100`)
+            const res = await fetch(`${API_URL}/api/aluno/meus-feedbacks/${encodeURIComponent(nome)}?por_pagina=50`)
             if (!res.ok) throw new Error('Erro ao carregar feedbacks')
             const data = await res.json()
             return data.feedbacks || []

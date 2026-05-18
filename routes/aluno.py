@@ -207,7 +207,7 @@ def questoes_respondidas(
 def meus_feedbacks(
     nome: str,
     pagina: int = Query(1, ge=1),
-    por_pagina: int = Query(10, ge=1, le=50),
+    por_pagina: int = Query(10, ge=1, le=100),
 ):
     try:
         with get_conexao() as conn:
