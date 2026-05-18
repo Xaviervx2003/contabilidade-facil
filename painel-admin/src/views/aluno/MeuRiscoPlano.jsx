@@ -1,42 +1,34 @@
-import React, { useEffect, useState, useCallback } from 'react'
-import { CAlert, CSpinner, CContainer } from '@coreui/react'
-import { API_URL } from '../../config'
+import React, { useState, useEffect, useCallback } from 'react'
+import {
+    CContainer,
+    CRow,
+    CCol,
+    CCard,
+    CCardBody,
+    CSpinner,
+    CAlert,
+    CButton,
+} from '@coreui/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
+import { API_URL } from '../../config'
+import { getAlunoMatricula } from '../../utils/auth'
 
-/* ── Tokens de cor (inspirado Airbnb + Duolingo) ──────────── */
-const T = {
-    coral: '#FF385C',
-    teal: '#00A699',
-    orange: '#FC642D',
-    gold: '#F5A623',
-    muted: '#767676',
+/* ── Tokens de Design (Premium Airbnb Style) ────────────── */
+const tokens = {
+    rausch: '#FF385C',  // Coral principal
+    babu: '#00A699',    // Teal/Verde
+    arches: '#FC642D',  // Laranja
+    hof: '#484848',
+    foggy: '#767676',   // Cinza Muted
     border: 'var(--color-border)',
     bg: 'var(--color-bg-elevated)',
     bgSub: 'var(--color-bg-tertiary)',
     text: 'var(--color-text-primary)',
 }
 
-/* ── Helpers ─────────────────────────────────────────────── */
-const METRICA_CONFIG = {
-    manual: { icon: '✋', label: 'Manual', color: T.muted },
-    sessoes: { icon: '📚', label: 'Sessões', color: T.teal },
-    media_acerto: { icon: '🎯', label: 'Média de Acertos', color: T.orange },
-    questoes: { icon: '📝', label: 'Questões', color: '#8B5CF6' },
-}
-
-const calcularPrazo = (data_limite) => {
-    if (!data_limite) return null
-    const diff = Math.ceil((new Date(data_limite + 'T23:59:59') - new Date()) / 86400000)
-    if (diff < 0) return { texto: 'Expirou', cor: '#ef4444', urgente: true }
-    if (diff === 0) return { texto: 'Vence hoje!', cor: '#f59e0b', urgente: true }
-    if (diff === 1) return { texto: 'Vence amanhã', cor: '#f59e0b', urgente: true }
-    if (diff <= 3) return { texto: `${diff} dias`, cor: '#f59e0b', urgente: false }
-    return { texto: `${diff} dias`, cor: T.teal, urgente: false }
-}
-
 /* ── Circular Progress Ring ──────────────────────────────── */
-const RingProgress = ({ value, size = 64, stroke = 5, color = T.coral }) => {
+const RingProgress = ({ value, size = 120, stroke = 10, color = tokens.rausch }) => {
     const r = (size - stroke) / 2
     const c = 2 * Math.PI * r
     const pct = Math.min(Math.max(value, 0), 100)
@@ -49,351 +41,499 @@ const RingProgress = ({ value, size = 64, stroke = 5, color = T.coral }) => {
                 strokeDasharray={c}
                 initial={{ strokeDashoffset: c }}
                 animate={{ strokeDashoffset: c - (pct / 100) * c }}
-                transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
+                transition={{ duration: 1.2, ease: 'easeOut', delay: 0.1 }}
             />
         </svg>
     )
 }
 
-/* ── Badge de Prazo ──────────────────────────────────────── */
-const PrazoBadge = ({ data_limite }) => {
-    const info = calcularPrazo(data_limite)
-    if (!info) return null
-    return (
-        <motion.span
-            animate={info.urgente ? { scale: [1, 1.06, 1] } : {}}
-            transition={{ repeat: Infinity, duration: 1.8 }}
-            style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                fontSize: 11, fontWeight: 700,
-                background: `${info.cor}18`, color: info.cor,
-                padding: '3px 10px', borderRadius: 99,
-                border: `1px solid ${info.cor}35`,
-            }}
-        >
-            <Icon icon="solar:clock-circle-bold-duotone" width="12" />
-            {info.texto}
-        </motion.span>
-    )
-}
-
-/* ── Missão Card ─────────────────────────────────────────── */
-const MissaoCard = ({ m, onConcluir, concluindo }) => {
-    const cfg = METRICA_CONFIG[m.metrica_tipo] || METRICA_CONFIG.manual
-    const isAuto = m.metrica_tipo !== 'manual'
-    const pct = m.progresso ?? 0
-    const isConcluida = m.status === 'concluida'
-    const isExpirada = m.status === 'expirada'
-    const borderColor = isConcluida ? T.teal : isExpirada ? '#ef4444' : T.border
-    const accentColor = isConcluida ? T.teal : isExpirada ? '#ef4444' : (m.cor || T.coral)
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97 }}
-            layout
-            style={{
-                background: T.bg,
-                border: `1px solid ${borderColor}`,
-                borderRadius: 18,
-                padding: '18px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 16,
-                opacity: isExpirada ? 0.75 : 1,
-                position: 'relative',
-                overflow: 'hidden',
-            }}
-        >
-            {/* Faixa colorida lateral */}
-            <div style={{
-                position: 'absolute', left: 0, top: 12, bottom: 12,
-                width: 4, borderRadius: '0 4px 4px 0',
-                background: accentColor,
-            }} />
-
-            {/* Ring de Progresso */}
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-                <RingProgress value={pct} size={60} stroke={5} color={accentColor} />
-                <div style={{
-                    position: 'absolute', inset: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: isConcluida ? 18 : 14,
-                    fontWeight: 800,
-                    color: accentColor,
-                }}>
-                    {isConcluida ? '✓' : isExpirada ? '✕' : `${pct}%`}
-                </div>
-            </div>
-
-            {/* Conteúdo Central */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                    <span style={{ fontSize: 18 }}>{m.icone || '🎯'}</span>
-                    <span style={{ fontWeight: 700, fontSize: 15, color: T.text }}>{m.titulo}</span>
-
-                    {isConcluida && (
-                        <span style={{ fontSize: 10, fontWeight: 700, background: `${T.teal}15`, color: T.teal, padding: '2px 8px', borderRadius: 99 }}>
-                            ✅ Concluída
-                        </span>
-                    )}
-                    {isExpirada && (
-                        <span style={{ fontSize: 10, fontWeight: 700, background: '#ef444415', color: '#ef4444', padding: '2px 8px', borderRadius: 99 }}>
-                            ⏰ Expirada
-                        </span>
-                    )}
-                    {!isConcluida && <PrazoBadge data_limite={m.data_limite} />}
-                </div>
-
-                <p style={{ fontSize: 12, color: T.muted, margin: '0 0 8px', lineHeight: 1.4 }}>
-                    {m.descricao}
-                </p>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                    <span style={{
-                        fontSize: 11, fontWeight: 600,
-                        background: `${cfg.color}12`, color: cfg.color,
-                        padding: '2px 8px', borderRadius: 99,
-                    }}>
-                        {cfg.icon} {cfg.label}
-                        {m.metrica_alvo != null && ` → ${m.metrica_alvo}${m.metrica_tipo === 'media_acerto' ? '%' : ''}`}
-                    </span>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: T.coral }}>+{m.xp} XP</span>
-                </div>
-
-                {!isConcluida && !isExpirada && isAuto && (
-                    <div style={{ marginTop: 8 }}>
-                        <div style={{ height: 4, background: 'var(--color-bg-tertiary)', borderRadius: 99, overflow: 'hidden' }}>
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${pct}%` }}
-                                transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
-                                style={{ height: '100%', background: accentColor, borderRadius: 99 }}
-                            />
-                        </div>
-                        <div style={{ fontSize: 10, color: T.muted, marginTop: 3 }}>
-                            {m.metrica_tipo === 'sessoes' && `${Math.round((pct / 100) * m.metrica_alvo)} de ${m.metrica_alvo} sessões`}
-                            {m.metrica_tipo === 'media_acerto' && `Média atual: ${Math.round((pct / 100) * m.metrica_alvo)}% de ${m.metrica_alvo}%`}
-                            {m.metrica_tipo === 'questoes' && `${Math.round((pct / 100) * m.metrica_alvo)} de ${m.metrica_alvo} questões`}
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Botão de ação */}
-            <div style={{ flexShrink: 0 }}>
-                {!isConcluida && !isExpirada && !isAuto && (
-                    <motion.button
-                        whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                        onClick={() => onConcluir(m.id)}
-                        disabled={concluindo === m.id}
-                        style={{
-                            background: T.coral, color: '#fff', border: 'none',
-                            borderRadius: 12, padding: '9px 16px',
-                            fontWeight: 700, fontSize: 12, cursor: 'pointer',
-                            fontFamily: 'inherit', minWidth: 90,
-                            display: 'flex', alignItems: 'center', gap: 6,
-                        }}
-                    >
-                        {concluindo === m.id
-                            ? <CSpinner size="sm" style={{ borderColor: '#fff', borderRightColor: 'transparent' }} />
-                            : <><Icon icon="solar:check-circle-bold-duotone" width="16" /> Concluir</>
-                        }
-                    </motion.button>
-                )}
-                {isAuto && !isConcluida && !isExpirada && (
-                    <div style={{ textAlign: 'center', width: 80 }}>
-                        <Icon icon="solar:refresh-bold-duotone" width="20" style={{ color: T.muted, opacity: 0.5 }} />
-                        <div style={{ fontSize: 9, color: T.muted, marginTop: 2 }}>Auto</div>
-                    </div>
-                )}
-                {isConcluida && (
-                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: `${T.teal}15`, color: T.teal, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Icon icon="solar:verified-check-bold-duotone" width="22" />
-                    </div>
-                )}
-                {isExpirada && (
-                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#ef444415', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Icon icon="solar:close-circle-bold-duotone" width="22" />
-                    </div>
-                )}
-            </div>
-        </motion.div>
-    )
-}
-
-/* ── Componente Principal ─────────────────────────────────── */
 const MeuRiscoPlano = () => {
-    const [missoes, setMissoes] = useState([])
+    const [metrics, setMetrics] = useState(null)
     const [loading, setLoading] = useState(true)
-    const [erro, setErro] = useState('')
-    const [concluindo, setConcluindo] = useState(null)
-    const [toast, setToast] = useState(null)
+    const [error, setError] = useState(null)
+    
+    // Configurações do simulador de horas
+    const [horasSemanais, setHorasSemanais] = useState(8)
+    const [checklistStatus, setChecklistStatus] = useState({})
 
-    const matricula = sessionStorage.getItem('matricula')
+    const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
 
-    const fetchMissoes = useCallback(async () => {
-        setLoading(true)
+    const carregarMetricas = useCallback(async () => {
+        if (!matricula) {
+            setError('Esta área é exclusiva para alunos com matrícula ativa.')
+            setLoading(false)
+            return
+        }
+
         try {
+            setLoading(true)
             const token = sessionStorage.getItem('token')
-            if (!token) {
-                setErro('Faça login para ver seus desafios.')
-                return
-            }
-
-            const url = matricula 
-                ? `${API_URL}/api/missoes/globais/${matricula}`
-                : `${API_URL}/api/missoes/globais`
-
-            const r = await fetch(url, {
+            const url = `${API_URL}/api/metricas-estudantes/desempenho/${matricula}`
+            
+            const res = await fetch(url, {
                 headers: {
+                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                }
+                },
             })
-            if (!r.ok) throw new Error()
-            setMissoes(await r.json())
-        } catch {
-            setErro('Erro ao carregar missões. Tente recarregar a página.')
+
+            if (!res.ok) {
+                if (res.status === 404) {
+                    // Sem histórico ainda
+                    setMetrics(null)
+                } else {
+                    throw new Error(`Erro HTTP ${res.status}`)
+                }
+            } else {
+                const data = await res.json()
+                setMetrics(data)
+            }
+            setError(null)
+        } catch (err) {
+            console.error('❌ Erro metricas:', err)
+            setError('Não foi possível carregar o seu diagnóstico. Tente novamente.')
         } finally {
             setLoading(false)
         }
     }, [matricula])
 
-    useEffect(() => { fetchMissoes() }, [fetchMissoes])
+    useEffect(() => {
+        carregarMetricas()
+    }, [carregarMetricas])
 
-    const handleConcluir = async (missaoId) => {
-        setConcluindo(missaoId)
-        try {
-            const r = await fetch(`${API_URL}/api/missoes/concluir`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ matricula, missao_id: missaoId }),
-            })
-            if (!r.ok) throw new Error((await r.json()).detail || 'Erro')
-            setToast({ tipo: 'success', msg: '🎉 Missão concluída! XP adicionado!' })
-            fetchMissoes()
-        } catch (e) {
-            setToast({ tipo: 'error', msg: e.message })
-        } finally {
-            setConcluindo(null)
-            setTimeout(() => setToast(null), 3500)
+    // Determina a checklist com base nas horas
+    const obterMetasPorHoras = (horas) => {
+        if (horas < 6) {
+            return [
+                { id: 'sessao_1', text: 'Realizar 1 sessão de estudo focada (25min)', icon: 'solar:playback-speed-bold-duotone' },
+                { id: 'quest_10', text: 'Resolver 10 questões da sua matéria mais fraca', icon: 'solar:pen-bold-duotone' },
+                { id: 'erros_1', text: 'Revisar pelo menos 2 questões que errou no histórico', icon: 'solar:bill-cross-bold-duotone' }
+            ]
+        } else if (horas <= 12) {
+            return [
+                { id: 'sessao_3', text: 'Completar 3 sessões de estudo cronometradas', icon: 'solar:playback-speed-bold-duotone' },
+                { id: 'quest_30', text: 'Resolver 30 questões de fixação', icon: 'solar:pen-bold-duotone' },
+                { id: 'trilha_1', text: 'Concluir 1 módulo inteiro nas suas Trilhas', icon: 'solar:map-arrow-square-bold-duotone' },
+                { id: 'erros_2', text: 'Revisar e corrigir seus erros mais frequentes', icon: 'solar:bill-cross-bold-duotone' },
+                { id: 'media_70', text: 'Manter média de acertos semanal acima de 70%', icon: 'solar:star-bold-duotone' }
+            ]
+        } else {
+            return [
+                { id: 'sessao_6', text: 'Realizar 6 sessões de estudo avançadas', icon: 'solar:playback-speed-bold-duotone' },
+                { id: 'quest_60', text: 'Resolver 60 questões de provas anteriores', icon: 'solar:pen-bold-duotone' },
+                { id: 'trilha_2', text: 'Concluir 2 ou mais módulos nas Trilhas de Estudo', icon: 'solar:map-arrow-square-bold-duotone' },
+                { id: 'simulado', text: 'Fazer 1 Simulado Geral Cronometrado', icon: 'solar:document-bold-duotone' },
+                { id: 'erros_max', text: 'Zerar as dúvidas de erros nas matérias prioritárias', icon: 'solar:bill-cross-bold-duotone' },
+                { id: 'media_80', text: 'Manter média de acertos semanal acima de 80%', icon: 'solar:star-bold-duotone' },
+                { id: 'horas_total', text: 'Alcançar a meta de estudos diários programada', icon: 'solar:alarm-bold-duotone' }
+            ]
         }
     }
 
-    const pendentes = missoes.filter(m => m.status === 'pendente')
-    const concluidas = missoes.filter(m => m.status === 'concluida')
-    const expiradas = missoes.filter(m => m.status === 'expirada')
+    const metasAtuais = obterMetasPorHoras(horasSemanais)
+
+    const toggleMeta = (id) => {
+        setChecklistStatus(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }))
+    }
+
+    if (loading) {
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh', background: 'var(--color-bg-primary)' }}>
+                <div className="text-center">
+                    <CSpinner color="primary" />
+                    <p className="mt-3 text-body-secondary" style={{ fontFamily: 'Nunito', fontWeight: 600 }}>Calculando seu diagnóstico personalizado...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', padding: '40px 0', fontFamily: 'Nunito' }}>
+                <CContainer className="px-4">
+                    <CAlert color="danger" className="d-flex align-items-center gap-2" style={{ borderRadius: 16 }}>
+                        <Icon icon="solar:danger-bold-duotone" width="24" />
+                        <span>{error}</span>
+                    </CAlert>
+                </CContainer>
+            </div>
+        )
+    }
+
+    // Processamento das matérias fracas a partir de erros_por_materia
+    const obterMateriasFracas = () => {
+        if (!metrics || !metrics.erros_por_materia) return []
+        const lista = []
+        Object.entries(metrics.erros_por_materia).forEach(([nome, info]) => {
+            if (info.total > 0) {
+                const taxaErro = info.erros / info.total
+                lista.push({
+                    materia: nome,
+                    total: info.total,
+                    erros: info.erros,
+                    taxaErro: taxaErro,
+                    taxaAcerto: 1 - taxaErro
+                })
+            }
+        })
+        return lista.sort((a, b) => b.taxaErro - a.taxaErro).slice(0, 3)
+    }
+
+    const materiasFracas = obterMateriasFracas()
+
+    // Configurações dinâmicas baseadas no risco de reprovação/evasão
+    const riscoVal = metrics?.churn_risco_percentual ?? 0
+    let riscoNivel = 'Baixo'
+    let riscoCor = tokens.babu
+    let riscoBg = `${tokens.babu}15`
+    let riscoMensagem = 'Parabéns! Seu nível de engajamento está altíssimo. Continue nesse ritmo para blindar sua aprovação!'
+    let riscoEmoji = '🚀'
+
+    if (riscoVal >= 70) {
+        riscoNivel = 'Crítico'
+        riscoCor = tokens.rausch
+        riscoBg = `${tokens.rausch}15`
+        riscoMensagem = 'Alerta de Risco! Você reduziu bastante sua frequência de estudos ultimamente. Que tal realizar um simulado rápido hoje para retomar o foco?'
+        riscoEmoji = '⚠️'
+    } else if (riscoVal >= 35) {
+        riscoNivel = 'Médio'
+        riscoCor = tokens.arches
+        riscoBg = `${tokens.arches}15`
+        riscoMensagem = 'Atenção! Seu engajamento oscilou nas últimas semanas. Fazer revisões curtas pode te ajudar a consolidar as matérias.'
+        riscoEmoji = '⚡'
+    }
 
     return (
         <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Nunito', sans-serif" }}>
-            <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');`}</style>
-
             <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
-                {/* Toast */}
-                <AnimatePresence>
-                    {toast && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 20 }}
-                            style={{
-                                position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-                                background: toast.tipo === 'success' ? T.teal : '#ef4444',
-                                color: '#fff', borderRadius: 16, padding: '14px 20px',
-                                fontWeight: 700, fontSize: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                                display: 'flex', alignItems: 'center', gap: 10, maxWidth: 340,
-                            }}
-                        >
-                            <Icon icon={toast.tipo === 'success' ? 'solar:star-bold-duotone' : 'solar:danger-bold-duotone'} width="22" />
-                            {toast.msg}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <div style={{ maxWidth: 960, margin: '0 auto' }}>
-
-                    {/* HEADER PREMIUM IDENTICO AO PAINEL / TRILHAS */}
+                <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+                    
+                    {/* HEADER PREMIUM */}
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        style={{ marginBottom: 32 }}
+                        style={{ marginBottom: 36 }}
                     >
-                        <div style={{ color: T.coral, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Missões e Gamificação</div>
-                        <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>Meus Desafios 🎯</div>
-                        <div style={{ fontSize: 14, color: T.muted, marginTop: 6 }}>Complete missões para ganhar XP e subir no ranking.</div>
+                        <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Sua Jornada</div>
+                        <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>Meu Risco + Plano de Estudos 📈</div>
+                        <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+                            Acompanhe seu diagnóstico acadêmico de engajamento e execute seu planejamento semanal dinâmico.
+                        </div>
                     </motion.div>
 
-                    {/* Erro */}
-                    {erro && (
-                        <CAlert color="danger" style={{ borderRadius: 14, marginBottom: 20 }}>
-                            {erro}
-                        </CAlert>
-                    )}
-
-                    {/* Loading */}
-                    {loading ? (
-                        <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                            <CSpinner color="primary" />
-                            <div style={{ color: T.muted, fontSize: 13, marginTop: 12 }}>Carregando seus desafios...</div>
-                        </div>
-                    ) : missoes.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                            <Icon icon="solar:ghost-bold-duotone" width="56" style={{ color: T.muted, opacity: 0.3 }} />
-                            <div style={{ color: T.muted, fontSize: 15, marginTop: 12 }}>Nenhum desafio disponível no momento.</div>
-                        </div>
+                    {/* ESTADO VAZIO (Aluno novo sem sessões de estudo) */}
+                    {!metrics || metrics.sessoes === 0 ? (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            style={{
+                                background: tokens.bg,
+                                border: `1px solid ${tokens.border}`,
+                                borderRadius: 24,
+                                padding: '60px 24px',
+                                textAlign: 'center',
+                                boxShadow: '0 8px 30px rgba(0,0,0,0.04)'
+                            }}
+                        >
+                            <div style={{
+                                width: 80, height: 80, borderRadius: '50%',
+                                background: `${tokens.rausch}15`, color: tokens.rausch,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                margin: '0 auto 20px'
+                            }}>
+                                <Icon icon="solar:graph-bold-duotone" width="40" />
+                            </div>
+                            <h3 style={{ fontWeight: 800, fontSize: 22, color: 'var(--color-text-primary)', marginBottom: 8 }}>Seu Diagnóstico Está Sendo Gerado!</h3>
+                            <p style={{ color: tokens.foggy, maxWidth: 500, margin: '0 auto 24px', fontSize: 14, lineHeight: 1.6 }}>
+                                Você ainda não possui sessões de estudo completadas. Faça o seu primeiro quiz ou trilha de estudo para calcularmos seu risco de reprovação e criarmos um plano inteligente para você!
+                            </p>
+                            <CButton 
+                                href="/quiz" 
+                                style={{
+                                    background: tokens.rausch, color: '#fff', border: 'none',
+                                    borderRadius: 14, padding: '12px 28px',
+                                    fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(255, 56, 92, 0.2)'
+                                }}
+                            >
+                                Iniciar Primeiro Quiz 🚀
+                            </CButton>
+                        </motion.div>
                     ) : (
-                        <>
-                            {/* ── Pendentes ── */}
-                            {pendentes.length > 0 && (
-                                <section style={{ marginBottom: 32 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                                        <Icon icon="solar:fire-bold-duotone" style={{ color: T.coral }} width="20" />
-                                        <span style={{ fontWeight: 700, fontSize: 15, color: T.text }}>Em Andamento</span>
-                                        <span style={{ fontSize: 12, background: `${T.coral}12`, color: T.coral, padding: '2px 10px', borderRadius: 99, fontWeight: 700 }}>{pendentes.length}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                        <AnimatePresence>
-                                            {pendentes.map(m => (
-                                                <MissaoCard key={m.id} m={m} onConcluir={handleConcluir} concluindo={concluindo} />
-                                            ))}
-                                        </AnimatePresence>
-                                    </div>
-                                </section>
-                            )}
+                        <CRow className="g-4">
+                            
+                            {/* COLUNA ESQUERDA: DIAGNÓSTICO E RISCO */}
+                            <CCol lg={7}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                                    
+                                    {/* CARD: RISK ASSESSMENT */}
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 15 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.1 }}
+                                        style={{
+                                            background: tokens.bg,
+                                            border: `1px solid ${tokens.border}`,
+                                            borderRadius: 24,
+                                            padding: 24,
+                                            boxShadow: '0 8px 30px rgba(0,0,0,0.03)',
+                                            position: 'relative',
+                                            overflow: 'hidden'
+                                        }}
+                                    >
+                                        <h4 style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <Icon icon="solar:shield-warning-bold-duotone" style={{ color: riscoCor }} width="20" />
+                                            Diagnóstico de Risco Acadêmico
+                                        </h4>
 
-                            {/* ── Concluídas ── */}
-                            {concluidas.length > 0 && (
-                                <section style={{ marginBottom: 32 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                                        <Icon icon="solar:verified-check-bold-duotone" style={{ color: T.teal }} width="20" />
-                                        <span style={{ fontWeight: 700, fontSize: 15, color: T.text }}>Concluídas</span>
-                                        <span style={{ fontSize: 12, background: `${T.teal}12`, color: T.teal, padding: '2px 10px', borderRadius: 99, fontWeight: 700 }}>{concluidas.length}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                        {concluidas.map(m => (
-                                            <MissaoCard key={m.id} m={m} onConcluir={handleConcluir} concluindo={concluindo} />
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+                                            {/* Ring Progress */}
+                                            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+                                                <RingProgress value={riscoVal} stroke={8} color={riscoCor} size={110} />
+                                                <div style={{
+                                                    position: 'absolute', inset: 0,
+                                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                                    fontFamily: 'inherit'
+                                                }}>
+                                                    <span style={{ fontSize: 24, fontWeight: 900, color: riscoCor }}>{riscoVal}%</span>
+                                                    <span style={{ fontSize: 9, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase' }}>Risco</span>
+                                                </div>
+                                            </div>
 
-                            {/* ── Expiradas ── */}
-                            {expiradas.length > 0 && (
-                                <section style={{ marginBottom: 32 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                                        <Icon icon="solar:clock-circle-bold-duotone" style={{ color: '#ef4444' }} width="20" />
-                                        <span style={{ fontWeight: 700, fontSize: 15, color: '#ef4444' }}>Expiradas</span>
-                                        <span style={{ fontSize: 12, background: '#ef444412', color: '#ef4444', padding: '2px 10px', borderRadius: 99, fontWeight: 700 }}>{expiradas.length}</span>
+                                            {/* Status Box */}
+                                            <div style={{ flex: 1, minWidth: 200 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                                    <span style={{ fontSize: 13, fontWeight: 800, background: riscoBg, color: riscoCor, padding: '4px 12px', borderRadius: 99 }}>
+                                                        {riscoEmoji} Nível {riscoNivel}
+                                                    </span>
+                                                </div>
+                                                <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                                                    {riscoMensagem}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <hr style={{ borderTop: `1px solid ${tokens.border}`, margin: '20px 0' }} />
+
+                                        {/* Sub indicadores */}
+                                        <CRow className="g-3 text-center">
+                                            <CCol xs={6}>
+                                                <div style={{ background: tokens.bgSub, borderRadius: 16, padding: '12px 10px' }}>
+                                                    <div style={{ color: tokens.foggy, fontSize: 11, fontWeight: 700, marginBottom: 4 }}>RETENÇÃO DE 30 DIAS</div>
+                                                    <div style={{ fontSize: 18, fontWeight: 900, color: tokens.babu }}>
+                                                        {metrics.retencao_30d_percentual ?? 0}%
+                                                    </div>
+                                                </div>
+                                            </CCol>
+                                            <CCol xs={6}>
+                                                <div style={{ background: tokens.bgSub, borderRadius: 16, padding: '12px 10px' }}>
+                                                    <div style={{ color: tokens.foggy, fontSize: 11, fontWeight: 700, marginBottom: 4 }}>SIMULADOS FOCADOS</div>
+                                                    <div style={{ fontSize: 18, fontWeight: 900, color: tokens.rausch }}>
+                                                        {metrics.conclusao_simulado_percentual ?? 0}%
+                                                    </div>
+                                                </div>
+                                            </CCol>
+                                        </CRow>
+                                    </motion.div>
+
+                                    {/* CARD: RECOMENDAÇÕES INTELIGENTES (Matérias Fracas) */}
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 15 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2 }}
+                                        style={{
+                                            background: tokens.bg,
+                                            border: `1px solid ${tokens.border}`,
+                                            borderRadius: 24,
+                                            padding: 24,
+                                            boxShadow: '0 8px 30px rgba(0,0,0,0.03)'
+                                        }}
+                                    >
+                                        <h4 style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <Icon icon="solar:lightbulb-bold-duotone" style={{ color: tokens.gold }} width="20" />
+                                            Foco de Estudo Recomendado
+                                        </h4>
+                                        <p style={{ fontSize: 12, color: tokens.foggy, marginBottom: 20 }}>
+                                            Matérias onde você teve maior taxa de erro. Sugerimos revisar estes temas.
+                                        </p>
+
+                                        {materiasFracas.length === 0 ? (
+                                            <div style={{ textAlign: 'center', padding: '20px 0', color: tokens.foggy, fontSize: 13 }}>
+                                                Nenhum erro registrado para listar focos. Excelente!
+                                            </div>
+                                        ) : (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                                {materiasFracas.map((item, idx) => (
+                                                    <div 
+                                                        key={idx}
+                                                        style={{
+                                                            background: tokens.bgSub,
+                                                            border: `1px solid ${tokens.border}`,
+                                                            borderRadius: 16,
+                                                            padding: '14px 18px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'space-between',
+                                                            gap: 12
+                                                        }}
+                                                    >
+                                                        <div style={{ minWidth: 0 }}>
+                                                            <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-text-primary)', textTransform: 'capitalize', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                                                                {item.materia}
+                                                            </div>
+                                                            <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 2 }}>
+                                                                {item.erros} erros de {item.total} respondidas • Taxa de acerto: {Math.round(item.taxaAcerto * 100)}%
+                                                            </div>
+                                                        </div>
+
+                                                        <CButton
+                                                            href="/quiz"
+                                                            style={{
+                                                                background: `${tokens.rausch}15`, color: tokens.rausch, border: 'none',
+                                                                borderRadius: 10, padding: '6px 12px',
+                                                                fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', gap: 4
+                                                            }}
+                                                        >
+                                                            Praticar <Icon icon="solar:alt-arrow-right-bold" />
+                                                        </CButton>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                </div>
+                            </CCol>
+
+                            {/* COLUNA DIREITA: PLANO DE ESTUDOS / CRONOGRAMA DINÂMICO */}
+                            <CCol lg={5}>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 15 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.25 }}
+                                    style={{
+                                        background: tokens.bg,
+                                        border: `1px solid ${tokens.border}`,
+                                        borderRadius: 24,
+                                        padding: 24,
+                                        boxShadow: '0 8px 30px rgba(0,0,0,0.03)',
+                                        height: '100%'
+                                    }}
+                                >
+                                    <h4 style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <Icon icon="solar:calendar-date-bold-duotone" style={{ color: tokens.babu }} width="20" />
+                                        Plano de Estudos Semanal
+                                    </h4>
+                                    <p style={{ fontSize: 12, color: tokens.foggy, marginBottom: 20 }}>
+                                        Ajuste suas horas planejadas para gerar uma checklist sob medida.
+                                    </p>
+
+                                    {/* SLIDER DE HORAS */}
+                                    <div style={{ background: tokens.bgSub, borderRadius: 18, padding: '16px 20px', marginBottom: 24 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                                            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)' }}>Meta de Carga Horária</span>
+                                            <span style={{ fontSize: 18, fontWeight: 900, color: tokens.babu }}>{horasSemanais} horas</span>
+                                        </div>
+                                        
+                                        <input 
+                                            type="range" 
+                                            min="3" 
+                                            max="20" 
+                                            step="1" 
+                                            value={horasSemanais}
+                                            onChange={(e) => setHorasSemanais(Number(e.target.value))}
+                                            style={{
+                                                width: '100%',
+                                                accentColor: tokens.babu,
+                                                cursor: 'pointer'
+                                            }}
+                                        />
+
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: tokens.foggy, marginTop: 6 }}>
+                                            <span>3h (Essencial)</span>
+                                            <span>12h (Focado)</span>
+                                            <span>20h (Intenso)</span>
+                                        </div>
                                     </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                        {expiradas.map(m => (
-                                            <MissaoCard key={m.id} m={m} onConcluir={handleConcluir} concluindo={concluindo} />
-                                        ))}
+
+                                    {/* CHECKLIST METAS DINÂMICAS */}
+                                    <h5 style={{ fontWeight: 800, fontSize: 13, color: 'var(--color-text-primary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        Checklist de Objetivos da Semana
+                                    </h5>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                        {metasAtuais.map((meta) => {
+                                            const isChecked = !!checklistStatus[meta.id]
+                                            return (
+                                                <motion.div 
+                                                    key={meta.id}
+                                                    whileHover={{ x: 2 }}
+                                                    onClick={() => toggleMeta(meta.id)}
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'flex-start',
+                                                        gap: 12,
+                                                        background: isChecked ? 'var(--color-bg-tertiary)' : 'transparent',
+                                                        border: `1px solid ${isChecked ? 'transparent' : tokens.border}`,
+                                                        borderRadius: 14,
+                                                        padding: '12px 14px',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s ease'
+                                                    }}
+                                                >
+                                                    {/* Check Icon */}
+                                                    <div style={{ marginTop: 2, flexShrink: 0 }}>
+                                                        <Icon 
+                                                            icon={isChecked ? "solar:check-circle-bold" : "solar:circle-linear"} 
+                                                            width="18" 
+                                                            style={{ color: isChecked ? tokens.babu : tokens.foggy }} 
+                                                        />
+                                                    </div>
+                                                    
+                                                    {/* Meta Content */}
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{ 
+                                                            fontSize: 13, 
+                                                            fontWeight: 600, 
+                                                            color: isChecked ? tokens.foggy : 'var(--color-text-primary)',
+                                                            textDecoration: isChecked ? 'line-through' : 'none'
+                                                        }}>
+                                                            {meta.text}
+                                                        </div>
+                                                    </div>
+
+                                                    <Icon icon={meta.icon} width="16" style={{ color: isChecked ? tokens.babu : tokens.foggy, opacity: 0.5, flexShrink: 0 }} />
+                                                </motion.div>
+                                            )
+                                        })}
                                     </div>
-                                </section>
-                            )}
-                        </>
+                                    
+                                    {/* Barra de progresso da meta semanal */}
+                                    {metasAtuais.length > 0 && (
+                                        <div style={{ marginTop: 24 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: tokens.foggy, marginBottom: 6 }}>
+                                                <span>Progresso Semanal</span>
+                                                <strong>
+                                                    {Math.round((metasAtuais.filter(m => checklistStatus[m.id]).length / metasAtuais.length) * 100)}%
+                                                </strong>
+                                            </div>
+                                            <div style={{ height: 6, background: 'var(--color-bg-tertiary)', borderRadius: 99, overflow: 'hidden' }}>
+                                                <motion.div 
+                                                    style={{ 
+                                                        height: '100%', 
+                                                        background: tokens.babu, 
+                                                        borderRadius: 99 
+                                                    }}
+                                                    animate={{ width: `${(metasAtuais.filter(m => checklistStatus[m.id]).length / metasAtuais.length) * 100}%` }}
+                                                    transition={{ duration: 0.3 }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            </CCol>
+                        </CRow>
                     )}
                 </div>
             </CContainer>

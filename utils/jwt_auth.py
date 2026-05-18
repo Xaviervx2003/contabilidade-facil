@@ -22,7 +22,9 @@ from utils.logger import setup_logger
 logger = setup_logger(__name__)
 
 # ── Configuração ─────────────────────────────────────────────────
-JWT_SECRET = os.getenv("JWT_SECRET", "dev-secret-troque-em-producao")
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError("JWT_SECRET não configurada. Defina a variável de ambiente.")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_SECONDS = int(os.getenv("JWT_EXPIRATION", 86400))  # 24h padrão
 

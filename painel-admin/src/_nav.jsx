@@ -103,6 +103,18 @@ const getNavItens = () => {
           children: '🏆',
         },
       },
+      {
+        component: CNavItem,
+        name: 'Meus Desafios',
+        to: '/aluno/desafios',
+        icon: <CIcon icon={cilFlagAlt} customClassName="nav-icon" />,
+        badge: {
+          color: 'danger',
+          textColor: 'white',
+          shape: 'rounded-pill',
+          children: '🎯',
+        },
+      },
     )
   }
 

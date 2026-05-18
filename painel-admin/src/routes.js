@@ -30,6 +30,7 @@ const MeuRiscoPlano = React.lazy(() => import('./views/aluno/MeuRiscoPlano'))
 const GestaoVideos = React.lazy(() => import('./views/admin/GestaoVideos'))
 const InboxDuvidas = React.lazy(() => import('./views/admin/InboxDuvidas'))
 const GestaoMissoes = React.lazy(() => import('./views/admin/GestaoMissoes'))
+const Missoes = React.lazy(() => import('./views/gamificacao/Missoes'))
 
 export const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -116,6 +117,7 @@ export const routes = [
   { path: '/aluno/meu-risco-plano', name: 'Meu Risco + Plano', element: MeuRiscoPlano, allowedRoles: ['aluno'] },
   { path: '/aluno/trilhas', name: 'Minhas Trilhas', element: MinhasTrilhas, allowedRoles: ['aluno'] },
   { path: '/conquistas', name: 'Minhas Conquistas', element: Conquistas, allowedRoles: ['aluno'] },
+  { path: '/aluno/desafios', name: 'Meus Desafios', element: Missoes, allowedRoles: ['aluno'] },
 ]
 
 export default routes
