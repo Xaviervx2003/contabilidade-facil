@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useReducedMotion } from 'framer-motion'
-import { CFormSelect } from '@coreui/react'
+
 import {
     CContainer,
     CRow,
@@ -20,8 +19,9 @@ import {
     CFormTextarea,
     CFormCheck,
     CFormLabel,
+    CFormSelect,
 } from '@coreui/react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
 import { getAlunoMatricula } from '../../utils/auth'
@@ -273,6 +273,10 @@ const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => {
 
 
 const MinhasQuestoes = () => {
+    const nome = sessionStorage.getItem('nome')
+    const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
+    const token = sessionStorage.getItem('token')
+
     // Estados principais de listagem
     const [dados, setDados] = useState({ questoes: [], total: 0, total_paginas: 1 })
     const [loading, setLoading] = useState(true)
@@ -316,6 +320,7 @@ const MinhasQuestoes = () => {
 
     // ==== FEEDBACKS LOGIC ====
     const [searchFeedbacks, setSearchFeedbacks] = useState('')
+    const [expandedId, setExpandedId] = useState(null)
     
     const { data: feedbacks = [], isLoading: loadingFeedbacks } = useQuery({
         queryKey: ['meusFeedbacks', matricula],
@@ -417,9 +422,6 @@ const MinhasQuestoes = () => {
         })
     }
 
-const nome = sessionStorage.getItem('nome')
-    const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
-    const token = sessionStorage.getItem('token')
 
     // ── Diagnóstico (apenas em desenvolvimento) ────────────────────────
     const [debugLogs, setDebugLogs] = useState([])
