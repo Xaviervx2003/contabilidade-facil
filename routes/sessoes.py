@@ -4,8 +4,11 @@ routes/sessoes.py — Sessões de estudo + Histórico individual do aluno.
 
 from fastapi import APIRouter, HTTPException
 from database import get_conexao
-from models import SessaoEstudo
+from models import SessaoEstudo, DetalheQuestaoSessao
 from routes.dashboard import invalidate_dashboard_cache
+from utils.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 router = APIRouter(prefix="/api", tags=["Sessões"])
 
@@ -54,7 +57,11 @@ def salvar_sessao(sessao: SessaoEstudo):
                     acertou = bool(detalhe.acertou)
                     incremento_acerto = 1 if acertou else 0
                     update_params.append((incremento_acerto, detalhe.id))
-                    insert_params.append((sessao_id, detalhe.id, acertou))
+                    
+                    # Extrair dados adicionais se disponíveis (novo modelo)
+                    tempo_seg = getattr(detalhe, 'tempo_segundos', None)
+                    opcao_marcada = getattr(detalhe, 'opcao_marcada', None)
+                    insert_params.append((sessao_id, detalhe.id, acertou, tempo_seg, opcao_marcada))
 
                 # Executa atualizações e inserções em lote (bulk)
                 if update_params:
@@ -68,10 +75,11 @@ def salvar_sessao(sessao: SessaoEstudo):
                     )
 
                 if insert_params:
+                    # Versão nova com tempo_segundos e opcao_marcada
                     cursor.executemany(
                         """
-                        INSERT INTO sessoes_questoes (sessao_id, questao_id, acertou)
-                        VALUES (%s, %s, %s);
+                        INSERT INTO sessoes_questoes (sessao_id, questao_id, acertou, tempo_segundos, opcao_marcada)
+                        VALUES (%s, %s, %s, %s, %s);
                         """,
                         insert_params
                     )
@@ -80,6 +88,7 @@ def salvar_sessao(sessao: SessaoEstudo):
         invalidate_dashboard_cache()
         return {"status": "Dados salvos com sucesso!", "id": sessao_id}
     except Exception as e:
+        logger.exception(f"Erro ao salvar sessão: {e}")
         raise HTTPException(status_code=500, detail=f"Erro ao salvar sessão: {str(e)}")
 
 
