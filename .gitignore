@@ -24,3 +24,6 @@ sample_questoes*.json
 
 # Scratch
 scratch_script.sql
+
+# Referências locais
+codigo-clean-referencias/
