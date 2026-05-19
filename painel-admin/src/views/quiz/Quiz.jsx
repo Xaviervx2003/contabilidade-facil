@@ -31,6 +31,8 @@ import { calculateGrade, formatSeconds, shuffle } from '../../utils/quizUtils'
 import MateriaMultiSelect from '../../components/MateriaMultiSelect'
 import { useTheme } from '../../context/themeContext'
 import { getMatricula } from '../../utils/auth'
+import gradeCurricular from '../../data/grade_curricular.json'
+import curriculumMapping from '../../data/curriculumMapping.json'
 
 /* ─── Utilitários Locais (Bulletproof) ───────────────────────────────────────── */
 const calculateCorrectAnswersPercentage = (totalQuestionsCount, correctAnswersCount) => {
@@ -95,7 +97,7 @@ const playSound = (correct, enabled) => {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35)
     osc.start()
     osc.stop(ctx.currentTime + 0.35)
-  } catch {}
+  } catch { }
 }
 
 /* ─── Skeleton de carregamento ───────────────────────────────────────────────── */
@@ -292,6 +294,10 @@ const ReadyScreen = ({
   const [activeStep, setActiveStep] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [visibleLimit, setVisibleLimit] = useState(6)
+  const [modoFoco, setModoFoco] = useState('concurso') // 'concurso' | 'faculdade'
+  const [periodoSelecionado, setPeriodoSelecionado] = useState(null)
+  const [disciplinaFaculdade, setDisciplinaFaculdade] = useState(null)
+
 
   // Tópicos sugeridos baseados no Exame de Suficiência CFC
   const TOPICOS_RELEVANTES = [
@@ -313,7 +319,7 @@ const ReadyScreen = ({
   }
 
   const steps = [
-    { id: 0, title: 'Disciplina', icon: '1', completed: !!disciplinaPai },
+    { id: 0, title: modoFoco === 'concurso' ? 'Disciplina' : 'Período', icon: '1', completed: modoFoco === 'concurso' ? !!disciplinaPai : !!disciplinaFaculdade },
     { id: 1, title: 'Assuntos', icon: '2', completed: materiasSelected.length > 0 },
     {
       id: 2,
@@ -346,6 +352,44 @@ const ReadyScreen = ({
           Personalize as matérias e filtros para começar.
         </p>
         <div className="px-4 mt-3">
+          {/* Toggle Switch Elegante */}
+          <div className="d-flex justify-content-center mb-4">
+            <div className="bg-body-secondary rounded-pill p-1 d-inline-flex" style={{ border: '1px solid var(--cui-border-color)' }}>
+              <CButton
+                color={modoFoco === 'concurso' ? 'primary' : 'secondary'}
+                variant={modoFoco === 'concurso' ? '' : 'ghost'}
+                className="rounded-pill px-4 py-2 fw-bold transition-all"
+                onClick={() => {
+                  setModoFoco('concurso')
+                  setPeriodoSelecionado(null)
+                  setDisciplinaFaculdade(null)
+                  setDisciplinaPai(null)
+                  setMateriasSelected([])
+                  setActiveStep(0)
+                }}
+                style={{ fontSize: 13, border: 'none' }}
+              >
+                🎯 Foco Concurso/CFC
+              </CButton>
+              <CButton
+                color={modoFoco === 'faculdade' ? 'primary' : 'secondary'}
+                variant={modoFoco === 'faculdade' ? '' : 'ghost'}
+                className="rounded-pill px-4 py-2 fw-bold transition-all"
+                onClick={() => {
+                  setModoFoco('faculdade')
+                  setPeriodoSelecionado(null)
+                  setDisciplinaFaculdade(null)
+                  setDisciplinaPai(null)
+                  setMateriasSelected([])
+                  setActiveStep(0)
+                }}
+                style={{ fontSize: 13, border: 'none' }}
+              >
+                🎓 Foco Faculdade
+              </CButton>
+            </div>
+          </div>
+
           <CProgress
             value={progressValue}
             color="success"
@@ -362,116 +406,206 @@ const ReadyScreen = ({
         </div>
       </div>
 
-      {/* Passo 0: Disciplina */}
+      {/* Passo 0: Disciplina ou Período */}
       <ChecklistItem
         icon="📚"
         title="O que você quer estudar hoje?"
-        subtitle={disciplinaPai ? `Disciplina: ${disciplinaNome}` : 'Selecione a matéria principal'}
+        subtitle={
+          modoFoco === 'concurso'
+            ? (disciplinaPai ? `Disciplina: ${disciplinaNome}` : 'Selecione a matéria principal')
+            : (disciplinaFaculdade ? `Faculdade: ${disciplinaFaculdade.nome}` : 'Selecione seu período e disciplina')
+        }
         isOpen={activeStep === 0}
         onToggle={() => setActiveStep(activeStep === 0 ? -1 : 0)}
         isCompleted={steps[0].completed}
-        ctaLabel="Confirmar Disciplina"
+        ctaLabel="Confirmar"
         onCta={() => setActiveStep(1)}
       >
         <div className="d-flex flex-column gap-2">
-          {/* Seção de Tópicos Sugeridos */}
-          <div className="mb-2 p-3 rounded-4 bg-body-secondary bg-opacity-25 border border-dashed border-primary border-opacity-25">
-            <div className="text-uppercase fw-bold text-primary mb-2" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
-              🔥 Temas Relevantes (CFC)
-            </div>
-            <div className="d-flex flex-wrap gap-2">
-              {TOPICOS_RELEVANTES.map((topico) => (
-                <div
-                  key={topico.nome}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => selecionarSugerido(topico.nome)}
-                  onKeyDown={(event) => (event.key === 'Enter' || event.key === ' ') && selecionarSugerido(topico.nome)}
-                  className="px-3 py-2 rounded-pill border bg-body d-flex align-items-center gap-2 transition-all hover-translate-y-px shadow-sm"
-                  style={{ cursor: 'pointer', fontSize: 12 }}
-                >
-                  <span>{topico.icon}</span>
-                  <span className="fw-semibold text-body-primary">{topico.nome}</span>
-                  <CBadge color={topico.peso === 'Alta' ? 'danger' : 'warning'} className="rounded-pill" style={{ fontSize: 9 }}>
-                    {topico.peso}
-                  </CBadge>
+          {modoFoco === 'concurso' ? (
+            <>
+              {/* Seção de Tópicos Sugeridos */}
+              <div className="mb-2 p-3 rounded-4 bg-body-secondary bg-opacity-25 border border-dashed border-primary border-opacity-25">
+                <div className="text-uppercase fw-bold text-primary mb-2" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
+                  🔥 Temas Relevantes (CFC)
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <hr className="my-2 opacity-50" />
-
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
-            <div className="text-uppercase fw-bold text-secondary" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
-              📚 Selecione uma Disciplina
-            </div>
-            <div className="position-relative" style={{ minWidth: '200px' }}>
-              <CFormInput
-                size="sm"
-                placeholder="🔍 Pesquisar disciplina..."
-                value={searchTerm}
-                onChange={(event) => {
-                  setSearchTerm(event.target.value)
-                  setVisibleLimit(6) // Reseta o limite ao pesquisar
-                }}
-                className="rounded-pill bg-body-tertiary border-0 px-3"
-                style={{ fontSize: 12 }}
-              />
-            </div>
-          </div>
-          <CRow className="g-3">
-            {raizes.slice(0, visibleLimit).map((materiaRaiz) => (
-              <CCol key={materiaRaiz.id} xs={12} sm={6}>
-                <div
-                  className={`p-3 rounded-4 border cursor-pointer h-100 transition-all ${disciplinaPai === materiaRaiz.id ? 'border-primary bg-primary bg-opacity-10 shadow-sm' : 'bg-body-tertiary border-transparent hover-shadow-sm'}`}
-                  style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault()
-                      setDisciplinaPai(materiaRaiz.id)
-                      setActiveStep(1)
-                    }
-                  }}
-                  onClick={() => {
-                    setDisciplinaPai(materiaRaiz.id)
-                    setActiveStep(1)
-                  }}
-                >
-                  <div className="d-flex flex-column h-100 justify-content-between">
-                    <div className="d-flex align-items-center gap-2 mb-2">
-                      <div className={`rounded-circle d-flex align-items-center justify-content-center ${disciplinaPai === materiaRaiz.id ? 'bg-primary text-white' : 'bg-body border text-secondary'}`} style={{ width: 32, height: 32, fontSize: 14 }}>
-                        📖
-                      </div>
-                      <span className={`fw-bold ${disciplinaPai === materiaRaiz.id ? 'text-primary' : 'text-body-primary'}`} style={{ fontSize: 14 }}>
-                        {materiaRaiz.nome}
-                      </span>
-                    </div>
-                    <div className="d-flex justify-content-end">
-                      <CBadge color={disciplinaPai === materiaRaiz.id ? 'primary' : 'secondary'} variant="outline" className="rounded-pill px-2 py-1" style={{ fontSize: 10 }}>
-                        {materiaRaiz.total_questoes} Questões
+                <div className="d-flex flex-wrap gap-2">
+                  {TOPICOS_RELEVANTES.map((topico) => (
+                    <div
+                      key={topico.nome}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => selecionarSugerido(topico.nome)}
+                      onKeyDown={(event) => (event.key === 'Enter' || event.key === ' ') && selecionarSugerido(topico.nome)}
+                      className="px-3 py-2 rounded-pill border bg-body d-flex align-items-center gap-2 transition-all hover-translate-y-px shadow-sm"
+                      style={{ cursor: 'pointer', fontSize: 12 }}
+                    >
+                      <span>{topico.icon}</span>
+                      <span className="fw-semibold text-body-primary">{topico.nome}</span>
+                      <CBadge color={topico.peso === 'Alta' ? 'danger' : 'warning'} className="rounded-pill" style={{ fontSize: 9 }}>
+                        {topico.peso}
                       </CBadge>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              </CCol>
-            ))}
-          </CRow>
+              </div>
 
-          {raizes.length > visibleLimit && (
-            <div className="text-center mt-3">
-              <CButton
-                color="secondary"
-                variant="ghost"
-                size="sm"
-                className="rounded-pill fw-bold text-primary"
-                onClick={() => setVisibleLimit(prev => prev + 6)}
-              >
-                + Ver mais disciplinas ({raizes.length - visibleLimit} restantes)
-              </CButton>
-            </div>
+              <hr className="my-2 opacity-50" />
+
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div className="text-uppercase fw-bold text-secondary" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
+                  📚 Selecione uma Disciplina
+                </div>
+                <div className="position-relative" style={{ minWidth: '200px' }}>
+                  <CFormInput
+                    size="sm"
+                    placeholder="🔍 Pesquisar disciplina..."
+                    value={searchTerm}
+                    onChange={(event) => {
+                      setSearchTerm(event.target.value)
+                      setVisibleLimit(6) // Reseta o limite ao pesquisar
+                    }}
+                    className="rounded-pill bg-body-tertiary border-0 px-3"
+                    style={{ fontSize: 12 }}
+                  />
+                </div>
+              </div>
+              <CRow className="g-3">
+                {raizes.slice(0, visibleLimit).map((materiaRaiz) => (
+                  <CCol key={materiaRaiz.id} xs={12} sm={6}>
+                    <div
+                      className={`p-3 rounded-4 border cursor-pointer h-100 transition-all ${disciplinaPai === materiaRaiz.id ? 'border-primary bg-primary bg-opacity-10 shadow-sm' : 'bg-body-tertiary border-transparent hover-shadow-sm'}`}
+                      style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          setDisciplinaPai(materiaRaiz.id)
+                          setActiveStep(1)
+                        }
+                      }}
+                      onClick={() => {
+                        setDisciplinaPai(materiaRaiz.id)
+                        setActiveStep(1)
+                      }}
+                    >
+                      <div className="d-flex flex-column h-100 justify-content-between">
+                        <div className="d-flex align-items-center gap-2 mb-2">
+                          <div className={`rounded-circle d-flex align-items-center justify-content-center ${disciplinaPai === materiaRaiz.id ? 'bg-primary text-white' : 'bg-body border text-secondary'}`} style={{ width: 32, height: 32, fontSize: 14 }}>
+                            📖
+                          </div>
+                          <span className={`fw-bold ${disciplinaPai === materiaRaiz.id ? 'text-primary' : 'text-body-primary'}`} style={{ fontSize: 14 }}>
+                            {materiaRaiz.nome}
+                          </span>
+                        </div>
+                        <div className="d-flex justify-content-end">
+                          <CBadge color={disciplinaPai === materiaRaiz.id ? 'primary' : 'secondary'} variant="outline" className="rounded-pill px-2 py-1" style={{ fontSize: 10 }}>
+                            {materiaRaiz.total_questoes} Questões
+                          </CBadge>
+                        </div>
+                      </div>
+                    </div>
+                  </CCol>
+                ))}
+              </CRow>
+
+              {raizes.length > visibleLimit && (
+                <div className="text-center mt-3">
+                  <CButton
+                    color="secondary"
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-pill fw-bold text-primary"
+                    onClick={() => setVisibleLimit(prev => prev + 6)}
+                  >
+                    + Ver mais disciplinas ({raizes.length - visibleLimit} restantes)
+                  </CButton>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* UI para Foco Faculdade */}
+              {!periodoSelecionado ? (
+                <>
+                  <div className="text-uppercase fw-bold text-secondary mb-3" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
+                    📅 Selecione seu Período
+                  </div>
+                  <CRow className="g-3">
+                    {gradeCurricular.grade.map((p) => (
+                      <CCol key={p.periodo} xs={6} sm={3}>
+                        <div
+                          className="p-3 rounded-4 border cursor-pointer h-100 transition-all bg-body-tertiary hover-shadow-sm text-center"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => setPeriodoSelecionado(p.periodo)}
+                        >
+                          <div className="fs-1 mb-2">🎓</div>
+                          <div className="fw-bold">{p.periodo}º Período</div>
+                          <div className="small text-body-secondary mt-1">{p.disciplinas.length} disciplinas</div>
+                        </div>
+                      </CCol>
+                    ))}
+                  </CRow>
+                </>
+              ) : (
+                <>
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div className="text-uppercase fw-bold text-secondary" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
+                      📚 Disciplinas do {periodoSelecionado}º Período
+                    </div>
+                    <CButton
+                      color="secondary"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPeriodoSelecionado(null)}
+                      className="rounded-pill"
+                    >
+                      ← Voltar aos períodos
+                    </CButton>
+                  </div>
+                  <CRow className="g-3">
+                    {gradeCurricular.grade.find((p) => p.periodo === periodoSelecionado)?.disciplinas.map((disc) => {
+                      const mapData = curriculumMapping[disc.codigo]
+                      const isSelected = disciplinaFaculdade?.codigo === disc.codigo
+                      return (
+                        <CCol key={disc.codigo} xs={12} sm={6}>
+                          <div
+                            className={`p-3 rounded-4 border cursor-pointer h-100 transition-all ${isSelected ? 'border-primary bg-primary bg-opacity-10 shadow-sm' : 'bg-body-tertiary border-transparent hover-shadow-sm'}`}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => {
+                              setDisciplinaFaculdade(disc)
+                              if (mapData && mapData.topic_ids && mapData.topic_ids.length > 0) {
+                                setMateriasSelected(mapData.topic_ids.map(String))
+                              } else {
+                                setMateriasSelected([])
+                              }
+                              setActiveStep(1)
+                            }}
+                          >
+                            <div className="fw-bold mb-1" style={{ fontSize: 14, color: isSelected ? 'var(--cui-primary)' : 'inherit' }}>
+                              {disc.nome}
+                            </div>
+                            <div className="text-body-secondary small text-truncate" title={disc.ementa}>
+                              {disc.ementa}
+                            </div>
+                            {mapData && mapData.topic_ids.length > 0 ? (
+                              <CBadge color="success" className="mt-2 rounded-pill">
+                                {mapData.topic_ids.length} tópicos compatíveis
+                              </CBadge>
+                            ) : (
+                              <CBadge color="secondary" className="mt-2 rounded-pill">
+                                Mapeamento manual
+                              </CBadge>
+                            )}
+                          </div>
+                        </CCol>
+                      )
+                    })}
+                  </CRow>
+                </>
+              )}
+            </>
           )}
         </div>
       </ChecklistItem>
@@ -483,12 +617,19 @@ const ReadyScreen = ({
         subtitle={
           materiasSelected.length
             ? `${materiasSelected.length} tópicos selecionados`
-            : `Escolha os assuntos de ${disciplinaNome || '...'}`
+            : modoFoco === 'concurso'
+              ? `Escolha os assuntos de ${disciplinaNome || '...'}`
+              : `Revise os tópicos de ${disciplinaFaculdade?.nome || '...'}`
         }
         isOpen={activeStep === 1}
         onToggle={() => {
-          if (!disciplinaPai) {
+          if (modoFoco === 'concurso' && !disciplinaPai) {
             alert('Selecione uma disciplina primeiro!')
+            setActiveStep(0)
+            return
+          }
+          if (modoFoco === 'faculdade' && !disciplinaFaculdade) {
+            alert('Selecione uma disciplina da faculdade primeiro!')
             setActiveStep(0)
             return
           }
@@ -498,7 +639,7 @@ const ReadyScreen = ({
         ctaLabel="Confirmar Assuntos"
         onCta={() => setActiveStep(2)}
       >
-        {!disciplinaPai ? (
+        {(modoFoco === 'concurso' && !disciplinaPai) || (modoFoco === 'faculdade' && !disciplinaFaculdade) ? (
           <div className="text-center py-4 text-body-secondary">
             Selecione uma disciplina no passo anterior primeiro.
           </div>
@@ -516,8 +657,8 @@ const ReadyScreen = ({
                   return (
                     <CBadge key={selectedId} color="primary" className="p-2 d-flex align-items-center gap-2 rounded-pill shadow-sm">
                       <span style={{ fontSize: 12 }}>{materia?.nome || selectedId}</span>
-                      <span 
-                        role="button" 
+                      <span
+                        role="button"
                         onClick={() => setMateriasSelected((prevSelected) => prevSelected.filter((id) => id !== selectedId))}
                         className="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center"
                         style={{ cursor: 'pointer', fontSize: 10, width: 16, height: 16, fontWeight: 'bold' }}
@@ -529,14 +670,51 @@ const ReadyScreen = ({
                 })
               )}
             </div>
-            <MateriaMultiSelect
-              materias={materias}
-              selected={materiasSelected}
-              onChange={setMateriasSelected}
-              esconderVazias={true}
-              inline={true}
-              rootId={disciplinaPai}
-            />
+            <div className="p-3 border rounded-4 bg-body-tertiary">
+              {modoFoco === 'faculdade' && disciplinaFaculdade && (!curriculumMapping[disciplinaFaculdade.codigo]?.topic_ids.length) && (
+                <CAlert color="warning" className="mb-3 d-flex align-items-center gap-2 py-2">
+                  <CIcon icon={cilLightbulb} />
+                  <span style={{ fontSize: 13 }}>
+                    Não conseguimos mapear automaticamente os tópicos para <b>{disciplinaFaculdade.nome}</b>.
+                    Por favor, selecione manualmente no banco de questões abaixo.
+                  </span>
+                </CAlert>
+              )}
+
+              {modoFoco === 'faculdade' && (!curriculumMapping[disciplinaFaculdade?.codigo]?.topic_ids.length) ? (
+                <div className="mb-3">
+                  <label className="fw-bold small text-body-secondary mb-2">Selecione a disciplina correspondente no banco de questões:</label>
+                  <CFormSelect
+                    value={disciplinaPai || ''}
+                    onChange={(e) => setDisciplinaPai(Number(e.target.value))}
+                    className="rounded-3"
+                  >
+                    <option value="">Selecione...</option>
+                    {materias.filter((m) => !m.parent_id).map((m) => (
+                      <option key={m.id} value={m.id}>{m.nome}</option>
+                    ))}
+                  </CFormSelect>
+                </div>
+              ) : null}
+
+              <MateriaMultiSelect
+                materias={materias}
+                selected={materiasSelected}
+                onChange={setMateriasSelected}
+                esconderVazias={true}
+                inline={true}
+                rootId={
+                  modoFoco === 'faculdade' && curriculumMapping[disciplinaFaculdade?.codigo]?.topic_ids.length > 0
+                    ? null
+                    : disciplinaPai
+                }
+                focoFaculdadeTopicIds={
+                  modoFoco === 'faculdade' && curriculumMapping[disciplinaFaculdade?.codigo]?.topic_ids.length > 0
+                    ? curriculumMapping[disciplinaFaculdade.codigo].topic_ids
+                    : null
+                }
+              />
+            </div>
           </div>
         )}
       </ChecklistItem>
@@ -829,9 +1007,9 @@ const QuizRunning = ({
     const handleKeyDown = (event) => {
       const target = event.target
       if (
-        target.tagName === 'INPUT' || 
-        target.tagName === 'TEXTAREA' || 
-        target.tagName === 'SELECT' || 
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
         target.isContentEditable
       ) return
 
@@ -968,10 +1146,10 @@ const QuizRunning = ({
           const optionLetter = LETTERS[optionIndex]
           const isSelected = selectedOption === optionLetter
           const isCorrectAnswer = optionLetter === currentQuestion.answer
-          
+
           let stateClass = 'bg-body border'
           let circleClass = 'bg-body-tertiary text-body-secondary'
-          
+
           if (isAnswerConfirmed) {
             if (isCorrectAnswer) {
               stateClass = 'bg-success bg-opacity-10 border-success shadow-sm'
@@ -995,7 +1173,7 @@ const QuizRunning = ({
               className={`d-flex align-items-center gap-3 p-3 rounded-4 transition-all quiz-option ${stateClass} ${!isAnswerConfirmed ? 'cursor-pointer hover-translate-y-px' : ''}`}
               style={{ cursor: isAnswerConfirmed ? 'default' : 'pointer', minHeight: 64 }}
             >
-              <div 
+              <div
                 className={`rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 transition-colors ${circleClass}`}
                 style={{ width: 32, height: 32, fontSize: 14 }}
               >
@@ -1225,110 +1403,109 @@ const FinishedScreen = ({
           </div>
         )}
 
-      {/* 🎨 Abas com feedback visual + acessibilidade melhorada */}
-      <div role="tablist" className="mb-4 border-bottom">
-        <div className="d-flex gap-0 gap-md-2">
-          {validTabs.map((tab) => {
-            const isActive = safeActiveTab === tab
-            const tabConfig = {
-              stats: { icon: '📊', label: 'Estatísticas' },
-              qna: { icon: '📋', label: 'Revisão' },
-            }[tab]
+        {/* 🎨 Abas com feedback visual + acessibilidade melhorada */}
+        <div role="tablist" className="mb-4 border-bottom">
+          <div className="d-flex gap-0 gap-md-2">
+            {validTabs.map((tab) => {
+              const isActive = safeActiveTab === tab
+              const tabConfig = {
+                stats: { icon: '📊', label: 'Estatísticas' },
+                qna: { icon: '📋', label: 'Revisão' },
+              }[tab]
 
-            return (
-              <button
-                key={tab}
-                role="tab"
-                aria-selected={isActive}
-                aria-controls={`tab-${tab}`}
-                onClick={() => handleTabChange(tab)}
-                className={`px-3 px-md-4 py-3 border-0 bg-transparent fw-bold transition-colors ${
-                  isActive
+              return (
+                <button
+                  key={tab}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls={`tab-${tab}`}
+                  onClick={() => handleTabChange(tab)}
+                  className={`px-3 px-md-4 py-3 border-0 bg-transparent fw-bold transition-colors ${isActive
                     ? 'text-primary border-bottom border-primary border-2'
                     : 'text-body-secondary hover-primary'
-                }`}
-                style={{
-                  cursor: 'pointer',
-                  borderBottomWidth: isActive ? '3px' : '0',
-                  transition: 'color 0.2s, border-color 0.2s',
-                }}
-              >
-                <span className="me-2">{tabConfig.icon}</span>
-                {tabConfig.label}
-              </button>
-            )
-          })}
+                    }`}
+                  style={{
+                    cursor: 'pointer',
+                    borderBottomWidth: isActive ? '3px' : '0',
+                    transition: 'color 0.2s, border-color 0.2s',
+                  }}
+                >
+                  <span className="me-2">{tabConfig.icon}</span>
+                  {tabConfig.label}
+                </button>
+              )
+            })}
+          </div>
         </div>
-      </div>
 
-      {/* 📊 TAB: ESTATÍSTICAS */}
-      <div
-        id="tab-stats"
-        role="tabpanel"
-        aria-labelledby="tab-stats"
-        style={{ display: safeActiveTab === 'stats' ? 'block' : 'none' }}
-      >
-        <CBadge color={gradeColor} className="fs-2 px-4 py-2 mb-2">
-          {grade.grade}
-        </CBadge>
-        {grade.remarks && <p className="text-body-secondary mb-3">{grade.remarks}</p>}
+        {/* 📊 TAB: ESTATÍSTICAS */}
+        <div
+          id="tab-stats"
+          role="tabpanel"
+          aria-labelledby="tab-stats"
+          style={{ display: safeActiveTab === 'stats' ? 'block' : 'none' }}
+        >
+          <CBadge color={gradeColor} className="fs-2 px-4 py-2 mb-2">
+            {grade.grade}
+          </CBadge>
+          {grade.remarks && <p className="text-body-secondary mb-3">{grade.remarks}</p>}
 
-        <CRow className="g-3 mb-4">
-          <CCol xs={6} md={3}>
-            <div className="bg-body-tertiary rounded-3 p-3">
-              <div className="fs-2 fw-bold text-primary tabular-nums">{finalScore}%</div>
-              <div className="text-uppercase text-secondary fw-semibold mt-1" style={{ fontSize: 9, letterSpacing: '0.05em' }}>Percentual</div>
-            </div>
-          </CCol>
-          <CCol xs={6} md={3}>
-            <div className="bg-body-tertiary rounded-3 p-3">
-              <div className="fs-2 fw-bold text-success tabular-nums">{score}</div>
-              <div className="text-uppercase text-secondary fw-semibold mt-1" style={{ fontSize: 9, letterSpacing: '0.05em' }}>Acertos</div>
-            </div>
-          </CCol>
-          <CCol xs={6} md={3}>
-            <div className="bg-body-tertiary rounded-3 p-3">
-              <div className="fs-2 fw-bold text-danger">{totalAnswered - score}</div>
-              <small className="text-body-secondary">Erros</small>
-            </div>
-          </CCol>
-          <CCol xs={6} md={3}>
-            <div className="bg-body-tertiary rounded-3 p-3">
-              <div className="fs-2 fw-bold text-warning">
-                {Math.floor(elapsedSeconds / 60)}m {elapsedSeconds % 60}s
+          <CRow className="g-3 mb-4">
+            <CCol xs={6} md={3}>
+              <div className="bg-body-tertiary rounded-3 p-3">
+                <div className="fs-2 fw-bold text-primary tabular-nums">{finalScore}%</div>
+                <div className="text-uppercase text-secondary fw-semibold mt-1" style={{ fontSize: 9, letterSpacing: '0.05em' }}>Percentual</div>
               </div>
-              <small className="text-body-secondary">Tempo</small>
-            </div>
-          </CCol>
-        </CRow>
+            </CCol>
+            <CCol xs={6} md={3}>
+              <div className="bg-body-tertiary rounded-3 p-3">
+                <div className="fs-2 fw-bold text-success tabular-nums">{score}</div>
+                <div className="text-uppercase text-secondary fw-semibold mt-1" style={{ fontSize: 9, letterSpacing: '0.05em' }}>Acertos</div>
+              </div>
+            </CCol>
+            <CCol xs={6} md={3}>
+              <div className="bg-body-tertiary rounded-3 p-3">
+                <div className="fs-2 fw-bold text-danger">{totalAnswered - score}</div>
+                <small className="text-body-secondary">Erros</small>
+              </div>
+            </CCol>
+            <CCol xs={6} md={3}>
+              <div className="bg-body-tertiary rounded-3 p-3">
+                <div className="fs-2 fw-bold text-warning">
+                  {Math.floor(elapsedSeconds / 60)}m {elapsedSeconds % 60}s
+                </div>
+                <small className="text-body-secondary">Tempo</small>
+              </div>
+            </CCol>
+          </CRow>
 
-        <div className="d-flex flex-wrap justify-content-center gap-2">
-          <CButton color="primary" onClick={onReplay}>
-            🔄 Refazer
-          </CButton>
-          {score < totalAnswered && (
-            <CButton color="danger" variant="outline" onClick={onRetryErrors}>
-              ❌ Refazer erros ({totalAnswered - score})
+          <div className="d-flex flex-wrap justify-content-center gap-2">
+            <CButton color="primary" onClick={onReplay}>
+              🔄 Refazer
             </CButton>
-          )}
-          <CButton color="success" variant="outline" onClick={onShare}>
-            📤 Compartilhar
-          </CButton>
-          <CButton color="secondary" variant="outline" onClick={onReset}>
-            🏠 Voltar
-          </CButton>
+            {score < totalAnswered && (
+              <CButton color="danger" variant="outline" onClick={onRetryErrors}>
+                ❌ Refazer erros ({totalAnswered - score})
+              </CButton>
+            )}
+            <CButton color="success" variant="outline" onClick={onShare}>
+              📤 Compartilhar
+            </CButton>
+            <CButton color="secondary" variant="outline" onClick={onReset}>
+              🏠 Voltar
+            </CButton>
+          </div>
         </div>
-      </div>
 
-      {/* 📋 TAB: REVISÃO */}
-      <div
-        id="tab-qna"
-        role="tabpanel"
-        aria-labelledby="tab-qna"
-        style={{ display: safeActiveTab === 'qna' ? 'block' : 'none' }}
-      >
-        <ReviewTable questionsAndAnswers={questionsAndAnswers} isDark={isDark} />
-      </div>
+        {/* 📋 TAB: REVISÃO */}
+        <div
+          id="tab-qna"
+          role="tabpanel"
+          aria-labelledby="tab-qna"
+          style={{ display: safeActiveTab === 'qna' ? 'block' : 'none' }}
+        >
+          <ReviewTable questionsAndAnswers={questionsAndAnswers} isDark={isDark} />
+        </div>
       </CCardBody>
     </div>
   )
@@ -1397,12 +1574,12 @@ const Quiz = () => {
       document.documentElement
         .requestFullscreen()
         .then(() => setIsFullscreen(true))
-        .catch(() => {})
+        .catch(() => { })
     } else {
       document
         .exitFullscreen()
         .then(() => setIsFullscreen(false))
-        .catch(() => {})
+        .catch(() => { })
     }
   }, [])
 
@@ -1426,7 +1603,7 @@ const Quiz = () => {
         const ids = Array.isArray(data) ? data.map((item) => item.questao_id) : []
         setFavoritos(ids)
       })
-      .catch(() => {})
+      .catch(() => { })
   }, [matricula])
 
   const alternarFavorito = async (questaoId) => {
@@ -1463,7 +1640,7 @@ const Quiz = () => {
     fetch(`${API_URL}/api/questoes/valores-unicos`)
       .then((r) => r.json())
       .then((d) => setFiltrosDisponiveis(d))
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   // Snapshot restore
@@ -1505,7 +1682,7 @@ const Quiz = () => {
           skippedSet: [...skippedSet],
         }),
       )
-    } catch {}
+    } catch { }
   }, [status, queue, score, questionsAndAnswers, remainingSeconds])
 
   useEffect(() => {
@@ -1774,9 +1951,9 @@ const Quiz = () => {
       const materiaLabel =
         materiasSelected.length > 0
           ? materias
-              .filter((m) => materiasSelected.includes(String(m.id)))
-              .map((m) => m.nome)
-              .join(', ') || 'Quiz de Contabilidade'
+            .filter((m) => materiasSelected.includes(String(m.id)))
+            .map((m) => m.nome)
+            .join(', ') || 'Quiz de Contabilidade'
           : 'Quiz de Contabilidade'
       const res = await fetch(`${API_URL}/api/sessoes`, {
         method: 'POST',
@@ -1839,7 +2016,7 @@ const Quiz = () => {
         await navigator.clipboard.writeText(text)
         alert('✅ Copiado!')
       }
-    } catch {}
+    } catch { }
   }, [elapsedSeconds, score, questionsAndAnswers, questions])
 
   // Derived values
@@ -1869,8 +2046,8 @@ const Quiz = () => {
       <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}@keyframes fade-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
       {!isLogado && status === 'ready' && (
-        <CAlert 
-          color="info" 
+        <CAlert
+          color="info"
           className="rounded-4 border-0 shadow-sm mb-4 d-flex align-items-center justify-content-between p-3"
           style={{ background: isDark ? 'rgba(var(--cui-info-rgb), 0.1)' : 'rgba(var(--cui-info-rgb), 0.05)' }}
         >
@@ -1920,7 +2097,7 @@ const Quiz = () => {
             <CCardHeader className="bg-body border-0 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-3">
               <div className="d-flex align-items-center gap-2">
                 <div className="bg-primary bg-opacity-10 p-2 rounded-3">
-                   <span style={{ fontSize: 20 }}>📘</span>
+                  <span style={{ fontSize: 20 }}>📘</span>
                 </div>
                 <div>
                   <h4 className="mb-0 fw-bold" style={{ fontSize: 18, letterSpacing: '-0.5px' }}>

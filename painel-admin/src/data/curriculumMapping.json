@@ -1,0 +1,484 @@
+{
+  "ESO0146": {
+    "nome": "Comunicação Empresarial",
+    "periodo": 1,
+    "topic_ids": [
+      76518,
+      80029,
+      80110
+    ]
+  },
+  "ESO0148": {
+    "nome": "Fundamentos da Matemática",
+    "periodo": 1,
+    "topic_ids": [
+      80077,
+      80004,
+      80183,
+      80187
+    ]
+  },
+  "ESO0143": {
+    "nome": "Introdução às Teorias Econômicas",
+    "periodo": 1,
+    "topic_ids": [
+      80004,
+      80183,
+      80187
+    ]
+  },
+  "ESO0237": {
+    "nome": "Introdução à Administração",
+    "periodo": 1,
+    "topic_ids": [
+      76517,
+      76522,
+      76514,
+      76742,
+      76743,
+      76744,
+      76745,
+      76923,
+      76511,
+      80110,
+      80183,
+      80187
+    ]
+  },
+  "ESO0334": {
+    "nome": "Teoria da Contabilidade",
+    "periodo": 1,
+    "topic_ids": [
+      76737,
+      80006,
+      80018,
+      80051,
+      80052,
+      80004,
+      80097,
+      80105,
+      80110,
+      80122,
+      80183,
+      80036,
+      80187
+    ]
+  },
+  "ESO0103": {
+    "nome": "Instituições de Direito Público e Privado",
+    "periodo": 1,
+    "topic_ids": [
+      80009,
+      80004,
+      80110
+    ]
+  },
+  "ESO0254": {
+    "nome": "Contabilidade Introdutória I",
+    "periodo": 2,
+    "topic_ids": [
+      80024,
+      80027,
+      80049,
+      80183,
+      80188,
+      80036,
+      80187
+    ]
+  },
+  "ESO0458": {
+    "nome": "Filosofia e Ética Profissional",
+    "periodo": 2,
+    "topic_ids": [
+      80009
+    ]
+  },
+  "ESO0267": {
+    "nome": "Métodos Estatísticos",
+    "periodo": 2,
+    "topic_ids": [
+      76848,
+      80026
+    ]
+  },
+  "ESO0265": {
+    "nome": "Legislação Empresarial e Societária",
+    "periodo": 2,
+    "topic_ids": [
+      80009,
+      80022,
+      80072,
+      80004,
+      80153,
+      80185
+    ]
+  },
+  "ESO0266": {
+    "nome": "Matemática Financeira",
+    "periodo": 2,
+    "topic_ids": [
+      80026,
+      80077,
+      80164,
+      80183,
+      80187
+    ]
+  },
+  "ESO0363": {
+    "nome": "Desenvolvimento Humano e Social",
+    "periodo": 3,
+    "topic_ids": [
+      76516,
+      76517,
+      76518,
+      76519,
+      76525,
+      76527,
+      76668,
+      76618,
+      76743,
+      80034,
+      80004,
+      80183,
+      80187
+    ]
+  },
+  "ESO0364": {
+    "nome": "Contabilidade Introdutória II",
+    "periodo": 3,
+    "topic_ids": [
+      80051,
+      80052,
+      80077,
+      80113,
+      80036
+    ]
+  },
+  "ESO0365": {
+    "nome": "Metodologia do Trabalho Científico",
+    "periodo": 3,
+    "topic_ids": [
+      76885,
+      80026,
+      80110
+    ]
+  },
+  "ESO0366": {
+    "nome": "Empreendedorismo",
+    "periodo": 3,
+    "topic_ids": [
+      76739
+    ]
+  },
+  "ESO0367": {
+    "nome": "Legislação Tributária",
+    "periodo": 3,
+    "topic_ids": [
+      80023,
+      80110,
+      80183,
+      80187
+    ]
+  },
+  "ESO0368": {
+    "nome": "Contabilometria",
+    "periodo": 3,
+    "topic_ids": [
+      80036
+    ]
+  },
+  "ESO0462": {
+    "nome": "Contabilidade Aplicada ao 3º Setor e Cooperativas",
+    "periodo": 4,
+    "topic_ids": [
+      80009,
+      80048,
+      80004,
+      80110,
+      80036
+    ]
+  },
+  "ESO0463": {
+    "nome": "Contabilidade Socioambiental",
+    "periodo": 4,
+    "topic_ids": [
+      80009,
+      80034,
+      80222
+    ]
+  },
+  "ESO0464": {
+    "nome": "Contabilidade Tributária I",
+    "periodo": 4,
+    "topic_ids": [
+      76742,
+      76923,
+      80142,
+      80147,
+      80183,
+      80187
+    ]
+  },
+  "ESO0466": {
+    "nome": "Antropologia e Cultura",
+    "periodo": 4,
+    "topic_ids": [
+      80009,
+      80022
+    ]
+  },
+  "ESO0467": {
+    "nome": "Legislação Trabalhista e Previdenciária",
+    "periodo": 4,
+    "topic_ids": [
+      80110,
+      80142
+    ]
+  },
+  "ESO0558": {
+    "nome": "Legislação e Orçamento Público",
+    "periodo": 5,
+    "topic_ids": [
+      76742,
+      76745,
+      76885,
+      76923,
+      76924,
+      80095,
+      80110
+    ]
+  },
+  "ESO0581": {
+    "nome": "Contabilidade de Custos",
+    "periodo": 5,
+    "topic_ids": [
+      76581,
+      80051,
+      80072,
+      80121,
+      80153,
+      80183,
+      80185,
+      80188,
+      80187
+    ]
+  },
+  "ESO0559": {
+    "nome": "Contabilidade Intermediária",
+    "periodo": 5,
+    "topic_ids": [
+      76869,
+      80026,
+      80048,
+      80062,
+      80105,
+      80110,
+      80117,
+      80119,
+      80120,
+      80036
+    ]
+  },
+  "ESO0562": {
+    "nome": "Contabilidade Tributária II",
+    "periodo": 5,
+    "topic_ids": [
+      76742,
+      76923,
+      80021,
+      80034,
+      80065,
+      80170
+    ]
+  },
+  "ESO0570": {
+    "nome": "Finanças Corporativas",
+    "periodo": 5,
+    "topic_ids": [
+      76532,
+      76722,
+      80006,
+      80079,
+      80097,
+      80183,
+      80002,
+      80187
+    ]
+  },
+  "ESO0401": {
+    "nome": "Análise das Demonstrações Contábeis",
+    "periodo": 6,
+    "topic_ids": [
+      80164,
+      80036
+    ]
+  },
+  "ESO0631": {
+    "nome": "Apuração e Análise de Custos",
+    "periodo": 6,
+    "topic_ids": []
+  },
+  "ESO0633": {
+    "nome": "Contabilidade Aplicada ao Setor Público",
+    "periodo": 6,
+    "topic_ids": [
+      76745,
+      76885,
+      80029,
+      80048,
+      80051,
+      80052,
+      80188
+    ]
+  },
+  "ESO0641": {
+    "nome": "Mercado de Capitais e Atuária",
+    "periodo": 6,
+    "topic_ids": [
+      76743,
+      80110,
+      80121,
+      80183,
+      80199,
+      80218,
+      80187
+    ]
+  },
+  "ESO0643": {
+    "nome": "Gestão Financeira e Orçamentária",
+    "periodo": 6,
+    "topic_ids": [
+      76532,
+      76722,
+      76742,
+      76745,
+      76923,
+      80051,
+      80097,
+      80145,
+      80183,
+      80002,
+      80187
+    ]
+  },
+  "ESO0742": {
+    "nome": "Contabilidade Avançada I",
+    "periodo": 7,
+    "topic_ids": [
+      80026,
+      80095,
+      80121,
+      80183,
+      80199,
+      80036,
+      80187
+    ]
+  },
+  "ESO0743": {
+    "nome": "Contabilidade Agropecuária",
+    "periodo": 7,
+    "topic_ids": [
+      80048,
+      80110
+    ]
+  },
+  "ESO0744": {
+    "nome": "Estágio Supervisionado em Contabilidade",
+    "periodo": 7,
+    "topic_ids": [
+      76742,
+      76745,
+      76923,
+      80010,
+      80033,
+      80048,
+      80065,
+      80110,
+      80036
+    ]
+  },
+  "ESO0759": {
+    "nome": "Perícia e Arbitragem",
+    "periodo": 7,
+    "topic_ids": [
+      76883,
+      76885,
+      80095,
+      80097,
+      80183,
+      80187
+    ]
+  },
+  "ESO0761": {
+    "nome": "Projeto de Pesquisa",
+    "periodo": 7,
+    "topic_ids": [
+      76885,
+      80097
+    ]
+  },
+  "ESO0709": {
+    "nome": "Auditoria",
+    "periodo": 8,
+    "topic_ids": [
+      76745,
+      76883,
+      76885,
+      80087,
+      80092,
+      80095,
+      80097,
+      80170,
+      80183,
+      80187
+    ]
+  },
+  "ESO0823": {
+    "nome": "Contabilidade Avançada II",
+    "periodo": 8,
+    "topic_ids": [
+      80022,
+      80023,
+      80122,
+      80155,
+      80174,
+      80036,
+      80160
+    ]
+  },
+  "ESO0824": {
+    "nome": "Controladoria",
+    "periodo": 8,
+    "topic_ids": [
+      76742,
+      76745,
+      76812,
+      76923,
+      76977,
+      80183,
+      80188,
+      80187
+    ]
+  },
+  "ESO0828": {
+    "nome": "Tópicos Especiais em Contabilidade",
+    "periodo": 8,
+    "topic_ids": [
+      80023,
+      80028,
+      80033,
+      80035,
+      80072,
+      80077,
+      80153,
+      80185
+    ]
+  },
+  "ESO0831": {
+    "nome": "Trabalho de Conclusão de Curso (TCC)",
+    "periodo": 8,
+    "topic_ids": [
+      76885
+    ]
+  }
+}

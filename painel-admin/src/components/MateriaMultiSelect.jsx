@@ -71,7 +71,7 @@ const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatInd
   )
 }
 
-const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = true, inline = false, rootId = null }) => {
+const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = true, inline = false, rootId = null, focoFaculdadeTopicIds = null }) => {
   const [open, setOpen] = useState(false)
   const [filhosCache, setFilhosCache] = useState({})
   const [loadingId, setLoadingId] = useState(null)
@@ -123,11 +123,12 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
   
   const visibleItems = useMemo(() => {
     let items = []
-    if (!currentParent) {
-      
+    
+    if (focoFaculdadeTopicIds && !currentParent) {
+      items = materias.filter(m => focoFaculdadeTopicIds.includes(m.id))
+    } else if (!currentParent) {
       items = materias.filter(m => !m.parent_id)
     } else {
-      
       items = filhosCache[currentParent.id] || []
     }
 
@@ -139,7 +140,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
         (a.indice || '').localeCompare(b.indice || '', undefined, { numeric: true }) ||
         a.nome.localeCompare(b.nome)
       )
-  }, [materias, currentParent, filhosCache, esconderVazias, busca])
+  }, [materias, currentParent, filhosCache, esconderVazias, busca, focoFaculdadeTopicIds])
 
   
   const navigateTo = useCallback(async (node) => {
