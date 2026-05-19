@@ -139,3 +139,19 @@ class VideoRequest(BaseModel):
     titulo: str
     link_video: str
     materia_id: Optional[int] = None
+
+
+# ── Perfil do Aluno ──────────────────────────────────────────────
+
+class AtualizaPerfilRequest(BaseModel):
+    periodo: Optional[int] = None          # 1-8 (semestre do curso)
+    objetivo: Optional[str] = None         # 'CFC', 'Concurso', 'Reforco', 'Outro'
+    celular: Optional[str] = None
+    avatar_url: Optional[str] = None
+    data_nascimento: Optional[str] = None  # ISO date string
+    plataforma_preferida: Optional[str] = None  # 'web' | 'mobile'
+
+
+class EventoAlunoRequest(BaseModel):
+    evento: str          # 'quiz_iniciou', 'video_assistiu', etc.
+    payload: dict = {}   # dados extras em formato livre

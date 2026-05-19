@@ -12,6 +12,8 @@ from models import (
     VerificaIdentidadeRequest,
     RedefineSenhaRequest,
     AlteraSenhaRequest,
+    AtualizaPerfilRequest,
+    EventoAlunoRequest,
 )
 from utils.security import get_password_hash, verify_password
 from utils.responses import api_response
@@ -40,20 +42,32 @@ def fazer_login(credenciais: LoginRequest, request: Request):
             cursor = conn.cursor()
             # Agora buscamos apenas pela matrícula, a verificação de senha é via hash
             cursor.execute(
-                "SELECT id, nome, matricula, papel, senha FROM usuarios WHERE matricula = %s;",
+                "SELECT id, nome, matricula, papel, senha, xp, streak_atual, periodo, objetivo, avatar_url FROM usuarios WHERE matricula = %s;",
                 (credenciais.matricula,),
             )
             usuario = cursor.fetchone()
 
         if usuario and verify_password(credenciais.senha, usuario[4]):
             logger.info(f"Login bem-sucedido: {credenciais.matricula}")
+            # Atualiza ultimo_acesso
+            with get_conexao() as conn2:
+                conn2.execute(
+                    "UPDATE usuarios SET ultimo_acesso = NOW() WHERE matricula = %s",
+                    (credenciais.matricula,)
+                )
+                conn2.commit()
             token = criar_token(usuario[2], usuario[3], usuario[0])
             return api_response(sucesso=True, dados={
-                "id": usuario[0],
-                "nome": usuario[1],
-                "matricula": usuario[2],
-                "papel": usuario[3],
-                "token": token,
+                "id":         usuario[0],
+                "nome":       usuario[1],
+                "matricula":  usuario[2],
+                "papel":      usuario[3],
+                "token":      token,
+                "xp":         usuario[5] or 0,
+                "streak":     usuario[6] or 0,
+                "periodo":    usuario[7],
+                "objetivo":   usuario[8],
+                "avatar_url": usuario[9],
             })
         else:
             logger.warning(f"Tentativa de login falhou: {credenciais.matricula}")
@@ -198,20 +212,75 @@ def obter_perfil(matricula: str, token_data: dict = Depends(verificar_proprio_ou
         with get_conexao() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT id, nome, matricula, papel FROM usuarios WHERE matricula = %s;",
+                """SELECT id, nome, matricula, papel, email, xp, streak_atual, streak_maximo,
+                          periodo, objetivo, status_aluno, avatar_url, celular, data_nascimento, criado_em
+                   FROM usuarios WHERE matricula = %s;""",
                 (matricula,),
             )
-            usuario = cursor.fetchone()
+            u = cursor.fetchone()
 
-        if usuario:
+        if u:
             return api_response(sucesso=True, dados={
-                "id": usuario[0],
-                "nome": usuario[1],
-                "matricula": usuario[2],
-                "papel": usuario[3],
+                "id": u[0], "nome": u[1], "matricula": u[2], "papel": u[3],
+                "email": u[4], "xp": u[5] or 0, "streak_atual": u[6] or 0,
+                "streak_maximo": u[7] or 0, "periodo": u[8], "objetivo": u[9],
+                "status_aluno": u[10], "avatar_url": u[11], "celular": u[12],
+                "data_nascimento": u[13].isoformat() if u[13] else None,
+                "criado_em": u[14].isoformat() if u[14] else None,
             })
         else:
             return api_response(sucesso=False, mensagem="Usuário não encontrado.", status_code=404)
     except Exception as e:
         logger.exception(f"Erro ao buscar perfil: {matricula}")
         return api_response(sucesso=False, mensagem="Erro ao buscar perfil.", status_code=500)
+
+
+@router.put("/perfil/{matricula}")
+def atualizar_perfil(matricula: str, dados: AtualizaPerfilRequest,
+                     token_data: dict = Depends(verificar_proprio_ou_admin)):
+    """Atualiza campos opcionais do perfil do aluno autenticado."""
+    campos = {
+        "periodo": dados.periodo,
+        "objetivo": dados.objetivo,
+        "celular": dados.celular,
+        "avatar_url": dados.avatar_url,
+        "data_nascimento": dados.data_nascimento,
+        "plataforma_preferida": dados.plataforma_preferida,
+    }
+    # Filtra apenas campos fornecidos (não None)
+    updates = {k: v for k, v in campos.items() if v is not None}
+    if not updates:
+        return api_response(sucesso=False, mensagem="Nenhum campo para atualizar.", status_code=400)
+
+    set_clause = ", ".join(f"{k} = %({k})s" for k in updates)
+    updates["matricula"] = matricula
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            cursor.execute(f"UPDATE usuarios SET {set_clause} WHERE matricula = %(matricula)s", updates)
+            conn.commit()
+        return api_response(sucesso=True, mensagem="Perfil atualizado com sucesso!")
+    except Exception as e:
+        logger.exception(f"Erro ao atualizar perfil: {matricula}")
+        return api_response(sucesso=False, mensagem="Erro ao atualizar perfil.", status_code=500)
+
+
+@router.post("/aluno/evento")
+def registrar_evento(dados: EventoAlunoRequest, token_data: dict = Depends(usuario_autenticado)):
+    """Registra um evento de comportamento do aluno (tracking analítico)."""
+    matricula = token_data.get("sub")
+    if not matricula:
+        raise HTTPException(status_code=401, detail="Token inválido.")
+    import json
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO eventos_aluno (matricula, evento, payload) VALUES (%s, %s, %s)",
+                (matricula, dados.evento, json.dumps(dados.payload))
+            )
+            conn.commit()
+        return {"ok": True}
+    except Exception as e:
+        logger.exception("Erro ao registrar evento")
+        raise HTTPException(status_code=500, detail="Erro ao registrar evento.")

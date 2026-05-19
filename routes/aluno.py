@@ -14,12 +14,17 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional
 from database import get_conexao
 from utils.jwt_auth import usuario_autenticado
+from utils.cache import cache
 
 router = APIRouter(prefix="/api/aluno", tags=["Aluno"])
 
 
 @router.get("/historico-grafico/{matricula}")
 def historico_grafico(matricula: str):
+    cache_key = f"historico_grafico:{matricula}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
@@ -93,7 +98,7 @@ def historico_grafico(matricula: str):
 
             resumo = cursor.fetchone()
 
-        return {
+        resultado = {
             "resumo": {
                 "total_sessoes": int(resumo[0] or 0),
                 "total_questoes": int(resumo[1] or 0),
@@ -120,6 +125,8 @@ def historico_grafico(matricula: str):
                 for r in linhas_assunto
             ],
         }
+        cache.set(cache_key, resultado, expire=300)
+        return resultado
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar histórico gráfico: {str(e)}")
@@ -344,6 +351,10 @@ def meus_feedbacks_por_matricula(
 
 @router.get("/historico-diario/{matricula}")
 def historico_diario(matricula: str, dias: int = 30):
+    cache_key = f"historico_diario:{matricula}:{dias}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
@@ -375,12 +386,14 @@ def historico_diario(matricula: str, dias: int = 30):
             """, {"matricula": matricula, "dias": dias})
             rows = cursor.fetchall()
 
-        return {
+        resultado = {
             "serie_diaria": [
                 {"dia": r[0].isoformat(), "sessoes": int(r[1]), "questoes": int(r[2])}
                 for r in rows
             ]
         }
+        cache.set(cache_key, resultado, expire=300)
+        return resultado
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar histórico diário: {str(e)}")
 
@@ -431,28 +444,41 @@ def historico_filtrado(
                     WHERE sq.sessao_id = s.id AND sq.acertou = FALSE
                 )"""
 
-            cursor.execute(f"""
-                SELECT COUNT(id), COALESCE(SUM(questoes_respondidas), 0),
-                       ROUND(AVG(taxa_acerto)::numeric, 1),
-                       ROUND(AVG(tempo_gasto_segundos)::numeric, 0), MAX(criado_em)
-                FROM ({base}) sub
-            """, params)
+            QUERY_RESUMO = f"""
+                SELECT
+                    COUNT(id)                                    AS total_sessoes,
+                    COALESCE(SUM(questoes_respondidas), 0)       AS total_questoes,
+                    ROUND(AVG(taxa_acerto)::numeric, 1)          AS media_geral,
+                    ROUND(AVG(tempo_gasto_segundos)::numeric, 0) AS tempo_medio_seg,
+                    MAX(criado_em)                               AS ultima_sessao
+                FROM ({base}) AS sub
+            """
+            cursor.execute(QUERY_RESUMO, params)
             resumo = cursor.fetchone()
 
-            cursor.execute(f"""
-                SELECT DATE(sub.criado_em), COUNT(sub.id),
-                       SUM(sub.questoes_respondidas),
-                       ROUND(AVG(sub.taxa_acerto)::numeric, 1)
-                FROM ({base}) sub GROUP BY DATE(sub.criado_em) ORDER BY DATE(sub.criado_em)
-            """, params)
+            QUERY_DIARIO = f"""
+                SELECT
+                    DATE(sub.criado_em)                          AS dia,
+                    COUNT(sub.id)                                AS total_sessoes,
+                    SUM(sub.questoes_respondidas)                AS total_questoes,
+                    ROUND(AVG(sub.taxa_acerto)::numeric, 1)      AS media_acerto
+                FROM ({base}) AS sub
+                GROUP BY DATE(sub.criado_em)
+                ORDER BY DATE(sub.criado_em)
+            """
+            cursor.execute(QUERY_DIARIO, params)
             diario = cursor.fetchall()
 
-            cursor.execute(f"""
-                SELECT COALESCE(NULLIF(TRIM(sub.assunto_estudado), ''), 'Sem assunto'),
-                       SUM(sub.questoes_respondidas),
-                       ROUND(AVG(sub.taxa_acerto)::numeric, 1)
-                FROM ({base}) sub GROUP BY 1 ORDER BY 3 ASC
-            """, params)
+            QUERY_ASSUNTO = f"""
+                SELECT
+                    COALESCE(NULLIF(TRIM(sub.assunto_estudado), ''), 'Sem assunto') AS assunto,
+                    SUM(sub.questoes_respondidas)                                   AS total_questoes,
+                    ROUND(AVG(sub.taxa_acerto)::numeric, 1)                         AS media_acerto
+                FROM ({base}) AS sub
+                GROUP BY 1
+                ORDER BY 3 ASC
+            """
+            cursor.execute(QUERY_ASSUNTO, params)
             por_assunto = cursor.fetchall()
 
         return {
@@ -558,3 +584,93 @@ def listar_sessoes(matricula: str):
             ]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar sessões: {str(e)}")
+
+
+@router.get("/quiz-analytics/{matricula}")
+def quiz_analytics(matricula: str):
+    """
+    Retorna analytics detalhados do desempenho do aluno no Quiz:
+    - Acerto por matéria (pontos fortes e fracos)
+    - Horário preferido de estudo
+    - Tempo médio por sessão
+    - Progresso semanal (streak)
+    """
+    cache_key = f"quiz_analytics:{matricula}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+
+            # ── 1. Acerto por matéria ────────────────────────────────────────
+            cursor.execute("""
+                SELECT
+                    COALESCE(NULLIF(TRIM(m.nome), ''), 'Sem matéria') AS materia,
+                    COUNT(sq.questao_id)                              AS total,
+                    SUM(CASE WHEN sq.acertou THEN 1 ELSE 0 END)      AS acertos,
+                    ROUND(
+                        100.0 * SUM(CASE WHEN sq.acertou THEN 1 ELSE 0 END)
+                        / NULLIF(COUNT(sq.questao_id), 0)::numeric, 1
+                    )                                                AS taxa_acerto
+                FROM sessoes_questoes sq
+                JOIN sessoes_estudo   se ON se.id = sq.sessao_id
+                JOIN questoes          q ON q.id  = sq.questao_id
+                LEFT JOIN questoes_materias qm ON qm.questao_id = q.id
+                LEFT JOIN materias         m  ON m.id = qm.materia_id
+                WHERE COALESCE(se.matricula_aluno, se.nome_aluno) = %s
+                GROUP BY materia
+                ORDER BY taxa_acerto ASC;
+            """, (matricula,))
+            por_materia = [
+                {"materia": r[0], "total": int(r[1]), "acertos": int(r[2]), "taxa_acerto": float(r[3] or 0)}
+                for r in cursor.fetchall()
+            ]
+
+            # ── 2. Horário preferido de estudo ───────────────────────────────
+            cursor.execute("""
+                SELECT
+                    CASE
+                        WHEN EXTRACT(HOUR FROM criado_em) BETWEEN 5  AND 11 THEN 'Manhã'
+                        WHEN EXTRACT(HOUR FROM criado_em) BETWEEN 12 AND 17 THEN 'Tarde'
+                        WHEN EXTRACT(HOUR FROM criado_em) BETWEEN 18 AND 22 THEN 'Noite'
+                        ELSE 'Madrugada'
+                    END AS turno,
+                    COUNT(id) AS sessoes
+                FROM sessoes_estudo
+                WHERE COALESCE(matricula_aluno, nome_aluno) = %s
+                GROUP BY turno
+                ORDER BY sessoes DESC;
+            """, (matricula,))
+            por_turno = [
+                {"turno": r[0], "sessoes": int(r[1])}
+                for r in cursor.fetchall()
+            ]
+
+            # ── 3. Tempo médio e total de questões ───────────────────────────
+            cursor.execute("""
+                SELECT
+                    COALESCE(SUM(questoes_respondidas), 0)            AS total_questoes,
+                    ROUND(AVG(tempo_gasto_segundos)::numeric, 0)      AS tempo_medio_seg,
+                    ROUND(AVG(taxa_acerto)::numeric, 1)               AS media_acerto
+                FROM sessoes_estudo
+                WHERE COALESCE(matricula_aluno, nome_aluno) = %s;
+            """, (matricula,))
+            r = cursor.fetchone()
+            resumo = {
+                "total_questoes": int(r[0] or 0),
+                "tempo_medio_seg": int(r[1] or 0),
+                "media_acerto": float(r[2] or 0),
+            }
+
+        resultado = {
+            "resumo": resumo,
+            "por_materia": por_materia,
+            "por_turno": por_turno,
+        }
+        cache.set(cache_key, resultado, expire=300)
+        return resultado
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar quiz analytics: {str(e)}")
