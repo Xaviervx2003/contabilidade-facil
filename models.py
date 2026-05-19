@@ -8,6 +8,8 @@ from typing import Optional, List
 class DetalheQuestaoSessao(BaseModel):
     id: int
     acertou: bool
+    tempo_segundos: Optional[int] = None      # NOVO: tempo gasto nesta questão
+    opcao_marcada: Optional[str] = None       # NOVO: opção selecionada (A-E)
 
 class SessaoEstudo(BaseModel):
     matricula_aluno: Optional[str] = None
