@@ -1476,9 +1476,13 @@ const Quiz = () => {
         sessionStorage.removeItem(SESSION_KEY)
       }
     } else {
-      // Se não houver snapshot, verificamos se veio por Estudo Dirigido (IDs específicos)
+      // Se não houver snapshot, verificamos se veio por Estudo Dirigido (IDs específicos) ou Trilha (Materia ID)
       const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
-      if (params.get('ids')) {
+      const materiaId = params.get('materia_id')
+      if (materiaId) {
+        setMateriasSelected([materiaId])
+      }
+      if (params.get('ids') || params.get('materia_id')) {
         fetchAndStart()
       }
     }

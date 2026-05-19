@@ -319,10 +319,8 @@ const MinhasTrilhas = () => {
           backdrop="static"
           scrollable
           className="modal-premium"
-          style={{
-            fontFamily: "'Circular Std', 'Nunito', sans-serif",
-          }}
         >
+          <div style={{ display: 'contents', fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
           <CModalHeader className="border-0 pb-0 pt-4 px-4 bg-body-elevated" style={{ backdropFilter: 'blur(12px)', background: 'rgba(var(--color-bg-elevated-rgb), 0.85)' }}>
             <div className="w-100">
               <div className="d-flex align-items-center gap-2 mb-1">
@@ -557,6 +555,7 @@ const MinhasTrilhas = () => {
               )}
             </div>
           </CModalFooter>
+          </div>
         </CModal>
       </CContainer>
     </div>
