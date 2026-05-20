@@ -9,9 +9,12 @@ const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatInd
 
   return (
     <div
-      className={`d-flex align-items-center gap-3 p-3 border-bottom transition-all ${isSelected ? 'bg-primary bg-opacity-10' : 'bg-transparent hover-bg-light'}`}
+      className="d-flex align-items-center gap-3 p-3 border-bottom transition-all hover-bg-light"
       style={{
         cursor: 'pointer',
+        backgroundColor: isSelected ? 'rgba(79, 142, 247, 0.08)' : 'transparent',
+        borderLeft: isSelected ? '4px solid #4f8ef7' : '4px solid transparent',
+        transition: 'all 0.2s ease-in-out'
       }}
       role="button"
       tabIndex={0}
@@ -29,35 +32,35 @@ const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatInd
     >
       <div className="form-check mb-0">
         <input
-          className="form-check-input"
+          className="form-check-input shadow-none"
           type="checkbox"
           checked={isSelected}
           onChange={(e) => {
             e.stopPropagation()
             toggleItem(node.id)
           }}
-          style={{ width: 20, height: 20, cursor: 'pointer' }}
+          style={{ width: 20, height: 20, cursor: 'pointer', borderColor: isSelected ? '#4f8ef7' : 'var(--cui-border-color)' }}
         />
       </div>
       <div className="flex-grow-1 min-width-0">
         <div className="d-flex align-items-baseline gap-2 flex-wrap">
           {node.indice && (
-            <span className="badge bg-primary bg-opacity-10 text-primary fw-bold" style={{ fontSize: 10, letterSpacing: '0.5px' }}>
+            <span className="badge" style={{ fontSize: 10, letterSpacing: '0.5px', backgroundColor: 'rgba(79, 142, 247, 0.15)', color: '#4f8ef7' }}>
               {formatIndice(node.indice)}
             </span>
           )}
-          <span className={`text-body-primary ${canGoDeeper ? 'fw-bold' : ''}`} style={{ fontSize: 14 }}>
+          <span className={`${canGoDeeper ? 'fw-bold' : 'fw-medium'}`} style={{ fontSize: 14, color: isSelected ? '#4f8ef7' : 'var(--cui-body-color)' }}>
             {node.nome}
           </span>
         </div>
         {node.total_questoes > 0 && (
-          <div className="text-secondary mt-1" style={{ fontSize: 11 }}>
+          <div className="mt-1" style={{ fontSize: 12, color: 'var(--cui-secondary-color)' }}>
             <span className="fw-semibold">{node.total_questoes}</span> questões disponíveis
           </div>
         )}
       </div>
       {canGoDeeper && (
-        <div className="text-primary opacity-50">
+        <div style={{ color: '#4f8ef7', opacity: 0.7 }}>
           {isLoading ? (
             <div className="spinner-border spinner-border-sm" role="status">
               <span className="visually-hidden">Loading...</span>

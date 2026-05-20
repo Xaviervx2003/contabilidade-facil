@@ -224,7 +224,7 @@ const MissaoCard = ({ m, onConcluir, concluindo }) => {
 }
 
 /* ── Componente Principal ─────────────────────────────────── */
-const Missoes = () => {
+const Missoes = ({ isTab = false }) => {
     const [missoes, setMissoes] = useState([])
     const [loading, setLoading] = useState(true)
     const [erro, setErro] = useState('')
@@ -285,11 +285,10 @@ const Missoes = () => {
     const concluidas = missoes.filter(m => m.status === 'concluida')
     const expiradas = missoes.filter(m => m.status === 'expirada')
 
-    return (
-        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Nunito', sans-serif" }}>
-            <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
-                {/* Toast */}
-                <AnimatePresence>
+    const innerContent = (
+        <>
+            {/* Toast */}
+            <AnimatePresence>
                     {toast && (
                         <motion.div
                             initial={{ opacity: 0, y: 40, scale: 0.95 }}
@@ -309,18 +308,20 @@ const Missoes = () => {
                     )}
                 </AnimatePresence>
 
-                <div style={{ maxWidth: 960, margin: '0 auto' }}>
+                <div style={!isTab ? { maxWidth: 960, margin: '0 auto' } : {}}>
 
                     {/* HEADER PREMIUM */}
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        style={{ marginBottom: 32 }}
-                    >
-                        <div style={{ color: T.coral, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Missões e Gamificação</div>
-                        <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>Meus Desafios 🎯</div>
-                        <div style={{ fontSize: 14, color: T.muted, marginTop: 6 }}>Complete missões para ganhar XP e subir no ranking.</div>
-                    </motion.div>
+                    {!isTab && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            style={{ marginBottom: 32 }}
+                        >
+                            <div style={{ color: T.coral, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Missões e Gamificação</div>
+                            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>Meus Desafios 🎯</div>
+                            <div style={{ fontSize: 14, color: T.muted, marginTop: 6 }}>Complete missões para ganhar XP e subir no ranking.</div>
+                        </motion.div>
+                    )}
 
                     {/* Erro */}
                     {erro && (
@@ -394,6 +395,15 @@ const Missoes = () => {
                         </>
                     )}
                 </div>
+        </>
+    )
+
+    if (isTab) return innerContent
+
+    return (
+        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Nunito', sans-serif" }}>
+            <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
+                {innerContent}
             </CContainer>
         </div>
     )

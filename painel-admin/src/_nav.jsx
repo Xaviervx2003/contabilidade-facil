@@ -87,26 +87,14 @@ const getNavItens = () => {
       },
       {
         component: CNavItem,
-        name: 'Minhas Conquistas',
-        to: '/conquistas',
+        name: 'Gamificação & Ranking',
+        to: '/aluno/gamificacao',
         icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
         badge: {
           color: 'warning',
           textColor: 'white',
           shape: 'rounded-pill',
           children: '🏆',
-        },
-      },
-      {
-        component: CNavItem,
-        name: 'Meus Desafios',
-        to: '/aluno/desafios',
-        icon: <CIcon icon={cilFlagAlt} customClassName="nav-icon" />,
-        badge: {
-          color: 'danger',
-          textColor: 'white',
-          shape: 'rounded-pill',
-          children: '🎯',
         },
       },
     )

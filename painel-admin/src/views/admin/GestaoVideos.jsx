@@ -1,36 +1,22 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react'
-import {
-  CAlert,
-  CButton,
-  CCol,
-  CRow,
-  CSpinner,
-  CFormInput,
-  CFormSelect,
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter,
-  CBadge,
-  CPagination,
-  CPaginationItem,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import {
-  cilPlus,
-  cilPencil,
-  cilTrash,
-  cilVideo,
-  cilSearch,
-  cilLibrary,
-  cilReload,
-  cilExternalLink,
-} from '@coreui/icons'
+import React, { useEffect, useState, useCallback } from 'react'
+import { CSpinner, CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter } from '@coreui/react'
+import { Icon } from '@iconify/react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { API_URL } from '../../config'
 import { useTheme } from '../../context/themeContext'
 
-/* ─── Helpers ─── */
+/* ── Tokens Airbnb ───────────────────────────────────────── */
+const tk = {
+  rausch:  '#FF385C',
+  babu:    '#00A699',
+  arches:  '#FC642D',
+  foggy:   '#767676',
+  swiss:   '#B0B0B0',
+}
+
+const FONT = "'Nunito', 'Circular Std', sans-serif"
+
+/* ── Helpers ── */
 const extrairYouTubeId = (url) => {
   if (!url) return null
   const patterns = [
@@ -51,20 +37,24 @@ const obterThumbnail = (url) => {
   return null
 }
 
-/* ─── Skeleton Card ─── */
-const SkeletonCard = ({ isDark }) => {
-  const bg = isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'
+/* ── Componentes UI Básicos ── */
+const Label = ({ children }) => (
+  <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.9px', color: tk.foggy, marginBottom: 6, fontFamily: FONT }}>{children}</div>
+)
+
+const AInput = ({ value, onChange, placeholder }) => (
+  <input value={value} onChange={onChange} placeholder={placeholder} style={{ width: '100%', height: 42, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = tk.rausch} onBlur={e => e.target.style.borderColor = 'var(--color-border)'} />
+)
+
+const ASelect = ({ value, onChange, children }) => (
+  <select value={value} onChange={onChange} style={{ width: '100%', height: 42, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s', cursor: 'pointer' }} onFocus={e => e.target.style.borderColor = tk.rausch} onBlur={e => e.target.style.borderColor = 'var(--color-border)'}>{children}</select>
+)
+
+const Skel = ({ isDark }) => {
+  const bg = isDark ? '#1e2535' : '#f0f0f0'
+  const hl = isDark ? '#252f42' : '#e0e0e0'
   return (
-    <CCol xs={12} md={6} lg={4} xl={3} className="mb-4">
-      <div style={{
-        height: 280,
-        background: bg,
-        borderRadius: 16,
-        animation: 'shimmer 1.5s infinite linear',
-        backgroundSize: '200% 100%',
-        backgroundImage: `linear-gradient(90deg, ${bg} 25%, ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'} 50%, ${bg} 75%)`
-      }} />
-    </CCol>
+    <div style={{ height: 280, borderRadius: 16, background: `linear-gradient(90deg, ${bg} 25%, ${hl} 50%, ${bg} 75%)`, backgroundSize: '200% 100%', animation: 'skshimmer 1.5s ease infinite' }} />
   )
 }
 
@@ -74,6 +64,7 @@ const GestaoVideos = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  
   const [busca, setBusca] = useState('')
   const [materiaFiltro, setMateriaFiltro] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -91,10 +82,7 @@ const GestaoVideos = () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
-        apenas_videos: 'true',
-        page: String(currentPage),
-        per_page: '20',
-        busca: busca,
+        apenas_videos: 'true', page: String(currentPage), per_page: '20', busca: busca,
       })
       if (materiaFiltro) params.append('materia_id', materiaFiltro)
 
@@ -110,7 +98,6 @@ const GestaoVideos = () => {
         setTotalPages(respVideos.dados.total_pages)
         setTotalItems(respVideos.dados.total)
       }
-      
       setMaterias(Array.isArray(dataMaterias) ? dataMaterias : [])
     } catch (err) {
       setError('Erro ao carregar dados.')
@@ -121,18 +108,10 @@ const GestaoVideos = () => {
 
   useEffect(() => { carregarDados() }, [carregarDados])
 
-  // Removido o useMemo de filtragem local pois agora é server-side
-  const videosFiltrados = videos
-
   const abrirModal = (video = null) => {
     if (video) {
       setModoEdicao(true)
-      setFormData({
-        id: video.id,
-        titulo: video.titulo || '',
-        link: video.link_video || '',
-        materia_ids: [video.materia_id].filter(Boolean)
-      })
+      setFormData({ id: video.id, titulo: video.titulo || '', link: video.link_video || '', materia_ids: [video.materia_id].filter(Boolean) })
     } else {
       setModoEdicao(false)
       setFormData({ id: null, titulo: '', link: '', materia_ids: [] })
@@ -142,348 +121,222 @@ const GestaoVideos = () => {
 
   const salvarVideo = async () => {
     if (!formData.titulo || !formData.link || formData.materia_ids.length === 0) {
-      setError('Preencha o título, o link e selecione uma matéria.')
+      setError('Preencha título, link e matéria.')
+      setTimeout(() => setError(''), 3000)
       return
     }
 
     setSalvando(true)
     setError('')
     try {
-      const payload = {
-        titulo: formData.titulo,
-        link_video: formData.link,
-        materia_id: formData.materia_ids[0] || null
-      }
-
+      const payload = { titulo: formData.titulo, link_video: formData.link, materia_id: formData.materia_ids[0] || null }
       const url = modoEdicao ? `${API_URL}/api/videos/${formData.id}` : `${API_URL}/api/videos`
       const method = modoEdicao ? 'PUT' : 'POST'
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
 
       if (!res.ok) throw new Error('Falha ao salvar vídeo.')
-
       setSuccess('Vídeo salvo com sucesso!')
+      setTimeout(() => setSuccess(''), 3000)
       setModalVisible(false)
       carregarDados()
-      setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
       setError(err.message)
+      setTimeout(() => setError(''), 3000)
     } finally {
       setSalvando(false)
     }
   }
 
   const excluirVideo = async (id) => {
-    if (!window.confirm('Tem certeza que deseja remover este vídeo?')) return
-    
+    if (!window.confirm('Certeza que deseja remover este vídeo?')) return
     try {
-      // Como o vídeo é uma questão, podemos ou excluir a questão ou apenas limpar o link_video.
-      // Para ser mais limpo, vamos apenas limpar o link_video se for uma questão real, 
-      // ou excluir se for um "vídeo-aula" criado por aqui.
-      const res = await fetch(`${API_URL}/api/videos/${id}`, {
-        method: 'DELETE'
-      })
-
+      const res = await fetch(`${API_URL}/api/videos/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Falha ao excluir.')
-      
       setSuccess('Vídeo removido.')
-      carregarDados()
       setTimeout(() => setSuccess(''), 3000)
+      carregarDados()
     } catch (err) {
       setError(err.message)
+      setTimeout(() => setError(''), 3000)
     }
   }
 
-  /* ── Estilos Premium ── */
-  const cardStyle = {
-    background: isDark ? 'rgba(255,255,255,0.03)' : '#fff',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}`,
-    borderRadius: 16,
-    overflow: 'hidden',
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    transition: 'all 0.3s ease',
-    boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.3)' : '0 10px 30px rgba(0,0,0,0.04)',
-  }
-
-  const headerSectionStyle = {
-    position: 'relative',
-    padding: '40px 0',
-    marginBottom: 32,
-    borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}`,
-  }
+  const containerStyle = { minHeight: '100vh', background: 'var(--color-bg-primary)', padding: '32px 16px 60px', fontFamily: FONT }
 
   return (
-    <div className="fade-in">
-      {/* ── Header Estilizado (SaaS Pattern) ── */}
-      <div style={headerSectionStyle}>
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-          <div>
-            <div className="text-primary fw-bold text-uppercase mb-1" style={{ fontSize: 10, letterSpacing: '0.15em' }}>
-              Gestão de Conteúdo
-            </div>
-            <h2 className="fw-bold mb-1" style={{ letterSpacing: '-0.02em' }}>
-              Gestão de Vídeos
-            </h2>
-            <p className="text-body-secondary small mb-0">
-              Gerencie as videoaulas do YouTube e Vimeo vinculadas às matérias.
-            </p>
+    <div style={containerStyle}>
+      <style>{`
+        @keyframes skshimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+      `}</style>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        
+        {/* HEADER */}
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
+          <div style={{ color: tk.babu, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
+            Gestão de Conteúdo
           </div>
-          <CButton 
-            color="primary" 
-            className="rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2"
-            onClick={() => abrirModal()}
-            style={{ height: 44 }}
-          >
-            <CIcon icon={cilPlus} /> Adicionar Vídeo
-          </CButton>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+                Gestão de Vídeos
+              </div>
+              <div style={{ fontSize: 14, color: tk.foggy, marginTop: 6 }}>
+                Gerencie as videoaulas do YouTube vinculadas às matérias.
+              </div>
+            </div>
+            <motion.button whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.97 }} onClick={() => abrirModal()}
+              style={{ background: tk.babu, color: '#fff', border: 'none', borderRadius: 99, padding: '0 24px', height: 44, fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: FONT, boxShadow: `0 4px 14px ${tk.babu}40`, display: 'flex', alignItems: 'center', gap: 8 }}
+            >
+              <Icon icon="solar:video-frame-play-bold-duotone" width="18" /> Novo Vídeo
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* FILTROS */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16, marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1px solid var(--color-border)', borderRadius: 99, padding: '0 16px', height: 46, background: 'var(--color-bg-elevated)', transition: 'border-color 0.2s' }}>
+            <Icon icon="solar:magnifer-linear" width="18" style={{ color: tk.foggy }} />
+            <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Pesquisar por título ou ID..." style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 13, fontFamily: FONT, color: 'var(--color-text-primary)', width: '100%' }} />
+          </div>
+          <div>
+            <select value={materiaFiltro} onChange={e => setMateriaFiltro(e.target.value)} style={{ width: '100%', height: 46, borderRadius: 99, border: '1px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 16px', fontSize: 13, fontFamily: FONT, outline: 'none', cursor: 'pointer' }}>
+              <option value="">Todas as matérias</option>
+              {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
+            </select>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <motion.button onClick={carregarDados} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} style={{ background: 'transparent', color: tk.foggy, border: '1px solid var(--color-border)', borderRadius: 99, padding: '0 20px', height: 46, fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon icon="solar:restart-bold-duotone" width="16" /> Atualizar
+            </motion.button>
+          </div>
         </div>
+
+        {/* GRID DE VÍDEOS */}
+        {loading ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
+            {[0,1,2,3,4,5,6,7].map(i => <Skel key={i} isDark={isDark} />)}
+          </div>
+        ) : videos.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '80px 0', color: tk.foggy }}>
+            <Icon icon="solar:video-frame-play-bold-duotone" width="64" style={{ marginBottom: 16, opacity: 0.2 }} />
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text-primary)' }}>Nenhum vídeo encontrado.</div>
+            <div style={{ fontSize: 13, marginTop: 8 }}>Tente ajustar seus filtros de busca.</div>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
+            <AnimatePresence>
+              {videos.map((v, idx) => {
+                const materiaNome = materias.find(m => m.id === (v.materia_ids?.[0] || v.materia_id))?.nome || 'Geral'
+                return (
+                  <motion.div key={v.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.02 }}
+                    style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+                    whileHover={{ y: -4, boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.3)' : '0 10px 30px rgba(0,0,0,0.06)' }}
+                  >
+                    {/* Thumbnail */}
+                    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: '#000' }}>
+                      <img src={obterThumbnail(v.link_video) || 'https://via.placeholder.com/640x360?text=Sem+Thumbnail'} alt="thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }} />
+                      <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: 10, fontWeight: 800, padding: '4px 8px', borderRadius: 6, backdropFilter: 'blur(4px)' }}>
+                        #{v.id}
+                      </div>
+                      <div style={{ position: 'absolute', bottom: 12, left: 12, background: tk.rausch, color: '#fff', fontSize: 10, fontWeight: 800, padding: '4px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Icon icon="solar:play-circle-bold" /> YouTube
+                      </div>
+                    </div>
+                    {/* Infos */}
+                    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                      <div style={{ fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', color: tk.babu, marginBottom: 6 }}>{materiaNome}</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)', lineHeight: 1.4, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: 40 }}>
+                        {v.titulo}
+                      </div>
+                      <div style={{ marginTop: 'auto', display: 'flex', gap: 8 }}>
+                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => abrirModal(v)} style={{ flex: 1, background: `${tk.babu}15`, color: tk.babu, border: 'none', borderRadius: 8, height: 32, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                          <Icon icon="solar:pen-bold-duotone" /> Editar
+                        </motion.button>
+                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => excluirVideo(v.id)} style={{ width: 32, height: 32, background: `${tk.rausch}15`, color: tk.rausch, border: 'none', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Icon icon="solar:trash-bin-trash-bold-duotone" />
+                        </motion.button>
+                        <motion.a href={v.link_video} target="_blank" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} style={{ width: 32, height: 32, background: 'var(--color-bg-tertiary)', color: tk.foggy, border: '1px solid var(--color-border)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
+                          <Icon icon="solar:external-link-bold-duotone" />
+                        </motion.a>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* PAGINAÇÃO */}
+        {!loading && totalPages > 1 && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 40, gap: 12 }}>
+            <div style={{ fontSize: 12, color: tk.foggy }}>Exibindo página <strong style={{ color: 'var(--color-text-primary)' }}>{currentPage}</strong> de {totalPages} ({totalItems} totais)</div>
+            <div style={{ display: 'flex', gap: 6, background: 'var(--color-bg-elevated)', padding: 6, borderRadius: 99, border: '1px solid var(--color-border)' }}>
+              <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} style={{ background: 'transparent', border: 'none', color: tk.foggy, padding: '0 12px', fontSize: 12, fontWeight: 700, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }}>Anterior</button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).filter(p => Math.abs(p - currentPage) <= 2 || p === 1 || p === totalPages).map((p, idx, arr) => (
+                <React.Fragment key={p}>
+                  {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ color: tk.foggy, padding: '0 4px', fontSize: 12 }}>...</span>}
+                  <button onClick={() => setCurrentPage(p)} style={{ width: 28, height: 28, borderRadius: '50%', background: p === currentPage ? tk.babu : 'transparent', color: p === currentPage ? '#fff' : tk.foggy, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{p}</button>
+                </React.Fragment>
+              ))}
+              <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} style={{ background: 'transparent', border: 'none', color: tk.foggy, padding: '0 12px', fontSize: 12, fontWeight: 700, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1 }}>Próximo</button>
+            </div>
+          </div>
+        )}
+
       </div>
 
-      {/* ── Filtros ── */}
-      <CRow className="mb-4 g-3 align-items-end">
-        <CCol md={5}>
-          <div className="position-relative">
-            <CIcon 
-              icon={cilSearch} 
-              className="position-absolute translate-middle-y top-50 ms-3 text-body-secondary" 
-              style={{ width: 16 }}
-            />
-            <CFormInput 
-              placeholder="Pesquisar por título ou ID..." 
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="ps-5 rounded-pill border-0 shadow-sm"
-              style={{ height: 46, background: isDark ? 'rgba(255,255,255,0.05)' : '#fff' }}
-            />
-          </div>
-        </CCol>
-        <CCol md={3}>
-          <CFormSelect 
-            value={materiaFiltro}
-            onChange={(e) => setMateriaFiltro(e.target.value)}
-            className="rounded-pill border-0 shadow-sm"
-            style={{ height: 46, background: isDark ? 'rgba(255,255,255,0.05)' : '#fff' }}
-          >
-            <option value="">Todas as matérias</option>
-            {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
-          </CFormSelect>
-        </CCol>
-        <CCol md={4} className="text-md-end">
-          <CButton variant="ghost" className="text-body-secondary" onClick={carregarDados}>
-            <CIcon icon={cilReload} /> Atualizar
-          </CButton>
-        </CCol>
-      </CRow>
-
-      {error && <CAlert color="danger" className="rounded-4 shadow-sm mb-4">{error}</CAlert>}
-      {success && <CAlert color="success" className="rounded-4 shadow-sm mb-4">{success}</CAlert>}
-
-      {/* ── Grid de Vídeos ── */}
-      {loading ? (
-        <CRow>
-          {[...Array(8)].map((_, i) => <SkeletonCard key={i} isDark={isDark} />)}
-        </CRow>
-      ) : (
-        <CRow className="g-4">
-          {videosFiltrados.map((v) => (
-            <CCol key={v.id} xs={12} md={6} lg={4} xl={3}>
-              <div 
-                style={cardStyle}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.12)' }}
-                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = isDark ? '0 10px 30px rgba(0,0,0,0.3)' : '0 10px 30px rgba(0,0,0,0.04)' }}
-              >
-                {/* Thumbnail */}
-                <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: '#000' }}>
-                  <img 
-                    src={obterThumbnail(v.link_video) || 'https://via.placeholder.com/640x360?text=Sem+Thumbnail'} 
-                    alt="" 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
-                  />
-                  <div className="position-absolute top-0 end-0 m-2">
-                    <CBadge color="dark" className="bg-opacity-75 rounded-pill">#{v.id}</CBadge>
-                  </div>
-                  <div className="position-absolute bottom-0 start-0 m-2">
-                    <CBadge color="danger" className="rounded-pill d-flex align-items-center gap-1">
-                      <CIcon icon={cilVideo} size="sm" /> YouTube
-                    </CBadge>
-                  </div>
-                </div>
-
-                {/* Info */}
-                <div className="p-3 d-flex flex-column flex-grow-1">
-                  <div className="text-uppercase fw-bold text-primary mb-1" style={{ fontSize: 9 }}>
-                    {materias.find(m => m.id === (v.materia_ids?.[0] || v.materia_id))?.nome || 'Geral'}
-                  </div>
-                  <h6 className="fw-bold mb-3 text-truncate-2" style={{ height: 36, fontSize: 14, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                    {v.titulo}
-                  </h6>
-                  
-                  <div className="mt-auto d-flex gap-2">
-                    <CButton 
-                      size="sm" 
-                      color="info" 
-                      variant="ghost" 
-                      className="flex-grow-1 rounded-pill fw-bold"
-                      onClick={() => abrirModal(v)}
-                    >
-                      <CIcon icon={cilPencil} size="sm" /> Editar
-                    </CButton>
-                    <CButton 
-                      size="sm" 
-                      color="danger" 
-                      variant="ghost" 
-                      className="rounded-circle p-2"
-                      onClick={() => excluirVideo(v.id)}
-                    >
-                      <CIcon icon={cilTrash} size="sm" />
-                    </CButton>
-                    <CButton 
-                      size="sm" 
-                      color="secondary" 
-                      variant="ghost" 
-                      className="rounded-circle p-2"
-                      href={v.link_video}
-                      target="_blank"
-                    >
-                      <CIcon icon={cilExternalLink} size="sm" />
-                    </CButton>
-                  </div>
-                </div>
+      {/* MODAL */}
+      <CModal visible={modalVisible} onClose={() => setModalVisible(false)} size="lg">
+        <div style={{ fontFamily: FONT }}>
+          <CModalHeader style={{ borderBottom: '1px solid var(--color-border)' }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: tk.babu, textTransform: 'uppercase', letterSpacing: '1px' }}>Editor</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text-primary)' }}>{modoEdicao ? 'Editar Vídeo' : 'Novo Vídeo'}</div>
+            </div>
+          </CModalHeader>
+          <CModalBody style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <Label>Título da Videoaula</Label>
+                <AInput value={formData.titulo} onChange={e => setFormData({ ...formData, titulo: e.target.value })} placeholder="Ex: Contabilidade Geral - Balanço Patrimonial" />
               </div>
-            </CCol>
-          ))}
-
-          {videosFiltrados.length === 0 && !loading && (
-            <CCol xs={12} className="text-center py-5">
-              <div className="mb-3" style={{ fontSize: 48 }}>🎥</div>
-              <h5 className="text-body-secondary">Nenhum vídeo encontrado.</h5>
-              <CButton color="primary" variant="link" onClick={() => { setBusca(''); setMateriaFiltro('') }}>
-                Limpar filtros
-              </CButton>
-            </CCol>
-          )}
-        </CRow>
-      )}
-
-      {/* ── Paginação ── */}
-      {!loading && totalPages > 1 && (
-        <div className="d-flex flex-column align-items-center mt-5 mb-4">
-          <div className="text-body-secondary small mb-3">
-            Exibindo página <strong>{currentPage}</strong> de {totalPages} ({totalItems} vídeos totais)
-          </div>
-          <CPagination align="center" className="shadow-sm rounded-pill overflow-hidden">
-            <CPaginationItem 
-              disabled={currentPage === 1} 
-              onClick={() => setCurrentPage(prev => prev - 1)}
-              style={{ cursor: 'pointer' }}
-            >
-              Anterior
-            </CPaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter(p => Math.abs(p - currentPage) <= 2 || p === 1 || p === totalPages)
-              .map((p, idx, arr) => (
-                <React.Fragment key={p}>
-                  {idx > 0 && arr[idx - 1] !== p - 1 && <CPaginationItem disabled>…</CPaginationItem>}
-                  <CPaginationItem 
-                    active={p === currentPage} 
-                    onClick={() => setCurrentPage(p)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {p}
-                  </CPaginationItem>
-                </React.Fragment>
-              ))
-            }
-            <CPaginationItem 
-              disabled={currentPage === totalPages} 
-              onClick={() => setCurrentPage(prev => prev + 1)}
-              style={{ cursor: 'pointer' }}
-            >
-              Próximo
-            </CPaginationItem>
-          </CPagination>
+              <div>
+                <Label>Link do YouTube</Label>
+                <AInput value={formData.link} onChange={e => setFormData({ ...formData, link: e.target.value })} placeholder="https://youtube.com/watch?v=..." />
+                {formData.link && extrairYouTubeId(formData.link) && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 8, fontSize: 11, fontWeight: 700, color: tk.babu }}>
+                    <Icon icon="solar:check-circle-bold" /> ID Extraído: {extrairYouTubeId(formData.link)}
+                  </div>
+                )}
+              </div>
+              <div>
+                <Label>Matéria Relacionada</Label>
+                <ASelect value={formData.materia_ids[0] || ''} onChange={e => setFormData({ ...formData, materia_ids: e.target.value ? [Number(e.target.value)] : [] })}>
+                  <option value="">Selecione uma matéria...</option>
+                  {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
+                </ASelect>
+              </div>
+            </div>
+          </CModalBody>
+          <CModalFooter style={{ borderTop: '1px solid var(--color-border)' }}>
+            <motion.button onClick={() => setModalVisible(false)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} style={{ height: 42, padding: '0 20px', borderRadius: 99, border: '1px solid var(--color-border)', background: 'transparent', color: tk.foggy, fontWeight: 600, fontFamily: FONT, cursor: 'pointer' }}>Cancelar</motion.button>
+            <motion.button onClick={salvarVideo} disabled={salvando} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} style={{ height: 42, padding: '0 24px', borderRadius: 99, border: 'none', background: tk.babu, color: '#fff', fontWeight: 700, fontFamily: FONT, cursor: 'pointer', boxShadow: `0 4px 14px ${tk.babu}40` }}>
+              {salvando ? <CSpinner size="sm" /> : (modoEdicao ? 'Salvar Alterações' : 'Publicar Vídeo')}
+            </motion.button>
+          </CModalFooter>
         </div>
-      )}
-
-      {/* ── Modal de Cadastro ── */}
-      <CModal visible={modalVisible} onClose={() => setModalVisible(false)} size="lg" className="modal-premium">
-        <CModalHeader>
-          <CModalTitle className="fw-bold">{modoEdicao ? 'Editar Vídeo' : 'Novo Vídeo'}</CModalTitle>
-        </CModalHeader>
-        <CModalBody className="p-4">
-          <div className="mb-4">
-            <label className="form-label fw-bold small text-body-secondary text-uppercase">Título da Videoaula</label>
-            <CFormInput 
-              value={formData.titulo} 
-              onChange={e => setFormData({ ...formData, titulo: e.target.value })}
-              placeholder="Ex: Contabilidade Geral - Balanço Patrimonial"
-              className="rounded-3"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="form-label fw-bold small text-body-secondary text-uppercase">Link do YouTube / Vimeo</label>
-            <CFormInput 
-              value={formData.link} 
-              onChange={e => setFormData({ ...formData, link: e.target.value })}
-              placeholder="https://www.youtube.com/watch?v=..."
-              className="rounded-3"
-            />
-            {formData.link && (
-              <div className="mt-2 d-flex align-items-center gap-2 text-success small">
-                <CIcon icon={cilVideo} size="sm" /> Link detectado: {extrairYouTubeId(formData.link) ? 'YouTube' : 'Outro'}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="form-label fw-bold small text-body-secondary text-uppercase">Matéria Relacionada</label>
-            <CFormSelect 
-              value={formData.materia_ids[0] || ''} 
-              onChange={e => {
-                const val = e.target.value;
-                setFormData({ ...formData, materia_ids: val ? [Number(val)] : [] })
-              }}
-              className="rounded-3"
-            >
-              <option value="">Selecione uma matéria...</option>
-              {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
-            </CFormSelect>
-          </div>
-        </CModalBody>
-        <CModalFooter className="border-0 p-4">
-          <CButton color="secondary" variant="ghost" onClick={() => setModalVisible(false)}>Cancelar</CButton>
-          <CButton color="primary" className="px-4 fw-bold" onClick={salvarVideo} disabled={salvando}>
-            {salvando ? <CSpinner size="sm" /> : (modoEdicao ? 'Salvar Alterações' : 'Publicar Vídeo')}
-          </CButton>
-        </CModalFooter>
       </CModal>
 
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        .text-truncate-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        .fade-in {
-          animation: fade-in 0.5s ease;
-        }
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+      {/* ALERTAS */}
+      <AnimatePresence>
+        {success && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: tk.babu, color: '#fff', borderRadius: 99, padding: '12px 24px', fontWeight: 700, fontSize: 14, fontFamily: FONT, boxShadow: `0 8px 24px ${tk.babu}40`, zIndex: 9999, display: 'flex', alignItems: 'center', gap: 8 }}><Icon icon="solar:check-circle-bold-duotone" width="20" /> {success}</motion.div>
+        )}
+        {error && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} onClick={() => setError('')} style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: tk.rausch, color: '#fff', borderRadius: 99, padding: '12px 24px', fontWeight: 700, fontSize: 14, fontFamily: FONT, boxShadow: `0 8px 24px ${tk.rausch}40`, zIndex: 9999, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}><Icon icon="solar:close-circle-bold-duotone" width="20" /> {error}</motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

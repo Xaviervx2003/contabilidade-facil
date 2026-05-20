@@ -50,7 +50,7 @@ const SCard = ({ children, delay = 0, style = {} }) => (
     initial={{ opacity: 0, y: 15 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4, delay }}
-    whileHover={{ y: -4, transition: { duration: 0.2 } }}
+    whileHover={{ y: -4, transition: { duration: 0.2 }, boxShadow: '0 12px 32px rgba(0,0,0,0.08)' }}
     style={{
       background: 'var(--color-bg-elevated)',
       borderRadius: 20,
@@ -251,57 +251,82 @@ const MinhasTrilhas = () => {
 
                 return (
                   <CCol key={t.id} xs={12} md={6} lg={4}>
-                    <SCard delay={i * 0.05}>
-                      <div className="d-flex justify-content-between align-items-start mb-3">
-                        <div className="p-2 rounded-3" style={{ background: concluida ? `${tokens.babu}15` : `${tokens.rausch}10`, color: concluida ? tokens.babu : tokens.rausch }}>
-                          <Icon icon={concluida ? "solar:medal-bold-duotone" : "solar:notebook-bold-duotone"} width="24" />
-                        </div>
-                        <CBadge color={concluida ? 'success' : 'primary'} style={{ borderRadius: 8, fontSize: 11, padding: '4px 8px' }}>
+                    <SCard delay={i * 0.05} style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                      {/* Capa da Trilha */}
+                      <div style={{ position: 'relative', width: '100%', height: 160, background: t.capa_url ? `url(${t.capa_url}) center/cover no-repeat` : `linear-gradient(135deg, ${tokens.rausch}15, ${tokens.babu}15)` }}>
+                        {!t.capa_url && (
+                            <div className="w-100 h-100 d-flex align-items-center justify-content-center">
+                                <Icon icon="solar:route-bold-duotone" width="64" style={{ color: tokens.swiss, opacity: 0.3 }} />
+                            </div>
+                        )}
+                        <CBadge color={concluida ? 'success' : 'primary'} style={{ position: 'absolute', top: 16, right: 16, borderRadius: 8, fontSize: 11, padding: '6px 10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                           {concluida ? 'CONCLUÍDO' : `${t.progresso_percentual}%`}
                         </CBadge>
                       </div>
 
-                      <h5 className="fw-bold mb-2 text-truncate text-capitalize" style={{ color: 'var(--color-text-primary)', letterSpacing: '-0.3px' }}>
-                        {t.nome}
-                      </h5>
-                      <p style={{ fontSize: 12, color: tokens.foggy, height: 36, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
-                        {t.descricao || 'Domine este módulo com videoaulas e questões práticas.'}
-                      </p>
+                      <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <h5 className="fw-bold mb-2 text-truncate text-capitalize" style={{ color: 'var(--color-text-primary)', letterSpacing: '-0.3px', fontSize: 20 }}>
+                          {t.nome}
+                        </h5>
+                        <p style={{ fontSize: 13, color: tokens.foggy, height: 40, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.5, marginBottom: 20 }}>
+                          {t.descricao || 'Domine este módulo com videoaulas e questões práticas.'}
+                        </p>
 
-                      <div className="mt-4 mb-4">
-                        <div className="d-flex justify-content-between small mb-2 fw-bold" style={{ fontSize: 11, color: tokens.foggy, textTransform: 'uppercase' }}>
-                          <span>Progresso</span>
-                          <span>{t.progresso_percentual}%</span>
+                        <div className="mt-auto mb-4">
+                          <div className="d-flex justify-content-between small mb-2 fw-bold" style={{ fontSize: 11, color: tokens.foggy, textTransform: 'uppercase' }}>
+                            <span>Progresso</span>
+                            <span style={{ color: concluida ? tokens.babu : tokens.rausch }}>{t.progresso_percentual}%</span>
+                          </div>
+                          <AirbnbProgress value={t.progresso_percentual} color={concluida ? tokens.babu : tokens.rausch} />
                         </div>
-                        <AirbnbProgress value={t.progresso_percentual} color={concluida ? tokens.babu : tokens.rausch} />
-                      </div>
 
-                      <div className="p-3 rounded-4 bg-body-tertiary border mb-4">
-                        <div style={{ fontSize: 10, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase', marginBottom: 4 }}>{concluida ? 'PARABÉNS!' : 'PRÓXIMO PASSO'}</div>
-                        <div className="fw-bold text-truncate" style={{ fontSize: 13, color: 'var(--color-text-primary)' }}>
-                          {concluida ? 'Trilha completada com sucesso' : proximo?.nome || 'Aguardando aulas'}
-                        </div>
-                      </div>
+                        {!concluida && (
+                          <div className="p-3 rounded-4 bg-body-tertiary border mb-4 d-flex align-items-center gap-3">
+                            <div className="p-2 rounded-circle bg-white shadow-sm border">
+                              <Icon icon="solar:play-bold" width="18" style={{ color: tokens.rausch }} />
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 10, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase', marginBottom: 2 }}>Próxima Aula</div>
+                              <div className="fw-bold text-truncate" style={{ fontSize: 13, color: 'var(--color-text-primary)' }}>
+                                {proximo?.nome || 'Aguardando aulas'}
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => concluida ? handleAcessarModulo(modulos[0]) : handleAcessarModulo(proximo)}
-                        className="w-100 border-0 fw-bold py-2 shadow-sm"
-                        style={{
-                          background: concluida ? tokens.babu : tokens.rausch,
-                          color: '#fff',
-                          borderRadius: 14,
-                          fontSize: 14,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 8
-                        }}
-                      >
-                        <Icon icon={concluida ? "solar:restart-bold-duotone" : "solar:play-bold-duotone"} width="18" />
-                        {concluida ? 'Revisar Conteúdo' : 'Continuar Jornada'}
-                      </motion.button>
+                        {concluida && (
+                          <div className="p-3 rounded-4 mb-4 d-flex align-items-center gap-3" style={{ background: `${tokens.babu}15`, border: `1px solid ${tokens.babu}30` }}>
+                            <div className="p-2 rounded-circle shadow-sm" style={{ background: tokens.babu, color: '#fff' }}>
+                              <Icon icon="solar:medal-star-bold" width="18" />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: 10, fontWeight: 800, color: tokens.babu, textTransform: 'uppercase', marginBottom: 2 }}>Parabéns!</div>
+                              <div className="fw-bold" style={{ fontSize: 13, color: 'var(--color-text-primary)' }}>Trilha concluída</div>
+                            </div>
+                          </div>
+                        )}
+
+                        <motion.button
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => concluida ? handleAcessarModulo(modulos[0]) : handleAcessarModulo(proximo)}
+                          className="w-100 border-0 fw-bold py-3 shadow-sm mt-auto"
+                          style={{
+                            background: concluida ? tokens.babu : tokens.rausch,
+                            color: '#fff',
+                            borderRadius: 14,
+                            fontSize: 15,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 8,
+                            boxShadow: `0 8px 16px ${concluida ? tokens.babu : tokens.rausch}30`
+                          }}
+                        >
+                          <Icon icon={concluida ? "solar:restart-bold" : "solar:play-bold"} width="18" />
+                          {concluida ? 'Revisar Trilha' : 'Continuar de onde parou'}
+                        </motion.button>
+                      </div>
                     </SCard>
                   </CCol>
                 )

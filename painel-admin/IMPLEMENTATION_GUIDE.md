@@ -43,6 +43,28 @@ Toda nova funcionalidade deve ser introduzida com suavidade:
 
 ---
 
+### 4. **Modais com Abas (Formulários Complexos)**
+Para formulários com muitos campos (como questões), use o padrão de **Modal com Tabs**:
+- **Dividir em grupos lógicos**: Conteúdo / Resolução Extra / Classificação.
+- **Validação por aba**: mostrar um badge de erro `!` na aba que contém campos inválidos.
+- **Navegação assistida**: botões "Anterior" e "Próxima" dentro do modal, além de poder clicar nas abas diretamente.
+- **Preview em tempo real**: campos de texto longos (como enunciado) devem ter um preview renderizado abaixo enquanto o usuário digita.
+
+### 5. **Campos de Gamificação em Questões**
+As questões possuem campos exclusivos de gamificação que devem sempre estar presentes no formulário:
+| Campo | Tabela | Finalidade |
+|---|---|---|
+| `dica` | `questoes` | Dica curta exibida antes do aluno revelar a resposta |
+| `explicacao` | `questoes` | Explicação completa da resposta correta |
+| `link_video` | `questoes` | Vídeo complementar (YouTube) |
+
+Na tabela de listagem, use **ícones indicadores** para sinalizar rapidamente quais questões já possuem esses extras:
+- 🟥 Vídeo (`cilVideo`)
+- 🟩 Explicação (`cilDescription`)
+- 🟨 Dica (`cilBulb`)
+
+---
+
 ## 🔧 Guia de Desenvolvimento
 
 ### Cores Semânticas

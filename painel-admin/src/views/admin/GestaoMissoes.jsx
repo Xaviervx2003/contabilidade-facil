@@ -1,60 +1,67 @@
 import React, { useState, useEffect } from 'react'
-import {
-  CCard, CCardBody, CCardHeader, CCol, CRow, CButton, CAlert,
-  CFormInput, CFormLabel, CFormSelect, CFormTextarea, CSpinner,
-  CBadge, CTable, CTableBody, CTableDataCell, CTableHead,
-  CTableHeaderCell, CTableRow, CModal, CModalBody, CModalFooter,
-  CModalHeader, CModalTitle,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilPlus, cilTrash, cilPencil, cilClock, cilCheckCircle, cilWarning } from '@coreui/icons'
+import { CSpinner, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
+import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTheme } from '../../context/themeContext'
+
+/* ── Tokens Airbnb ───────────────────────────────────────── */
+const tk = {
+  rausch:  '#FF385C',
+  babu:    '#00A699',
+  arches:  '#FC642D',
+  foggy:   '#767676',
+  swiss:   '#B0B0B0',
+}
+
+const FONT = "'Nunito', 'Circular Std', sans-serif"
 
 /* ── Helpers ── */
 const METRICA_LABELS = {
-  manual:       { label: 'Manual',            icon: '✋', color: '#767676' },
-  sessoes:      { label: 'Nº de Sessões',     icon: '📚', color: '#00A699' },
-  media_acerto: { label: 'Média de Acertos',  icon: '🎯', color: '#FC642D' },
-  questoes:     { label: 'Qtd. de Questões',  icon: '📝', color: '#8B5CF6' },
-}
-
-const STATUS_CONFIG = {
-  pendente:  { color: '#f59e0b', bg: '#fef3c7', label: 'Pendente'  },
-  concluida: { color: '#10b981', bg: '#d1fae5', label: 'Concluída' },
-  expirada:  { color: '#ef4444', bg: '#fee2e2', label: 'Expirada'  },
+  manual:       { label: 'Manual',            icon: 'solar:hand-stars-bold-duotone', color: tk.foggy },
+  sessoes:      { label: 'Nº de Sessões',     icon: 'solar:book-bold-duotone',       color: tk.babu },
+  media_acerto: { label: 'Média de Acertos',  icon: 'solar:target-bold-duotone',     color: tk.arches },
+  questoes:     { label: 'Qtd. de Questões',  icon: 'solar:pen-bold-duotone',        color: '#8B5CF6' },
 }
 
 const diasRestantesLabel = (data_limite) => {
   if (!data_limite) return null
   const diff = Math.ceil((new Date(data_limite + 'T23:59:59') - new Date()) / 86400000)
-  if (diff < 0)  return { text: 'Expirada', color: '#ef4444' }
+  if (diff < 0)  return { text: 'Expirada', color: tk.rausch }
   if (diff === 0) return { text: 'Vence hoje!', color: '#f59e0b' }
   if (diff === 1) return { text: 'Vence amanhã', color: '#f59e0b' }
-  return { text: `${diff} dias restantes`, color: '#10b981' }
+  return { text: `${diff} dias restantes`, color: tk.babu }
 }
 
-/* ── Estado inicial do formulário ── */
-const FORM_INICIAL = {
-  titulo: '',
-  descricao: '',
-  xp: 100,
-  icone: '🎯',
-  cor: '#FF385C',
-  metrica_tipo: 'manual',
-  metrica_alvo: '',
-  data_limite: '',
-}
+const FORM_INICIAL = { titulo: '', descricao: '', xp: 100, icone: '🎯', cor: tk.rausch, metrica_tipo: 'manual', metrica_alvo: '', data_limite: '' }
 
-/* ── Componente Principal ── */
+/* ── Componentes UI Básicos ── */
+const Label = ({ children }) => (
+  <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.9px', color: tk.foggy, marginBottom: 6, fontFamily: FONT }}>{children}</div>
+)
+
+const AInput = ({ value, onChange, placeholder, type = 'text', min, required }) => (
+  <input required={required} type={type} min={min} value={value} onChange={onChange} placeholder={placeholder} style={{ width: '100%', height: 42, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = tk.rausch} onBlur={e => e.target.style.borderColor = 'var(--color-border)'} />
+)
+
+const ATextarea = ({ value, onChange, placeholder, rows = 3, required }) => (
+  <textarea required={required} rows={rows} value={value} onChange={onChange} placeholder={placeholder} style={{ width: '100%', borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '12px 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s', resize: 'vertical' }} onFocus={e => e.target.style.borderColor = tk.rausch} onBlur={e => e.target.style.borderColor = 'var(--color-border)'} />
+)
+
+const ASelect = ({ value, onChange, children }) => (
+  <select value={value} onChange={onChange} style={{ width: '100%', height: 42, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s', cursor: 'pointer' }} onFocus={e => e.target.style.borderColor = tk.rausch} onBlur={e => e.target.style.borderColor = 'var(--color-border)'}>{children}</select>
+)
+
 const GestaoMissoes = () => {
-  const [missoes,    setMissoes]    = useState([])
-  const [loading,    setLoading]    = useState(true)
-  const [salvando,   setSalvando]   = useState(false)
-  const [erro,       setErro]       = useState('')
-  const [sucesso,    setSucesso]    = useState('')
-  const [form,       setForm]       = useState(FORM_INICIAL)
-  const [modalDel,   setModalDel]   = useState(null)   // id da missão a deletar
+  const [missoes, setMissoes] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState('')
+  const [sucesso, setSucesso] = useState('')
+  const [form, setForm] = useState(FORM_INICIAL)
+  const [modalDel, setModalDel] = useState(null)
+  
+  const { isDark } = useTheme()
 
   const fetchMissoes = async () => {
     setLoading(true)
@@ -79,24 +86,23 @@ const GestaoMissoes = () => {
     try {
       const payload = {
         ...form,
-        xp:            Number(form.xp),
-        metrica_alvo:  form.metrica_tipo !== 'manual' ? Number(form.metrica_alvo) : null,
-        data_limite:   form.data_limite || null,
+        xp: Number(form.xp),
+        metrica_alvo: form.metrica_tipo !== 'manual' ? Number(form.metrica_alvo) : null,
+        data_limite: form.data_limite || null,
       }
       const r = await fetch(`${API_URL}/api/admin/missoes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       })
       if (!r.ok) {
         const err = await r.json()
         throw new Error(err.detail || `HTTP ${r.status}`)
       }
-      setSucesso('✅ Missão criada com sucesso!')
+      setSucesso('Missão criada com sucesso!')
       setForm(FORM_INICIAL)
       fetchMissoes()
+      setTimeout(() => setSucesso(''), 3000)
     } catch (e) {
-      setErro(`Erro: ${e.message}`)
+      setErro(`Erro: ${e.message}`); setTimeout(() => setErro(''), 3000)
     } finally {
       setSalvando(false)
     }
@@ -108,217 +114,179 @@ const GestaoMissoes = () => {
       if (!r.ok) throw new Error()
       setMissoes(m => m.filter(x => x.id !== id))
       setModalDel(null)
+      setSucesso('Missão excluída!')
+      setTimeout(() => setSucesso(''), 3000)
     } catch {
-      setErro('Erro ao excluir missão.')
+      setErro('Erro ao excluir missão.'); setTimeout(() => setErro(''), 3000)
     }
   }
 
   const isAutomatica = form.metrica_tipo !== 'manual'
 
+  const containerStyle = { minHeight: '100vh', background: 'var(--color-bg-primary)', padding: '32px 16px 60px', fontFamily: FONT }
+
   return (
-    <div style={{ padding: '24px 16px', fontFamily: "'Nunito', sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');`}</style>
+    <div style={containerStyle}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        
+        {/* HEADER */}
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
+          <div style={{ color: tk.arches, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
+            Gamificação
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+                Gestão de Missões
+              </div>
+              <div style={{ fontSize: 14, color: tk.foggy, marginTop: 6 }}>
+                Crie desafios inteligentes com validação automática e prazo.
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
-      {/* ── Header ── */}
-      <div style={{ marginBottom: 28 }}>
-        <h2 style={{ fontWeight: 800, fontSize: 24, letterSpacing: '-0.5px', color: 'var(--color-text-primary)', margin: 0 }}>
-          🎯 Gestão de Missões
-        </h2>
-        <p style={{ color: '#767676', fontSize: 14, marginTop: 4 }}>
-          Crie desafios inteligentes com validação automática e prazo.
-        </p>
-      </div>
-
-      <AnimatePresence>
-        {erro    && <motion.div initial={{ opacity:0,y:-8 }} animate={{ opacity:1,y:0 }} exit={{ opacity:0 }}><CAlert color="danger"   dismissible onClose={() => setErro('')}>{erro}</CAlert></motion.div>}
-        {sucesso && <motion.div initial={{ opacity:0,y:-8 }} animate={{ opacity:1,y:0 }} exit={{ opacity:0 }}><CAlert color="success" dismissible onClose={() => setSucesso('')}>{sucesso}</CAlert></motion.div>}
-      </AnimatePresence>
-
-      <CRow className="g-4">
-        {/* ── Formulário ── */}
-        <CCol xs={12} lg={4}>
-          <CCard style={{ border: '1px solid var(--color-border)', borderRadius: 20, boxShadow: 'none' }}>
-            <CCardHeader style={{ background: 'transparent', border: 'none', paddingBottom: 0, paddingTop: 20 }}>
-              <strong style={{ fontSize: 15 }}>➕ Novo Desafio</strong>
-            </CCardHeader>
-            <CCardBody>
-              <form onSubmit={handleSubmit}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-                  {/* Ícone + Título */}
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <div style={{ width: 70 }}>
-                      <CFormLabel style={{ fontSize: 12 }}>Ícone</CFormLabel>
-                      <CFormInput value={form.icone} onChange={e => handleField('icone', e.target.value)} style={{ textAlign: 'center', fontSize: 20 }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <CFormLabel style={{ fontSize: 12 }}>Título *</CFormLabel>
-                      <CFormInput required value={form.titulo} onChange={e => handleField('titulo', e.target.value)} placeholder="Ex: Semana Implacável" />
-                    </div>
-                  </div>
-
-                  {/* Descrição */}
-                  <div>
-                    <CFormLabel style={{ fontSize: 12 }}>Descrição *</CFormLabel>
-                    <CFormTextarea required rows={2} value={form.descricao} onChange={e => handleField('descricao', e.target.value)} placeholder="Descreva o desafio..." />
-                  </div>
-
-                  {/* XP + Cor */}
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <div style={{ flex: 1 }}>
-                      <CFormLabel style={{ fontSize: 12 }}>XP de Recompensa</CFormLabel>
-                      <CFormInput type="number" min="10" value={form.xp} onChange={e => handleField('xp', e.target.value)} />
-                    </div>
-                    <div style={{ width: 70 }}>
-                      <CFormLabel style={{ fontSize: 12 }}>Cor</CFormLabel>
-                      <CFormInput type="color" value={form.cor} onChange={e => handleField('cor', e.target.value)} style={{ padding: 4, height: 38 }} />
-                    </div>
-                  </div>
-
-                  {/* ── NOVO: Tipo de Validação ── */}
-                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 14 }}>
-                    <CFormLabel style={{ fontSize: 12, fontWeight: 700, color: '#FF385C' }}>🤖 Validação Automática</CFormLabel>
-                    <CFormSelect value={form.metrica_tipo} onChange={e => handleField('metrica_tipo', e.target.value)}>
-                      <option value="manual">✋ Manual (aluno confirma)</option>
-                      <option value="sessoes">📚 Nº de Sessões</option>
-                      <option value="media_acerto">🎯 Média de Acertos (%)</option>
-                      <option value="questoes">📝 Qtd. de Questões</option>
-                    </CFormSelect>
-                  </div>
-
-                  {/* ── NOVO: Meta Numérica (só se automática) ── */}
-                  <AnimatePresence>
-                    {isAutomatica && (
-                      <motion.div initial={{ opacity:0, height:0 }} animate={{ opacity:1, height:'auto' }} exit={{ opacity:0, height:0 }} style={{ overflow:'hidden' }}>
-                        <CFormLabel style={{ fontSize: 12 }}>
-                          Meta / Alvo *
-                          <span style={{ color:'#767676', marginLeft:6, fontWeight:400 }}>
-                            {form.metrica_tipo === 'sessoes'      && '(ex: 5 sessões)'}
-                            {form.metrica_tipo === 'media_acerto' && '(ex: 70 para 70%)'}
-                            {form.metrica_tipo === 'questoes'     && '(ex: 100 questões)'}
-                          </span>
-                        </CFormLabel>
-                        <CFormInput
-                          type="number" min="1" required={isAutomatica}
-                          value={form.metrica_alvo}
-                          onChange={e => handleField('metrica_alvo', e.target.value)}
-                          placeholder={form.metrica_tipo === 'media_acerto' ? 'Ex: 70' : 'Ex: 5'}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* ── NOVO: Data Limite ── */}
-                  <div>
-                    <CFormLabel style={{ fontSize: 12 }}>
-                      📅 Prazo Máximo
-                      <span style={{ color:'#767676', marginLeft:6, fontWeight:400 }}>(opcional)</span>
-                    </CFormLabel>
-                    <CFormInput type="date" value={form.data_limite} onChange={e => handleField('data_limite', e.target.value)} min={new Date().toISOString().split('T')[0]} />
-                  </div>
-
-                  <CButton type="submit" color="primary" disabled={salvando} style={{ borderRadius: 12, fontWeight: 700, padding: '10px 0', background: '#FF385C', border: 'none' }}>
-                    {salvando ? <CSpinner size="sm" /> : '🚀 Lançar Desafio'}
-                  </CButton>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, alignItems: 'start' }}>
+          
+          {/* FORMULÁRIO (ESQUERDA) */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: 20, padding: 24 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text-primary)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon icon="solar:star-fall-bold-duotone" width="20" color={tk.arches} /> Novo Desafio
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ width: 80 }}><Label>Ícone</Label><AInput value={form.icone} onChange={e => handleField('icone', e.target.value)} /></div>
+                  <div style={{ flex: 1 }}><Label>Título *</Label><AInput required value={form.titulo} onChange={e => handleField('titulo', e.target.value)} placeholder="Ex: Semana Implacável" /></div>
                 </div>
-              </form>
-            </CCardBody>
-          </CCard>
-        </CCol>
-
-        {/* ── Tabela de Missões ── */}
-        <CCol xs={12} lg={8}>
-          <CCard style={{ border: '1px solid var(--color-border)', borderRadius: 20, boxShadow: 'none' }}>
-            <CCardHeader style={{ background: 'transparent', border: 'none', paddingTop: 20, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <strong style={{ fontSize: 15 }}>📋 Missões Ativas ({missoes.length})</strong>
-              <CButton color="secondary" variant="outline" size="sm" onClick={fetchMissoes} style={{ borderRadius: 10 }}>
-                Atualizar
-              </CButton>
-            </CCardHeader>
-            <CCardBody style={{ padding: 0 }}>
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: 40 }}><CSpinner color="primary" /></div>
-              ) : missoes.length === 0 ? (
-                <div style={{ textAlign:'center', padding:40, color:'#767676', fontSize:14 }}>
-                  Nenhuma missão criada ainda.
+                
+                <div><Label>Descrição *</Label><ATextarea required value={form.descricao} onChange={e => handleField('descricao', e.target.value)} placeholder="Descreva o desafio..." /></div>
+                
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ flex: 1 }}><Label>XP de Recompensa</Label><AInput type="number" min="10" value={form.xp} onChange={e => handleField('xp', e.target.value)} /></div>
+                  <div style={{ width: 80 }}><Label>Cor</Label><input type="color" value={form.cor} onChange={e => handleField('cor', e.target.value)} style={{ width: '100%', height: 42, padding: 4, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', cursor: 'pointer' }} /></div>
                 </div>
-              ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <CTable hover responsive style={{ marginBottom: 0, fontSize: 13 }}>
-                    <CTableHead>
-                      <CTableRow style={{ background: 'var(--color-bg-tertiary)' }}>
-                        <CTableHeaderCell>Missão</CTableHeaderCell>
-                        <CTableHeaderCell className="text-center">Validação</CTableHeaderCell>
-                        <CTableHeaderCell className="text-center">Meta</CTableHeaderCell>
-                        <CTableHeaderCell className="text-center">Prazo</CTableHeaderCell>
-                        <CTableHeaderCell className="text-center">XP</CTableHeaderCell>
-                        <CTableHeaderCell className="text-center">Ações</CTableHeaderCell>
-                      </CTableRow>
-                    </CTableHead>
-                    <CTableBody>
+
+                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 16, marginTop: 4 }}>
+                  <Label><span style={{ color: tk.rausch }}>🤖 Validação Automática</span></Label>
+                  <ASelect value={form.metrica_tipo} onChange={e => handleField('metrica_tipo', e.target.value)}>
+                    <option value="manual">✋ Manual (aluno confirma)</option>
+                    <option value="sessoes">📚 Nº de Sessões</option>
+                    <option value="media_acerto">🎯 Média de Acertos (%)</option>
+                    <option value="questoes">📝 Qtd. de Questões</option>
+                  </ASelect>
+                </div>
+
+                <AnimatePresence>
+                  {isAutomatica && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden' }}>
+                      <Label>Meta / Alvo * <span style={{ fontWeight: 400, textTransform: 'none' }}>{form.metrica_tipo === 'sessoes' ? '(ex: 5)' : form.metrica_tipo === 'media_acerto' ? '(ex: 70 para 70%)' : '(ex: 100)'}</span></Label>
+                      <AInput required={isAutomatica} type="number" min="1" value={form.metrica_alvo} onChange={e => handleField('metrica_alvo', e.target.value)} placeholder="Ex: 5" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div>
+                  <Label>📅 Prazo Máximo <span style={{ fontWeight: 400, textTransform: 'none' }}>(opcional)</span></Label>
+                  <AInput type="date" min={new Date().toISOString().split('T')[0]} value={form.data_limite} onChange={e => handleField('data_limite', e.target.value)} />
+                </div>
+
+                <motion.button type="submit" disabled={salvando} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ height: 48, borderRadius: 12, border: 'none', background: tk.rausch, color: '#fff', fontWeight: 700, fontSize: 14, fontFamily: FONT, cursor: 'pointer', boxShadow: `0 4px 14px ${tk.rausch}40`, marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  {salvando ? <CSpinner size="sm" /> : <><Icon icon="solar:rocket-bold-duotone" width="18" /> Lançar Desafio</>}
+                </motion.button>
+              </div>
+            </form>
+          </motion.div>
+
+          {/* LISTA DE MISSÕES (DIREITA) */}
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: 20, overflow: 'hidden', gridColumn: 'span 2' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text-primary)' }}>📋 Missões Ativas ({missoes.length})</div>
+              <motion.button onClick={fetchMissoes} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} style={{ background: 'transparent', border: '1px solid var(--color-border)', color: tk.foggy, borderRadius: 8, padding: '0 12px', height: 32, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><Icon icon="solar:restart-bold-duotone" /> Atualizar</motion.button>
+            </div>
+            
+            {loading ? <div style={{ padding: 60, textAlign: 'center' }}><CSpinner color="primary" /></div> : missoes.length === 0 ? <div style={{ padding: 60, textAlign: 'center', color: tk.foggy }}><Icon icon="solar:target-bold-duotone" width="48" style={{ opacity: 0.2, marginBottom: 12 }} /><div>Nenhuma missão criada ainda.</div></div> : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 700 }}>
+                  <thead>
+                    <tr style={{ background: 'var(--color-bg-tertiary)', color: tk.foggy }}>
+                      <th style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px' }}>Missão</th>
+                      <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px' }}>Validação</th>
+                      <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px' }}>Meta</th>
+                      <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px' }}>Prazo</th>
+                      <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px' }}>XP</th>
+                      <th style={{ padding: '12px 24px', textAlign: 'right', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px' }}>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <AnimatePresence>
                       {missoes.map((m) => {
                         const metrica = METRICA_LABELS[m.metrica_tipo] || METRICA_LABELS.manual
-                        const prazo   = diasRestantesLabel(m.data_limite)
+                        const prazo = diasRestantesLabel(m.data_limite)
                         return (
-                          <CTableRow key={m.id}>
-                            <CTableDataCell>
-                              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                                <span style={{ fontSize:20 }}>{m.icone || '🎯'}</span>
+                          <motion.tr key={m.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                            <td style={{ padding: '16px 24px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <div style={{ fontSize: 24, background: `${m.cor || tk.rausch}15`, width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{m.icone || '🎯'}</div>
                                 <div>
-                                  <div style={{ fontWeight:700, color:'var(--color-text-primary)' }}>{m.titulo}</div>
-                                  <div style={{ color:'#767676', fontSize:11, maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.descricao}</div>
+                                  <div style={{ fontWeight: 800, color: 'var(--color-text-primary)' }}>{m.titulo}</div>
+                                  <div style={{ color: tk.foggy, fontSize: 12, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.descricao}</div>
                                 </div>
                               </div>
-                            </CTableDataCell>
-                            <CTableDataCell className="text-center">
-                              <span style={{ fontSize:11, fontWeight:700, background:`${metrica.color}15`, color:metrica.color, padding:'3px 10px', borderRadius:99 }}>
-                                {metrica.icon} {metrica.label}
-                              </span>
-                            </CTableDataCell>
-                            <CTableDataCell className="text-center">
-                              {m.metrica_alvo != null
-                                ? <strong style={{ color:'var(--color-text-primary)' }}>{m.metrica_alvo}{m.metrica_tipo === 'media_acerto' ? '%' : ''}</strong>
-                                : <span style={{ color:'#B0B0B0' }}>—</span>
-                              }
-                            </CTableDataCell>
-                            <CTableDataCell className="text-center">
+                            </td>
+                            <td style={{ padding: '16px', textAlign: 'center' }}>
+                              <span style={{ fontSize: 10, fontWeight: 800, background: `${metrica.color}15`, color: metrica.color, padding: '4px 10px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4, textTransform: 'uppercase' }}><Icon icon={metrica.icon} /> {metrica.label}</span>
+                            </td>
+                            <td style={{ padding: '16px', textAlign: 'center', fontWeight: 800, color: 'var(--color-text-primary)' }}>
+                              {m.metrica_alvo != null ? `${m.metrica_alvo}${m.metrica_tipo === 'media_acerto' ? '%' : ''}` : <span style={{ color: tk.foggy }}>—</span>}
+                            </td>
+                            <td style={{ padding: '16px', textAlign: 'center' }}>
                               {prazo ? (
-                                <span style={{ fontSize:11, fontWeight:700, background:`${prazo.color}15`, color:prazo.color, padding:'3px 10px', borderRadius:99 }}>
-                                  📅 {prazo.text}
-                                </span>
-                              ) : (
-                                <span style={{ color:'#B0B0B0', fontSize:12 }}>Sem prazo</span>
-                              )}
-                            </CTableDataCell>
-                            <CTableDataCell className="text-center">
-                              <span style={{ fontWeight:800, color:'#FF385C' }}>+{m.xp} XP</span>
-                            </CTableDataCell>
-                            <CTableDataCell className="text-center">
-                              <CButton color="danger" variant="ghost" size="sm" onClick={() => setModalDel(m.id)} style={{ borderRadius:8 }}>
-                                <CIcon icon={cilTrash} />
-                              </CButton>
-                            </CTableDataCell>
-                          </CTableRow>
+                                <span style={{ fontSize: 10, fontWeight: 800, background: `${prazo.color}15`, color: prazo.color, padding: '4px 10px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4, textTransform: 'uppercase' }}><Icon icon="solar:calendar-date-bold-duotone" /> {prazo.text}</span>
+                              ) : <span style={{ color: tk.foggy, fontSize: 11, fontWeight: 700 }}>—</span>}
+                            </td>
+                            <td style={{ padding: '16px', textAlign: 'center', fontWeight: 800, color: m.cor || tk.arches }}>+{m.xp} XP</td>
+                            <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                              <motion.button onClick={() => setModalDel(m.id)} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} style={{ background: `${tk.rausch}15`, color: tk.rausch, border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Icon icon="solar:trash-bin-trash-bold-duotone" width="16" /></motion.button>
+                            </td>
+                          </motion.tr>
                         )
                       })}
-                    </CTableBody>
-                  </CTable>
-                </div>
-              )}
-            </CCardBody>
-          </CCard>
-        </CCol>
-      </CRow>
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      </div>
 
-      {/* ── Modal Confirmação Delete ── */}
+      {/* MODAL EXCLUSÃO */}
       <CModal visible={!!modalDel} onClose={() => setModalDel(null)}>
-        <CModalHeader><CModalTitle>Excluir Missão?</CModalTitle></CModalHeader>
-        <CModalBody>Esta ação é irreversível. O progresso dos alunos nesta missão também será perdido.</CModalBody>
-        <CModalFooter>
-          <CButton color="secondary" variant="outline" onClick={() => setModalDel(null)}>Cancelar</CButton>
-          <CButton color="danger" onClick={() => handleDelete(modalDel)}>Excluir</CButton>
-        </CModalFooter>
+        <div style={{ fontFamily: FONT }}>
+          <CModalHeader style={{ borderBottom: '1px solid var(--color-border)' }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: tk.rausch, textTransform: 'uppercase', letterSpacing: '1px' }}>Atenção</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text-primary)' }}>Excluir Missão?</div>
+            </div>
+          </CModalHeader>
+          <CModalBody style={{ padding: '24px', color: 'var(--color-text-primary)', fontSize: 14 }}>Esta ação é irreversível. O progresso dos alunos nesta missão também será perdido. Deseja continuar?</CModalBody>
+          <CModalFooter style={{ borderTop: '1px solid var(--color-border)' }}>
+            <motion.button onClick={() => setModalDel(null)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} style={{ height: 42, padding: '0 20px', borderRadius: 99, border: '1px solid var(--color-border)', background: 'transparent', color: tk.foggy, fontWeight: 600, fontFamily: FONT, cursor: 'pointer' }}>Cancelar</motion.button>
+            <motion.button onClick={() => handleDelete(modalDel)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} style={{ height: 42, padding: '0 24px', borderRadius: 99, border: 'none', background: tk.rausch, color: '#fff', fontWeight: 700, fontFamily: FONT, cursor: 'pointer', boxShadow: `0 4px 14px ${tk.rausch}40` }}>Sim, Excluir</motion.button>
+          </CModalFooter>
+        </div>
       </CModal>
+
+      {/* ALERTAS */}
+      <AnimatePresence>
+        {sucesso && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: tk.babu, color: '#fff', borderRadius: 99, padding: '12px 24px', fontWeight: 700, fontSize: 14, fontFamily: FONT, boxShadow: `0 8px 24px ${tk.babu}40`, zIndex: 9999, display: 'flex', alignItems: 'center', gap: 8 }}><Icon icon="solar:check-circle-bold-duotone" width="20" /> {sucesso}</motion.div>
+        )}
+        {erro && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} onClick={() => setErro('')} style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: tk.rausch, color: '#fff', borderRadius: 99, padding: '12px 24px', fontWeight: 700, fontSize: 14, fontFamily: FONT, boxShadow: `0 8px 24px ${tk.rausch}40`, zIndex: 9999, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}><Icon icon="solar:close-circle-bold-duotone" width="20" /> {erro}</motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

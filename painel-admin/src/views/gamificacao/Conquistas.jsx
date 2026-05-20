@@ -18,7 +18,7 @@ import { getAlunoMatricula } from '../../utils/auth'
 import { API_URL } from '../../config'
 import { formatIsoToDateString, formatIsoToShortDate } from '../../utils/formatDate'
 
-const Conquistas = () => {
+const Conquistas = ({ isTab = false }) => {
     const [conquistas, setConquistas] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -84,45 +84,40 @@ const Conquistas = () => {
         )
     }
 
-    if (error) {
-        return (
-            <CContainer className="conquistas-container my-4">
-                <CAlert color="danger" className="d-flex align-items-center gap-2">
-                    <span className="fs-5">⚠️</span>
-                    <span>{error}</span>
-                </CAlert>
-                <CAlert color="info">
-                    <strong>💡 Dica:</strong> Verifique se:
-                    <ul className="mt-2 mb-0">
-                        <li>Você está logado</li>
-                        <li>Sua matrícula está armazenada</li>
-                        <li>A API está ativa e acessível</li>
-                    </ul>
-                </CAlert>
-            </CContainer>
-        )
-    }
+    const renderAlert = (color, icon, title, desc) => (
+        <div className={`my-4 ${isTab ? '' : 'conquistas-container'}`}>
+            <CAlert color={color} className="d-flex align-items-center gap-2">
+                <span className="fs-5">{icon}</span>
+                <span>{title}</span>
+            </CAlert>
+            {desc && <CAlert color="info">{desc}</CAlert>}
+        </div>
+    )
 
-    if (!conquistas) {
-        return (
-            <CContainer className="conquistas-container my-4">
-                <CAlert color="warning" className="d-flex align-items-center gap-2">
-                    <span className="fs-5">⚡</span>
-                    <span>Nenhuma conquista encontrada.</span>
-                </CAlert>
-            </CContainer>
-        )
-    }
+    if (error) return renderAlert('danger', '⚠️', error, 
+        <>
+            <strong>💡 Dica:</strong> Verifique se:
+            <ul className="mt-2 mb-0">
+                <li>Você está logado</li>
+                <li>Sua matrícula está armazenada</li>
+                <li>A API está ativa e acessível</li>
+            </ul>
+        </>
+    )
+
+    if (!conquistas) return renderAlert('warning', '⚡', 'Nenhuma conquista encontrada.')
 
     const { streak, medalhas, total_questoes_respondidas, total_sessoes, tempo_estudo_total_minutos } = conquistas
 
-    return (
-        <CContainer className="conquistas-container">
+    const innerContent = (
+        <div className={!isTab ? "conquistas-container" : ""}>
             {/* Header com Gradient */}
-            <div className={`conquistas-header ${animateCards ? 'animate-in' : ''}`}>
-                <h1 className="conquistas-title">🏆 Minhas Conquistas</h1>
-                <p className="conquistas-subtitle">Acompanhe seu progresso e desbloqueie novas medalhas</p>
-            </div>
+            {!isTab && (
+                <div className={`conquistas-header ${animateCards ? 'animate-in' : ''}`}>
+                    <h1 className="conquistas-title">🏆 Minhas Conquistas</h1>
+                    <p className="conquistas-subtitle">Acompanhe seu progresso e desbloqueie novas medalhas</p>
+                </div>
+            )}
 
             {/* Streak e Estatísticas */}
             <CRow className="mb-4">
@@ -315,6 +310,15 @@ const Conquistas = () => {
                     </div>
                 </div>
             </div>
+            </div>
+        </div>
+    )
+
+    if (isTab) return innerContent
+
+    return (
+        <CContainer className="conquistas-container">
+            {innerContent}
         </CContainer>
     )
 }

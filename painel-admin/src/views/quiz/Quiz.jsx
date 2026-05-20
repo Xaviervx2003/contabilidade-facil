@@ -204,19 +204,12 @@ const ChecklistItem = ({
     className={`mb-3 rounded-4 border transition-colors ${isOpen ? 'shadow-sm border-primary' : 'bg-body-tertiary border-transparent'}`}
     style={{ transition: 'background-color 0.3s, border-color 0.3s, box-shadow 0.3s', overflow: 'visible' }}
   >
-    <div
-      className="p-3 d-flex align-items-center justify-content-between cursor-pointer"
+    <button
+      type="button"
+      aria-expanded={isOpen}
+      className="p-3 d-flex align-items-center justify-content-between w-100 border-0 text-start cursor-pointer"
       style={{
-        cursor: 'pointer',
         background: isOpen ? 'rgba(var(--cui-primary-rgb), 0.03)' : 'transparent',
-      }}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onToggle()
-        }
       }}
       onClick={onToggle}
     >
@@ -242,7 +235,7 @@ const ChecklistItem = ({
       >
         ▼
       </div>
-    </div>
+    </button>
     {isOpen && (
       <div className="px-4 pb-4 pt-2 border-top bg-body">
         {children}
@@ -932,18 +925,10 @@ const ReadyScreen = ({
           🚀 Iniciar Treino Personalizado
         </CButton>
 
-        <div
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              onStartSimuladoRapido()
-            }
-          }}
-          className="rounded-4 p-3 border d-flex align-items-center gap-3 cursor-pointer transition-colors hover-shadow"
+       <button
+          type="button"
+          className="w-100 text-start rounded-4 p-3 border d-flex align-items-center gap-3 cursor-pointer transition-colors hover-shadow"
           style={{
-            cursor: 'pointer',
             background:
               'linear-gradient(135deg, rgba(var(--cui-info-rgb), 0.05) 0%, rgba(var(--cui-primary-rgb), 0.05) 100%)',
             border: '1px dashed var(--cui-info)',
@@ -957,12 +942,12 @@ const ReadyScreen = ({
           >
             ⚡
           </div>
-          <div className="flex-1">
+          <div className="flex-grow-1">
             <h6 className="mb-0 fw-bold text-info">Simulado Relâmpago</h6>
             <small className="text-body-secondary">10 questões aleatórias · 15 minutos</small>
           </div>
           <div className="text-info fw-bold">Ir ›</div>
-        </div>
+        </button>
       </div>
     </div>
   )
@@ -1141,7 +1126,7 @@ const QuizRunning = ({
         </div>
       </div>
 
-      <div className="d-flex flex-column gap-2 mb-4">
+    <div className="d-flex flex-column gap-2 mb-4">
         {currentQuestion.options.map((option, optionIndex) => {
           const optionLetter = LETTERS[optionIndex]
           const isSelected = selectedOption === optionLetter
@@ -1164,14 +1149,13 @@ const QuizRunning = ({
           }
 
           return (
-            <div
+            <button
+              type="button"
               key={optionLetter}
-              role="button"
-              tabIndex={isAnswerConfirmed ? -1 : 0}
+              disabled={isAnswerConfirmed}
               onClick={() => !isAnswerConfirmed && onSelectOption(optionLetter)}
-              onKeyDown={(event) => !isAnswerConfirmed && (event.key === 'Enter' || event.key === ' ') && onSelectOption(optionLetter)}
-              className={`d-flex align-items-center gap-3 p-3 rounded-4 transition-all quiz-option ${stateClass} ${!isAnswerConfirmed ? 'cursor-pointer hover-translate-y-px' : ''}`}
-              style={{ cursor: isAnswerConfirmed ? 'default' : 'pointer', minHeight: 64 }}
+              className={`w-100 text-start border d-flex align-items-center gap-3 p-3 rounded-4 transition-all quiz-option ${stateClass} ${!isAnswerConfirmed ? 'cursor-pointer hover-translate-y-px' : ''}`}
+              style={{ minHeight: 64 }}
             >
               <div
                 className={`rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 transition-colors ${circleClass}`}
@@ -1182,11 +1166,10 @@ const QuizRunning = ({
               <div className={`flex-grow-1 ${isSelected || (isAnswerConfirmed && isCorrectAnswer) ? 'fw-bold' : ''}`} style={{ fontSize: 14, lineHeight: 1.5 }}>
                 {option}
               </div>
-            </div>
+            </button>
           )
         })}
       </div>
-
       {isAnswerConfirmed && (
         <CAlert
           color={selectedOption === currentQuestion.answer ? 'success' : 'danger'}
@@ -2030,14 +2013,16 @@ const Quiz = () => {
   const isRevisiting = status === 'quiz' && skippedSet.has(currentIndex)
   const pendingSkipped = skippedSet.size - (isRevisiting ? 1 : 0)
   const grade = useMemo(() => calculateGrade(finalScore), [finalScore])
-  const gradeColor =
-    finalScore >= 90
-      ? 'success'
-      : finalScore >= 70
-        ? 'info'
-        : finalScore >= 60
-          ? 'warning'
-          : 'danger'
+  
+  // Clean Code: Função auxiliar no lugar de ternário aninhado
+  const getGradeColor = (score) => {
+    if (score >= 90) return 'success'
+    if (score >= 70) return 'info'
+    if (score >= 60) return 'warning'
+    return 'danger'
+  }
+  const gradeColor = getGradeColor(finalScore)
+  
   const isLogado = !!sessionStorage.getItem('papel')
 
   // Render

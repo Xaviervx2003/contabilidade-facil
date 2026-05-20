@@ -22,14 +22,14 @@ const HistoricoAluno = React.lazy(() => import('./views/aluno/HistoricoAluno'))
 const MinhasQuestoes = React.lazy(() => import('./views/aluno/MinhasQuestoes'))
 const GestaoTrilhas = React.lazy(() => import('./views/admin/GestaoTrilhas'))
 const MinhasTrilhas = React.lazy(() => import('./views/aluno/MinhasTrilhas'))
-const Conquistas = React.lazy(() => import('./views/gamificacao/Conquistas'))
+const Gamificacao = React.lazy(() => import('./views/gamificacao/Gamificacao'))
 const DashboardAluno = React.lazy(() => import('./views/aluno/DashboardAluno'))
 const CentralRisco = React.lazy(() => import('./views/admin/CentralRisco'))
 const MeuRiscoPlano = React.lazy(() => import('./views/aluno/MeuRiscoPlano'))
 const GestaoVideos = React.lazy(() => import('./views/admin/GestaoVideos'))
 const InboxDuvidas = React.lazy(() => import('./views/admin/InboxDuvidas'))
 const GestaoMissoes = React.lazy(() => import('./views/admin/GestaoMissoes'))
-const Missoes = React.lazy(() => import('./views/gamificacao/Missoes'))
+
 
 export const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -114,8 +114,7 @@ export const routes = [
   { path: '/aluno/historico', name: 'Meu Histórico', element: HistoricoAluno, allowedRoles: ['aluno'] },
   { path: '/aluno/meu-risco-plano', name: 'Meu Risco + Plano', element: MeuRiscoPlano, allowedRoles: ['aluno'] },
   { path: '/aluno/trilhas', name: 'Minhas Trilhas', element: MinhasTrilhas, allowedRoles: ['aluno'] },
-  { path: '/conquistas', name: 'Minhas Conquistas', element: Conquistas, allowedRoles: ['aluno'] },
-  { path: '/aluno/desafios', name: 'Meus Desafios', element: Missoes, allowedRoles: ['aluno'] },
+  { path: '/aluno/gamificacao', name: 'Gamificação & Ranking', element: Gamificacao, allowedRoles: ['aluno'] },
 ]
 
 export default routes
