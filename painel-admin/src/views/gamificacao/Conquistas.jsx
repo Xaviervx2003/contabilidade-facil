@@ -310,7 +310,6 @@ const Conquistas = ({ isTab = false }) => {
                     </div>
                 </div>
             </div>
-            </div>
         </div>
     )
 
