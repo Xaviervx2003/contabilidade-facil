@@ -1,28 +1,66 @@
 import React, { useState, useEffect } from 'react'
 import {
-    CCard,
-    CCardBody,
-    CCardHeader,
     CContainer,
     CRow,
     CCol,
-    CProgress,
     CAlert,
     CSpinner,
 } from '@coreui/react'
-import './Conquistas.scss'
-import CIcon from '@coreui/icons-react'
-import * as icon from '@coreui/icons'
-import { DotLottieReact } from '@lottiefiles/dotlottie-react'
+import { motion } from 'framer-motion'
+import { Icon } from '@iconify/react'
 import { getAlunoMatricula } from '../../utils/auth'
 import { API_URL } from '../../config'
 import { formatIsoToDateString, formatIsoToShortDate } from '../../utils/formatDate'
+
+/* ─── Tokens Airbnb-inspired ─────────────────────────────── */
+const tokens = {
+    rausch: '#FF385C',
+    babu: '#00A699',
+    arches: '#FC642D',
+    hof: '#484848',
+    foggy: '#767676',
+    swiss: '#B0B0B0',
+    gold: '#FFD700',
+    silver: '#C0C0C0',
+    bronze: '#CD7F32',
+    platinum: '#E5E4E2'
+}
+
+/* ─── Section Card ───────────────────────────────────────── */
+const SCard = ({ children, style = {}, delay = 0 }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay, duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] }}
+        style={{
+            background: 'var(--color-bg-elevated)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 20,
+            padding: '24px',
+            height: '100%',
+            ...style,
+        }}
+    >
+        {children}
+    </motion.div>
+)
+
+/* ─── Progress Bar ───────────────────────────────────────── */
+const AirbnbProgress = ({ value, color = tokens.rausch }) => (
+    <div style={{ height: 6, background: 'var(--color-bg-tertiary)', borderRadius: 99, overflow: 'hidden' }}>
+        <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${value}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
+            style={{ height: '100%', background: color, borderRadius: 99 }}
+        />
+    </div>
+)
 
 const Conquistas = ({ isTab = false }) => {
     const [conquistas, setConquistas] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [animateCards, setAnimateCards] = useState(false)
 
     useEffect(() => {
         const carregarConquistas = async () => {
@@ -35,12 +73,8 @@ const Conquistas = ({ isTab = false }) => {
                     return
                 }
 
-                console.log('✅ Matrícula carregada:', matricula)
-
                 const url = `${API_URL}/api/aluno/conquistas/${matricula}`
                 const token = sessionStorage.getItem('token')
-
-                console.log('📍 Buscando de:', url)
 
                 const res = await fetch(url, {
                     headers: {
@@ -49,19 +83,13 @@ const Conquistas = ({ isTab = false }) => {
                     },
                 })
 
-                console.log('📊 Status HTTP:', res.status)
-
                 if (!res.ok) {
                     throw new Error(`HTTP ${res.status}: ${res.statusText}`)
                 }
 
                 const data = await res.json()
-                console.log('📦 Dados recebidos:', data)
-
                 setConquistas(data)
                 setError(null)
-                // Trigger animações após dados chegarem
-                setTimeout(() => setAnimateCards(true), 100)
             } catch (err) {
                 console.error('❌ Erro ao carregar conquistas:', err)
                 setError(`Erro ao carregar conquistas: ${err.message}`)
@@ -75,7 +103,7 @@ const Conquistas = ({ isTab = false }) => {
 
     if (loading) {
         return (
-            <CContainer className="d-flex justify-content-center align-items-center conquistas-loading" style={{ minHeight: '100vh' }}>
+            <CContainer className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
                 <div className="text-center">
                     <CSpinner color="primary" />
                     <p className="mt-3 text-body-secondary">Carregando suas conquistas...</p>
@@ -85,7 +113,7 @@ const Conquistas = ({ isTab = false }) => {
     }
 
     const renderAlert = (color, icon, title, desc) => (
-        <div className={`my-4 ${isTab ? '' : 'conquistas-container'}`}>
+        <div className={`my-4`}>
             <CAlert color={color} className="d-flex align-items-center gap-2">
                 <span className="fs-5">{icon}</span>
                 <span>{title}</span>
@@ -94,221 +122,201 @@ const Conquistas = ({ isTab = false }) => {
         </div>
     )
 
-    if (error) return renderAlert('danger', '⚠️', error, 
-        <>
-            <strong>💡 Dica:</strong> Verifique se:
-            <ul className="mt-2 mb-0">
-                <li>Você está logado</li>
-                <li>Sua matrícula está armazenada</li>
-                <li>A API está ativa e acessível</li>
-            </ul>
-        </>
-    )
-
+    if (error) return renderAlert('danger', '⚠️', error)
     if (!conquistas) return renderAlert('warning', '⚡', 'Nenhuma conquista encontrada.')
 
     const { streak, medalhas, total_questoes_respondidas, total_sessoes, tempo_estudo_total_minutos } = conquistas
 
+    const getMedalColor = (tipo) => {
+        switch (tipo) {
+            case 'ouro': return tokens.gold;
+            case 'prata': return tokens.silver;
+            case 'bronze': return tokens.bronze;
+            case 'platina': return tokens.babu;
+            default: return tokens.arches;
+        }
+    }
+
+    const getMedalIcon = (tipo) => {
+        switch (tipo) {
+            case 'ouro': return 'solar:medal-star-bold-duotone';
+            case 'prata': return 'solar:medal-ribbon-bold-duotone';
+            case 'bronze': return 'solar:medal-ribbon-star-bold-duotone';
+            case 'platina': return 'solar:crown-star-bold-duotone';
+            default: return 'solar:star-fall-bold-duotone';
+        }
+    }
+
     const innerContent = (
-        <div className={!isTab ? "conquistas-container" : ""}>
-            {/* Header com Gradient */}
+        <div style={{ paddingTop: isTab ? 0 : 20 }}>
             {!isTab && (
-                <div className={`conquistas-header ${animateCards ? 'animate-in' : ''}`}>
-                    <h1 className="conquistas-title">🏆 Minhas Conquistas</h1>
-                    <p className="conquistas-subtitle">Acompanhe seu progresso e desbloqueie novas medalhas</p>
+                <div style={{ marginBottom: 30 }}>
+                    <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)' }}>🏆 Minhas Conquistas</h1>
+                    <p style={{ color: tokens.foggy, fontSize: 16 }}>Acompanhe seu progresso e desbloqueie novas medalhas</p>
                 </div>
             )}
 
-            {/* Streak e Estatísticas */}
-            <CRow className="mb-4">
+            <CRow className="g-3 mb-4">
                 {/* Streak Card */}
-                <CCol md={6} className={`mb-3 ${animateCards ? 'fade-in-up' : ''}`} style={{ animationDelay: '0.1s' }}>
-                    <div className="streak-card custom-card">
-                        <div className="streak-glow"></div>
-                        <div className="streak-header">
-                            <span className="streak-icon" style={{ width: 80, height: 80, display: 'inline-block' }}>
-                                <DotLottieReact
-                                    src="https://lottie.host/80e9a7e6-fcb4-4b55-b0bd-c1fc3c220f83/Vp2W1zU8wV.lottie"
-                                    loop
-                                    autoplay
-                                    style={{ width: '100%', height: '100%' }}
-                                />
-                            </span>
-                            <h2 className="streak-label mt-2">Seu Streak Atual</h2>
-                        </div>
-
-                        <div className="streak-content">
-                            <div className="streak-number-container">
-                                <h3 className="streak-number">
-                                    {streak?.dias_atuais || 0}
-                                </h3>
-                                <p className="streak-unit">dias consecutivos</p>
+                <CCol md={6}>
+                    <SCard delay={0.1}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                            <div style={{
+                                width: 48, height: 48, borderRadius: 12,
+                                background: `${tokens.arches}15`,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: tokens.arches,
+                            }}>
+                                <Icon icon="solar:fire-bold-duotone" width="28" />
                             </div>
-
-                            {streak?.dias_maximo && (
-                                <div className="streak-stats">
-                                    <div className="stat-item">
-                                        <span className="stat-label">Máximo pessoal:</span>
-                                        <span className="stat-value">{streak.dias_maximo} dias</span>
-                                    </div>
-                                </div>
-                            )}
-
-                            {streak?.proxima_data_para_manter && (
-                                <div className="streak-alert">
-                                    <span className="alert-icon">📌</span>
-                                    <div>
-                                        <p className="alert-title">Próxima data para manter o streak:</p>
-                                        <p className="alert-date">
-                                            {formatIsoToShortDate(streak.proxima_data_para_manter)}
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
+                            <div>
+                                <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>Seu Streak Atual</h2>
+                                <span style={{ fontSize: 12, color: tokens.foggy }}>Dias consecutivos de estudo</span>
+                            </div>
                         </div>
-                    </div>
+
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 16 }}>
+                            <span style={{ fontSize: 48, fontWeight: 800, color: tokens.arches, lineHeight: 1 }}>{streak?.dias_atuais || 0}</span>
+                            <span style={{ fontSize: 16, fontWeight: 600, color: tokens.foggy }}>dias</span>
+                        </div>
+
+                        {streak?.dias_maximo && (
+                            <div style={{ background: 'var(--color-bg-tertiary)', padding: '12px 16px', borderRadius: 12, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: 13, fontWeight: 600, color: tokens.foggy }}>Máximo Pessoal</span>
+                                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)' }}>{streak.dias_maximo} dias</span>
+                            </div>
+                        )}
+
+                        {streak?.proxima_data_para_manter && (
+                            <div style={{ background: `${tokens.babu}15`, padding: '12px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <Icon icon="solar:calendar-date-bold-duotone" width="20" style={{ color: tokens.babu }} />
+                                <div>
+                                    <div style={{ fontSize: 11, fontWeight: 700, color: tokens.babu, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Próxima data para manter</div>
+                                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)' }}>{formatIsoToShortDate(streak.proxima_data_para_manter)}</div>
+                                </div>
+                            </div>
+                        )}
+                    </SCard>
                 </CCol>
 
                 {/* Estatísticas Card */}
-                <CCol md={6} className={`mb-3 ${animateCards ? 'fade-in-up' : ''}`} style={{ animationDelay: '0.2s' }}>
-                    <div className="stats-card custom-card">
-                        <div className="stats-header">
-                            <span className="stats-icon">📈</span>
-                            <h2 className="stats-label">Seu Desempenho</h2>
-                        </div>
-
-                        <div className="stats-grid-compact">
-                            <div className="stat-box">
-                                <div className="stat-icon-wrapper questions">
-                                    <span>❓</span>
-                                </div>
-                                <div className="stat-info">
-                                    <span className="stat-value">{total_questoes_respondidas || 0}</span>
-                                    <span className="stat-desc">Questões</span>
-                                </div>
+                <CCol md={6}>
+                    <SCard delay={0.2}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                            <div style={{
+                                width: 48, height: 48, borderRadius: 12,
+                                background: `${tokens.babu}15`,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: tokens.babu,
+                            }}>
+                                <Icon icon="solar:chart-square-bold-duotone" width="28" />
                             </div>
-
-                            <div className="stat-box">
-                                <div className="stat-icon-wrapper sessions">
-                                    <span>📚</span>
-                                </div>
-                                <div className="stat-info">
-                                    <span className="stat-value">{total_sessoes || 0}</span>
-                                    <span className="stat-desc">Sessões</span>
-                                </div>
-                            </div>
-
-                            <div className="stat-box">
-                                <div className="stat-icon-wrapper time">
-                                    <span>⏱️</span>
-                                </div>
-                                <div className="stat-info">
-                                    <span className="stat-value">
-                                        {tempo_estudo_total_minutos ? `${tempo_estudo_total_minutos}m` : '0m'}
-                                    </span>
-                                    <span className="stat-desc">Estudo</span>
-                                </div>
+                            <div>
+                                <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>Seu Desempenho</h2>
+                                <span style={{ fontSize: 12, color: tokens.foggy }}>Resumo geral das suas atividades</span>
                             </div>
                         </div>
 
-                        {tempo_estudo_total_minutos > 0 && (
-                            <div className="stats-footer-info">
-                                <span className="text-body-tertiary">
-                                    Total convertido: <strong>{Math.floor(tempo_estudo_total_minutos / 60)}h {tempo_estudo_total_minutos % 60}m</strong>
-                                </span>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            <div style={{ background: 'var(--color-bg-tertiary)', padding: '16px', borderRadius: 16 }}>
+                                <Icon icon="solar:question-circle-bold-duotone" width="24" style={{ color: tokens.rausch, marginBottom: 8 }} />
+                                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1 }}>{total_questoes_respondidas || 0}</div>
+                                <div style={{ fontSize: 12, color: tokens.foggy, marginTop: 4, fontWeight: 600 }}>Questões</div>
                             </div>
-                        )}
-                    </div>
+
+                            <div style={{ background: 'var(--color-bg-tertiary)', padding: '16px', borderRadius: 16 }}>
+                                <Icon icon="solar:book-bookmark-bold-duotone" width="24" style={{ color: tokens.babu, marginBottom: 8 }} />
+                                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1 }}>{total_sessoes || 0}</div>
+                                <div style={{ fontSize: 12, color: tokens.foggy, marginTop: 4, fontWeight: 600 }}>Sessões</div>
+                            </div>
+
+                            <div style={{ background: 'var(--color-bg-tertiary)', padding: '16px', borderRadius: 16, gridColumn: 'span 2' }}>
+                                <Icon icon="solar:stopwatch-bold-duotone" width="24" style={{ color: tokens.arches, marginBottom: 8 }} />
+                                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1 }}>
+                                    {tempo_estudo_total_minutos ? `${Math.floor(tempo_estudo_total_minutos / 60)}h ${tempo_estudo_total_minutos % 60}m` : '0m'}
+                                </div>
+                                <div style={{ fontSize: 12, color: tokens.foggy, marginTop: 4, fontWeight: 600 }}>Tempo Total de Estudo</div>
+                            </div>
+                        </div>
+                    </SCard>
                 </CCol>
             </CRow>
 
-            {/* Medalhas e Badges */}
-            <div className={`medals-section ${animateCards ? 'fade-in-up' : ''}`} style={{ animationDelay: '0.3s' }}>
-                <div className="medals-header">
-                    <h2 className="medals-title">🥇 Medalhas e Badges</h2>
-                    <p className="medals-subtitle">
-                        {medalhas?.filter(m => m.desbloqueada).length || 0} de {medalhas?.length || 0} desbloqueadas
-                    </p>
+            {/* Medalhas */}
+            <div style={{ marginTop: 40, marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                    <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text-primary)', margin: 0 }}>Medalhas e Badges</h2>
+                    <span style={{ fontSize: 12, fontWeight: 700, background: `${tokens.babu}15`, color: tokens.babu, padding: '4px 12px', borderRadius: 99 }}>
+                        {medalhas?.filter(m => m.desbloqueada).length || 0} DESBLOQUEADAS
+                    </span>
                 </div>
 
                 {medalhas && medalhas.length > 0 ? (
-                    <div className="medals-grid">
-                        {medalhas.map((medalha, idx) => (
-                            <div
-                                key={idx}
-                                className={`medal-card ${medalha.desbloqueada ? 'unlocked' : 'locked'}`}
-                                style={{ animationDelay: `${0.1 + idx * 0.05}s` }}
-                            >
-                                <div className="medal-glow" style={{ opacity: medalha.desbloqueada ? 1 : 0 }}></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+                        {medalhas.map((medalha, idx) => {
+                            const isUnlocked = medalha.desbloqueada
+                            const medalColor = isUnlocked ? getMedalColor(medalha.tipo) : tokens.foggy
 
-                                <div className="medal-icon-container" style={{ position: 'relative', width: 80, height: 80, margin: '0 auto' }}>
-                                    {medalha.desbloqueada ? (
-                                        <DotLottieReact
-                                            src="https://lottie.host/289659b8-07cb-4b3d-b2a1-ccbb7c3b9429/bBIfP41K2Q.lottie"
-                                            loop
-                                            autoplay
-                                            style={{ width: '100%', height: '100%' }}
-                                        />
-                                    ) : (
-                                        <span className="medal-emoji" style={{ filter: 'grayscale(100%)', opacity: 0.5, fontSize: 48, lineHeight: '80px' }}>
-                                            {medalha.tipo === 'bronze' && '🥉'}
-                                            {medalha.tipo === 'prata' && '🥈'}
-                                            {medalha.tipo === 'ouro' && '🥇'}
-                                            {medalha.tipo === 'platina' && '💎'}
-                                            {!['bronze', 'prata', 'ouro', 'platina'].includes(medalha.tipo) && '⭐'}
-                                        </span>
+                            return (
+                                <motion.div
+                                    key={idx}
+                                    initial={{ opacity: 0, y: 15 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3 + idx * 0.05 }}
+                                    style={{
+                                        background: isUnlocked ? 'var(--color-bg-elevated)' : 'var(--color-bg-tertiary)',
+                                        border: `1px solid ${isUnlocked ? medalColor + '40' : 'var(--color-border)'}`,
+                                        borderRadius: 20,
+                                        padding: 20,
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        opacity: isUnlocked ? 1 : 0.7
+                                    }}
+                                >
+                                    {isUnlocked && (
+                                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: medalColor }} />
                                     )}
-                                </div>
 
-                                <div className="medal-content">
-                                    <h5 className="medal-name">{medalha.nome}</h5>
-                                    <p className="medal-description">{medalha.descricao}</p>
-
-                                    {!medalha.desbloqueada && medalha.progresso !== undefined && (
-                                        <div className="medal-progress">
-                                            <CProgress value={medalha.progresso} color="primary" className="progress-bar" />
-                                            <small className="progress-text">
-                                                {Math.round(medalha.progresso)}% completo
-                                            </small>
+                                    <div style={{ display: 'flex', gap: 16 }}>
+                                        <div style={{
+                                            width: 56, height: 56, borderRadius: 16, flexShrink: 0,
+                                            background: isUnlocked ? `${medalColor}15` : 'var(--color-border)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            color: medalColor,
+                                            filter: isUnlocked ? 'none' : 'grayscale(100%)'
+                                        }}>
+                                            <Icon icon={getMedalIcon(medalha.tipo)} width="32" />
                                         </div>
-                                    )}
 
-                                    {medalha.desbloqueada && (
-                                        <div className="medal-badge">
-                                            <span className="badge-text">✅ Desbloqueada</span>
+                                        <div style={{ flex: 1 }}>
+                                            <h5 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 4 }}>{medalha.nome}</h5>
+                                            <p style={{ fontSize: 12, color: tokens.foggy, marginBottom: 12, lineHeight: 1.4 }}>{medalha.descricao}</p>
+
+                                            {!isUnlocked && medalha.progresso !== undefined && (
+                                                <div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                                                        <span style={{ fontSize: 11, fontWeight: 600, color: tokens.foggy }}>Progresso</span>
+                                                        <span style={{ fontSize: 11, fontWeight: 700, color: tokens.arches }}>{Math.round(medalha.progresso)}%</span>
+                                                    </div>
+                                                    <AirbnbProgress value={medalha.progresso} color={tokens.arches} />
+                                                </div>
+                                            )}
+
+                                            {isUnlocked && medalha.data_desbloqueio && (
+                                                <div style={{ fontSize: 11, fontWeight: 600, color: tokens.babu, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                    <Icon icon="solar:check-circle-bold-duotone" />
+                                                    Desbloqueada em {formatIsoToShortDate(medalha.data_desbloqueio)}
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-
-                                    {medalha.data_desbloqueio && (
-                                        <p className="medal-date">
-                                            {formatIsoToDateString(medalha.data_desbloqueio)}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
+                                    </div>
+                                </motion.div>
+                            )
+                        })}
                     </div>
                 ) : (
-                    <CAlert color="info" className="empty-state">
-                        <span className="alert-icon">🚀</span>
-                        <span>Nenhuma medalha desbloqueada ainda. Continue estudando para alcançar seus primeiros badges!</span>
-                    </CAlert>
+                    <CAlert color="info">Nenhuma medalha encontrada.</CAlert>
                 )}
-            </div>
-
-            {/* Ranking (Futuro) */}
-            <div className={`ranking-section mt-5 ${animateCards ? 'fade-in-up' : ''}`} style={{ animationDelay: '0.4s' }}>
-                <div className="ranking-card custom-card">
-                    <div className="ranking-header">
-                        <h2 className="ranking-title">🔥 Top Streaks da Turma</h2>
-                    </div>
-                    <div className="ranking-body">
-                        <p className="ranking-placeholder">
-                            ⏳ Em breve: ranking dos maiores streaks da sua turma!
-                        </p>
-                        <p className="ranking-hint">Quando lançado, você poderá competir com seus colegas e ver quem tem o maior streak.</p>
-                    </div>
-                </div>
             </div>
         </div>
     )
@@ -316,7 +324,7 @@ const Conquistas = ({ isTab = false }) => {
     if (isTab) return innerContent
 
     return (
-        <CContainer className="conquistas-container">
+        <CContainer>
             {innerContent}
         </CContainer>
     )
