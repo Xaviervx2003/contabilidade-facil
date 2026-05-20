@@ -394,7 +394,7 @@ const DashboardAluno = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <QuickBtn icon="solar:play-circle-bold-duotone" label="Iniciar Novo Quiz" onClick={() => navigate('/quiz')} variant="filled" />
                 <QuickBtn icon="solar:history-bold-duotone" label="Ver Meu Histórico" onClick={() => navigate('/aluno/historico')} accent="var(--color-border)" />
-                <QuickBtn icon="solar:cup-star-bold-duotone" label="Minhas Conquistas" onClick={() => navigate('/conquistas')} accent={tokens.arches} />
+                <QuickBtn icon="solar:cup-star-bold-duotone" label="Minhas Conquistas" onClick={() => navigate('/aluno/gamificacao')} accent={tokens.arches} />
               </div>
             </SCard>
           </CCol>

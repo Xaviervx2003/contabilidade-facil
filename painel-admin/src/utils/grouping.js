@@ -28,7 +28,8 @@ export const agruparPorMateria = (items, assistidos = []) => {
     
     map[mid].count++
     map[mid].items.push(q)
-    if (assistidos.includes(q.id)) map[mid].completed++
+    const chave = q.video_chave || `${q.video_origem || 'video'}:${q.id}`
+    if (assistidos.includes(chave) || assistidos.includes(q.id)) map[mid].completed++
   })
 
   return Object.values(map).map(f => ({

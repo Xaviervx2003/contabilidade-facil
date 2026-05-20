@@ -11,12 +11,35 @@ Rotas:
 """
 
 from fastapi import APIRouter, HTTPException, Query, Depends
+from pydantic import BaseModel
 from typing import Optional
 from database import get_conexao
 from utils.jwt_auth import usuario_autenticado
 from utils.cache import cache
 
 router = APIRouter(prefix="/api/aluno", tags=["Aluno"])
+
+
+class VideoAssistidoPayload(BaseModel):
+    matricula: str
+    origem: Optional[str] = "video"
+
+
+def _garantir_tabela_videos_assistidos(cursor):
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS videos_assistidos_aluno (
+            id SERIAL PRIMARY KEY,
+            matricula_aluno TEXT NOT NULL,
+            video_id INTEGER NOT NULL,
+            origem VARCHAR(20) NOT NULL DEFAULT 'video',
+            assistido_em TIMESTAMPTZ DEFAULT NOW(),
+            UNIQUE (matricula_aluno, video_id, origem)
+        );
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_videos_assistidos_aluno_matricula
+        ON videos_assistidos_aluno (matricula_aluno);
+    """)
 
 
 @router.get("/historico-grafico/{matricula}")
@@ -130,6 +153,75 @@ def historico_grafico(matricula: str):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar histórico gráfico: {str(e)}")
+
+
+@router.get("/videos-assistidos/{matricula}")
+def listar_videos_assistidos(matricula: str):
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            _garantir_tabela_videos_assistidos(cursor)
+            cursor.execute("""
+                SELECT video_id, origem, assistido_em
+                FROM videos_assistidos_aluno
+                WHERE matricula_aluno = %s
+                ORDER BY assistido_em DESC;
+            """, (matricula,))
+            rows = cursor.fetchall()
+
+        dados = [
+            {
+                "video_id": int(row[0]),
+                "origem": row[1],
+                "chave": f"{row[1]}:{int(row[0])}",
+                "assistido_em": row[2].isoformat() if row[2] else None,
+            }
+            for row in rows
+        ]
+        return {
+            "sucesso": True,
+            "dados": dados,
+            "chaves": [item["chave"] for item in dados],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar videos assistidos: {str(e)}")
+
+
+@router.post("/video-assistido/{video_id}")
+def marcar_video_assistido(video_id: int, payload: VideoAssistidoPayload):
+    origem = payload.origem or "video"
+    if origem not in {"video", "questao"}:
+        origem = "video"
+
+    matricula = (payload.matricula or "").strip()
+    if not matricula:
+        raise HTTPException(status_code=422, detail="Matricula obrigatoria")
+
+    try:
+        with get_conexao() as conn:
+            cursor = conn.cursor()
+            _garantir_tabela_videos_assistidos(cursor)
+            cursor.execute("""
+                INSERT INTO videos_assistidos_aluno (matricula_aluno, video_id, origem)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (matricula_aluno, video_id, origem)
+                DO UPDATE SET assistido_em = EXCLUDED.assistido_em
+                RETURNING video_id, origem, assistido_em;
+            """, (matricula, video_id, origem))
+            row = cursor.fetchone()
+            conn.commit()
+
+        return {
+            "sucesso": True,
+            "video_id": int(row[0]),
+            "origem": row[1],
+            "chave": f"{row[1]}:{int(row[0])}",
+            "assistido_em": row[2].isoformat() if row[2] else None,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao salvar video assistido: {str(e)}")
 
 
 @router.get("/questoes-respondidas")

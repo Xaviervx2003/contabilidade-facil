@@ -54,6 +54,13 @@ const ls = {
   },
 }
 
+const normalizarOrigemVideo = (origem) => (origem === 'questao' ? 'questao' : 'video')
+const getVideoKey = (item) => `${normalizarOrigemVideo(item.video_origem)}:${item.id}`
+const isVideoAssistido = (assistidos, item) => {
+  const legacyId = item.id
+  return assistidos.includes(getVideoKey(item)) || assistidos.includes(legacyId)
+}
+
 /* ─── Componentes de UI Premium ─── */
 const SCard = ({ children, style = {}, delay = 0 }) => (
   <motion.div
@@ -110,7 +117,8 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista }) 
           flexDirection: modoLista ? 'row' : 'column',
           cursor: 'pointer'
         }}
-        onClick={() => { setIframeAtivo(true); if (!assistido) onMarcarAssistido(q.id) }}
+        id={`vid-${getVideoKey(q)}`}
+        onClick={() => { setIframeAtivo(true); if (!assistido) onMarcarAssistido(q) }}
       >
         <div style={{ width: modoLista ? '320px' : '100%', aspectRatio: '16/9', position: 'relative', background: '#000', flexShrink: 0 }}>
           {iframeAtivo ? (
@@ -188,16 +196,17 @@ const VideoGallery = () => {
 
   useEffect(() => { ls.set('videosAssistidos', assistidos) }, [assistidos])
 
-  const marcarAssistido = useCallback((id) => {
-    if (assistidos.includes(id)) return
-    setAssistidos(prev => [...prev, id])
+  const marcarAssistido = useCallback((video) => {
+    const chave = getVideoKey(video)
+    if (isVideoAssistido(assistidos, video)) return
+    setAssistidos(prev => [...new Set([...prev.filter(item => item !== video.id), chave])])
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 }, colors: [tokens.rausch, tokens.babu, tokens.arches] })
     toast.success('Aula concluída com sucesso! 🎉')
     if (matricula) {
-      fetch(`${API_URL}/api/aluno/video-assistido/${id}`, {
+      fetch(`${API_URL}/api/aluno/video-assistido/${video.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricula }),
+        body: JSON.stringify({ matricula, origem: normalizarOrigemVideo(video.video_origem) }),
       }).catch(() => { })
     }
   }, [matricula, assistidos])
@@ -209,10 +218,11 @@ const VideoGallery = () => {
         fetchJSON(`${API_URL}/api/admin/materias`).catch(() => []),
         fetchJSON(`${API_URL}/api/questoes?apenas_videos=true`).catch(() => ({ dados: { data: [] } })),
         fetchJSON(`${API_URL}/api/videos`).catch(() => ({ dados: { data: [] } })),
+        matricula ? fetchJSON(`${API_URL}/api/aluno/historico-grafico/${matricula}`).catch(() => ({ por_assunto: [] })) : Promise.resolve({ por_assunto: [] }),
+        matricula ? fetchJSON(`${API_URL}/api/aluno/videos-assistidos/${matricula}`).catch(() => ({ chaves: [] })) : Promise.resolve({ chaves: [] }),
       ]
-      if (matricula) promises.push(fetchJSON(`${API_URL}/api/aluno/historico-grafico/${matricula}`).catch(() => ({ por_assunto: [] })))
       
-      const [dataMat, dataQuestRaw, dataVidRaw, dataHistorico] = await Promise.all(promises)
+      const [dataMat, dataQuestRaw, dataVidRaw, dataHistorico, dataAssistidos] = await Promise.all(promises)
       
       const extrairArray = (res) => {
         if (Array.isArray(res)) return res
@@ -223,9 +233,15 @@ const VideoGallery = () => {
       }
 
       setMaterias(extrairArray(dataMat))
-      const qVideos = extrairArray(dataQuestRaw).filter(q => q?.link_video)
+      const qVideos = extrairArray(dataQuestRaw)
+        .filter(q => q?.link_video)
+        .map(q => ({ ...q, video_origem: 'questao', video_chave: `questao:${q.id}` }))
       const vVideos = extrairArray(dataVidRaw)
+        .map(v => ({ ...v, video_origem: 'video', video_chave: `video:${v.id}` }))
       setQuestoesComVideo([...qVideos, ...vVideos])
+      if (Array.isArray(dataAssistidos?.chaves)) {
+        setAssistidos(prev => [...new Set([...prev, ...dataAssistidos.chaves])])
+      }
 
       if (dataHistorico?.por_assunto && Array.isArray(dataHistorico.por_assunto)) {
         setDesempenhoBaixo(dataHistorico.por_assunto.filter(a => a.media_acerto < 60).map(a => a.assunto.toLowerCase()))
@@ -252,7 +268,11 @@ const VideoGallery = () => {
     }).slice(0, 3)
   }, [questoesComVideo, desempenhoBaixo])
 
-  const perc = questoesComVideo.length ? Math.round((assistidos.length / questoesComVideo.length) * 100) : 0
+  const totalAssistidos = useMemo(
+    () => questoesComVideo.filter(item => isVideoAssistido(assistidos, item)).length,
+    [assistidos, questoesComVideo],
+  )
+  const perc = questoesComVideo.length ? Math.round((totalAssistidos / questoesComVideo.length) * 100) : 0
 
   // Agrupar itens por matéria para as pastas (Usa utilitário externo para performance)
   const folders = useMemo(() => agruparPorMateria(questoesComVideo, assistidos), [questoesComVideo, assistidos])
@@ -374,7 +394,7 @@ const VideoGallery = () => {
             </div>
             <CRow className="g-3">
               {recomendados.map((q, i) => (
-                <CCol key={q.id} md={4}>
+                <CCol key={getVideoKey(q)} md={4}>
                   <motion.div 
                     whileHover={{ x: 4, background: 'var(--color-bg-elevated)' }}
                     className="p-3 rounded-4 d-flex align-items-center gap-3 cursor-pointer border" 
@@ -414,7 +434,7 @@ const VideoGallery = () => {
         ) : (
           <CRow className="g-4">
             {filteredItems.map((v, i) => (
-              <VideoCard key={v.id} q={v} isDark={isDark} modoLista={modoVis === 'lista'} assistido={assistidos.includes(v.id)} onMarcarAssistido={marcarAssistido} />
+              <VideoCard key={getVideoKey(v)} q={v} isDark={isDark} modoLista={modoVis === 'lista'} assistido={isVideoAssistido(assistidos, v)} onMarcarAssistido={marcarAssistido} />
             ))}
             {!filteredItems.length && (
               <div className="text-center py-5">
@@ -450,21 +470,21 @@ const VideoGallery = () => {
             <div className="overflow-auto p-4 flex-grow-1">
               {filteredItems.map((v, i) => (
                 <motion.div 
-                  key={v.id} 
+                  key={getVideoKey(v)}
                   whileHover={{ x: 5 }}
-                  className={`p-3 rounded-4 mb-3 cursor-pointer border shadow-sm ${assistidos.includes(v.id) ? 'bg-success bg-opacity-10' : 'bg-body-tertiary'}`} 
+                  className={`p-3 rounded-4 mb-3 cursor-pointer border shadow-sm ${isVideoAssistido(assistidos, v) ? 'bg-success bg-opacity-10' : 'bg-body-tertiary'}`}
                   onClick={() => {
-                    const el = document.getElementById(`vid-${v.id}`);
+                    const el = document.getElementById(`vid-${getVideoKey(v)}`);
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
                 >
                   <div className="d-flex align-items-center gap-3">
-                    <span style={{ fontSize: 14, fontWeight: 800, color: assistidos.includes(v.id) ? tokens.babu : tokens.foggy }}>{String(i+1).padStart(2, '0')}</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: isVideoAssistido(assistidos, v) ? tokens.babu : tokens.foggy }}>{String(i+1).padStart(2, '0')}</span>
                     <div className="flex-grow-1 min-w-0">
                       <div className="fw-bold text-truncate" style={{ fontSize: 13, color: 'var(--color-text-primary)' }}>{v.titulo || v.question}</div>
                       <div style={{ fontSize: 11, color: tokens.foggy }}>{v.materia_nome || v.assunto}</div>
                     </div>
-                    {assistidos.includes(v.id) && <Icon icon="solar:check-circle-bold" style={{ color: tokens.babu }} width="16" />}
+                    {isVideoAssistido(assistidos, v) && <Icon icon="solar:check-circle-bold" style={{ color: tokens.babu }} width="16" />}
                   </div>
                 </motion.div>
               ))}

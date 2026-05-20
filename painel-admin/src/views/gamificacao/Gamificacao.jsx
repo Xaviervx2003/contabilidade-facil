@@ -1,12 +1,12 @@
-import React, { useState } from 'react'
-import { CContainer } from '@coreui/react'
+import React, { useEffect, useState } from 'react'
+import { CButton, CContainer, CSpinner } from '@coreui/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
+import { API_URL } from '../../config'
 
 import Missoes from './Missoes'
 import Conquistas from './Conquistas'
 
-/* ─── Tokens Airbnb-inspired ─────────────────────────────── */
 const tokens = {
   rausch: '#FF385C',
   babu: '#00A699',
@@ -14,8 +14,139 @@ const tokens = {
   foggy: '#767676',
 }
 
+const RankingTurma = () => {
+  const [tipo, setTipo] = useState('streak')
+  const [ranking, setRanking] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const matricula = sessionStorage.getItem('matricula')
+
+  useEffect(() => {
+    let active = true
+
+    const carregarRanking = async () => {
+      setLoading(true)
+      setError('')
+
+      try {
+        const res = await fetch(`${API_URL}/api/aluno/leaderboard?tipo=${tipo}&limite=10`)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = await res.json()
+        if (active) setRanking(Array.isArray(data) ? data : [])
+      } catch {
+        if (active) {
+          setRanking([])
+          setError('Nao foi possivel carregar o ranking agora.')
+        }
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    carregarRanking()
+    return () => { active = false }
+  }, [tipo])
+
+  return (
+    <div>
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 20, color: 'var(--color-text-primary)', letterSpacing: '-0.3px' }}>
+            Ranking da Turma
+          </div>
+          <div style={{ fontSize: 13, color: tokens.foggy }}>
+            Compare sua constancia e volume de estudos com a turma.
+          </div>
+        </div>
+        <div className="d-flex bg-body-tertiary p-1 rounded-4 border">
+          {[
+            { id: 'streak', label: 'Sequencia' },
+            { id: 'questoes', label: 'Questoes' },
+          ].map((option) => (
+            <CButton
+              key={option.id}
+              size="sm"
+              onClick={() => setTipo(option.id)}
+              className="fw-bold border-0"
+              style={{
+                background: tipo === option.id ? 'var(--color-bg-elevated)' : 'transparent',
+                color: tipo === option.id ? tokens.arches : tokens.foggy,
+                borderRadius: 12,
+                padding: '8px 14px',
+              }}
+            >
+              {option.label}
+            </CButton>
+          ))}
+        </div>
+      </div>
+
+      <div style={{
+        background: 'var(--color-bg-elevated)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 20,
+        overflow: 'hidden',
+      }}>
+        {loading ? (
+          <div className="text-center py-5">
+            <CSpinner size="sm" />
+          </div>
+        ) : error ? (
+          <div className="text-center py-5" style={{ color: tokens.foggy }}>
+            {error}
+          </div>
+        ) : ranking.length === 0 ? (
+          <div className="text-center py-5" style={{ color: tokens.foggy }}>
+            Ainda nao ha dados suficientes para montar o ranking.
+          </div>
+        ) : (
+          ranking.map((aluno) => {
+            const isAtual = matricula && String(aluno.matricula) === String(matricula)
+            return (
+              <div
+                key={`${tipo}-${aluno.matricula}`}
+                className="d-flex align-items-center gap-3 p-3 border-bottom"
+                style={{
+                  background: isAtual ? `${tokens.arches}12` : 'transparent',
+                  borderColor: 'var(--color-border)',
+                }}
+              >
+                <div
+                  className="d-flex align-items-center justify-content-center fw-bold"
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 12,
+                    background: aluno.posicao <= 3 ? `${tokens.arches}18` : 'var(--color-bg-tertiary)',
+                    color: aluno.posicao <= 3 ? tokens.arches : tokens.foggy,
+                    flexShrink: 0,
+                  }}
+                >
+                  {aluno.posicao}
+                </div>
+                <div className="flex-grow-1 min-width-0">
+                  <div className="fw-bold text-truncate" style={{ color: 'var(--color-text-primary)' }}>
+                    {aluno.nome}
+                    {isAtual && <span style={{ color: tokens.arches, fontSize: 12 }}> voce</span>}
+                  </div>
+                  <div style={{ color: tokens.foggy, fontSize: 12 }}>
+                    {tipo === 'streak' ? 'Dias consecutivos de estudo' : 'Questoes respondidas'}
+                  </div>
+                </div>
+                <div className="fw-bold" style={{ color: tokens.arches, fontSize: 20 }}>
+                  {aluno.valor}
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+    </div>
+  )
+}
+
 const Gamificacao = () => {
-  const [abaAtiva, setAbaAtiva] = useState('desafios') // desafios, conquistas, ranking
+  const [abaAtiva, setAbaAtiva] = useState('desafios')
 
   const renderAba = () => {
     switch (abaAtiva) {
@@ -24,13 +155,7 @@ const Gamificacao = () => {
       case 'conquistas':
         return <Conquistas isTab={true} />
       case 'ranking':
-        return (
-          <div className="text-center py-5">
-            <Icon icon="solar:cup-star-bold-duotone" width="64" style={{ color: tokens.foggy, opacity: 0.3 }} />
-            <h4 className="mt-3" style={{ color: tokens.foggy }}>Ranking em Breve</h4>
-            <p className="text-body-secondary mt-2">Competição saudável com a sua turma! Em desenvolvimento.</p>
-          </div>
-        )
+        return <RankingTurma />
       default:
         return null
     }
@@ -40,26 +165,23 @@ const Gamificacao = () => {
     <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Nunito', sans-serif" }}>
       <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
-
-          {/* HEADER PREMIUM IDENTICO AO PAINEL */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             style={{ marginBottom: 32 }}
           >
-            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Gamificação</div>
+            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Gamificacao</div>
             <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
-              Desafios & Conquistas 🏆
+              Desafios & Conquistas
             </div>
             <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
-              Cumpra missões, ganhe XP e desbloqueie emblemas exclusivos.
+              Cumpra missoes, ganhe XP e desbloqueie emblemas exclusivos.
             </div>
           </motion.div>
 
-          {/* ABAS (TABS) */}
           <div className="d-flex gap-2 mb-4 overflow-auto pb-2 border-bottom" style={{ borderColor: 'var(--color-border)' }}>
             {[
-              { id: 'desafios', label: 'Missões & XP', icon: 'solar:target-bold-duotone', color: tokens.rausch },
+              { id: 'desafios', label: 'Missoes & XP', icon: 'solar:target-bold-duotone', color: tokens.rausch },
               { id: 'conquistas', label: 'Meus Emblemas', icon: 'solar:medal-ribbon-star-bold-duotone', color: tokens.babu },
               { id: 'ranking', label: 'Ranking da Turma', icon: 'solar:cup-star-bold-duotone', color: tokens.arches },
             ].map(tab => {
@@ -97,7 +219,6 @@ const Gamificacao = () => {
             })}
           </div>
 
-          {/* CONTEÚDO DA ABA */}
           <AnimatePresence mode="wait">
             <motion.div
               key={abaAtiva}
@@ -109,7 +230,6 @@ const Gamificacao = () => {
               {renderAba()}
             </motion.div>
           </AnimatePresence>
-
         </div>
       </CContainer>
     </div>
