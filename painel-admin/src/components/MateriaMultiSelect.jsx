@@ -35,6 +35,8 @@ const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatInd
           className="form-check-input shadow-none"
           type="checkbox"
           checked={isSelected}
+          aria-label={`Selecionar ${node.nome}`}
+          onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
             e.stopPropagation()
             toggleItem(node.id)
@@ -74,7 +76,7 @@ const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatInd
   )
 }
 
-const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = true, inline = false, rootId = null, focoFaculdadeTopicIds = null }) => {
+const MateriaMultiSelect = ({ materias = [], selected = [], onChange, esconderVazias = true, inline = false, rootId = null, focoFaculdadeTopicIds = null }) => {
   const [open, setOpen] = useState(false)
   const [filhosCache, setFilhosCache] = useState({})
   const [loadingId, setLoadingId] = useState(null)
@@ -83,6 +85,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
   const ref = useRef(null)
 
   const currentParent = history.length > 0 ? history[history.length - 1] : null
+  const selectedIds = useMemo(() => selected.map(String), [selected])
 
   
   const formatIndice = useCallback((indice) => {
@@ -145,6 +148,9 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
       )
   }, [materias, currentParent, filhosCache, esconderVazias, busca, focoFaculdadeTopicIds])
 
+  const visibleItemIds = useMemo(() => visibleItems.map((item) => String(item.id)), [visibleItems])
+  const allVisibleSelected = visibleItemIds.length > 0 && visibleItemIds.every((id) => selectedIds.includes(id))
+
   
   const navigateTo = useCallback(async (node) => {
     if (!node.tem_filhos) return
@@ -173,21 +179,37 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
   const toggleItem = useCallback((id) => {
     const s = String(id)
     onChange(
-      selected.includes(s)
-        ? selected.filter(x => x !== s)
+      selectedIds.includes(s)
+        ? selected.filter(x => String(x) !== s)
         : [...selected, s]
     )
-  }, [selected, onChange])
+  }, [selected, selectedIds, onChange])
+
+  const toggleVisibleItems = useCallback(() => {
+    if (visibleItemIds.length === 0) return
+
+    if (allVisibleSelected) {
+      onChange(selected.filter((id) => !visibleItemIds.includes(String(id))))
+      return
+    }
+
+    const current = new Set(selectedIds)
+    const next = [...selected]
+    visibleItemIds.forEach((id) => {
+      if (!current.has(id)) next.push(id)
+    })
+    onChange(next)
+  }, [allVisibleSelected, onChange, selected, selectedIds, visibleItemIds])
 
   
   const label = useMemo(() => {
-    if (selected.length === 0) return 'Todas as disciplinas'
-    if (selected.length === 1) {
-      const m = materias.find(x => String(x.id) === selected[0])
+    if (selectedIds.length === 0) return 'Todas as disciplinas'
+    if (selectedIds.length === 1) {
+      const m = materias.find(x => String(x.id) === selectedIds[0])
       return m ? m.nome : '1 selecionada'
     }
-    return `${selected.length} selecionados`
-  }, [selected, materias])
+    return `${selectedIds.length} selecionados`
+  }, [selectedIds, materias])
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
@@ -202,7 +224,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
             {label}
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            {selected.length > 0 && (
+            {selectedIds.length > 0 && (
               <span
                 role="button"
                 tabIndex={0}
@@ -317,7 +339,7 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
                 <ListItem
                   key={node.id}
                   node={node}
-                  selected={selected}
+                  selected={selectedIds}
                   loadingId={loadingId}
                   navigateTo={navigateTo}
                   toggleItem={toggleItem}
@@ -328,25 +350,40 @@ const MateriaMultiSelect = ({ materias, selected, onChange, esconderVazias = tru
           </div>
 
           {/* Rodapé */}
-          {selected.length > 0 && (
+          {(visibleItemIds.length > 0 || selectedIds.length > 0) && (
             <div style={{
               padding: '12px 16px',
               background: 'rgba(79,142,247,0.05)',
               borderTop: '1px solid var(--cui-border-color)',
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center'
+              alignItems: 'center',
+              gap: 12,
+              flexWrap: 'wrap'
             }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#4f8ef7' }}>
-                {selected.length} selecionados
+                {selectedIds.length > 0 ? `${selectedIds.length} selecionados` : `${visibleItemIds.length} itens visíveis`}
               </span>
-              <button
-                type="button"
-                className="btn btn-sm btn-link text-danger text-decoration-none p-0 fw-bold"
-                onClick={() => onChange([])}
-              >
-                Limpar Tudo
-              </button>
+              <div className="d-flex align-items-center gap-3 flex-wrap">
+                {visibleItemIds.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-link text-primary text-decoration-none p-0 fw-bold"
+                    onClick={toggleVisibleItems}
+                  >
+                    {allVisibleSelected ? 'Limpar visíveis' : 'Selecionar visíveis'}
+                  </button>
+                )}
+                {selectedIds.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-link text-danger text-decoration-none p-0 fw-bold"
+                    onClick={() => onChange([])}
+                  >
+                    Limpar tudo
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
