@@ -326,6 +326,17 @@ const DashboardAluno = () => {
     enabled: !!sessionStorage.getItem('token'),
   })
 
+  const { data: quizInsights } = useQuery({
+    queryKey: ['quiz-insights', matricula],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/aluno/quiz-analytics/${matricula}`)
+      if (!res.ok) throw new Error('Erro')
+      return res.json()
+    },
+    staleTime: 1000 * 60 * 10,
+    enabled: !!matricula,
+  })
+
   const { hoje, semana, geral, streak, progresso, materias_fracas, materias_fortes, ultimas_sessoes, serie_semanal } = data || {
     hoje: {}, semana: {}, geral: {}, streak: 0, progresso: {}, 
     materias_fracas: [], materias_fortes: [], ultimas_sessoes: [], serie_semanal: []
@@ -494,6 +505,81 @@ const DashboardAluno = () => {
             </SCard>
           </CCol>
         </CRow>
+
+        {/* ── Insights de Estudo (Quiz Analytics) ── */}
+        {quizInsights && (
+          <CRow className="g-3 mb-4">
+            <CCol xs={12}>
+              <SCard delay={0.4}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                  <Icon icon="solar:chart-2-bold-duotone" style={{ color: tokens.rausch }} width="22" />
+                  <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-primary)' }}>Insights de Estudo</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, background: `${tokens.babu}15`, color: tokens.babu, padding: '3px 10px', borderRadius: 99, marginLeft: 'auto' }}>
+                    Dados reais
+                  </span>
+                </div>
+
+                {/* Stats row */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 20 }}>
+                  {/* Melhor horário */}
+                  {quizInsights.por_turno?.length > 0 && (() => {
+                    const melhor = quizInsights.por_turno[0]
+                    const turnoEmoji = { 'Manhã': '☀️', 'Tarde': '🌤️', 'Noite': '🌙', 'Madrugada': '🌃' }
+                    return (
+                      <div style={{ background: 'var(--color-bg-tertiary)', borderRadius: 14, padding: '16px' }}>
+                        <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Melhor Horário</div>
+                        <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1 }}>
+                          {turnoEmoji[melhor.turno] || '⏰'} {melhor.turno}
+                        </div>
+                        <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 4 }}>{melhor.sessoes} sessões nesse turno</div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Média geral */}
+                  <div style={{ background: 'var(--color-bg-tertiary)', borderRadius: 14, padding: '16px' }}>
+                    <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Média de Acerto</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: quizInsights.resumo?.media_acerto >= 70 ? tokens.babu : tokens.arches, lineHeight: 1 }}>
+                      {quizInsights.resumo?.media_acerto || 0}%
+                    </div>
+                    <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 4 }}>{quizInsights.resumo?.total_questoes || 0} questões no total</div>
+                  </div>
+
+                  {/* Tempo médio */}
+                  <div style={{ background: 'var(--color-bg-tertiary)', borderRadius: 14, padding: '16px' }}>
+                    <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Tempo Médio</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1 }}>
+                      {formatTempo(quizInsights.resumo?.tempo_medio_seg || 0)}
+                    </div>
+                    <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 4 }}>por sessão de estudo</div>
+                  </div>
+                </div>
+
+                {/* Top 3 matérias fracas */}
+                {quizInsights.por_materia?.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: tokens.foggy, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Icon icon="solar:danger-bold-duotone" width="14" style={{ color: tokens.rausch }} />
+                      Matérias que precisam de atenção
+                    </div>
+                    {quizInsights.por_materia.slice(0, 3).map((m, i) => {
+                      const color = m.taxa_acerto >= 70 ? tokens.babu : m.taxa_acerto >= 40 ? tokens.arches : tokens.rausch
+                      return (
+                        <div key={i} style={{ marginBottom: i < 2 ? 10 : 0 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)' }}>{m.materia}</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color }}>{m.taxa_acerto}% ({m.acertos}/{m.total})</span>
+                          </div>
+                          <AirbnbProgress value={m.taxa_acerto} color={color} />
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </SCard>
+            </CCol>
+          </CRow>
+        )}
 
         {/* ── Missões de Elite (Elite SaaS Integration) ── */}
         <div style={{ marginBottom: 40 }}>

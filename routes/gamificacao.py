@@ -445,11 +445,13 @@ def _listar_missoes_base(matricula: Optional[str] = None):
             # 2. KPIs da semana atual (somente se houver matrícula)
             sessoes_semana = 0
             media_semana = 0
+            questoes_semana = 0
             if matricula:
                 cursor.execute("""
                     SELECT
-                        COUNT(*)                              AS total_sessoes,
-                        COALESCE(AVG(taxa_acerto), 0)::int    AS media_acerto
+                        COUNT(*)                                        AS total_sessoes,
+                        COALESCE(AVG(taxa_acerto), 0)::int              AS media_acerto,
+                        COALESCE(SUM(questoes_respondidas), 0)::int     AS total_questoes
                     FROM sessoes_estudo
                     WHERE matricula_aluno = %s
                       AND criado_em >= date_trunc('week', NOW());
@@ -458,6 +460,7 @@ def _listar_missoes_base(matricula: Optional[str] = None):
                 if kpis_row:
                     sessoes_semana = kpis_row[0]
                     media_semana = kpis_row[1]
+                    questoes_semana = kpis_row[2]
 
         resultado = []
         for m in missoes:
@@ -469,7 +472,7 @@ def _listar_missoes_base(matricula: Optional[str] = None):
             elif m["metrica_tipo"] == "media_acerto":
                 progresso = min(int((media_semana   / (m["metrica_alvo"] or 1)) * 100), 100)
             elif m["metrica_tipo"] == "questoes":
-                progresso = 0   # expandir futuramente
+                progresso = min(int((questoes_semana / (m["metrica_alvo"] or 1)) * 100), 100)
             else:  # manual
                 progresso = 100 if m["concluida"] else 0
 
