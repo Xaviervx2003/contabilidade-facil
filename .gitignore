@@ -27,3 +27,5 @@ scratch_script.sql
 
 # Referências locais
 codigo-clean-referencias/
+# Added by code-review-graph
+.code-review-graph/
