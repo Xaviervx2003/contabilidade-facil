@@ -15,15 +15,9 @@ import { useTheme } from '../../context/themeContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 
-/* ─── Tokens Airbnb-inspired ─────────────────────────────── */
-const tokens = {
-  rausch: '#FF385C',   // Airbnb red/coral
-  babu: '#00A699',   // Airbnb teal
-  arches: '#FC642D',   // Airbnb orange
-  hof: '#484848',   // Airbnb dark text
-  foggy: '#767676',   // Airbnb secondary text
-  swiss: '#B0B0B0',   // Airbnb border/muted
-}
+/* ─── Tokens Airbnb-inspired (centralizado) ──────────────── */
+import { tokens, alpha, acertoColor } from '../../components/abnb/Tokens'
+import { AirbnbProgress as _Progress, MateriaRow as _MateriaRow } from '../../components/abnb/Cards'
 
 /* ─── Helpers ──────────────────────────────────────────────── */
 const formatTempo = (seg) => {
