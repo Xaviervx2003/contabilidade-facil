@@ -27,6 +27,7 @@ import {
   cilFullscreenExit,
   cilStar,
 } from '@coreui/icons'
+import api from '../../services/api'
 import { API_URL } from '../../config'
 import { calculateGrade, formatSeconds, shuffle } from '../../utils/quizUtils'
 import MateriaMultiSelect from '../../components/MateriaMultiSelect'
@@ -1575,9 +1576,9 @@ const Quiz = () => {
   const { data: favoritosData = [] } = useQuery({
     queryKey: ['favoritos', matricula],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/favoritos/${matricula}`)
-      if (!res.ok) throw new Error()
-      return res.json()
+      if (!matricula) return []
+      const res = await api.get(`/api/favoritos/${matricula}`)
+      return res.data
     },
     enabled: !!matricula,
     staleTime: 1000 * 60 * 5,
@@ -1593,15 +1594,9 @@ const Quiz = () => {
   const toggleFavoritoMutation = useMutation({
     mutationFn: async ({ questaoId, isFavorito }) => {
       if (isFavorito) {
-        await fetch(`${API_URL}/api/favoritos/remover/${questaoId}?matricula=${matricula}`, {
-          method: 'DELETE',
-        })
+        await api.delete(`/api/favoritos/remover/${questaoId}?matricula=${matricula}`)
       } else {
-        await fetch(`${API_URL}/api/favoritos/adicionar`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ matricula, questao_id: questaoId }),
-        })
+        await api.post(`/api/favoritos/adicionar`, { matricula, questao_id: questaoId })
       }
     },
     onSuccess: () => {
@@ -1625,9 +1620,8 @@ const Quiz = () => {
   const { data: materiasData = [], isLoading: loadingMaterias } = useQuery({
     queryKey: ['admin-materias'],
     queryFn: async () => {
-      const r = await fetch(`${API_URL}/api/admin/materias`)
-      if (!r.ok) throw new Error()
-      return r.json()
+      const res = await api.get('/api/admin/materias')
+      return res.data
     },
     staleTime: 1000 * 60 * 10,
   })
@@ -1636,9 +1630,8 @@ const Quiz = () => {
   const { data: filtrosDisponiveis = { bancas: [], orgaos: [], cargos: [], anos: [] } } = useQuery({
     queryKey: ['valores-unicos'],
     queryFn: async () => {
-      const r = await fetch(`${API_URL}/api/questoes/valores-unicos`)
-      if (!r.ok) throw new Error()
-      return r.json()
+      const res = await api.get('/api/questoes/valores-unicos')
+      return res.data
     },
     staleTime: 1000 * 60 * 10,
   })
@@ -1761,13 +1754,9 @@ const Quiz = () => {
 
   const fetchQuestoesMutation = useMutation({
     mutationFn: async (url) => {
-      const res = await fetch(url)
-      const responseJson = await res.json()
-      let data = responseJson.sucesso !== undefined ? responseJson.dados : responseJson
-
-      if (!res.ok || !Array.isArray(data) || data.length === 0)
-        throw new Error(responseJson.mensagem || 'Nenhuma questão encontrada para este filtro.')
-      return data
+      const path = url.replace(API_URL, '')
+      const res = await api.get(path)
+      return res.data
     },
     onMutate: () => {
       setError('')
@@ -1815,13 +1804,8 @@ const Quiz = () => {
 
   const simuladoMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`${API_URL}/api/questoes?limit=30`)
-      const responseJson = await res.json()
-      let data = responseJson.sucesso !== undefined ? responseJson.dados : responseJson
-
-      if (!res.ok || !Array.isArray(data) || data.length === 0)
-        throw new Error(responseJson.mensagem || 'Nenhuma questão encontrada.')
-      return data
+      const res = await api.get('/api/questoes?limit=30')
+      return res.data
     },
     onMutate: () => {
       setError('')
@@ -1903,18 +1887,12 @@ const Quiz = () => {
 
   const feedbackMutation = useMutation({
     mutationFn: async ({ qId, texto, confusa }) => {
-      const res = await fetch(`${API_URL}/api/feedbacks_questoes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          questao_id: qId,
-          nome_aluno: nomeAluno,
-          texto,
-          marcada_confusa: confusa,
-        }),
+      return await api.post('/api/feedbacks_questoes', {
+        questao_id: qId,
+        nome_aluno: nomeAluno,
+        texto,
+        marcada_confusa: confusa,
       })
-      if (!res.ok) throw new Error()
-      return res
     },
     onMutate: () => setCommentStatus('sending'),
     onSuccess: () => setCommentStatus('sent'),
@@ -1969,13 +1947,7 @@ const Quiz = () => {
 
   const saveSessionMutation = useMutation({
     mutationFn: async (payload) => {
-      const res = await fetch(`${API_URL}/api/sessoes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) throw new Error()
-      return res
+      return await api.post('/api/sessoes', payload)
     },
     onMutate: () => {
       setSaving(true)
