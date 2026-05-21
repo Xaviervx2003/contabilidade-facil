@@ -1756,7 +1756,11 @@ const Quiz = () => {
     mutationFn: async (url) => {
       const path = url.replace(API_URL, '')
       const res = await api.get(path)
-      return res.data
+      let data = res.data.sucesso !== undefined ? res.data.dados : res.data
+      if (!Array.isArray(data) || data.length === 0) {
+        throw new Error(res.data.mensagem || 'Nenhuma questão encontrada para este filtro.')
+      }
+      return data
     },
     onMutate: () => {
       setError('')
@@ -1805,7 +1809,11 @@ const Quiz = () => {
   const simuladoMutation = useMutation({
     mutationFn: async () => {
       const res = await api.get('/api/questoes?limit=30')
-      return res.data
+      let data = res.data.sucesso !== undefined ? res.data.dados : res.data
+      if (!Array.isArray(data) || data.length === 0) {
+        throw new Error(res.data.mensagem || 'Nenhuma questão encontrada.')
+      }
+      return data
     },
     onMutate: () => {
       setError('')
