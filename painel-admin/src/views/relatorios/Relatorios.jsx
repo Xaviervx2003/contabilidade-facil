@@ -201,10 +201,11 @@ const Relatorios = () => {
     }
   }, [userId, filtroMateria, filtroAluno])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const hoje = new Date()
     buscarRelatorio(dados.periodo.mes || hoje.getMonth() + 1, dados.periodo.ano || hoje.getFullYear())
-  }, [userId, filtroMateria, filtroAluno])
+  }, [buscarRelatorio]) // buscarRelatorio já é memoizado via useCallback com [userId, filtroMateria, filtroAluno]
 
   const periodoValue = `${dados.periodo.ano}-${String(dados.periodo.mes).padStart(2, '0')}`
   const handlePeriodo = (e) => {

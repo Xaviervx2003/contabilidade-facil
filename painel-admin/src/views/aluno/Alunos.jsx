@@ -398,7 +398,7 @@ const Alunos = () => {
           }}
         >
           <div style={{ fontSize: 11, fontWeight: 700, color: tokens.foggy, textTransform: 'uppercase', letterSpacing: '0.6px', width: '100%', marginBottom: 4 }}>
-            Filtrar por Risco Acadêmico
+            Filtrar por Risco na Página Atual
           </div>
           {FILTROS.map(f => (
             <motion.button
