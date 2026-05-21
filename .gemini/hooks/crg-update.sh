@@ -5,6 +5,6 @@ set -euo pipefail
 
 cat > /dev/null || true
 
-code-review-graph update --skip-flows --repo "C:/projetos/contabilidade facil/contabilidade-facil" >/dev/null 2>&1 || true
+code-review-graph update --skip-flows --repo "C:/projetos/contabilidade-facil" >/dev/null 2>&1 || true
 echo '{"suppressOutput": true}'
 exit 0

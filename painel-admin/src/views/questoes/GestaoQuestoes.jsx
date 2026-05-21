@@ -9,6 +9,13 @@ import { API_URL } from '../../config'
 import { useSearchParams } from 'react-router-dom'
 import MateriaMultiSelect from '../../components/MateriaMultiSelect'
 import { useTheme } from '../../context/themeContext'
+import { 
+  useFiltrosQuestoes, 
+  useQuestoes, 
+  useCriarQuestao, 
+  useEditarQuestao, 
+  useDeletarQuestao 
+} from '../../hooks/useQuestoes'
 
 /* ── Tokens Airbnb ───────────────────────────────────────── */
 const tk = {
@@ -192,64 +199,44 @@ const GestaoQuestoes = () => {
   const [searchParams] = useSearchParams()
   const { isDark } = useTheme()
 
-  const [questoes, setQuestoes] = useState([])
-  const [materiasDisponiveis, setMateriasDisponiveis] = useState([])
-  const [filtrosOpcoes, setFiltrosOpcoes] = useState({ bancas: [], anos: [] })
+  const { data: filtrosDados } = useFiltrosQuestoes()
+  const filtrosOpcoes = filtrosDados || { bancas: [], anos: [] }
 
-  const [filtroBanca, setFiltroBanca] = useState('')
-  const [filtroAno, setFiltroAno] = useState('')
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('busca') || '')
-  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('busca') || '')
-
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalQuestoes, setTotalQuestoes] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
-
-  const [modalVisible, setModalVisible] = useState(false)
-  const [modoEdicao, setModoEdicao] = useState(false)
-  const [formData, setFormData] = useState(INITIAL_FORM)
-  const [abaAtiva, setAbaAtiva] = useState(0)
-  const [errosForm, setErrosForm] = useState({})
-  const [salvando, setSalvando] = useState(false)
-
-  /* ── Data fetching ───────────────────────────────────────── */
-  const carregarMaterias = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/admin/materias`)
-      setMateriasDisponiveis(await res.json())
-    } catch (e) { console.error(e) }
-  }, [])
-
-  const carregarFiltros = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/filtros/questoes`)
-      const j = await res.json()
-      setFiltrosOpcoes(j.sucesso ? j.dados : j)
-    } catch (e) { console.error(e) }
-  }, [])
-
-  const carregarQuestoes = useCallback(async () => {
-    setLoading(true)
-    try {
-      const p = new URLSearchParams({ page: String(currentPage), per_page: String(PER_PAGE) })
-      if (debouncedSearch.trim()) p.set('busca', debouncedSearch.trim())
-      if (filtroBanca) p.set('banca', filtroBanca)
-      if (filtroAno) p.set('ano', filtroAno)
-      const res = await fetch(`${API_URL}/api/questoes?${p}`)
-      const j = await res.json()
-      const payload = j.sucesso ? j.dados : j
-      setQuestoes(payload.data || [])
-      setTotalQuestoes(payload.total || 0)
-      setTotalPages(payload.total_pages || 1)
-    } catch { setError('Erro ao carregar questões.') }
-    finally { setLoading(false) }
+  const filtrosAtuais = useMemo(() => {
+    const f = { page: currentPage, per_page: PER_PAGE }
+    if (debouncedSearch.trim()) f.busca = debouncedSearch.trim()
+    if (filtroBanca) f.banca = filtroBanca
+    if (filtroAno) f.ano = filtroAno
+    return f
   }, [currentPage, debouncedSearch, filtroBanca, filtroAno])
 
-  useEffect(() => { carregarMaterias(); carregarFiltros() }, [carregarMaterias, carregarFiltros])
-  useEffect(() => { carregarQuestoes() }, [carregarQuestoes])
+  const { data: questoesData, isFetching: loading, isError } = useQuestoes(filtrosAtuais)
+  const questoes = questoesData?.data || []
+  const totalQuestoes = questoesData?.total || 0
+  const totalPages = questoesData?.total_pages || 1
+
+  if (isError) {
+    if (!error) setError('Erro ao carregar questões.')
+  }
+
+  const { mutateAsync: criarQuestao } = useCriarQuestao()
+  const { mutateAsync: editarQuestao } = useEditarQuestao()
+  const { mutateAsync: deletarQuestao } = useDeletarQuestao()
+
+  /* ── Data fetching (Matérias) ────────────────────────────── */
+  const carregarMaterias = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/admin/materias`, {
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
+      })
+      if (res.ok) {
+        setMateriasDisponiveis(await res.json())
+      }
+    } catch (e) { console.error(e) }
+  }, [])
+
+  useEffect(() => { carregarMaterias() }, [carregarMaterias])
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchTerm), 400)
     return () => clearTimeout(t)
@@ -288,26 +275,27 @@ const GestaoQuestoes = () => {
     }
     setErrosForm({}); setSalvando(true)
     try {
-      const url = formData.id ? `${API_URL}/api/questoes/${formData.id}` : `${API_URL}/api/questoes`
-      const res = await fetch(url, {
-        method: formData.id ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-      if (res.ok) {
-        setSuccess('Questão salva com sucesso!')
-        setModalVisible(false); carregarQuestoes()
-        setTimeout(() => setSuccess(''), 3000)
-      } else { setError('Erro ao salvar questão.') }
-    } catch { setError('Erro técnico ao salvar.') }
+      if (formData.id) {
+        await editarQuestao({ id: formData.id, dados: formData })
+      } else {
+        await criarQuestao(formData)
+      }
+      setSuccess('Questão salva com sucesso!')
+      setModalVisible(false)
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err) { 
+      setError('Erro ao salvar questão.')
+      setTimeout(() => setError(''), 3000)
+    }
     finally { setSalvando(false) }
   }
 
   const deletar = async (id) => {
     if (!window.confirm('Excluir esta questão permanentemente?')) return
     try {
-      const res = await fetch(`${API_URL}/api/questoes/${id}`, { method: 'DELETE' })
-      if (res.ok) { setSuccess('Questão removida!'); carregarQuestoes(); setTimeout(() => setSuccess(''), 3000) }
+      await deletarQuestao(id)
+      setSuccess('Questão removida!')
+      setTimeout(() => setSuccess(''), 3000)
     } catch { setError('Erro ao excluir.') }
   }
 

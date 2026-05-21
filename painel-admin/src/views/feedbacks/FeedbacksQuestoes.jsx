@@ -24,54 +24,41 @@ import CIcon from '@coreui/icons-react'
 import { cilTrash, cilCheckCircle, cilSearch, cilPencil, cilBullhorn } from '@coreui/icons'
 import { API_URL } from '../../config'
 import { useNavigate } from 'react-router-dom'
+import { 
+    useFeedbacksQuestoes, 
+    useResolverFeedback, 
+    useResponderFeedback, 
+    useDeletarFeedback, 
+    useAlternarPublicacaoFeedback 
+} from '../../hooks/useQuestoes'
 
 const FeedbacksQuestoes = () => {
-    const [feedbacks, setFeedbacks] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
     const [filtroStatus, setFiltroStatus] = useState('pendente')
     const [busca, setBusca] = useState('')
+    const [debouncedBusca, setDebouncedBusca] = useState('')
     const navigate = useNavigate()
 
-    // Contagem de pendentes para o badge
+    const filtrosAtuais = useMemo(() => {
+        const f = {}
+        if (filtroStatus !== 'todos') f.status = filtroStatus
+        if (debouncedBusca) f.busca = debouncedBusca
+        return f
+    }, [filtroStatus, debouncedBusca])
+
+    const { data: feedbacksData, isFetching: loading, isError } = useFeedbacksQuestoes(filtrosAtuais)
+    const feedbacks = feedbacksData?.data || []
+
     const pendentes = useMemo(() => feedbacks.filter(f => !f.resolvido).length, [feedbacks])
     const resolvidos = useMemo(() => feedbacks.filter(f => f.resolvido).length, [feedbacks])
 
-    const fetchFeedbacks = async (status, textoBusca) => {
-        setLoading(true)
-        setError('')
-        try {
-            const params = new URLSearchParams()
-            if (status && status !== 'todos') params.set('status', status)
-            if (textoBusca) params.set('busca', textoBusca)
-            const qs = params.toString() ? `?${params.toString()}` : ''
+    const { mutateAsync: resolverFeedback } = useResolverFeedback()
+    const { mutateAsync: responderFeedback } = useResponderFeedback()
+    const { mutateAsync: deletarFeedback } = useDeletarFeedback()
+    const { mutateAsync: publicarFeedback } = useAlternarPublicacaoFeedback()
 
-            const res = await fetch(`${API_URL}/api/feedbacks_questoes${qs}`)
-            if (!res.ok) throw new Error('Falha ao carregar os feedbacks')
-            const data = await res.json()
-            setFeedbacks(data)
-        } catch (err) {
-            setError('Não foi possível conectar ao servidor para buscar os feedbacks.')
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    // Marcar como resolvido (sem deletar!)
     const handleResolver = async (id) => {
         try {
-            const res = await fetch(`${API_URL}/api/feedbacks_questoes/${id}/resolver`, {
-                method: 'PATCH',
-            })
-            if (!res.ok) throw new Error('Erro ao resolver')
-            // Atualiza localmente
-            setFeedbacks(prev =>
-                prev.map(item =>
-                    item.id === id
-                        ? { ...item, resolvido: true, resolvido_em: new Date().toLocaleString('pt-BR') }
-                        : item
-                )
-            )
+            await resolverFeedback(id)
         } catch (err) {
             alert('Não foi possível marcar como resolvido. Tente novamente.')
         }
@@ -79,58 +66,24 @@ const FeedbacksQuestoes = () => {
 
     const handleResponder = async (id, texto) => {
         try {
-            const res = await fetch(`${API_URL}/api/feedbacks_questoes/${id}/responder`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ resposta_professor: texto })
-            })
-            if (!res.ok) throw new Error('Erro ao enviar resposta')
-            
-            // Atualiza localmente para mostrar a resposta e marcar como resolvido
-            setFeedbacks(prev =>
-                prev.map(item =>
-                    item.id === id
-                        ? { 
-                            ...item, 
-                            resposta_professor: texto, 
-                            resolvido: true, 
-                            resolvido_em: new Date().toLocaleString('pt-BR') 
-                          }
-                        : item
-                )
-            )
+            await responderFeedback({ id, resposta: texto })
         } catch (err) {
             alert('Não foi possível enviar a resposta. Tente novamente.')
         }
     }
 
-    // Deletar permanentemente
     const handleDelete = async (id) => {
         if (!window.confirm('Tem certeza que deseja APAGAR permanentemente este feedback?')) return
         try {
-            const res = await fetch(`${API_URL}/api/feedbacks_questoes/${id}`, {
-                method: 'DELETE',
-            })
-            if (!res.ok) throw new Error('Erro ao deletar')
-            setFeedbacks(prev => prev.filter(item => item.id !== id))
+            await deletarFeedback(id)
         } catch (err) {
             alert('Não foi possível apagar o feedback. Tente novamente.')
         }
     }
 
-    // Tornar Público ou Privado
     const handlePublicar = async (id) => {
         try {
-            const res = await fetch(`${API_URL}/api/feedbacks_questoes/${id}/publicar`, {
-                method: 'PATCH',
-            })
-            if (!res.ok) throw new Error('Erro ao alternar publicação')
-            const data = await res.json()
-            setFeedbacks(prev =>
-                prev.map(item =>
-                    item.id === id ? { ...item, publico: data.publico } : item
-                )
-            )
+            await publicarFeedback(id)
         } catch (err) {
             alert('Não foi possível alterar a publicação do feedback. Tente novamente.')
         }
@@ -162,14 +115,10 @@ const FeedbacksQuestoes = () => {
         URL.revokeObjectURL(url)
     }
 
-    useEffect(() => {
-        fetchFeedbacks(filtroStatus, busca)
-    }, [filtroStatus])
-
     // Debounce na busca
     useEffect(() => {
         const timer = setTimeout(() => {
-            fetchFeedbacks(filtroStatus, busca)
+            setDebouncedBusca(busca)
         }, 400)
         return () => clearTimeout(timer)
     }, [busca])
@@ -203,9 +152,9 @@ const FeedbacksQuestoes = () => {
                                         color="primary"
                                         size="sm"
                                         variant="outline"
-                                        onClick={() => fetchFeedbacks(filtroStatus, busca)}
+                                        disabled={loading}
                                     >
-                                        🔄 Atualizar
+                                        {loading ? <CSpinner size="sm"/> : 'Atualizado'}
                                     </CButton>
                                 </div>
                             </div>
@@ -246,7 +195,7 @@ const FeedbacksQuestoes = () => {
                         </CCardHeader>
 
                         <CCardBody>
-                            {error && <CAlert color="danger">{error}</CAlert>}
+                            {isError && <CAlert color="danger">Erro ao carregar feedbacks</CAlert>}
 
                             {loading ? (
                                 <div className="text-center py-5">
