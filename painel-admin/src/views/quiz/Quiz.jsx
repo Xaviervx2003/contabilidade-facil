@@ -1991,7 +1991,6 @@ const Quiz = () => {
     if (status !== 'finished' || saved) return
     const respondidas = questionsAndAnswers.length
     const porcentagem = calculateCorrectAnswersPercentage(respondidas, score)
-    const matriculaOuNome = matricula || nomeAluno
     const materiaLabel =
       materiasSelected.length > 0
         ? materias
@@ -2000,8 +1999,11 @@ const Quiz = () => {
           .join(', ') || 'Quiz de Contabilidade'
         : 'Quiz de Contabilidade'
 
+    // matricula_aluno deve ser a matrícula do usuário (para a FK da tabela sessoes_estudo);
+    // nome_aluno é o nome de exibição (snapshot). Ambos devem ser enviados separadamente.
     saveSessionMutation.mutate({
-      nome_aluno: matriculaOuNome,
+      matricula_aluno: matricula || null,
+      nome_aluno: nomeAluno || matricula || null,
       assunto_estudado: materiaLabel,
       questoes_respondidas: respondidas,
       taxa_acerto: porcentagem,

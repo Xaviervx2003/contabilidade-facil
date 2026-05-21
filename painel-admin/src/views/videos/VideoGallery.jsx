@@ -11,6 +11,7 @@ import { API_URL } from '../../config'
 import { useTheme } from '../../context/themeContext'
 import FolderCard from '../../components/premium/FolderCard'
 import { agruparPorMateria } from '../../utils/grouping'
+import api from '../../services/api'
 
 /* ─── Tokens Airbnb-inspired ─────────────────────────────── */
 const tokens = {
@@ -214,15 +215,17 @@ const VideoGallery = () => {
   const carregarDados = useCallback(async () => {
     setLoading(true)
     try {
-      const promises = [
+      // /api/questoes requer autenticação JWT — usa o cliente Axios (api) que
+      // injeta automaticamente o Bearer token via interceptor.
+      const [dataMat, dataQuestRaw, dataVidRaw, dataHistorico, dataAssistidos] = await Promise.all([
         fetchJSON(`${API_URL}/api/admin/materias`).catch(() => []),
-        fetchJSON(`${API_URL}/api/questoes?apenas_videos=true`).catch(() => ({ dados: { data: [] } })),
+        api.get('/api/questoes', { params: { apenas_videos: true } })
+          .then(r => r.data)
+          .catch(() => ({ dados: { data: [] } })),
         fetchJSON(`${API_URL}/api/videos`).catch(() => ({ dados: { data: [] } })),
         matricula ? fetchJSON(`${API_URL}/api/aluno/historico-grafico/${matricula}`).catch(() => ({ por_assunto: [] })) : Promise.resolve({ por_assunto: [] }),
         matricula ? fetchJSON(`${API_URL}/api/aluno/videos-assistidos/${matricula}`).catch(() => ({ chaves: [] })) : Promise.resolve({ chaves: [] }),
-      ]
-      
-      const [dataMat, dataQuestRaw, dataVidRaw, dataHistorico, dataAssistidos] = await Promise.all(promises)
+      ])
       
       const extrairArray = (res) => {
         if (Array.isArray(res)) return res

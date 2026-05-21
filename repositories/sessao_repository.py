@@ -12,12 +12,21 @@ class SessaoRepository:
 
         with get_conexao() as conn:
             cursor = conn.cursor()
+
+            # Verifica se a matrícula existe na tabela usuarios (evita FK violation).
+            # Se não existir, registra a sessão com matricula_aluno=None para não quebrar a FK,
+            # mas preserva a identificação pelo campo nome_aluno.
+            cursor.execute("SELECT matricula, nome FROM usuarios WHERE matricula = %s", (matricula_aluno,))
+            usuario_row = cursor.fetchone()
+            matricula_salvar = matricula_aluno if usuario_row else None
+
             nome_snapshot = sessao.nome_aluno_snapshot
             if not nome_snapshot:
-                cursor.execute("SELECT nome FROM usuarios WHERE matricula = %s", (matricula_aluno,))
-                row = cursor.fetchone()
-                nome_snapshot = row[0] if row else matricula_aluno
-            
+                if usuario_row:
+                    nome_snapshot = usuario_row[1]  # nome do usuário
+                else:
+                    nome_snapshot = sessao.nome_aluno or matricula_aluno
+
             # 1. Salvar a sessão principal
             cursor.execute(
                 """
@@ -27,7 +36,7 @@ class SessaoRepository:
                 RETURNING id;
                 """,
                 (
-                    matricula_aluno,
+                    matricula_salvar,
                     nome_snapshot,
                     sessao.assunto_estudado,
                     sessao.questoes_respondidas,
