@@ -1,6 +1,7 @@
 from typing import List, Dict, Any, Optional
 from fastapi import HTTPException
 from database import get_conexao
+from utils.security import get_password_hash
 
 class UsuarioRepository:
     """
@@ -72,13 +73,16 @@ class UsuarioRepository:
             
             papel = dados.get("papel", "aluno")
             email = dados.get("email") if dados.get("email") else None
+            
+            senha_limpa = dados.get("senha")
+            senha_hash = get_password_hash(senha_limpa) if senha_limpa else None
 
             cursor.execute("""
                 INSERT INTO usuarios (nome, matricula, senha, email, papel, status_aluno, celular, periodo)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id;
             """, (
-                dados.get("nome"), dados.get("matricula"), dados.get("senha"),
+                dados.get("nome"), dados.get("matricula"), senha_hash,
                 email, papel, dados.get("status_aluno", "ativo"),
                 dados.get("celular"), dados.get("periodo")
             ))
@@ -111,13 +115,14 @@ class UsuarioRepository:
             senha = dados.get("senha")
 
             if senha and senha.strip():
+                senha_hash = get_password_hash(senha)
                 cursor.execute("""
                     UPDATE usuarios
                     SET nome  = COALESCE(%s, nome), email = %s, papel = COALESCE(%s, papel),
                         senha = %s, status_aluno = COALESCE(%s, status_aluno),
                         celular = %s, periodo = %s
                     WHERE id = %s;
-                """, (dados.get("nome"), email, papel, senha, status_aluno, celular, periodo, usuario_id))
+                """, (dados.get("nome"), email, papel, senha_hash, status_aluno, celular, periodo, usuario_id))
             else:
                 cursor.execute("""
                     UPDATE usuarios
