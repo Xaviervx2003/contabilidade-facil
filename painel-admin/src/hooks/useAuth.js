@@ -9,6 +9,8 @@ export const useLogin = () => {
       if (data.sucesso && data.dados?.token) {
         sessionStorage.setItem('token', data.dados.token);
         sessionStorage.setItem('usuario', JSON.stringify(data.dados));
+        sessionStorage.setItem('papel', data.dados.papel);
+        sessionStorage.setItem('id', data.dados.id);
       }
     },
   });

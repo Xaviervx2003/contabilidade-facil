@@ -34,9 +34,9 @@ const Login = () => {
       onSuccess: (data) => {
         if (data.sucesso) {
           if (data.dados.papel === 'admin' || data.dados.papel === 'professor') {
-            navigate('/admin/dashboard')
-          } else {
             navigate('/dashboard')
+          } else {
+            navigate('/aluno/dashboard')
           }
         } else {
           setErroLocal(data.mensagem || 'Matrícula ou senha incorretos.')
