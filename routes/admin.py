@@ -282,11 +282,14 @@ def listar_usuarios():
                     u.matricula,
                     COALESCE(u.email, '') AS email,
                     u.papel,
+                    u.status_aluno,
+                    u.celular,
+                    u.periodo,
                     STRING_AGG(m.nome, ', ' ORDER BY m.nome) AS materias_ensinadas
                 FROM usuarios u
                 LEFT JOIN professores_materias pm ON u.id = pm.usuario_id
                 LEFT JOIN materias m              ON pm.materia_id = m.id
-                GROUP BY u.id, u.nome, u.matricula, u.email, u.papel
+                GROUP BY u.id, u.nome, u.matricula, u.email, u.papel, u.status_aluno, u.celular, u.periodo
                 ORDER BY
                     CASE u.papel
                         WHEN 'admin'     THEN 1
@@ -304,7 +307,10 @@ def listar_usuarios():
                 "matricula":          l[2],
                 "email":              l[3],
                 "papel":              l[4],
-                "materias_ensinadas": l[5] if l[5] else "—",
+                "status_aluno":       l[5],
+                "celular":            l[6],
+                "periodo":            l[7],
+                "materias_ensinadas": l[8] if l[8] else "—",
             }
             for l in linhas
         ]
@@ -325,13 +331,16 @@ def obter_usuario(usuario_id: int):
                     u.matricula, 
                     COALESCE(u.email, '') AS email, 
                     u.papel,
+                    u.status_aluno,
+                    u.celular,
+                    u.periodo,
                     STRING_AGG(m.nome, ', ' ORDER BY m.nome) AS materias_ensinadas,
                     ARRAY_AGG(pm.materia_id) FILTER (WHERE pm.materia_id IS NOT NULL) AS materia_ids
                 FROM usuarios u
                 LEFT JOIN professores_materias pm ON u.id = pm.usuario_id
                 LEFT JOIN materias m              ON pm.materia_id = m.id
                 WHERE u.id = %s
-                GROUP BY u.id, u.nome, u.matricula, u.email, u.papel;
+                GROUP BY u.id, u.nome, u.matricula, u.email, u.papel, u.status_aluno, u.celular, u.periodo;
             """, (usuario_id,))
             l = cursor.fetchone()
         
@@ -344,8 +353,11 @@ def obter_usuario(usuario_id: int):
             "matricula":          l[2],
             "email":              l[3],
             "papel":              l[4],
-            "materias_ensinadas": l[5] if l[5] else "—",
-            "materia_ids":        l[6] if l[6] else [],
+            "status_aluno":       l[5],
+            "celular":            l[6],
+            "periodo":            l[7],
+            "materias_ensinadas": l[8] if l[8] else "—",
+            "materia_ids":        l[9] if l[9] else [],
         }
     except HTTPException:
         raise
@@ -374,8 +386,8 @@ def criar_usuario(dados: dict):
 
             # 3. Inserir o usuário
             cursor.execute("""
-                INSERT INTO usuarios (nome, matricula, senha, email, papel)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO usuarios (nome, matricula, senha, email, papel, status_aluno, celular, periodo)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id;
             """, (
                 dados.get("nome"),
@@ -383,6 +395,9 @@ def criar_usuario(dados: dict):
                 dados.get("senha"),
                 email,
                 papel,
+                dados.get("status_aluno", "ativo"),
+                dados.get("celular"),
+                dados.get("periodo")
             ))
             novo_id = cursor.fetchone()[0]
 
@@ -424,6 +439,10 @@ def editar_usuario(usuario_id: int, dados: dict):
             if email == "":
                 email = None
 
+            status_aluno = dados.get("status_aluno", "ativo")
+            celular = dados.get("celular")
+            periodo = dados.get("periodo")
+
             # Atualiza campos básicos (incluindo senha se fornecida)
             senha = dados.get("senha")
             if senha and senha.strip():
@@ -432,17 +451,23 @@ def editar_usuario(usuario_id: int, dados: dict):
                     SET nome  = COALESCE(%s, nome),
                         email = %s,
                         papel = COALESCE(%s, papel),
-                        senha = %s
+                        senha = %s,
+                        status_aluno = COALESCE(%s, status_aluno),
+                        celular = %s,
+                        periodo = %s
                     WHERE id = %s;
-                """, (dados.get("nome"), email, papel, senha, usuario_id))
+                """, (dados.get("nome"), email, papel, senha, status_aluno, celular, periodo, usuario_id))
             else:
                 cursor.execute("""
                     UPDATE usuarios
                     SET nome  = COALESCE(%s, nome),
                         email = %s,
-                        papel = COALESCE(%s, papel)
+                        papel = COALESCE(%s, papel),
+                        status_aluno = COALESCE(%s, status_aluno),
+                        celular = %s,
+                        periodo = %s
                     WHERE id = %s;
-                """, (dados.get("nome"), email, papel, usuario_id))
+                """, (dados.get("nome"), email, papel, status_aluno, celular, periodo, usuario_id))
 
             # Se for professor, atualiza matérias
             if papel == "professor":

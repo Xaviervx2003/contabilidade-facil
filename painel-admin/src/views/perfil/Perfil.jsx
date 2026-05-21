@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import React, { useState, useEffect, useRef } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   CContainer,
   CRow,
@@ -56,7 +56,19 @@ const Perfil = () => {
   const token = sessionStorage.getItem('token')
 
   const [activeTab, setActiveTab] = useState('dados') // 'dados' | 'seguranca'
+  const queryClient = useQueryClient()
+  const fileInputRef = useRef(null)
 
+  // Estados dos dados complementares
+  const [formData, setFormData] = useState({
+    celular: '',
+    data_nascimento: '',
+    periodo: '',
+    objetivo: '',
+  })
+  const [salvandoPerfil, setSalvandoPerfil] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [perfilFeedback, setPerfilFeedback] = useState({ tipo: '', msg: '' })
 
   // Estados do formulário de senha
   const [senhaAtual, setSenhaAtual] = useState('')
@@ -80,6 +92,83 @@ const Perfil = () => {
     enabled: !!matricula && !!token,
     staleTime: 1000 * 60 * 5, // 5 minutos de cache
   })
+
+  useEffect(() => {
+    if (perfil) {
+      setFormData({
+        celular: perfil.celular || '',
+        data_nascimento: perfil.data_nascimento || '',
+        periodo: perfil.periodo || '',
+        objetivo: perfil.objetivo || '',
+      })
+    }
+  }, [perfil])
+
+  const handleSalvarPerfil = async (e) => {
+    e.preventDefault()
+    setPerfilFeedback({ tipo: '', msg: '' })
+    setSalvandoPerfil(true)
+    try {
+      const res = await fetch(`${API_URL}/api/perfil/${matricula}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      })
+      const data = await res.json()
+      if (data.sucesso) {
+        setPerfilFeedback({ tipo: 'success', msg: 'Perfil atualizado com sucesso!' })
+        queryClient.invalidateQueries(['perfil', matricula])
+      } else {
+        setPerfilFeedback({ tipo: 'danger', msg: data.mensagem })
+      }
+    } catch {
+      setPerfilFeedback({ tipo: 'danger', msg: 'Erro de conexão com o servidor.' })
+    } finally {
+      setSalvandoPerfil(false)
+      setTimeout(() => setPerfilFeedback({ tipo: '', msg: '' }), 4000)
+    }
+  }
+
+  const handleUploadAvatar = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    const formDataUpload = new FormData()
+    formDataUpload.append('file', file)
+
+    try {
+      const res = await fetch(`${API_URL}/api/perfil/upload-avatar`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formDataUpload
+      })
+      const data = await res.json()
+      if (data.sucesso) {
+        // Enviar o novo avatar_url via PUT para o backend (API atualizar_perfil)
+        await fetch(`${API_URL}/api/perfil/${matricula}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ avatar_url: data.dados.url })
+        })
+        queryClient.invalidateQueries(['perfil', matricula])
+      } else {
+        alert(data.mensagem)
+      }
+    } catch {
+      alert('Erro ao enviar foto.')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const handleAlterarSenha = async (e) => {
     e.preventDefault()
@@ -233,15 +322,48 @@ const Perfil = () => {
               </div>
 
               {/* Avatar e Identificação */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 32 }}>
-                <div style={{
-                  width: 80, height: 80, borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${tokens.rausch}, ${tokens.arches})`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontSize: 32, fontWeight: 800,
-                  boxShadow: `0 8px 20px ${tokens.rausch}40`
-                }}>
-                  {initials}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 32 }}>
+                <div style={{ position: 'relative' }}>
+                  {perfil.avatar_url ? (
+                    <img 
+                      src={perfil.avatar_url.startsWith('http') ? perfil.avatar_url : `${API_URL}${perfil.avatar_url}`} 
+                      alt="Avatar" 
+                      style={{
+                        width: 80, height: 80, borderRadius: '50%', objectFit: 'cover',
+                        boxShadow: `0 8px 20px ${tokens.rausch}40`, border: `2px solid ${tokens.rausch}`
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: 80, height: 80, borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${tokens.rausch}, ${tokens.arches})`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: '#fff', fontSize: 32, fontWeight: 800,
+                      boxShadow: `0 8px 20px ${tokens.rausch}40`
+                    }}>
+                      {initials}
+                    </div>
+                  )}
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      position: 'absolute', bottom: -5, right: -5, 
+                      background: tokens.bg, border: `1px solid ${tokens.border}`,
+                      borderRadius: '50%', width: 32, height: 32,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                    }}
+                    title="Alterar Foto"
+                  >
+                    {uploading ? <CSpinner size="sm" /> : <Icon icon="solar:camera-bold-duotone" width="18" style={{ color: tokens.rausch }} />}
+                  </div>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    style={{ display: 'none' }} 
+                    ref={fileInputRef} 
+                    onChange={handleUploadAvatar} 
+                  />
                 </div>
                 <div>
                   <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
@@ -254,7 +376,7 @@ const Perfil = () => {
               </div>
 
               {/* Detalhes (Matrícula, Acesso, Data) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 40 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px', background: tokens.bgSub, borderRadius: 16 }}>
                   <div style={{ width: 40, height: 40, borderRadius: 12, background: `${tokens.babu}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: tokens.babu }}>
                     <Icon icon="solar:id-card-bold-duotone" width="24" />
@@ -288,6 +410,83 @@ const Perfil = () => {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Formulário de Dados Complementares */}
+              <div style={{ borderTop: `1px solid ${tokens.border}`, paddingTop: 32 }}>
+                <h5 style={{ fontSize: 16, fontWeight: 800, marginBottom: 24, color: 'var(--color-text-primary)' }}>Dados Complementares</h5>
+                
+                <AnimatePresence mode="wait">
+                  {perfilFeedback.msg && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-4">
+                      <CAlert color={perfilFeedback.tipo} style={{ borderRadius: 12, fontSize: 13, fontWeight: 600, margin: 0, border: 'none' }}>
+                        {perfilFeedback.tipo === 'success' ? <Icon icon="solar:check-circle-bold" className="me-2" /> : <Icon icon="solar:danger-triangle-bold" className="me-2" />}
+                        {perfilFeedback.msg}
+                      </CAlert>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <CForm onSubmit={handleSalvarPerfil}>
+                  <CRow className="g-4 mb-4">
+                    <CCol xs={12} md={6}>
+                      <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase' }}>Celular</CFormLabel>
+                      <CFormInput
+                        value={formData.celular}
+                        onChange={(e) => setFormData(prev => ({ ...prev, celular: e.target.value }))}
+                        placeholder="(99) 99999-9999"
+                        style={{ background: tokens.bgSub, border: 'none', borderRadius: 14, padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}
+                      />
+                    </CCol>
+                    <CCol xs={12} md={6}>
+                      <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase' }}>Data de Nascimento</CFormLabel>
+                      <CFormInput
+                        type="date"
+                        value={formData.data_nascimento}
+                        onChange={(e) => setFormData(prev => ({ ...prev, data_nascimento: e.target.value }))}
+                        style={{ background: tokens.bgSub, border: 'none', borderRadius: 14, padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}
+                      />
+                    </CCol>
+                    <CCol xs={12} md={6}>
+                      <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase' }}>Período do Curso</CFormLabel>
+                      <select 
+                        className="form-select"
+                        value={formData.periodo}
+                        onChange={(e) => setFormData(prev => ({ ...prev, periodo: e.target.value }))}
+                        style={{ background: tokens.bgSub, border: 'none', borderRadius: 14, padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}
+                      >
+                        <option value="">Não informado</option>
+                        {[1,2,3,4,5,6,7,8].map(p => <option key={p} value={p}>{p}º Período</option>)}
+                      </select>
+                    </CCol>
+                    <CCol xs={12} md={6}>
+                      <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase' }}>Objetivo</CFormLabel>
+                      <select 
+                        className="form-select"
+                        value={formData.objetivo}
+                        onChange={(e) => setFormData(prev => ({ ...prev, objetivo: e.target.value }))}
+                        style={{ background: tokens.bgSub, border: 'none', borderRadius: 14, padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}
+                      >
+                        <option value="">Não informado</option>
+                        <option value="CFC">Exame de Suficiência (CFC)</option>
+                        <option value="Concurso">Concursos Públicos</option>
+                        <option value="Reforco">Reforço Universitário</option>
+                        <option value="Outro">Outro</option>
+                      </select>
+                    </CCol>
+                  </CRow>
+                  <CButton 
+                    type="submit" 
+                    disabled={salvandoPerfil}
+                    style={{
+                      background: tokens.babu, color: '#fff', border: 'none', borderRadius: 16,
+                      padding: '16px 24px', fontWeight: 800, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8,
+                      boxShadow: `0 8px 24px ${tokens.babu}30`, transition: 'all 0.2s', width: '100%', justifyContent: 'center'
+                    }}
+                  >
+                    {salvandoPerfil ? <><CSpinner size="sm" /> Salvando...</> : <><Icon icon="solar:diskette-bold" width="20" /> Salvar Alterações</>}
+                  </CButton>
+                </CForm>
               </div>
             </motion.div>
           </CCol>

@@ -3,7 +3,10 @@ routes/auth.py — Autenticação: login, registro, verificação de identidade,
                  redefinição e alteração de senha.
 """
 
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException, Request, Depends, UploadFile, File
+import os
+import shutil
+import uuid
 from psycopg import errors as pg_errors
 from database import get_conexao
 from models import (
@@ -284,3 +287,36 @@ def registrar_evento(dados: EventoAlunoRequest, token_data: dict = Depends(usuar
     except Exception as e:
         logger.exception("Erro ao registrar evento")
         raise HTTPException(status_code=500, detail="Erro ao registrar evento.")
+
+@router.post("/perfil/upload-avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    token_data: dict = Depends(usuario_autenticado)
+):
+    """Faz o upload da foto do usuário e retorna a URL."""
+    matricula = token_data.get("sub")
+    if not matricula:
+        raise HTTPException(status_code=401, detail="Token inválido.")
+    
+    if not file.content_type.startswith("image/"):
+        return api_response(sucesso=False, mensagem="O arquivo deve ser uma imagem.", status_code=400)
+    
+    extensao = os.path.splitext(file.filename)[1]
+    if not extensao:
+        extensao = ".png"
+    
+    nome_arquivo = f"{matricula}_{uuid.uuid4().hex[:8]}{extensao}"
+    caminho_salvar = os.path.join("uploads", "avatars", nome_arquivo)
+    
+    os.makedirs(os.path.dirname(caminho_salvar), exist_ok=True)
+    
+    try:
+        with open(caminho_salvar, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        logger.exception("Erro ao salvar arquivo de avatar")
+        return api_response(sucesso=False, mensagem="Erro ao processar imagem.", status_code=500)
+    
+    path_relativo = f"/uploads/avatars/{nome_arquivo}"
+    
+    return api_response(sucesso=True, mensagem="Avatar atualizado!", dados={"url": path_relativo})

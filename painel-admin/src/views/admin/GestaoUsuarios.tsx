@@ -25,6 +25,9 @@ interface Usuario {
     papel: Papel
     materia_ids: number[]
     materias_ensinadas?: string[] // Usado apenas para exibição na tabela
+    status_aluno?: string
+    celular?: string
+    periodo?: number
 }
 
 interface Materia {
@@ -40,6 +43,9 @@ interface FormData {
     senha: string
     papel: Papel
     materia_ids: number[]
+    status_aluno: string
+    celular: string
+    periodo: number | ''
 }
 
 interface FormErrors {
@@ -51,13 +57,21 @@ interface FormErrors {
 }
 
 const FORM_INICIAL: FormData = {
-    nome: '', matricula: '', email: '', senha: '', papel: 'aluno', materia_ids: []
+    nome: '', matricula: '', email: '', senha: '', papel: 'aluno', materia_ids: [],
+    status_aluno: 'ativo', celular: '', periodo: ''
 }
 
 const PAPEL_BADGE: Record<Papel, { color: string; label: string }> = {
     admin: { color: 'danger', label: 'Admin' },
     professor: { color: 'warning', label: 'Professor' },
     aluno: { color: 'info', label: 'Aluno' },
+}
+
+const STATUS_BADGE: Record<string, { color: string; label: string }> = {
+    ativo: { color: 'success', label: 'Ativo' },
+    trancado: { color: 'warning', label: 'Trancado' },
+    formado: { color: 'primary', label: 'Formado' },
+    suspenso: { color: 'danger', label: 'Suspenso' },
 }
 
 // ── 🔍 Validação ───────────────────────────────────────────────
@@ -170,6 +184,9 @@ const GestaoUsuarios = () => {
                 email: dados.email || '',
                 senha: '',
                 papel: dados.papel,
+                status_aluno: dados.status_aluno || 'ativo',
+                celular: dados.celular || '',
+                periodo: dados.periodo || '',
                 materia_ids: dados.materia_ids || []
             })
             setModoEdicao(true)
@@ -216,6 +233,9 @@ const GestaoUsuarios = () => {
                 matricula: formData.matricula,
                 email: formData.email,
                 papel: formData.papel,
+                status_aluno: formData.status_aluno,
+                celular: formData.celular,
+                periodo: formData.periodo === '' ? null : Number(formData.periodo),
                 materia_ids: formData.materia_ids,
                 ...(modoEdicao ? (formData.senha ? { senha: formData.senha } : {}) : { senha: formData.senha })
             }
@@ -304,6 +324,8 @@ const GestaoUsuarios = () => {
                                         <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">Matrícula</CTableHeaderCell>
                                         <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">E-mail</CTableHeaderCell>
                                         <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold text-center">Papel</CTableHeaderCell>
+                                        <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold text-center">Status</CTableHeaderCell>
+                                        <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">Celular</CTableHeaderCell>
                                         <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold">Matérias</CTableHeaderCell>
                                         <CTableHeaderCell className="border-0 text-uppercase small text-body-secondary fw-bold text-center pe-4">Ações</CTableHeaderCell>
                                     </CTableRow>
@@ -312,7 +334,7 @@ const GestaoUsuarios = () => {
                                 <CTableBody>
                                     {dadosPaginados.length === 0 ? (
                                         <CTableRow>
-                                            <CTableDataCell colSpan={7} className="text-center py-4 text-body-secondary">
+                                            <CTableDataCell colSpan={9} className="text-center py-4 text-body-secondary">
                                                 {busca ? 'Nenhum usuário corresponde à busca.' : 'Nenhum usuário encontrado.'}
                                             </CTableDataCell>
                                         </CTableRow>
@@ -327,6 +349,14 @@ const GestaoUsuarios = () => {
                                                 <CTableDataCell className="text-center">
                                                     <CBadge color={badge.color} className="rounded-pill px-3 py-2" style={{ fontSize: 10 }}>{badge.label}</CBadge>
                                                 </CTableDataCell>
+                                                <CTableDataCell className="text-center">
+                                                    {u.status_aluno ? (
+                                                        <CBadge color={STATUS_BADGE[u.status_aluno]?.color || 'secondary'} className="rounded-pill px-3 py-2" style={{ fontSize: 10 }}>
+                                                            {STATUS_BADGE[u.status_aluno]?.label || u.status_aluno}
+                                                        </CBadge>
+                                                    ) : <span className="text-body-secondary">—</span>}
+                                                </CTableDataCell>
+                                                <CTableDataCell className="small">{u.celular || <span className="text-body-secondary">—</span>}</CTableDataCell>
                                                 <CTableDataCell className="small">
                                                     {u.papel === 'professor'
                                                         ? Array.isArray(u.materias_ensinadas) ? u.materias_ensinadas.join(', ') : u.materias_ensinadas
@@ -460,15 +490,49 @@ const GestaoUsuarios = () => {
                         </CRow>
 
                         <CRow className="mb-3">
-                            <CCol md={6}>
+                            <CCol md={4}>
                                 <CFormLabel>Papel</CFormLabel>
                                 <CFormSelect
                                     value={formData.papel}
-                                    onChange={e => handleChange('papel', e.target.value)}
+                                    onChange={e => handleChange('papel', e.target.value as Papel)}
                                 >
                                     <option value="aluno">Aluno</option>
                                     <option value="professor">Professor</option>
                                     <option value="admin">Admin</option>
+                                </CFormSelect>
+                            </CCol>
+                            <CCol md={4}>
+                                <CFormLabel>Status do Aluno</CFormLabel>
+                                <CFormSelect
+                                    value={formData.status_aluno}
+                                    onChange={e => handleChange('status_aluno', e.target.value)}
+                                >
+                                    <option value="ativo">Ativo</option>
+                                    <option value="trancado">Trancado</option>
+                                    <option value="formado">Formado</option>
+                                    <option value="suspenso">Suspenso</option>
+                                </CFormSelect>
+                            </CCol>
+                            <CCol md={4}>
+                                <CFormLabel>Celular</CFormLabel>
+                                <CFormInput
+                                    value={formData.celular}
+                                    onChange={e => handleChange('celular', e.target.value)}
+                                    placeholder="Ex.: (99) 99999-9999"
+                                />
+                            </CCol>
+                        </CRow>
+                        <CRow className="mb-3">
+                            <CCol md={4}>
+                                <CFormLabel>Período <span className="text-body-secondary">(opcional)</span></CFormLabel>
+                                <CFormSelect
+                                    value={formData.periodo}
+                                    onChange={e => handleChange('periodo', e.target.value)}
+                                >
+                                    <option value="">Não informado</option>
+                                    {[1,2,3,4,5,6,7,8].map(p => (
+                                        <option key={p} value={p}>{p}º Período</option>
+                                    ))}
                                 </CFormSelect>
                             </CCol>
                         </CRow>
