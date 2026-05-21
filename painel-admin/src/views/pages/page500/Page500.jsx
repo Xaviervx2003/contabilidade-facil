@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { CButton, CCol, CContainer, CRow } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilWrench, cilArrowLeft } from '@coreui/icons'
+import { cilSettings, cilArrowLeft } from '@coreui/icons'
 
 const Page500 = () => {
   const airbnbTeal = '#00A699'
@@ -15,7 +15,7 @@ const Page500 = () => {
             <div className="mb-5 position-relative mx-auto fade-in-up" style={{ width: '240px', height: '240px' }}>
               <div className="position-absolute w-100 h-100 rounded-circle" style={{ background: 'rgba(255,165,0,0.1)', animation: 'spin-slow 10s linear infinite' }}></div>
               <div className="position-absolute w-75 h-75 top-50 start-50 translate-middle rounded-circle" style={{ background: 'rgba(0,166,153,0.1)' }}></div>
-              <CIcon icon={cilWrench} size="3xl" className="position-absolute top-50 start-50 translate-middle" style={{ color: airbnbTeal, width: '90px', height: '90px', transform: 'rotate(-45deg)' }} />
+              <CIcon icon={cilSettings} size="3xl" className="position-absolute top-50 start-50 translate-middle" style={{ color: airbnbTeal, width: '90px', height: '90px', transform: 'rotate(-45deg)' }} />
             </div>
 
             <div className="fade-in-up" style={{ animationDelay: '0.1s' }}>
