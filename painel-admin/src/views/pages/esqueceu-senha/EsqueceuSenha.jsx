@@ -1,251 +1,217 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   CButton,
-  CCard,
-  CCardBody,
   CCol,
-  CContainer,
-  CForm,
   CFormInput,
-  CInputGroup,
-  CInputGroupText,
   CRow,
-  CSpinner,
-  CAlert,
+  CSpinner
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilLockLocked, cilUser, cilBadge, cilArrowLeft } from '@coreui/icons'
-import { API_URL } from '../../../config'
+import { cilCheckCircle, cilLowVision, cilArrowLeft } from '@coreui/icons'
+import { useVerificarIdentidade, useRedefinirSenha } from '../../../hooks/useAuth'
 
 const EsqueceuSenha = () => {
-  const navigate = useNavigate()
-
-  // Passo 1: aluno informa matrícula + nome para confirmar identidade
-  // Passo 2: aluno define a nova senha
-  const [passo, setPasso] = useState(1)
-
-  // Campos do passo 1
+  const [passo, setPasso] = useState(1) // 1: Verificar, 2: Nova Senha
   const [matricula, setMatricula] = useState('')
   const [nome, setNome] = useState('')
-
-  // Campos do passo 2
   const [novaSenha, setNovaSenha] = useState('')
-  const [confirmarSenha, setConfirmarSenha] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const navigate = useNavigate()
 
-  const [carregando, setCarregando] = useState(false)
-  const [erro, setErro] = useState(null)
-  const [sucesso, setSucesso] = useState(null)
+  const { mutate: verificarIdentidade, isPending: loadingVerificacao, error: erroV } = useVerificarIdentidade()
+  const { mutate: redefinirSenha, isPending: loadingRedefinicao, error: erroR } = useRedefinirSenha()
+  
+  const [erroLocal, setErroLocal] = useState('')
+  const [sucessoMsg, setSucessoMsg] = useState('')
 
-  // PASSO 1 — Verifica identidade do aluno (matrícula + nome)
-  const handleVerificarIdentidade = async (e) => {
-    e.preventDefault()
-    setErro(null)
-
+  const handleVerificar = () => {
     if (!matricula || !nome) {
-      setErro('Preencha a matrícula e o seu nome completo.')
+      setErroLocal('Preencha a matrícula e seu nome completo.')
       return
     }
-
-    setCarregando(true)
-    try {
-      const res = await fetch(`${API_URL}/api/verificar-identidade`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricula, nome }),
-      })
-      const data = await res.json()
-
-      if (data.sucesso) {
-        setPasso(2) // Identidade confirmada, vai para o passo 2
-      } else {
-        setErro(data.mensagem || 'Matrícula ou nome não encontrados.')
+    setErroLocal('')
+    
+    verificarIdentidade({ matricula, nome }, {
+      onSuccess: (data) => {
+        if (data.sucesso) {
+          setPasso(2)
+        } else {
+          setErroLocal(data.mensagem || 'Dados não conferem.')
+        }
+      },
+      onError: () => {
+        setErroLocal('Erro ao conectar com o servidor.')
       }
-    } catch {
-      setErro('Não foi possível conectar ao servidor. Verifique se a API está rodando.')
-    } finally {
-      setCarregando(false)
-    }
+    })
   }
 
-  // PASSO 2 — Redefine a senha
-  const handleRedefinirSenha = async (e) => {
-    e.preventDefault()
-    setErro(null)
-
-    if (!novaSenha || !confirmarSenha) {
-      setErro('Preencha os dois campos de senha.')
-      return
-    }
-    if (novaSenha !== confirmarSenha) {
-      setErro('As senhas não coincidem.')
-      return
-    }
+  const handleRedefinir = () => {
     if (novaSenha.length < 6) {
-      setErro('A senha deve ter pelo menos 6 caracteres.')
+      setErroLocal('A nova senha deve ter pelo menos 6 caracteres.')
       return
     }
-
-    setCarregando(true)
-    try {
-      const res = await fetch(`${API_URL}/api/redefinir-senha`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricula, nova_senha: novaSenha }),
-      })
-      const data = await res.json()
-
-      if (data.sucesso) {
-        setSucesso('Senha redefinida com sucesso!')
-        setTimeout(() => navigate('/login'), 2500)
-      } else {
-        setErro(data.mensagem || 'Não foi possível redefinir a senha.')
+    setErroLocal('')
+    
+    redefinirSenha({ matricula, nova_senha: novaSenha }, {
+      onSuccess: (data) => {
+        if (data.sucesso) {
+          setSucessoMsg('Senha alterada com sucesso! Redirecionando...')
+          setTimeout(() => navigate('/login'), 2500)
+        } else {
+          setErroLocal(data.mensagem || 'Erro ao alterar senha.')
+        }
+      },
+      onError: () => {
+        setErroLocal('Erro ao conectar com o servidor.')
       }
-    } catch {
-      setErro('Não foi possível conectar ao servidor.')
-    } finally {
-      setCarregando(false)
-    }
+    })
   }
+
+  const airbnbRed = '#FF5A5F'
 
   return (
-    <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
-      <CContainer>
-        <CRow className="justify-content-center">
-          <CCol md={6} lg={5}>
-            <CCard className="p-4">
-              <CCardBody>
-                {/* Cabeçalho */}
-                <h1>Redefinir Senha</h1>
-                <p className="text-body-secondary">
-                  {passo === 1
-                    ? 'Confirme sua identidade para continuar.'
-                    : 'Escolha uma nova senha para sua conta.'}
-                </p>
+    <div className="min-vh-100 d-flex bg-white align-items-center justify-content-center px-3">
+      
+      <div className="w-100 position-relative p-4 p-md-5 rounded-4 shadow-sm border fade-in-up" style={{ maxWidth: '480px', backgroundColor: '#fff', borderColor: '#EBEBEB' }}>
+        
+        <Link to="/login" className="position-absolute top-0 start-0 mt-4 ms-4 text-muted text-decoration-none d-flex align-items-center gap-2" style={{ transition: 'color 0.2s' }}>
+          <CIcon icon={cilArrowLeft} /> <span className="small fw-medium">Voltar</span>
+        </Link>
 
-                {/* Indicador de passos */}
-                <div className="d-flex align-items-center mb-4 gap-2">
-                  <span
-                    className={`badge rounded-pill px-3 py-2 ${passo >= 1 ? 'bg-primary' : 'bg-secondary'}`}
-                  >
-                    1 · Verificar identidade
-                  </span>
-                  <small className="text-body-secondary">→</small>
-                  <span
-                    className={`badge rounded-pill px-3 py-2 ${passo >= 2 ? 'bg-primary' : 'bg-secondary'}`}
-                  >
-                    2 · Nova senha
-                  </span>
-                </div>
+        <div className="text-center mt-4 mb-5">
+          <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style={{ background: 'rgba(255,90,95,0.1)', width: 64, height: 64 }}>
+            <CIcon icon={cilLockLocked} size="xl" style={{ color: airbnbRed }} />
+          </div>
+          <h2 className="fw-bolder mb-2" style={{ letterSpacing: '-0.02em', color: '#222222' }}>
+            {passo === 1 ? 'Recuperar Senha' : 'Nova Senha'}
+          </h2>
+          <p className="text-muted" style={{ fontSize: '1rem' }}>
+            {passo === 1 ? 'Informe seus dados para validarmos sua identidade.' : 'Crie uma nova senha segura para sua conta.'}
+          </p>
+        </div>
 
-                {/* Alertas de feedback */}
-                {erro && (
-                  <CAlert color="danger" dismissible onClose={() => setErro(null)}>
-                    {erro}
-                  </CAlert>
-                )}
-                {sucesso && (
-                  <CAlert color="success">
-                    ✅ {sucesso} Redirecionando para o login...
-                  </CAlert>
-                )}
+        {(erroLocal || erroV || erroR) && (
+          <div className="alert alert-danger py-3 rounded-4 small mb-4 border-0 d-flex align-items-center gap-3 fade-in" style={{ backgroundColor: '#fff8f6', color: '#d93900' }}>
+            <CIcon icon={cilCheckCircle} size="lg" style={{ transform: 'rotate(180deg)' }} />
+            <span className="fw-medium">{erroLocal || 'Erro na solicitação'}</span>
+          </div>
+        )}
 
-                {/* ── PASSO 1: Confirmar identidade ── */}
-                {passo === 1 && (
-                  <CForm onSubmit={handleVerificarIdentidade}>
-                    <CInputGroup className="mb-3">
-                      <CInputGroupText>
-                        <CIcon icon={cilBadge} />
-                      </CInputGroupText>
-                      <CFormInput
-                        placeholder="Matrícula (ex: 2213150043)"
-                        value={matricula}
-                        onChange={(e) => setMatricula(e.target.value)}
-                      />
-                    </CInputGroup>
+        {sucessoMsg && (
+          <div className="alert alert-success py-3 rounded-4 small mb-4 border-0 d-flex align-items-center gap-3 fade-in" style={{ backgroundColor: '#f0fdf4', color: '#166534' }}>
+            <CIcon icon={cilCheckCircle} size="lg" />
+            <span className="fw-medium">{sucessoMsg}</span>
+          </div>
+        )}
 
-                    <CInputGroup className="mb-4">
-                      <CInputGroupText>
-                        <CIcon icon={cilUser} />
-                      </CInputGroupText>
-                      <CFormInput
-                        placeholder="Seu nome completo"
-                        value={nome}
-                        onChange={(e) => setNome(e.target.value)}
-                      />
-                    </CInputGroup>
+        {passo === 1 && (
+          <div className="fade-in-up">
+            <div className="form-floating mb-3 airbnb-input-wrapper">
+              <CFormInput
+                id="matriculaInput"
+                placeholder="Matrícula"
+                className="airbnb-input rounded-3"
+                value={matricula}
+                onChange={(e) => setMatricula(e.target.value)}
+              />
+              <label htmlFor="matriculaInput" className="text-muted px-3">Matrícula</label>
+            </div>
 
-                    <div className="d-grid mb-3">
-                      <CButton type="submit" color="primary" disabled={carregando}>
-                        {carregando ? (
-                          <>
-                            <CSpinner size="sm" className="me-2" />
-                            Verificando...
-                          </>
-                        ) : (
-                          'Confirmar Identidade'
-                        )}
-                      </CButton>
-                    </div>
-                  </CForm>
-                )}
+            <div className="form-floating mb-4 airbnb-input-wrapper">
+              <CFormInput
+                id="nomeInput"
+                placeholder="Nome Completo"
+                className="airbnb-input rounded-3"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleVerificar()}
+              />
+              <label htmlFor="nomeInput" className="text-muted px-3">Nome Completo</label>
+            </div>
 
-                {/* ── PASSO 2: Nova senha ── */}
-                {passo === 2 && (
-                  <CForm onSubmit={handleRedefinirSenha}>
-                    <CInputGroup className="mb-3">
-                      <CInputGroupText>
-                        <CIcon icon={cilLockLocked} />
-                      </CInputGroupText>
-                      <CFormInput
-                        type="password"
-                        placeholder="Nova senha (mín. 6 caracteres)"
-                        value={novaSenha}
-                        onChange={(e) => setNovaSenha(e.target.value)}
-                      />
-                    </CInputGroup>
+            <CButton
+              className="w-100 py-3 fw-bold rounded-3 airbnb-btn"
+              onClick={handleVerificar}
+              disabled={loadingVerificacao}
+              style={{ backgroundColor: '#222222', borderColor: '#222222', color: 'white', fontSize: '1.1rem' }}
+            >
+              {loadingVerificacao ? <CSpinner size="sm" /> : 'Verificar Identidade'}
+            </CButton>
+          </div>
+        )}
 
-                    <CInputGroup className="mb-4">
-                      <CInputGroupText>
-                        <CIcon icon={cilLockLocked} />
-                      </CInputGroupText>
-                      <CFormInput
-                        type="password"
-                        placeholder="Confirmar nova senha"
-                        value={confirmarSenha}
-                        onChange={(e) => setConfirmarSenha(e.target.value)}
-                      />
-                    </CInputGroup>
+        {passo === 2 && !sucessoMsg && (
+          <div className="fade-in-up">
+            <div className="form-floating position-relative airbnb-input-wrapper mb-4">
+              <CFormInput
+                id="novaSenhaInput"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Nova Senha"
+                className="airbnb-input rounded-3"
+                value={novaSenha}
+                onChange={(e) => setNovaSenha(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleRedefinir()}
+              />
+              <label htmlFor="novaSenhaInput" className="text-muted px-3">Nova Senha</label>
+              
+              <span 
+                className="position-absolute end-0 top-50 translate-middle-y pe-3 cursor-pointer text-muted"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ zIndex: 10 }}
+              >
+                <CIcon icon={cilLowVision} />
+              </span>
+            </div>
 
-                    <div className="d-grid mb-3">
-                      <CButton type="submit" color="success" disabled={carregando || !!sucesso}>
-                        {carregando ? (
-                          <>
-                            <CSpinner size="sm" className="me-2" />
-                            Salvando...
-                          </>
-                        ) : (
-                          'Salvar Nova Senha'
-                        )}
-                      </CButton>
-                    </div>
-                  </CForm>
-                )}
+            <CButton
+              className="w-100 py-3 fw-bold rounded-3 airbnb-btn"
+              onClick={handleRedefinir}
+              disabled={loadingRedefinicao}
+              style={{ backgroundColor: airbnbRed, borderColor: airbnbRed, color: 'white', fontSize: '1.1rem' }}
+            >
+              {loadingRedefinicao ? <CSpinner size="sm" /> : 'Salvar Nova Senha'}
+            </CButton>
+          </div>
+        )}
 
-                {/* Link de voltar ao login */}
-                <CButton
-                  color="link"
-                  className="p-0 text-decoration-none"
-                  onClick={() => navigate('/login')}
-                >
-                  <CIcon icon={cilArrowLeft} className="me-1" />
-                  Voltar ao Login
-                </CButton>
-              </CCardBody>
-            </CCard>
-          </CCol>
-        </CRow>
-      </CContainer>
+      </div>
+
+      <style>{`
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .fade-in-up {
+          opacity: 0;
+          animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .airbnb-input {
+          height: 60px;
+          border: 1px solid #B0B0B0;
+          box-shadow: none !important;
+          transition: border-color 0.2s, border-width 0.2s;
+        }
+        .airbnb-input:focus {
+          border: 2px solid #222222 !important;
+          z-index: 5;
+        }
+        .airbnb-btn {
+          transition: transform 0.1s, box-shadow 0.2s;
+        }
+        .airbnb-btn:hover:not(:disabled) {
+          transform: scale(0.98);
+        }
+        .airbnb-btn:active:not(:disabled) {
+          transform: scale(0.95);
+        }
+        .cursor-pointer { cursor: pointer; }
+      `}</style>
     </div>
   )
 }

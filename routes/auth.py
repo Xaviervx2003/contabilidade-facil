@@ -3,12 +3,13 @@ routes/auth.py — Autenticação: login, registro, verificação de identidade,
                  redefinição e alteração de senha.
 """
 
-from fastapi import APIRouter, HTTPException, Request, Depends, UploadFile, File
+from fastapi import APIRouter, HTTPException, Request, Depends, UploadFile, File, Form
 import os
 import shutil
 import uuid
 from psycopg import errors as pg_errors
 from database import get_conexao
+from repositories.auth_repository import AuthRepository
 from models import (
     LoginRequest,
     RegistroRequest,
@@ -41,36 +42,22 @@ def fazer_login(credenciais: LoginRequest, request: Request):
                 status_code=429,
             )
 
-        with get_conexao() as conn:
-            cursor = conn.cursor()
-            # Agora buscamos apenas pela matrícula, a verificação de senha é via hash
-            cursor.execute(
-                "SELECT id, nome, matricula, papel, senha, xp, streak_atual, periodo, objetivo, avatar_url FROM usuarios WHERE matricula = %s;",
-                (credenciais.matricula,),
-            )
-            usuario = cursor.fetchone()
+        usuario = AuthRepository.verificar_credenciais(credenciais.matricula, credenciais.senha)
 
-        if usuario and verify_password(credenciais.senha, usuario[4]):
+        if usuario:
             logger.info(f"Login bem-sucedido: {credenciais.matricula}")
-            # Atualiza ultimo_acesso
-            with get_conexao() as conn2:
-                conn2.execute(
-                    "UPDATE usuarios SET ultimo_acesso = NOW() WHERE matricula = %s",
-                    (credenciais.matricula,)
-                )
-                conn2.commit()
-            token = criar_token(usuario[2], usuario[3], usuario[0])
+            token = criar_token(usuario["matricula"], usuario["papel"], usuario["id"])
             return api_response(sucesso=True, dados={
-                "id":         usuario[0],
-                "nome":       usuario[1],
-                "matricula":  usuario[2],
-                "papel":      usuario[3],
+                "id":         usuario["id"],
+                "nome":       usuario["nome"],
+                "matricula":  usuario["matricula"],
+                "papel":      usuario["papel"],
                 "token":      token,
-                "xp":         usuario[5] or 0,
-                "streak":     usuario[6] or 0,
-                "periodo":    usuario[7],
-                "objetivo":   usuario[8],
-                "avatar_url": usuario[9],
+                "xp":         usuario["xp"],
+                "streak":     usuario["streak"],
+                "periodo":    usuario["periodo"],
+                "objetivo":   usuario["objetivo"],
+                "avatar_url": usuario["avatar_url"],
             })
         else:
             logger.warning(f"Tentativa de login falhou: {credenciais.matricula}")
@@ -81,34 +68,31 @@ def fazer_login(credenciais: LoginRequest, request: Request):
 
 
 @router.post("/register")
-def registrar_usuario(dados: RegistroRequest):
+def registrar_usuario(
+    nome: str = Form(...),
+    matricula: str = Form(...),
+    senha: str = Form(...),
+    avatar: UploadFile = File(None)
+):
     try:
-        nome = (dados.nome or "").strip()
-        matricula = (dados.matricula or "").strip().lower()
-        senha = (dados.senha or "").strip()
+        nome_limpo = (nome or "").strip()
+        matricula_limpa = (matricula or "").strip().lower()
+        senha_limpa = (senha or "").strip()
 
-        if not nome or not matricula or not senha:
+        if not nome_limpo or not matricula_limpa or not senha_limpa:
             return api_response(sucesso=False, mensagem="Preencha nome, matrícula e senha.", status_code=400)
-        if len(senha) < 6:
+        if len(senha_limpa) < 6:
             return api_response(sucesso=False, mensagem="A senha deve ter pelo menos 6 caracteres.", status_code=400)
 
-        with get_conexao() as conn:
-            cursor = conn.cursor()
-            
-            cursor.execute("SELECT id FROM usuarios WHERE matricula = %s;", (matricula,))
-            if cursor.fetchone():
-                return api_response(sucesso=False, mensagem="Esta matrícula já está cadastrada.", status_code=400)
+        try:
+            novo_id = AuthRepository.registrar(nome_limpo, matricula_limpa, senha_limpa)
+        except ValueError as ve:
+            return api_response(sucesso=False, mensagem=str(ve), status_code=400)
 
-            # Hashing da senha antes de salvar
-            senha_hash = get_password_hash(senha)
-            email = matricula if "@" in matricula else None
-            cursor.execute(
-                "INSERT INTO usuarios (nome, matricula, senha, email, papel) VALUES (%s, %s, %s, %s, 'aluno');",
-                (nome, matricula, senha_hash, email),
-            )
-            conn.commit()
+        if avatar:
+            AuthRepository.salvar_avatar(novo_id, matricula_limpa, avatar)
         
-        logger.info(f"Novo usuário registrado: {matricula}")
+        logger.info(f"Novo usuário registrado: {matricula_limpa}")
         return api_response(sucesso=True, mensagem="Conta criada com sucesso!")
     except pg_errors.UniqueViolation:
         return api_response(
@@ -137,15 +121,8 @@ def registrar_usuario(dados: RegistroRequest):
 @router.post("/verificar-identidade")
 def verificar_identidade(dados: VerificaIdentidadeRequest):
     try:
-        with get_conexao() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT id FROM usuarios WHERE matricula = %s AND LOWER(nome) = LOWER(%s);",
-                (dados.matricula, dados.nome),
-            )
-            usuario = cursor.fetchone()
-
-        if usuario:
+        valido = AuthRepository.verificar_identidade(dados.matricula, dados.nome)
+        if valido:
             return api_response(sucesso=True)
         else:
             return api_response(sucesso=False, mensagem="Dados não conferem.", status_code=404)
@@ -160,17 +137,8 @@ def redefinir_senha(dados: RedefineSenhaRequest):
         if len(dados.nova_senha) < 6:
             return api_response(sucesso=False, mensagem="Senha muito curta.", status_code=400)
 
-        senha_hash = get_password_hash(dados.nova_senha)
-        with get_conexao() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                "UPDATE usuarios SET senha = %s WHERE matricula = %s;",
-                (senha_hash, dados.matricula),
-            )
-            conn.commit()
-            linhas_afetadas = cursor.rowcount
-
-        if linhas_afetadas > 0:
+        sucesso = AuthRepository.redefinir_senha(dados.matricula, dados.nova_senha)
+        if sucesso:
             return api_response(sucesso=True, mensagem="Senha redefinida com sucesso!")
         else:
             return api_response(sucesso=False, mensagem="Usuário não encontrado.", status_code=404)
@@ -189,20 +157,9 @@ def alterar_senha(dados: AlteraSenhaRequest, token_data: dict = Depends(usuario_
         if len(dados.nova_senha) < 6:
             return api_response(sucesso=False, mensagem="A nova senha deve ter pelo menos 6 caracteres.", status_code=400)
 
-        with get_conexao() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT senha FROM usuarios WHERE matricula = %s;", (dados.matricula,))
-            usuario = cursor.fetchone()
-
-            if not usuario or not verify_password(dados.senha_atual, usuario[0]):
-                return api_response(sucesso=False, mensagem="Senha atual incorreta.", status_code=401)
-
-            senha_hash = get_password_hash(dados.nova_senha)
-            cursor.execute(
-                "UPDATE usuarios SET senha = %s WHERE matricula = %s;",
-                (senha_hash, dados.matricula),
-            )
-            conn.commit()
+        sucesso = AuthRepository.alterar_senha_segura(dados.matricula, dados.senha_atual, dados.nova_senha)
+        if not sucesso:
+            return api_response(sucesso=False, mensagem="Senha atual incorreta.", status_code=401)
         return api_response(sucesso=True, mensagem="Senha alterada com sucesso!")
     except Exception as e:
         logger.exception("Erro ao alterar senha")

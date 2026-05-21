@@ -1,165 +1,66 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import {
-  CButton,
-  CCol,
-  CContainer,
-  CRow,
-  CBadge,
-  CSpinner,
-} from '@coreui/react'
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { CButton, CCol, CContainer, CRow } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilHome, cilReload, cilWarning, cilCheckCircle } from '@coreui/icons'
-import { API_URL } from '../../../config'
+import { cilWrench, cilArrowLeft } from '@coreui/icons'
 
 const Page500 = () => {
-  const navigate = useNavigate()
-  const [statusAPI, setStatusAPI] = useState('verificando') // 'verificando' | 'online' | 'offline'
-  const [statusDB, setStatusDB] = useState('verificando')
-
-  // Verifica se a API está respondendo ao carregar a página
-  useEffect(() => {
-    verificarServicos()
-  }, [])
-
-  const verificarServicos = async () => {
-    setStatusAPI('verificando')
-    setStatusDB('verificando')
-
-    // 1. Testa a raiz da API FastAPI
-    try {
-      const res = await fetch(`${API_URL}/`, { signal: AbortSignal.timeout(4000) })
-      if (res.ok) {
-        setStatusAPI('online')
-      } else {
-        setStatusAPI('offline')
-      }
-    } catch {
-      setStatusAPI('offline')
-    }
-
-    // 2. Testa uma rota que usa o banco (se a API estiver de pé)
-    try {
-      const res = await fetch(`${API_URL}/api/questoes`, { signal: AbortSignal.timeout(4000) })
-      if (res.ok) {
-        setStatusDB('online')
-      } else {
-        setStatusDB('offline')
-      }
-    } catch {
-      setStatusDB('offline')
-    }
-  }
-
-  const StatusBadge = ({ status }) => {
-    if (status === 'verificando') {
-      return (
-        <CBadge color="secondary" className="ms-2">
-          <CSpinner size="sm" className="me-1" />
-          Verificando...
-        </CBadge>
-      )
-    }
-    if (status === 'online') {
-      return (
-        <CBadge color="success" className="ms-2">
-          <CIcon icon={cilCheckCircle} className="me-1" />
-          Online
-        </CBadge>
-      )
-    }
-    return (
-      <CBadge color="danger" className="ms-2">
-        <CIcon icon={cilWarning} className="me-1" />
-        Offline
-      </CBadge>
-    )
-  }
+  const airbnbTeal = '#00A699'
 
   return (
-    <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
+    <div className="min-vh-100 d-flex flex-row align-items-center bg-white">
       <CContainer>
         <CRow className="justify-content-center text-center">
-          <CCol md={7}>
-            {/* Código de erro em destaque */}
-            <div className="mb-4">
-              <h1
-                style={{
-                  fontSize: '8rem',
-                  fontWeight: '900',
-                  color: 'var(--cui-danger)',
-                  lineHeight: 1,
-                }}
-              >
-                500
-              </h1>
-              <h4 className="pt-2">Erro interno no servidor</h4>
-              <p className="text-body-secondary mt-2">
-                Algo deu errado na comunicação com o servidor.
-                <br />
-                Veja o diagnóstico abaixo e tente novamente.
+          <CCol md={8} lg={6}>
+            <div className="mb-5 position-relative mx-auto fade-in-up" style={{ width: '240px', height: '240px' }}>
+              <div className="position-absolute w-100 h-100 rounded-circle" style={{ background: 'rgba(255,165,0,0.1)', animation: 'spin-slow 10s linear infinite' }}></div>
+              <div className="position-absolute w-75 h-75 top-50 start-50 translate-middle rounded-circle" style={{ background: 'rgba(0,166,153,0.1)' }}></div>
+              <CIcon icon={cilWrench} size="3xl" className="position-absolute top-50 start-50 translate-middle" style={{ color: airbnbTeal, width: '90px', height: '90px', transform: 'rotate(-45deg)' }} />
+            </div>
+
+            <div className="fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <h1 className="display-1 fw-bolder mb-3" style={{ color: '#222222', letterSpacing: '-0.05em' }}>500</h1>
+              <h2 className="h3 fw-bold mb-3" style={{ color: '#484848' }}>Houston, temos um pequeno problema!</h2>
+              <p className="text-muted mb-5" style={{ fontSize: '1.1rem' }}>
+                Nossos robôs contadores deixaram cair café no servidor. A equipe já está com os esfregões limpando tudo. Tente novamente em alguns minutinhos!
               </p>
-            </div>
 
-            {/* Painel de diagnóstico dos serviços */}
-            <div
-              className="border rounded p-4 mb-4 text-start"
-              style={{ background: 'var(--cui-body-bg)' }}
-            >
-              <h6 className="text-body-secondary mb-3">🔍 Diagnóstico de Serviços</h6>
-
-              <div className="d-flex align-items-center justify-content-between mb-2">
-                <span>
-                  <strong>API FastAPI</strong>
-                  <small className="text-body-secondary ms-2">{API_URL}</small>
-                </span>
-                <StatusBadge status={statusAPI} />
-              </div>
-
-              <div className="d-flex align-items-center justify-content-between">
-                <span>
-                  <strong>Banco de Dados</strong>
-                  <small className="text-body-secondary ms-2">PostgreSQL via API</small>
-                </span>
-                <StatusBadge status={statusDB} />
-              </div>
-
-              {(statusAPI === 'offline' || statusDB === 'offline') && (
-                <div className="alert alert-warning mt-3 mb-0 py-2" role="alert">
-                  <small>
-                    💡 <strong>Dica:</strong> Verifique se o FastAPI está rodando com{' '}
-                    <code>uvicorn main:app --reload</code> e se o container Docker do PostgreSQL está
-                    ativo.
-                  </small>
-                </div>
-              )}
-
-              {statusAPI === 'online' && statusDB === 'online' && (
-                <div className="alert alert-success mt-3 mb-0 py-2" role="alert">
-                  <small>✅ Todos os serviços estão operacionais. Você já pode voltar ao sistema.</small>
-                </div>
-              )}
-            </div>
-
-            {/* Ações */}
-            <div className="d-flex gap-3 justify-content-center">
-              <CButton
-                color="secondary"
-                variant="outline"
-                onClick={verificarServicos}
-                disabled={statusAPI === 'verificando'}
-              >
-                <CIcon icon={cilReload} className="me-2" />
-                Verificar novamente
-              </CButton>
-              <CButton color="primary" onClick={() => navigate('/dashboard')}>
-                <CIcon icon={cilHome} className="me-2" />
-                Ir para o Dashboard
-              </CButton>
+              <Link to="/login" className="text-decoration-none">
+                <CButton 
+                  className="py-3 px-5 fw-bold rounded-pill shadow-sm d-inline-flex align-items-center gap-2 airbnb-btn"
+                  style={{ backgroundColor: '#222222', borderColor: '#222222', color: 'white', fontSize: '1.1rem' }}
+                >
+                  <CIcon icon={cilArrowLeft} /> Voltar com Segurança
+                </CButton>
+              </Link>
             </div>
           </CCol>
         </CRow>
       </CContainer>
+
+      <style>{`
+        .fade-in-up {
+          opacity: 0;
+          animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .airbnb-btn {
+          transition: transform 0.1s, box-shadow 0.2s;
+        }
+        .airbnb-btn:hover {
+          transform: scale(0.98);
+        }
+        .airbnb-btn:active {
+          transform: scale(0.95);
+        }
+      `}</style>
     </div>
   )
 }
