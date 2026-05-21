@@ -24,8 +24,8 @@ describe('Rotas funcionais obrigatórias', () => {
     { path: '/', name: 'Home' },
     { path: '/dashboard', name: 'Dashboard' },
     { path: '/quiz', name: 'Quiz' },
-    { path: '/historico', name: 'Meu Histórico' },
-    { path: '/alunos', name: 'Gestão de Alunos' },
+    { path: '/aluno/historico', name: 'Meu Histórico' },
+    { path: '/admin/desempenho', name: 'Desempenho dos Alunos' },
     { path: '/questoes', name: 'Gestão de Questões' },
     { path: '/perfil', name: 'Minha Conta' },
   ]

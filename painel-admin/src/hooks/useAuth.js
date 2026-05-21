@@ -11,6 +11,9 @@ export const useLogin = () => {
         sessionStorage.setItem('usuario', JSON.stringify(data.dados));
         sessionStorage.setItem('papel', data.dados.papel);
         sessionStorage.setItem('id', data.dados.id);
+        sessionStorage.setItem('userId', data.dados.id);
+        sessionStorage.setItem('nome', data.dados.nome);
+        sessionStorage.setItem('matricula', data.dados.matricula);
       }
     },
   });
