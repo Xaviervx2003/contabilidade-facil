@@ -28,7 +28,7 @@ api.interceptors.response.use(
       // Se não for autorizado, limpa a sessão e redireciona (opcional)
       sessionStorage.removeItem('token');
       sessionStorage.removeItem('usuario');
-      // window.location.href = '/login'; // Opcional: descomente para redirecionar automático
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
