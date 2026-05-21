@@ -1,10 +1,19 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { CSpinner } from '@coreui/react'
 import { Icon } from '@iconify/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
-import { API_URL } from '../../config'
-import { useTheme } from '../../context/themeContext'
+import {
+  useMaterias,
+  useSolicitacoesPendentes,
+  useCriarMateria,
+  useEditarMateria,
+  useMoverMateria,
+  useDeletarMateria,
+  useLimparMaterias,
+  useSolicitarMover,
+  useProcessarSolicitacao,
+} from '../../hooks/useMaterias'
 
 /* ── Tokens Airbnb ───────────────────────────────────────── */
 const tk = {
@@ -26,87 +35,62 @@ const AInput = ({ value, onChange, placeholder, autoFocus }) => (
   <input autoFocus={autoFocus} value={value} onChange={onChange} placeholder={placeholder} style={{ width: '100%', height: 42, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = tk.rausch} onBlur={e => e.target.style.borderColor = 'var(--color-border)'} />
 )
 
+/* ── Toast flutuante ─────────────────────────────────────── */
+const useToast = () => {
+  const [toast, setToast] = useState(null)
+  const show = (msg, tipo = 'success') => {
+    setToast({ msg, tipo })
+    setTimeout(() => setToast(null), 3000)
+  }
+  return { toast, showSuccess: (m) => show(m, 'success'), showError: (m) => show(m, 'error') }
+}
+
 const GestaoMaterias = () => {
-  const [materias, setMaterias] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [busca, setBusca] = useState('')
+  const userId    = parseInt(sessionStorage.getItem('userId'), 10)
+  const userPapel = sessionStorage.getItem('userPapel') || 'aluno'
+  const isAdmin   = userPapel === 'admin'
 
-  const [novaMateria, setNovaMateria] = useState('')
-  const [parentID, setParentID] = useState('')
+  // ── React Query ─────────────────────────────────────────
+  const { data: materias = [], isLoading } = useMaterias()
+  const { data: solicitacoes = [] }        = useSolicitacoesPendentes()
 
-  const [editandoId, setEditandoId] = useState(null)
+  const { mutate: criar }               = useCriarMateria()
+  const { mutate: editar }              = useEditarMateria()
+  const { mutate: mover }               = useMoverMateria()
+  const { mutate: deletar }             = useDeletarMateria()
+  const { mutate: limpar, isPending: limpando } = useLimparMaterias()
+  const { mutate: solicitarMover }      = useSolicitarMover()
+  const { mutate: processarSolicitacao } = useProcessarSolicitacao()
+
+  // ── UI State (apenas estado local de UI, não de dados) ──
+  const [busca, setBusca]               = useState('')
+  const [novaMateria, setNovaMateria]   = useState('')
+  const [parentID, setParentID]         = useState('')
+  const [editandoId, setEditandoId]     = useState(null)
   const [editandoNome, setEditandoNome] = useState('')
   const [editandoParentId, setEditandoParentId] = useState('')
-  const [editandoIndice, setEditandoIndice] = useState('')
-  const [limpando, setLimpando] = useState(false)
-  
-  const [draggedId, setDraggedId] = useState(null)
-  const [dragOverId, setDragOverId] = useState(null)
-  
-  const [solicitacoes, setSolicitacoes] = useState([])
-  const [loadingSolicitacoes, setLoadingSolicitacoes] = useState(false)
-
-  // Infinite Scroll state
+  const [editandoIndice, setEditandoIndice]     = useState('')
+  const [draggedId, setDraggedId]       = useState(null)
+  const [dragOverId, setDragOverId]     = useState(null)
   const [visibleCount, setVisibleCount] = useState(50)
-  const { ref: observerRef, inView } = useInView()
+  const { ref: observerRef, inView }    = useInView()
+  const { toast, showSuccess, showError } = useToast()
 
-  useEffect(() => {
-    if (inView) {
-      setVisibleCount(prev => prev + 50)
-    }
-  }, [inView])
+  useEffect(() => { if (inView) setVisibleCount(prev => prev + 50) }, [inView])
+  useEffect(() => { setVisibleCount(50) }, [busca])
 
-  const userId = parseInt(sessionStorage.getItem('userId'), 10)
-  const userPapel = sessionStorage.getItem('userPapel') || 'aluno'
-  const isAdmin = userPapel === 'admin'
-  const { isDark } = useTheme()
-
-  const carregar = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch(`${API_URL}/api/admin/materias`)
-      const data = await res.json()
-      setMaterias(Array.isArray(data) ? data : [])
-      if (isAdmin) carregarSolicitacoes()
-    } catch {
-      setError('Erro ao carregar matérias.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const carregarSolicitacoes = async () => {
-    setLoadingSolicitacoes(true)
-    try {
-      const res = await fetch(`${API_URL}/api/admin/materias/solicitacoes-pendentes`)
-      if (res.ok) setSolicitacoes(await res.json())
-    } catch (e) {
-      console.error("Erro ao carregar solicitações", e)
-    } finally {
-      setLoadingSolicitacoes(false)
-    }
-  }
-
-  useEffect(() => { carregar() }, [])
-
-  // Construção da Árvore
+  // ── Construção da Árvore ─────────────────────────────────
   const tree = useMemo(() => {
     const map = {}
     materias.forEach(m => map[m.id] = { ...m, children: [] })
     const roots = []
     materias.forEach(m => {
-      if (m.parent_id && map[m.parent_id]) {
-        map[m.parent_id].children.push(map[m.id])
-      } else {
-        roots.push(map[m.id])
-      }
+      if (m.parent_id && map[m.parent_id]) map[m.parent_id].children.push(map[m.id])
+      else roots.push(map[m.id])
     })
     return roots
   }, [materias])
 
-  // Lista Achatada para Renderização
   const flattenedList = useMemo(() => {
     const list = []
     const recurse = (node, depth = 0) => {
@@ -114,125 +98,97 @@ const GestaoMaterias = () => {
       if (node.children) node.children.forEach(c => recurse(c, depth + 1))
     }
     tree.forEach(root => recurse(root))
-
     if (!busca) return list
     const termo = busca.toLowerCase()
     return list.filter(m => m.nome.toLowerCase().includes(termo) || (m.indice && m.indice.includes(termo)))
   }, [tree, busca])
 
-  // Reseta o scroll ao buscar
-  useEffect(() => { setVisibleCount(50) }, [busca])
+  const visibleList = flattenedList.slice(0, visibleCount)
 
-  const formatIndice = (indice) => indice ? indice.replace(/^\d+\./, '') : ''
-
-  const criar = async () => {
+  // ── Handlers ─────────────────────────────────────────────
+  const handleCriar = () => {
     if (!novaMateria.trim()) return
-    setError('')
-    try {
-      const res = await fetch(`${API_URL}/api/admin/materias`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: novaMateria.trim(), parent_id: parentID === '' ? null : parseInt(parentID) }),
-      })
-      if (!res.ok) throw new Error('Erro ao criar')
-      setSuccess('Matéria criada!')
-      setNovaMateria(''); setParentID('')
-      carregar()
-      setTimeout(() => setSuccess(''), 3000)
-    } catch (e) { setError(e.message); setTimeout(() => setError(''), 3000) }
+    criar(
+      { nome: novaMateria.trim(), parent_id: parentID === '' ? null : parseInt(parentID) },
+      {
+        onSuccess: () => { showSuccess('Matéria criada!'); setNovaMateria(''); setParentID('') },
+        onError:   () => showError('Erro ao criar matéria.'),
+      }
+    )
   }
 
-  const salvarEdicao = async () => {
+  const handleSalvarEdicao = () => {
     if (!editandoNome.trim()) return
-    setError('')
-    try {
-      const res = await fetch(`${API_URL}/api/admin/materias/${editandoId}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: editandoNome.trim(), parent_id: editandoParentId === '' ? null : parseInt(editandoParentId), indice: editandoIndice.trim() }),
-      })
-      if (!res.ok) throw new Error('Erro ao salvar')
-      setEditandoId(null)
-      setSuccess('Matéria atualizada!')
-      carregar()
-      setTimeout(() => setSuccess(''), 3000)
-    } catch (e) { setError(e.message); setTimeout(() => setError(''), 3000) }
+    editar(
+      { id: editandoId, nome: editandoNome.trim(), parent_id: editandoParentId === '' ? null : parseInt(editandoParentId), indice: editandoIndice.trim() },
+      {
+        onSuccess: () => { showSuccess('Matéria atualizada!'); setEditandoId(null) },
+        onError:   () => showError('Erro ao salvar edição.'),
+      }
+    )
   }
 
-  const deletar = async (id, nome) => {
+  const handleDeletar = (id, nome) => {
     if (!window.confirm(`Deletar "${nome}"?`)) return
-    try {
-      const res = await fetch(`${API_URL}/api/admin/materias/${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Erro ao deletar')
-      setSuccess('Matéria removida!')
-      carregar()
-      setTimeout(() => setSuccess(''), 3000)
-    } catch (e) { setError(e.message); setTimeout(() => setError(''), 3000) }
+    deletar(id, {
+      onSuccess: () => showSuccess('Matéria removida!'),
+      onError:   () => showError('Erro ao deletar.'),
+    })
   }
 
-  const limparVazias = async () => {
-    if (!window.confirm("Remover todas as matérias sem questões e sem filhos?")) return
-    setLimpando(true)
-    try {
-      const res = await fetch(`${API_URL}/api/admin/materias/limpar-vazias`, { method: 'DELETE' })
-      const data = await res.json()
-      setSuccess(data.mensagem)
-      carregar()
-      setTimeout(() => setSuccess(''), 3000)
-    } catch (e) { setError(e.message); setTimeout(() => setError(''), 3000) } 
-    finally { setLimpando(false) }
+  const handleLimpar = () => {
+    if (!window.confirm('Remover todas as matérias sem questões e sem filhos?')) return
+    limpar(undefined, {
+      onSuccess: (data) => showSuccess(data?.mensagem || 'Faxina concluída!'),
+      onError:   () => showError('Erro na faxina.'),
+    })
   }
 
-  const moverMateria = async (id, novoParentId) => {
+  const handleMover = (id, novoParentId) => {
     const materia = materias.find(m => m.id === id)
     if (!materia) return
 
     if (!isAdmin) {
-      try {
-        const res = await fetch(`${API_URL}/api/admin/materias/solicitar-mover`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ materia_id: id, novo_parent_id: novoParentId, usuario_id: userId }),
-        })
-        if (!res.ok) throw new Error('Erro ao enviar solicitação')
-        setSuccess('Solicitação enviada ao Admin!')
-        setTimeout(() => setSuccess(''), 3000)
-      } catch (e) { setError(e.message); setTimeout(() => setError(''), 3000) }
+      solicitarMover(
+        { materia_id: id, novo_parent_id: novoParentId, usuario_id: userId },
+        {
+          onSuccess: () => showSuccess('Solicitação enviada ao Admin!'),
+          onError:   () => showError('Erro ao enviar solicitação.'),
+        }
+      )
       return
     }
 
-    setLoading(true)
-    try {
-      const res = await fetch(`${API_URL}/api/admin/materias/${id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: materia.nome, parent_id: novoParentId, indice: materia.indice || '' }),
-      })
-      if (!res.ok) throw new Error('Erro ao mover matéria')
-      setSuccess('Hierarquia atualizada!')
-      carregar()
-      setTimeout(() => setSuccess(''), 2000)
-    } catch (e) { setError(e.message); setTimeout(() => setError(''), 3000); setLoading(false) }
+    mover(
+      { id, nome: materia.nome, novoParentId, indice: materia.indice || '' },
+      {
+        onSuccess: () => showSuccess('Hierarquia atualizada!'),
+        onError:   () => showError('Erro ao mover matéria.'),
+      }
+    )
   }
 
-  const processarSolicitacao = async (sid, status) => {
-    try {
-      const res = await fetch(`${API_URL}/api/admin/materias/processar-solicitacao/${sid}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, usuario_id: userId })
-      })
-      if (!res.ok) throw new Error('Erro ao processar')
-      setSuccess(`Solicitação ${status}!`)
-      carregar()
-      setTimeout(() => setSuccess(''), 3000)
-    } catch (e) { setError(e.message); setTimeout(() => setError(''), 3000) }
+  const handleProcessarSolicitacao = (sid, status) => {
+    processarSolicitacao(
+      { id: sid, status, usuario_id: userId },
+      {
+        onSuccess: () => showSuccess(`Solicitação ${status}!`),
+        onError:   () => showError('Erro ao processar solicitação.'),
+      }
+    )
   }
 
   const onDragStart = (e, id) => { setDraggedId(id); e.dataTransfer.effectAllowed = 'move' }
-  const onDragOver = (e, id) => { e.preventDefault(); if (id !== draggedId) setDragOverId(id) }
-  const onDrop = (e, targetId) => {
+  const onDragOver  = (e, id) => { e.preventDefault(); if (id !== draggedId) setDragOverId(id) }
+  const onDrop      = (e, targetId) => {
     e.preventDefault()
     const sourceId = draggedId
     setDraggedId(null); setDragOverId(null)
     if (!sourceId || sourceId === targetId) return
-    moverMateria(sourceId, targetId)
+    handleMover(sourceId, targetId)
   }
+
+  const formatIndice = (indice) => indice ? indice.replace(/^\d+\./, '') : ''
 
   const TreeLine = ({ depth }) => {
     if (depth === 0) return null
@@ -243,18 +199,11 @@ const GestaoMaterias = () => {
     )
   }
 
-  const containerStyle = { minHeight: '100vh', background: 'var(--color-bg-primary)', padding: '32px 16px 60px', fontFamily: FONT }
-
-  // Slice list for performance virtualization
-  const visibleList = flattenedList.slice(0, visibleCount)
-
   return (
-    <div style={containerStyle}>
-      <style>{`
-        .gq-hover:hover { background: var(--color-bg-tertiary); }
-      `}</style>
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg-primary)', padding: '32px 16px 60px', fontFamily: FONT }}>
+      <style>{`.gq-hover:hover { background: var(--color-bg-tertiary); }`}</style>
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
-        
+
         {/* HEADER */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
           <div style={{ color: tk.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
@@ -270,12 +219,8 @@ const GestaoMaterias = () => {
               </div>
             </div>
             <motion.button whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.97 }}
-              onClick={limparVazias} disabled={limpando}
-              style={{
-                background: 'transparent', color: tk.rausch, border: `1.5px solid ${tk.rausch}`, borderRadius: 99,
-                padding: '0 20px', height: 44, fontWeight: 700, fontSize: 13, cursor: limpando ? 'not-allowed' : 'pointer', fontFamily: FONT,
-                display: 'flex', alignItems: 'center', gap: 8
-              }}
+              onClick={handleLimpar} disabled={limpando}
+              style={{ background: 'transparent', color: tk.rausch, border: `1.5px solid ${tk.rausch}`, borderRadius: 99, padding: '0 20px', height: 44, fontWeight: 700, fontSize: 13, cursor: limpando ? 'not-allowed' : 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', gap: 8 }}
             >
               {limpando ? <CSpinner size="sm" /> : <><Icon icon="solar:trash-bin-trash-bold-duotone" width="18" /> Faxina de Vazias</>}
             </motion.button>
@@ -295,8 +240,8 @@ const GestaoMaterias = () => {
                     <strong>{s.solicitante}</strong> propôs mover <span style={{ color: tk.rausch, fontWeight: 700 }}>{s.materia_nome}</span> para <span style={{ color: tk.babu, fontWeight: 700 }}>{s.novo_parent_nome}</span>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => processarSolicitacao(s.id, 'aprovado')} style={{ background: tk.babu, color: '#fff', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Aceitar</motion.button>
-                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => processarSolicitacao(s.id, 'rejeitado')} style={{ background: tk.rausch, color: '#fff', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Rejeitar</motion.button>
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleProcessarSolicitacao(s.id, 'aprovado')} style={{ background: tk.babu, color: '#fff', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Aceitar</motion.button>
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleProcessarSolicitacao(s.id, 'rejeitado')} style={{ background: tk.rausch, color: '#fff', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Rejeitar</motion.button>
                   </div>
                 </div>
               ))}
@@ -306,7 +251,6 @@ const GestaoMaterias = () => {
 
         {/* FILTROS E CRIAÇÃO */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16, marginBottom: 24 }}>
-          {/* Nova Categoria */}
           <div style={{ padding: '20px 24px', background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: 20 }}>
             <Label>🆕 Nova Categoria</Label>
             <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
@@ -317,11 +261,10 @@ const GestaoMaterias = () => {
                   {flattenedList.slice(0, 100).map(m => (<option key={m.id} value={m.id}>{m.indice ? `${m.indice} ` : ''}{m.nome}</option>))}
                 </select>
               </div>
-              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={criar} disabled={!novaMateria.trim()} style={{ height: 42, width: 42, borderRadius: 10, border: 'none', background: tk.babu, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: !novaMateria.trim() ? 'not-allowed' : 'pointer', opacity: !novaMateria.trim() ? 0.5 : 1 }}><Icon icon="solar:add-circle-bold-duotone" width="20" /></motion.button>
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleCriar} disabled={!novaMateria.trim()} style={{ height: 42, width: 42, borderRadius: 10, border: 'none', background: tk.babu, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: !novaMateria.trim() ? 'not-allowed' : 'pointer', opacity: !novaMateria.trim() ? 0.5 : 1 }}><Icon icon="solar:add-circle-bold-duotone" width="20" /></motion.button>
             </div>
           </div>
 
-          {/* Busca */}
           <div style={{ padding: '20px 24px', background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', borderRadius: 20 }}>
             <Label>🔍 Filtrar Assuntos</Label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1.5px solid var(--color-border)', borderRadius: 10, padding: '0 14px', height: 42, background: 'var(--color-bg-elevated)', marginTop: 12 }}>
@@ -331,16 +274,16 @@ const GestaoMaterias = () => {
           </div>
         </div>
 
-        {/* TABELA DE MATÉRIAS (ÁRVORE) */}
+        {/* TABELA DE MATÉRIAS */}
         <div style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: 20, overflow: 'hidden' }}>
-          {loading ? <div style={{ textAlign: 'center', padding: '60px 0' }}><CSpinner color="primary" /></div> : (
+          {isLoading ? <div style={{ textAlign: 'center', padding: '60px 0' }}><CSpinner color="primary" /></div> : (
             <div style={{ maxHeight: 600, overflowY: 'auto' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 140px', padding: '12px 24px', background: 'var(--color-bg-tertiary)', borderBottom: '1px solid var(--color-border)', position: 'sticky', top: 0, zIndex: 10 }}>
                 {['Estrutura Hierárquica', 'Questões', 'Ações'].map((h, i) => (
                   <div key={h} style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: tk.foggy, textAlign: i === 0 ? 'left' : 'center' }}>{h}</div>
                 ))}
               </div>
-              
+
               {flattenedList.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px 0', color: tk.foggy, fontSize: 14 }}>
                   <Icon icon="solar:folder-error-bold-duotone" width="48" style={{ marginBottom: 12, opacity: 0.2 }} />
@@ -349,33 +292,26 @@ const GestaoMaterias = () => {
               ) : (
                 <div>
                   {visibleList.map((m) => {
-                    const isOver = dragOverId === m.id
-                    const isDragged = draggedId === m.id
-
+                    const isOver    = dragOverId === m.id
+                    const isDragged = draggedId  === m.id
                     return (
-                      <div 
+                      <div
                         key={m.id}
                         draggable
                         onDragStart={(e) => onDragStart(e, m.id)}
-                        onDragOver={(e) => onDragOver(e, m.id)}
-                        onDrop={(e) => onDrop(e, m.id)}
+                        onDragOver={(e)  => onDragOver(e, m.id)}
+                        onDrop={(e)      => onDrop(e, m.id)}
                         onDragEnd={() => { setDraggedId(null); setDragOverId(null) }}
                         className={!isDragged && !isOver ? 'gq-hover' : ''}
-                        style={{ 
-                          display: 'grid', gridTemplateColumns: '1fr 100px 140px', padding: '12px 24px',
-                          borderBottom: '1px solid var(--color-border)', alignItems: 'center',
-                          background: isOver ? `${tk.babu}10` : m.depth === 0 ? 'var(--color-bg-tertiary)' : 'transparent',
-                          opacity: isDragged ? 0.4 : 1, cursor: 'grab', transition: 'background 0.2s',
-                        }}
+                        style={{ display: 'grid', gridTemplateColumns: '1fr 100px 140px', padding: '12px 24px', borderBottom: '1px solid var(--color-border)', alignItems: 'center', background: isOver ? `${tk.babu}10` : m.depth === 0 ? 'var(--color-bg-tertiary)' : 'transparent', opacity: isDragged ? 0.4 : 1, cursor: 'grab', transition: 'background 0.2s' }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', paddingLeft: m.depth * 24 }}>
                           <TreeLine depth={m.depth} />
-                          
                           {editandoId === m.id ? (
                             <div style={{ display: 'flex', gap: 8, width: '100%', paddingRight: 16 }}>
                               <AInput value={editandoIndice} onChange={e => setEditandoIndice(e.target.value)} placeholder="Índice" />
                               <div style={{ flex: 1 }}><AInput value={editandoNome} onChange={e => setEditandoNome(e.target.value)} autoFocus /></div>
-                              <button onClick={salvarEdicao} style={{ background: tk.babu, color: '#fff', border: 'none', borderRadius: 8, padding: '0 12px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Icon icon="solar:check-circle-bold-duotone" width="16" /></button>
+                              <button onClick={handleSalvarEdicao} style={{ background: tk.babu, color: '#fff', border: 'none', borderRadius: 8, padding: '0 12px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Icon icon="solar:check-circle-bold-duotone" width="16" /></button>
                               <button onClick={() => setEditandoId(null)} style={{ background: 'transparent', border: '1px solid var(--color-border)', color: tk.foggy, borderRadius: 8, padding: '0 12px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Icon icon="solar:close-circle-bold-duotone" width="16" /></button>
                             </div>
                           ) : (
@@ -390,25 +326,24 @@ const GestaoMaterias = () => {
                             </div>
                           )}
                         </div>
-                        
+
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
                           <span style={{ background: m.total_questoes > 0 ? `${tk.arches}15` : 'var(--color-bg-tertiary)', color: m.total_questoes > 0 ? tk.arches : tk.foggy, fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 99 }}>
                             {m.total_questoes || 0}
                           </span>
                         </div>
-                        
+
                         <div style={{ display: 'flex', justifyContent: 'center', gap: 6 }}>
                           {m.parent_id && (
-                            <button onClick={() => moverMateria(m.id, null)} title="Mover para Raiz" style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: `${tk.babu}15`, color: tk.babu, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon icon="solar:arrow-up-bold-duotone" width="14" /></button>
+                            <button onClick={() => handleMover(m.id, null)} title="Mover para Raiz" style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: `${tk.babu}15`, color: tk.babu, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon icon="solar:arrow-up-bold-duotone" width="14" /></button>
                           )}
                           <button onClick={() => { setEditandoId(m.id); setEditandoNome(m.nome); setEditandoParentId(m.parent_id || ''); setEditandoIndice(m.indice || '') }} title="Editar" style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: 'transparent', color: tk.foggy, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon icon="solar:pen-bold-duotone" width="14" /></button>
-                          <button onClick={() => deletar(m.id, m.nome)} title="Excluir" style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: `${tk.rausch}15`, color: tk.rausch, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon icon="solar:trash-bin-trash-bold-duotone" width="14" /></button>
+                          <button onClick={() => handleDeletar(m.id, m.nome)} title="Excluir" style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: `${tk.rausch}15`, color: tk.rausch, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon icon="solar:trash-bin-trash-bold-duotone" width="14" /></button>
                         </div>
                       </div>
                     )
                   })}
 
-                  {/* Intersection Observer Target for Loading More */}
                   {visibleCount < flattenedList.length && (
                     <div ref={observerRef} style={{ padding: '20px', textAlign: 'center', color: tk.foggy, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                       <CSpinner size="sm" /> Carregando mais assuntos...
@@ -424,16 +359,14 @@ const GestaoMaterias = () => {
         </div>
       </div>
 
-      {/* ── ALERTAS FLUTUANTES ── */}
+      {/* TOASTS FLUTUANTES */}
       <AnimatePresence>
-        {success && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: tk.babu, color: '#fff', borderRadius: 99, padding: '12px 24px', fontWeight: 700, fontSize: 14, fontFamily: FONT, boxShadow: `0 8px 24px ${tk.babu}40`, zIndex: 9999, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Icon icon="solar:check-circle-bold-duotone" width="20" /> {success}
-          </motion.div>
-        )}
-        {error && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} onClick={() => setError('')} style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: tk.rausch, color: '#fff', borderRadius: 99, padding: '12px 24px', fontWeight: 700, fontSize: 14, fontFamily: FONT, boxShadow: `0 8px 24px ${tk.rausch}40`, zIndex: 9999, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-            <Icon icon="solar:close-circle-bold-duotone" width="20" /> {error}
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: toast.tipo === 'success' ? tk.babu : tk.rausch, color: '#fff', borderRadius: 99, padding: '12px 24px', fontWeight: 700, fontSize: 14, fontFamily: FONT, boxShadow: `0 8px 24px ${toast.tipo === 'success' ? tk.babu : tk.rausch}40`, zIndex: 9999, display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            <Icon icon={toast.tipo === 'success' ? 'solar:check-circle-bold-duotone' : 'solar:close-circle-bold-duotone'} width="20" /> {toast.msg}
           </motion.div>
         )}
       </AnimatePresence>
