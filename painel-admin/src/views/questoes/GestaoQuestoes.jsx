@@ -199,6 +199,23 @@ const GestaoQuestoes = () => {
   const [searchParams] = useSearchParams()
   const { isDark } = useTheme()
 
+  /* ── Estados ───────────────────────────────────────────────── */
+  const [currentPage, setCurrentPage] = useState(1)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [filtroBanca, setFiltroBanca] = useState('')
+  const [filtroAno, setFiltroAno] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  
+  const [formData, setFormData] = useState(INITIAL_FORM)
+  const [modoEdicao, setModoEdicao] = useState(false)
+  const [abaAtiva, setAbaAtiva] = useState(0)
+  const [errosForm, setErrosForm] = useState({})
+  const [modalVisible, setModalVisible] = useState(false)
+  const [materiasDisponiveis, setMateriasDisponiveis] = useState([])
+  const [salvando, setSalvando] = useState(false)
+
   const { data: filtrosDados } = useFiltrosQuestoes()
   const filtrosOpcoes = filtrosDados || { bancas: [], anos: [] }
 

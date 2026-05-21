@@ -47,41 +47,71 @@ const SkeletonBlock = ({ h = 20, w = '100%', r = 12 }) => (
   }} />
 )
 
+import { CChartBar } from '@coreui/react-chartjs'
+import { getStyle } from '@coreui/utils'
+
 /* ─── Mini Bar Chart ─────────────────────────────────────── */
 const MiniBarChart = React.memo(({ data, isDark }) => {
   if (!data?.length) return null
-  const max = Math.max(...data.map(d => d.questoes), 1)
+  
+  const labels = data.map(d => {
+    const dt = new Date(d.dia + 'T00:00:00')
+    return diasSemana[dt.getDay()]
+  })
+  
+  const questoes = data.map(d => d.questoes)
+  const isHojeArray = data.map((d, i) => i === data.length - 1)
+  
+  const backgroundColors = data.map((d, i) => {
+    if (i === data.length - 1) return tokens.rausch
+    return d.questoes > 0 ? 'rgba(255,56,92,0.2)' : 'var(--color-bg-tertiary)'
+  })
+
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 72 }}>
-      {data.map((d, i) => {
-        const pct = Math.max((d.questoes / max) * 100, 3)
-        const dt = new Date(d.dia + 'T00:00:00')
-        const isHoje = i === data.length - 1
-        return (
-          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            {d.questoes > 0 && (
-              <span style={{ fontSize: 10, color: isHoje ? tokens.rausch : tokens.foggy, fontWeight: 600 }}>
-                {d.questoes}
-              </span>
-            )}
-            <motion.div
-              initial={{ scaleY: 0 }}
-              animate={{ scaleY: 1 }}
-              transition={{ delay: i * 0.05, duration: 0.4, ease: 'easeOut' }}
-              style={{
-                width: '100%',
-                height: `${pct}%`,
-                borderRadius: '6px 6px 0 0',
-                background: isHoje ? tokens.rausch : (d.questoes > 0 ? 'rgba(255,56,92,0.2)' : 'var(--color-bg-tertiary)'),
-                transformOrigin: 'bottom',
-              }}
-            />
-            <span style={{ fontSize: 9, color: isHoje ? tokens.rausch : tokens.foggy, fontWeight: isHoje ? 700 : 400 }}>
-              {diasSemana[dt.getDay()]}
-            </span>
-          </div>
-        )
-      })}
+    <div style={{ position: 'relative', height: 180 }}>
+      <CChartBar
+        style={{ height: '100%' }}
+        data={{
+          labels,
+          datasets: [
+            {
+              label: 'Questões Resolvidas',
+              backgroundColor: backgroundColors,
+              borderRadius: 6,
+              borderSkipped: false,
+              data: questoes,
+              barPercentage: 0.6,
+            },
+          ],
+        }}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: isDark ? '#1e2a38' : '#fff',
+              titleColor: isDark ? '#7eb8f7' : tokens.rausch,
+              bodyColor: isDark ? '#e0e8f0' : tokens.foggy,
+              borderColor: isDark ? '#2d3f52' : 'var(--color-border)',
+              borderWidth: 1,
+              cornerRadius: 8,
+              displayColors: false,
+            },
+          },
+          scales: {
+            x: {
+              grid: { display: false, drawBorder: false },
+              ticks: { color: tokens.foggy, font: { size: 10, weight: 600 } },
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: 'var(--color-border)', borderDash: [4, 4], drawBorder: false },
+              ticks: { color: tokens.foggy, font: { size: 10 }, stepSize: Math.ceil(Math.max(...questoes, 1)/5) },
+            },
+          },
+        }}
+      />
     </div>
   )
 })

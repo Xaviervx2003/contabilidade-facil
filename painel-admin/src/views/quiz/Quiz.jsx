@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CAlert,
   CBadge,
@@ -1517,7 +1518,6 @@ const Quiz = () => {
   const [isConfusing, setIsConfusing] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [commentStatus, setCommentStatus] = useState('idle')
-  const [materias, setMaterias] = useState([])
   const [materiasSelected, setMateriasSelected] = useState([])
   const [quantidade, setQuantidade] = useState(0)
   const [isDark, setIsDark] = useState(false)
@@ -1534,13 +1534,7 @@ const Quiz = () => {
   const [anoSelecionado, setAnoSelecionado] = useState('')
   const [favoritos, setFavoritos] = useState([])
   const [disciplinaPai, setDisciplinaPai] = useState(null) // ID da disciplina raiz selecionada
-  const [filtrosDisponiveis, setFiltrosDisponiveis] = useState({
-    bancas: [],
-    orgaos: [],
-    cargos: [],
-    anos: [],
-  })
-  const [loadingMaterias, setLoadingMaterias] = useState(true)
+  const queryClient = useQueryClient()
 
   const nomeAluno = sessionStorage.getItem('nome') || 'Aluno'
   const matricula = getMatricula()
@@ -1577,54 +1571,77 @@ const Quiz = () => {
     localStorage.setItem('quiz_sound', String(soundEnabled))
   }, [soundEnabled])
 
-  // Load favorites
-  useEffect(() => {
-    if (!matricula) return
-    fetch(`${API_URL}/api/favoritos/${matricula}`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data) => {
-        const ids = Array.isArray(data) ? data.map((item) => item.questao_id) : []
-        setFavoritos(ids)
-      })
-      .catch(() => { })
-  }, [matricula])
+  // Load favorites using React Query
+  const { data: favoritosData = [] } = useQuery({
+    queryKey: ['favoritos', matricula],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/api/favoritos/${matricula}`)
+      if (!res.ok) throw new Error()
+      return res.json()
+    },
+    enabled: !!matricula,
+    staleTime: 1000 * 60 * 5,
+  })
 
-  const alternarFavorito = async (questaoId) => {
+  // Sincroniza o state local com os dados da query (para manter atualizações otimistas)
+  useEffect(() => {
+    if (Array.isArray(favoritosData)) {
+      setFavoritos(favoritosData.map((item) => item.questao_id))
+    }
+  }, [favoritosData])
+
+  const toggleFavoritoMutation = useMutation({
+    mutationFn: async ({ questaoId, isFavorito }) => {
+      if (isFavorito) {
+        await fetch(`${API_URL}/api/favoritos/remover/${questaoId}?matricula=${matricula}`, {
+          method: 'DELETE',
+        })
+      } else {
+        await fetch(`${API_URL}/api/favoritos/adicionar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ matricula, questao_id: questaoId }),
+        })
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favoritos', matricula] })
+    }
+  })
+
+  const alternarFavorito = (questaoId) => {
     if (!matricula) return
     const ehFavorito = favoritos.includes(questaoId)
+    // Atualização Otimista local
     if (ehFavorito) {
-      await fetch(`${API_URL}/api/favoritos/remover/${questaoId}?matricula=${matricula}`, {
-        method: 'DELETE',
-      })
       setFavoritos((prev) => prev.filter((id) => id !== questaoId))
     } else {
-      await fetch(`${API_URL}/api/favoritos/adicionar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricula, questao_id: questaoId }),
-      })
       setFavoritos((prev) => [...prev, questaoId])
     }
+    toggleFavoritoMutation.mutate({ questaoId, isFavorito: ehFavorito })
   }
 
-  // Fetch materias and unique filters
-  useEffect(() => {
-    setLoadingMaterias(true)
-    fetch(`${API_URL}/api/admin/materias`)
-      .then((r) => r.json())
-      .then((d) => {
-        setMaterias(Array.isArray(d) ? d : [])
-        setLoadingMaterias(false)
-      })
-      .catch(() => {
-        setLoadingMaterias(false)
-      })
+  // Fetch materias and unique filters using React Query
+  const { data: materiasData = [], isLoading: loadingMaterias } = useQuery({
+    queryKey: ['admin-materias'],
+    queryFn: async () => {
+      const r = await fetch(`${API_URL}/api/admin/materias`)
+      if (!r.ok) throw new Error()
+      return r.json()
+    },
+    staleTime: 1000 * 60 * 10,
+  })
+  const materias = Array.isArray(materiasData) ? materiasData : []
 
-    fetch(`${API_URL}/api/questoes/valores-unicos`)
-      .then((r) => r.json())
-      .then((d) => setFiltrosDisponiveis(d))
-      .catch(() => { })
-  }, [])
+  const { data: filtrosDisponiveis = { bancas: [], orgaos: [], cargos: [], anos: [] } } = useQuery({
+    queryKey: ['valores-unicos'],
+    queryFn: async () => {
+      const r = await fetch(`${API_URL}/api/questoes/valores-unicos`)
+      if (!r.ok) throw new Error()
+      return r.json()
+    },
+    staleTime: 1000 * 60 * 10,
+  })
 
   // Snapshot restore
   useEffect(() => {
@@ -1742,66 +1759,86 @@ const Quiz = () => {
     setStatus('quiz')
   }
 
-  const fetchAndStart = async () => {
-    setError('')
-    setFeedback('')
-    setStatus('loading')
-    try {
-      const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
-      const explicitIds = params.get('ids')
-
-      if (explicitIds) {
-        params.set('ids', explicitIds)
-      } else {
-        if (materiasSelected.length > 0) {
-          materiasSelected.forEach((id) => params.append('materia_id', id))
-        } else if (disciplinaPai) {
-          params.append('materia_id', disciplinaPai)
-        }
-        if (matricula) {
-          params.set('matricula', matricula)
-          params.set('modo_estudo', modoEstudo)
-        }
-        if (bancaSelecionada) params.set('banca', bancaSelecionada)
-        if (orgaoSelecionado) params.set('orgao', orgaoSelecionado)
-        if (cargoSelecionado) params.set('cargo', cargoSelecionado)
-        if (anoSelecionado) params.set('ano', anoSelecionado)
-      }
-      const maxNeeded = quantidade > 0 ? Math.min(quantidade * 3, 500) : 500
-      params.set('limit', String(maxNeeded))
-
-      const url = `${API_URL}/api/questoes${params.toString() ? '?' + params.toString() : ''}`
+  const fetchQuestoesMutation = useMutation({
+    mutationFn: async (url) => {
       const res = await fetch(url)
       const responseJson = await res.json()
       let data = responseJson.sucesso !== undefined ? responseJson.dados : responseJson
 
       if (!res.ok || !Array.isArray(data) || data.length === 0)
         throw new Error(responseJson.mensagem || 'Nenhuma questão encontrada para este filtro.')
+      return data
+    },
+    onMutate: () => {
+      setError('')
+      setFeedback('')
+      setStatus('loading')
+    },
+    onSuccess: (data) => {
       let pool = shuffle(data)
       if (quantidade > 0 && quantidade < pool.length) pool = pool.slice(0, quantidade)
       startQuiz(pool)
-    } catch (err) {
+    },
+    onError: (err) => {
       setError(err.message || 'Erro ao buscar questões.')
       setStatus('ready')
     }
+  })
+
+  const fetchAndStart = async () => {
+    const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
+    const explicitIds = params.get('ids')
+
+    if (explicitIds) {
+      params.set('ids', explicitIds)
+    } else {
+      if (materiasSelected.length > 0) {
+        materiasSelected.forEach((id) => params.append('materia_id', id))
+      } else if (disciplinaPai) {
+        params.append('materia_id', disciplinaPai)
+      }
+      if (matricula) {
+        params.set('matricula', matricula)
+        params.set('modo_estudo', modoEstudo)
+      }
+      if (bancaSelecionada) params.set('banca', bancaSelecionada)
+      if (orgaoSelecionado) params.set('orgao', orgaoSelecionado)
+      if (cargoSelecionado) params.set('cargo', cargoSelecionado)
+      if (anoSelecionado) params.set('ano', anoSelecionado)
+    }
+    const maxNeeded = quantidade > 0 ? Math.min(quantidade * 3, 500) : 500
+    params.set('limit', String(maxNeeded))
+
+    const url = `${API_URL}/api/questoes${params.toString() ? '?' + params.toString() : ''}`
+    fetchQuestoesMutation.mutate(url)
   }
 
-  const fetchAndStartSimuladoRapido = async () => {
-    setError('')
-    setFeedback('')
-    setStatus('loading')
-    try {
+  const simuladoMutation = useMutation({
+    mutationFn: async () => {
       const res = await fetch(`${API_URL}/api/questoes?limit=30`)
       const responseJson = await res.json()
       let data = responseJson.sucesso !== undefined ? responseJson.dados : responseJson
 
       if (!res.ok || !Array.isArray(data) || data.length === 0)
         throw new Error(responseJson.mensagem || 'Nenhuma questão encontrada.')
+      return data
+    },
+    onMutate: () => {
+      setError('')
+      setFeedback('')
+      setStatus('loading')
+    },
+    onSuccess: (data) => {
       startQuizWithTime(shuffle(data).slice(0, 10), 600)
-    } catch (err) {
+    },
+    onError: (err) => {
       setError(err.message || 'Erro ao buscar questões.')
       setStatus('ready')
     }
+  })
+
+  const fetchAndStartSimuladoRapido = async () => {
+    simuladoMutation.mutate()
   }
 
   const handleConfirmAnswer = () => {
@@ -1864,26 +1901,33 @@ const Quiz = () => {
     setCommentStatus('idle')
   }
 
-  const handleSendComment = async () => {
-    if (!commentText.trim() && !isConfusing) return
-    setCommentStatus('sending')
-    try {
-      const q = questions[queue[0]]
-      await fetch(`${API_URL}/api/feedbacks_questoes`, {
+  const feedbackMutation = useMutation({
+    mutationFn: async ({ qId, texto, confusa }) => {
+      const res = await fetch(`${API_URL}/api/feedbacks_questoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          questao_id: q.id,
+          questao_id: qId,
           nome_aluno: nomeAluno,
-          texto: commentText,
-          marcada_confusa: isConfusing,
+          texto,
+          marcada_confusa: confusa,
         }),
       })
-      setCommentStatus('sent')
-    } catch {
+      if (!res.ok) throw new Error()
+      return res
+    },
+    onMutate: () => setCommentStatus('sending'),
+    onSuccess: () => setCommentStatus('sent'),
+    onError: () => {
       setError('Falha ao enviar comentário.')
       setCommentStatus('idle')
     }
+  })
+
+  const handleSendComment = async () => {
+    if (!commentText.trim() && !isConfusing) return
+    const q = questions[queue[0]]
+    feedbackMutation.mutate({ qId: q.id, texto: commentText, confusa: isConfusing })
   }
 
   const handleFinishEarly = () => {
@@ -1923,35 +1967,21 @@ const Quiz = () => {
     setQuantidade(0)
   }
 
-  const handleSaveSession = useCallback(async () => {
-    if (status !== 'finished' || saved) return
-    setSaving(true)
-    setError('')
-    try {
-      const respondidas = questionsAndAnswers.length
-      const porcentagem = calculateCorrectAnswersPercentage(respondidas, score)
-      const matriculaOuNome = matricula || nomeAluno
-      const materiaLabel =
-        materiasSelected.length > 0
-          ? materias
-            .filter((m) => materiasSelected.includes(String(m.id)))
-            .map((m) => m.nome)
-            .join(', ') || 'Quiz de Contabilidade'
-          : 'Quiz de Contabilidade'
+  const saveSessionMutation = useMutation({
+    mutationFn: async (payload) => {
       const res = await fetch(`${API_URL}/api/sessoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome_aluno: matriculaOuNome,
-          assunto_estudado: materiaLabel,
-          questoes_respondidas: respondidas,
-          taxa_acerto: porcentagem,
-          tempo_gasto_segundos: elapsedSeconds,
-          lista_detalhes: questionsAndAnswers.map((qa) => ({ id: qa.id, acertou: qa.isCorrect })),
-        }),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error()
-
+      return res
+    },
+    onMutate: () => {
+      setSaving(true)
+      setError('')
+    },
+    onSuccess: async () => {
       // Se veio de uma trilha (Módulo), marca como concluído automaticamente
       const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
       const moduloId = params.get('modulo_id')
@@ -1969,11 +1999,35 @@ const Quiz = () => {
 
       setSaved(true)
       setFeedback('Sessão salva com sucesso no dashboard.')
-    } catch {
+      setSaving(false)
+    },
+    onError: () => {
       setError('Não foi possível salvar a sessão.')
-    } finally {
       setSaving(false)
     }
+  })
+
+  const handleSaveSession = useCallback(() => {
+    if (status !== 'finished' || saved) return
+    const respondidas = questionsAndAnswers.length
+    const porcentagem = calculateCorrectAnswersPercentage(respondidas, score)
+    const matriculaOuNome = matricula || nomeAluno
+    const materiaLabel =
+      materiasSelected.length > 0
+        ? materias
+          .filter((m) => materiasSelected.includes(String(m.id)))
+          .map((m) => m.nome)
+          .join(', ') || 'Quiz de Contabilidade'
+        : 'Quiz de Contabilidade'
+
+    saveSessionMutation.mutate({
+      nome_aluno: matriculaOuNome,
+      assunto_estudado: materiaLabel,
+      questoes_respondidas: respondidas,
+      taxa_acerto: porcentagem,
+      tempo_gasto_segundos: elapsedSeconds,
+      lista_detalhes: questionsAndAnswers.map((qa) => ({ id: qa.id, acertou: qa.isCorrect })),
+    })
   }, [
     status,
     saved,
@@ -1984,6 +2038,7 @@ const Quiz = () => {
     materiasSelected,
     materias,
     elapsedSeconds,
+    saveSessionMutation
   ])
 
   const handleShare = useCallback(async () => {
