@@ -24,6 +24,7 @@ import {
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
+import api from '../../services/api'
 import { getAlunoMatricula } from '../../utils/auth'
 
 /* ── Tokens de Design (Premium Airbnb Style) ────────────── */
@@ -326,11 +327,7 @@ const MinhasQuestoes = () => {
         queryKey: ['meusFeedbacks', matricula],
         queryFn: async () => {
             addDebugLog(`Carregando feedbacks para matrícula: ${matricula}...`, 'info')
-            const res = await fetch(`${API_URL}/api/aluno/meus-feedbacks-v2?por_pagina=50`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
-            if (!res.ok) throw new Error(`HTTP ${res.status}`)
-            const data = await res.json()
+            const { data } = await api.get(`/api/aluno/meus-feedbacks-v2?por_pagina=50`)
             return data.feedbacks || []
         },
         enabled: !!matricula && !!token && activeTab === 'feedbacks',
@@ -361,12 +358,9 @@ const MinhasQuestoes = () => {
     const { data: questoesResolvidas = [], isLoading: loadingQuestoes } = useQuery({
         queryKey: ['questoes-resolvidas-form', matricula],
         queryFn: async () => {
-            const res = await fetch(
-                `${API_URL}/api/aluno/questoes-respondidas?matricula=${matricula}&por_pagina=30`,
-                { headers: { 'Authorization': `Bearer ${token}` } }
+            const { data } = await api.get(
+                `/api/aluno/questoes-respondidas?matricula=${matricula}&por_pagina=30`
             )
-            if (!res.ok) throw new Error(`HTTP ${res.status}`)
-            const data = await res.json()
             return data.questoes || []
         },
         enabled: formModalOpen && !!matricula && !!token,
@@ -388,21 +382,14 @@ const MinhasQuestoes = () => {
             return
         }
         setSubmittingDuvida(true)
-        fetch(`${API_URL}/api/feedbacks_questoes`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({
-                questao_id: selectedQuestaoParaDuvida || null,
-                nome_aluno: nome || 'Aluno',
-                texto: textoDuvida,
-                marcada_confusa: marcadaConfusa
-            })
+        api.post(`/api/feedbacks_questoes`, {
+            questao_id: selectedQuestaoParaDuvida || null,
+            nome_aluno: nome || 'Aluno',
+            texto: textoDuvida,
+            marcada_confusa: marcadaConfusa
         })
         .then(res => {
-            if (!res.ok) throw new Error(`HTTP ${res.status}`)
-            return res.json()
-        })
-        .then(resData => {
+            const resData = res.data
             setSubmittingDuvida(false)
             if (resData.sucesso || resData.id) {
                 setDuvidaMessage({ tipo: 'success', texto: 'Dúvida enviada com sucesso!' })
@@ -447,25 +434,15 @@ const MinhasQuestoes = () => {
         setSubmittingDuvida(true)
         setDuvidaMessage(null)
 
-        fetch(`${API_URL}/api/feedbacks_questoes`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // autenticado
-            },
-            body: JSON.stringify({
-                questao_id: selectedQuestaoId,
-                nome_aluno: nome || 'Aluno Anônimo',
-                texto: textoDuvida,
-                marcada_confusa: marcadaConfusa
-            })
+        api.post(`/api/feedbacks_questoes`, {
+            questao_id: selectedQuestaoId,
+            nome_aluno: nome || 'Aluno Anônimo',
+            texto: textoDuvida,
+            marcada_confusa: marcadaConfusa
         })
         .then(res => {
-            addDebugLog(`API respondeu com status: ${res.status}`, res.ok ? 'success' : 'error')
-            if (!res.ok) throw new Error(`HTTP ${res.status}`)
-            return res.json()
-        })
-        .then(resData => {
+            addDebugLog(`API respondeu com sucesso`, 'success')
+            const resData = res.data
             setSubmittingDuvida(false)
             if (resData.sucesso || resData.id) {
                 addDebugLog('Dúvida enviada com sucesso ao banco de dados!', 'success')
@@ -508,11 +485,9 @@ const MinhasQuestoes = () => {
         return () => document.removeEventListener('click', handleClickOutside)
     }, [activeDropdown])
 
-    // Carregar matérias para os filtros
     useEffect(() => {
-        fetch(`${API_URL}/api/admin/materias`)
-            .then(res => res.json())
-            .then(data => setMaterias(Array.isArray(data) ? data : []))
+        api.get(`/api/admin/materias`)
+            .then(res => setMaterias(Array.isArray(res.data) ? res.data : []))
             .catch(() => { })
     }, [])
 
@@ -521,10 +496,8 @@ const MinhasQuestoes = () => {
         if (!matricula || !token) return
         setLoadingMetrics(true)
         
-        fetch(`${API_URL}/api/metricas-estudantes/desempenho/${matricula}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(res => res.ok ? res.json() : null)
+        api.get(`/api/metricas-estudantes/desempenho/${matricula}`)
+        .then(res => res.data)
         .then(data => {
             setMetrics(data)
             setLoadingMetrics(false)
@@ -544,13 +517,8 @@ const MinhasQuestoes = () => {
         if (filtroAcerto) params.set('acerto', filtroAcerto)
         if (filtroMateria) params.set('materia_id', filtroMateria)
 
-        fetch(`${API_URL}/api/aluno/questoes-respondidas?${params.toString()}`, {
-            headers: { 'Authorization': `Bearer ${token}` } // autenticado
-        })
-            .then(res => {
-                if (!res.ok) throw new Error('Erro na requisição')
-                return res.json()
-            })
+        api.get(`/api/aluno/questoes-respondidas?${params.toString()}`)
+            .then(res => res.data)
             .then(data => {
                 setDados(data)
                 setLoading(false)
@@ -568,11 +536,8 @@ const MinhasQuestoes = () => {
         setLoadingDetail(true)
         setErrorDetail(null)
 
-        fetch(`${API_URL}/api/questoes?ids=${selectedQuestaoId}`)
-            .then(res => {
-                if (!res.ok) throw new Error('Erro ao carregar detalhes')
-                return res.json()
-            })
+        api.get(`/api/questoes?ids=${selectedQuestaoId}`)
+            .then(res => res.data)
             .then(resData => {
                 const questaoLista = resData.dados?.data || resData.dados || resData || []
                 if (questaoLista.length > 0) {

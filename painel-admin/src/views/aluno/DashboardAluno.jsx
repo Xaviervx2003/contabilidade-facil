@@ -11,6 +11,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { API_URL } from '../../config'
+import api from '../../services/api'
 import { useTheme } from '../../context/themeContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
@@ -315,14 +316,9 @@ const DashboardAluno = () => {
     queryKey: ['dashboard-aluno', matricula],
     queryFn: async () => {
       if (!matricula) throw new Error('Faça login primeiro')
-      const token = sessionStorage.getItem('token')
-      const res = await fetch(`${API_URL}/api/aluno/dashboard/${matricula}`, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-      })
-      if (!res.ok) throw new Error('Erro ao buscar dados')
-      const json = await res.json()
-      if (json.nome) sessionStorage.setItem('nome', json.nome)
-      return json
+      const res = await api.get(`/api/aluno/dashboard/${matricula}`)
+      if (res.data && res.data.nome) sessionStorage.setItem('nome', res.data.nome)
+      return res.data
     },
     staleTime: 1000 * 60 * 5,
     enabled: !!matricula,
@@ -331,20 +327,12 @@ const DashboardAluno = () => {
   const { data: missoesGlobais, isLoading: loadingMissoes, isError: erroMissoes } = useQuery({
     queryKey: ['missoes-globais', matricula],
     queryFn: async () => {
-      const token = sessionStorage.getItem('token')
-      if (!token) throw new Error('Sem token')
-
       const url = matricula 
-        ? `${API_URL}/api/missoes/globais/${matricula}`
-        : `${API_URL}/api/missoes/globais`
+        ? `/api/missoes/globais/${matricula}`
+        : `/api/missoes/globais`
       
-      const res = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      if (!res.ok) throw new Error('Erro ao buscar missões')
-      return res.json()
+      const res = await api.get(url)
+      return res.data
     },
     staleTime: 1000 * 60 * 10,
     enabled: !!sessionStorage.getItem('token'),
@@ -353,9 +341,8 @@ const DashboardAluno = () => {
   const { data: quizInsights } = useQuery({
     queryKey: ['quiz-insights', matricula],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/aluno/quiz-analytics/${matricula}`)
-      if (!res.ok) throw new Error('Erro')
-      return res.json()
+      const res = await api.get(`/api/aluno/quiz-analytics/${matricula}`)
+      return res.data
     },
     staleTime: 1000 * 60 * 10,
     enabled: !!matricula,

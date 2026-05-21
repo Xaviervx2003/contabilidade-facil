@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { CAlert, CSpinner, CContainer } from '@coreui/react'
 import { API_URL } from '../../config'
+import api from '../../services/api'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 
@@ -243,16 +244,11 @@ const Missoes = ({ isTab = false }) => {
             }
 
             const url = matricula 
-                ? `${API_URL}/api/missoes/globais/${matricula}`
-                : `${API_URL}/api/missoes/globais`
+                ? `/api/missoes/globais/${matricula}`
+                : `/api/missoes/globais`
 
-            const r = await fetch(url, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            if (!r.ok) throw new Error()
-            setMissoes(await r.json())
+            const r = await api.get(url)
+            setMissoes(r.data)
         } catch {
             setErro('Erro ao carregar missões. Tente recarregar a página.')
         } finally {
@@ -265,16 +261,11 @@ const Missoes = ({ isTab = false }) => {
     const handleConcluir = async (missaoId) => {
         setConcluindo(missaoId)
         try {
-            const r = await fetch(`${API_URL}/api/missoes/concluir`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ matricula, missao_id: missaoId }),
-            })
-            if (!r.ok) throw new Error((await r.json()).detail || 'Erro')
+            const r = await api.post(`/api/missoes/concluir`, { matricula, missao_id: missaoId })
             setToast({ tipo: 'success', msg: '🎉 Missão concluída! XP adicionado!' })
             fetchMissoes()
         } catch (e) {
-            setToast({ tipo: 'error', msg: e.message })
+            setToast({ tipo: 'error', msg: e.response?.data?.detail || e.message })
         } finally {
             setConcluindo(null)
             setTimeout(() => setToast(null), 3500)

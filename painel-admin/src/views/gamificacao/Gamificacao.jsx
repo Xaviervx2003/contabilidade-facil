@@ -3,6 +3,7 @@ import { CButton, CContainer, CSpinner } from '@coreui/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
+import api from '../../services/api'
 
 import Missoes from './Missoes'
 import Conquistas from './Conquistas'
@@ -29,9 +30,8 @@ const RankingTurma = () => {
       setError('')
 
       try {
-        const res = await fetch(`${API_URL}/api/aluno/leaderboard?tipo=${tipo}&limite=10`)
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const data = await res.json()
+        const res = await api.get(`/api/aluno/leaderboard?tipo=${tipo}&limite=10`)
+        const data = res.data
         if (active) setRanking(Array.isArray(data) ? data : [])
       } catch {
         if (active) {

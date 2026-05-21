@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { toast } from 'react-hot-toast'
 import { API_URL } from '../../config'
+import api from '../../services/api'
 import { getAlunoMatricula } from '../../utils/auth'
 import { useTheme } from '../../context/themeContext'
 
@@ -95,9 +96,8 @@ const MinhasTrilhas = () => {
   const { data: trilhas = [], isLoading: loading, error: queryError } = useQuery({
     queryKey: ['minhasTrilhas', matricula],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/trilhas/aluno/${matricula}`)
-      if (!res.ok) throw new Error('Erro ao carregar as trilhas')
-      return res.json()
+      const { data } = await api.get(`/api/trilhas/aluno/${matricula}`)
+      return data
     },
     enabled: !!matricula,
   })
@@ -105,19 +105,15 @@ const MinhasTrilhas = () => {
   const { data: duvidas = [], refetch: refetchDuvidas } = useQuery({
     queryKey: ['duvidasModulo', moduloAtivo?.id],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/trilhas/modulos/${moduloAtivo.id}/duvidas`)
-      return res.json()
+      const { data } = await api.get(`/api/trilhas/modulos/${moduloAtivo.id}/duvidas`)
+      return data
     },
     enabled: !!moduloAtivo && abaAtiva === 'duvidas',
   })
 
   const mutationConcluir = useMutation({
     mutationFn: async (moduloId) => {
-      await fetch(`${API_URL}/api/trilhas/progresso/${moduloId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricula }),
-      })
+      await api.post(`/api/trilhas/progresso/${moduloId}`, { matricula })
     },
     onMutate: (id) => setSalvando(id),
     onSuccess: () => {
@@ -129,13 +125,8 @@ const MinhasTrilhas = () => {
 
   const mutationDuvida = useMutation({
     mutationFn: async ({ moduloId, texto }) => {
-      const res = await fetch(`${API_URL}/api/trilhas/modulos/${moduloId}/duvidas`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricula, texto }),
-      })
-      if (!res.ok) throw new Error('Erro ao enviar comentário')
-      return res.json()
+      const { data } = await api.post(`/api/trilhas/modulos/${moduloId}/duvidas`, { matricula, texto })
+      return data
     },
     onMutate: () => setEnviandoDuvida(true),
     onSuccess: () => {

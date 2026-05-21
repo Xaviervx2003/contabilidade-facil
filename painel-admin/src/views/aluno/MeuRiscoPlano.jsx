@@ -12,6 +12,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
+import api from '../../services/api'
 import { getAlunoMatricula } from '../../utils/auth'
 
 /* ── Tokens de Design (Premium Airbnb Style) ────────────── */
@@ -67,26 +68,18 @@ const MeuRiscoPlano = () => {
 
         try {
             setLoading(true)
-            const token = sessionStorage.getItem('token')
-            const url = `${API_URL}/api/metricas-estudantes/desempenho/${matricula}`
+            const url = `/api/metricas-estudantes/desempenho/${matricula}`
             
-            const res = await fetch(url, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-            })
-
-            if (!res.ok) {
-                if (res.status === 404) {
+            try {
+                const res = await api.get(url)
+                setMetrics(res.data)
+            } catch (apiError) {
+                if (apiError.response && apiError.response.status === 404) {
                     // Sem histórico ainda
                     setMetrics(null)
                 } else {
-                    throw new Error(`Erro HTTP ${res.status}`)
+                    throw apiError
                 }
-            } else {
-                const data = await res.json()
-                setMetrics(data)
             }
             setError(null)
         } catch (err) {

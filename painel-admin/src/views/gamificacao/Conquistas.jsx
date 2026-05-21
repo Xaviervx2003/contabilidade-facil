@@ -10,6 +10,7 @@ import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { getAlunoMatricula } from '../../utils/auth'
 import { API_URL } from '../../config'
+import api from '../../services/api'
 import { formatIsoToDateString, formatIsoToShortDate } from '../../utils/formatDate'
 
 /* ─── Tokens Airbnb-inspired ─────────────────────────────── */
@@ -73,22 +74,10 @@ const Conquistas = ({ isTab = false }) => {
                     return
                 }
 
-                const url = `${API_URL}/api/aluno/conquistas/${matricula}`
-                const token = sessionStorage.getItem('token')
-
-                const res = await fetch(url, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                })
-
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}: ${res.statusText}`)
-                }
-
-                const data = await res.json()
-                setConquistas(data)
+                const url = `/api/aluno/conquistas/${matricula}`
+                
+                const res = await api.get(url)
+                setConquistas(res.data)
                 setError(null)
             } catch (err) {
                 console.error('❌ Erro ao carregar conquistas:', err)

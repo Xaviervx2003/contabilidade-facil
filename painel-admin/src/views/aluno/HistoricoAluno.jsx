@@ -8,6 +8,7 @@ import {
     BarChart, Bar, Tooltip, ResponsiveContainer, XAxis
 } from 'recharts'
 import { API_URL } from '../../config'
+import api from '../../services/api'
 import { useTheme } from '../../context/themeContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
@@ -42,9 +43,8 @@ const medalha = (v) => {
 const dataLocalHoje = () => new Date().toLocaleDateString('sv')
 
 const fetchJSON = async (url) => {
-    const r = await fetch(url)
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
-    return r.json()
+    const { data } = await api.get(url)
+    return data
 }
 
 /* ─── Heatmap de Contribuição ─── */

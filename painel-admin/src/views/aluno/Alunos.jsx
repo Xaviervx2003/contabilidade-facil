@@ -7,6 +7,7 @@ import { CAlert, CSpinner } from '@coreui/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
+import api from '../../services/api'
 import { tokens, alpha, acertoColor } from '../../components/abnb/Tokens'
 import { AirbnbProgress, SkeletonBlock } from '../../components/abnb/Cards'
 
@@ -323,15 +324,15 @@ const Alunos = () => {
       const params = new URLSearchParams({ pagina: pagina.toString(), por_pagina: '20' })
       if (userId) params.append('usuario_id', userId)
 
-      const res = await fetch(`${API_URL}/api/metricas-estudantes/desempenho?${params}`)
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.detail || `Erro ${res.status} ao carregar métricas`)
+      try {
+        const res = await api.get(`/api/metricas-estudantes/desempenho?${params}`)
+        const data = res.data
+        const dados = data.estudantes || data.alunos || []
+        setListaAlunos(Array.isArray(dados) ? dados : [])
+        setTotalPaginas(data.total_paginas || 1)
+      } catch (err) {
+        throw new Error(err.response?.data?.detail || `Erro ao carregar métricas: ${err.message}`)
       }
-      const data = await res.json()
-      const dados = data.estudantes || data.alunos || []
-      setListaAlunos(Array.isArray(dados) ? dados : [])
-      setTotalPaginas(data.total_paginas || 1)
     } catch (err) {
       setErro(err.message)
     } finally {
