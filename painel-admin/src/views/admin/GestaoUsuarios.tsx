@@ -1,5 +1,8 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useUsuarios, useCriarUsuario, useAtualizarUsuario, useDeletarUsuario } from '../../hooks/useUsuarios'
+import { useMaterias } from '../../hooks/useMaterias'
+import { usuariosService } from '../../services/usuariosService'
 import {
     CCard, CCardBody, CCardHeader,
     CTable, CTableHead, CTableBody, CTableRow,
@@ -88,57 +91,31 @@ const validarFormulario = (data: FormData, isEdit: boolean): FormErrors => {
 // ── 🧩 Componente Principal ────────────────────────────────────
 const GestaoUsuarios = () => {
     const navigate = useNavigate()
-    const abortRef = useRef<AbortController | null>(null)
 
-    // Estados
-    const [usuarios, setUsuarios] = useState<Usuario[]>([])
-    const [materias, setMaterias] = useState<Materia[]>([])
-    const [loading, setLoading] = useState(true)
+    // Queries
+    const { data: usuarios = [], isLoading: loadingUsuarios, error: erroUsuarios } = useUsuarios()
+    const { data: materias = [] } = useMaterias()
+
+    // Mutations
+    const { mutateAsync: criarUsuario, isPending: salvandoCriacao } = useCriarUsuario()
+    const { mutateAsync: atualizarUsuario, isPending: salvandoAtualizacao } = useAtualizarUsuario()
+    const { mutateAsync: removerUsuario } = useDeletarUsuario()
+
+    const salvando = salvandoCriacao || salvandoAtualizacao
+    const loading = loadingUsuarios
+    const erroGeral = erroUsuarios ? 'Falha ao carregar usuários' : null
+
+    // Estados Locais da UI
     const [erro, setErro] = useState<string | null>(null)
     const [sucesso, setSucesso] = useState<string | null>(null)
-
     const [modalAberto, setModalAberto] = useState(false)
     const [modoEdicao, setModoEdicao] = useState(false)
     const [formData, setFormData] = useState<FormData>(FORM_INICIAL)
     const [formErrors, setFormErrors] = useState<FormErrors>({})
-    const [salvando, setSalvando] = useState(false)
 
     const [busca, setBusca] = useState('')
     const [paginaAtual, setPaginaAtual] = useState(1)
     const [itensPorPagina] = useState(10)
-
-    // ── 📡 Fetch com AbortController ─────────────────────────────
-    const carregarDados = useCallback(async () => {
-        abortRef.current?.abort()
-        const controller = new AbortController()
-        abortRef.current = controller
-        setLoading(true)
-        setErro(null)
-
-        try {
-            const [resUsuarios, resMaterias] = await Promise.all([
-                fetch(`${API_URL}/api/admin/usuarios`, { signal: controller.signal }),
-                fetch(`${API_URL}/api/admin/materias`, { signal: controller.signal })
-            ])
-
-            if (!resUsuarios.ok) throw new Error('Falha ao carregar usuários')
-            setUsuarios(await resUsuarios.json())
-
-            if (resMaterias.ok) setMaterias(await resMaterias.json())
-            else setMaterias([])
-        } catch (err: any) {
-            if (err.name !== 'AbortError') {
-                setErro('Não foi possível conectar ao servidor. Verifique o backend.')
-            }
-        } finally {
-            setLoading(false)
-        }
-    }, [])
-
-    useEffect(() => {
-        carregarDados()
-        return () => abortRef.current?.abort()
-    }, [carregarDados])
 
     // ── 🔎 Filtragem & Paginação ────────────────────────────────
     const usuariosFiltrados = useMemo(() => {
@@ -173,9 +150,9 @@ const GestaoUsuarios = () => {
     const abrirEditar = useCallback(async (u: Usuario) => {
         setErro(null)
         try {
-            const res = await fetch(`${API_URL}/api/admin/usuarios/${u.id}`)
-            if (!res.ok) throw new Error('Falha ao buscar detalhes do usuário.')
-            const dados = await res.json()
+            // Em React Query, se precisássemos forçar o refresh do detalhe poderiamos usar useQuery com id, 
+            // mas como é uma ação pontual, podemos chamar o service direto:
+            const dados = await usuariosService.getUsuarioPorId(u.id)
 
             setFormData({
                 id: dados.id,
@@ -192,7 +169,7 @@ const GestaoUsuarios = () => {
             setModoEdicao(true)
             setModalAberto(true)
         } catch (e: any) {
-            setErro(e.message)
+            setErro(e.response?.data?.detail || e.message)
         }
     }, [])
 
@@ -224,10 +201,8 @@ const GestaoUsuarios = () => {
             return
         }
 
-        setSalvando(true)
         setErro(null)
         try {
-            // Payload condicional: não envia senha se vazia na edição
             const payload = {
                 nome: formData.nome,
                 matricula: formData.matricula,
@@ -240,49 +215,37 @@ const GestaoUsuarios = () => {
                 ...(modoEdicao ? (formData.senha ? { senha: formData.senha } : {}) : { senha: formData.senha })
             }
 
-            const res = await fetch(
-                modoEdicao ? `${API_URL}/api/admin/usuarios/${formData.id}` : `${API_URL}/api/admin/usuarios`,
-                {
-                    method: modoEdicao ? 'PUT' : 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                }
-            )
-
-            const data = await res.json()
-            if (!res.ok) throw new Error(data.detail || 'Erro ao salvar no servidor')
+            if (modoEdicao) {
+                await atualizarUsuario({ id: formData.id as number, dados: payload })
+            } else {
+                await criarUsuario(payload)
+            }
 
             setSucesso(modoEdicao ? 'Usuário atualizado com sucesso!' : 'Usuário criado com sucesso!')
             fecharModal()
-            carregarDados()
             setTimeout(() => setSucesso(null), 3000)
         } catch (e: any) {
-            setErro(e.message)
-        } finally {
-            setSalvando(false)
+            setErro(e.response?.data?.detail || e.message)
         }
-    }, [formData, modoEdicao, fecharModal, carregarDados])
+    }, [formData, modoEdicao, fecharModal, atualizarUsuario, criarUsuario])
 
     // ── 🗑️ Deletar ──────────────────────────────────────────────
     const deletar = useCallback(async (id: number, nome: string) => {
         if (!window.confirm(`Remover "${nome}"? Esta ação não pode ser desfeita.`)) return
         try {
-            const res = await fetch(`${API_URL}/api/admin/usuarios/${id}`, { method: 'DELETE' })
-            const data = await res.json()
-            if (!res.ok) throw new Error(data.detail || 'Erro ao deletar')
+            await removerUsuario(id)
             setSucesso('Usuário removido!')
-            carregarDados()
             setTimeout(() => setSucesso(null), 3000)
         } catch (e: any) {
-            setErro(e.message)
+            setErro(e.response?.data?.detail || e.message)
         }
-    }, [carregarDados])
+    }, [removerUsuario])
 
     // ── 🎨 Render ───────────────────────────────────────────────
     return (
         <>
             {sucesso && <CAlert color="success" dismissible onClose={() => setSucesso(null)}>{sucesso}</CAlert>}
-            {erro && <CAlert color="danger" dismissible onClose={() => setErro(null)}>{erro}</CAlert>}
+            {(erro || erroGeral) && <CAlert color="danger" dismissible onClose={() => setErro(null)}>{erro || erroGeral}</CAlert>}
 
             <CCard className="mb-4 border-0 shadow-sm">
                 <CCardHeader className="bg-body border-0 pb-0">

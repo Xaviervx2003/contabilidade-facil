@@ -6,6 +6,7 @@ Todos os papéis (admin, professor, aluno) são gerenciados aqui.
 from fastapi import APIRouter, HTTPException
 from database import get_conexao
 from models import PromoverProfessorRequest, MateriaRequest
+from repositories.usuario_repository import UsuarioRepository
 
 router = APIRouter(prefix="/api/admin", tags=["Administração"])
 
@@ -270,50 +271,7 @@ def listar_usuarios():
     Retorna todos os usuários do sistema com seu papel e as matérias que ensinam.
     """
     try:
-        with get_conexao() as conn:
-            cursor = conn.cursor()
-            
-            # We use COALESCE on email to ensure it never returns a pure NULL that might break a frontend parser.
-            # We simplified the GROUP BY to only include the exact columns we select.
-            cursor.execute("""
-                SELECT
-                    u.id,
-                    u.nome,
-                    u.matricula,
-                    COALESCE(u.email, '') AS email,
-                    u.papel,
-                    u.status_aluno,
-                    u.celular,
-                    u.periodo,
-                    STRING_AGG(m.nome, ', ' ORDER BY m.nome) AS materias_ensinadas
-                FROM usuarios u
-                LEFT JOIN professores_materias pm ON u.id = pm.usuario_id
-                LEFT JOIN materias m              ON pm.materia_id = m.id
-                GROUP BY u.id, u.nome, u.matricula, u.email, u.papel, u.status_aluno, u.celular, u.periodo
-                ORDER BY
-                    CASE u.papel
-                        WHEN 'admin'     THEN 1
-                        WHEN 'professor' THEN 2
-                        ELSE                  3
-                    END,
-                    u.nome ASC;
-            """)
-            linhas = cursor.fetchall()
-        
-        return [
-            {
-                "id":                 l[0],
-                "nome":               l[1],
-                "matricula":          l[2],
-                "email":              l[3],
-                "papel":              l[4],
-                "status_aluno":       l[5],
-                "celular":            l[6],
-                "periodo":            l[7],
-                "materias_ensinadas": l[8] if l[8] else "—",
-            }
-            for l in linhas
-        ]
+        return UsuarioRepository.listar_todos()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error in listar_usuarios: {str(e)}")
 
@@ -322,43 +280,10 @@ def listar_usuarios():
 def obter_usuario(usuario_id: int):
     """Retorna um único usuário pelo ID, incluindo os IDs das matérias."""
     try:
-        with get_conexao() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT
-                    u.id, 
-                    u.nome, 
-                    u.matricula, 
-                    COALESCE(u.email, '') AS email, 
-                    u.papel,
-                    u.status_aluno,
-                    u.celular,
-                    u.periodo,
-                    STRING_AGG(m.nome, ', ' ORDER BY m.nome) AS materias_ensinadas,
-                    ARRAY_AGG(pm.materia_id) FILTER (WHERE pm.materia_id IS NOT NULL) AS materia_ids
-                FROM usuarios u
-                LEFT JOIN professores_materias pm ON u.id = pm.usuario_id
-                LEFT JOIN materias m              ON pm.materia_id = m.id
-                WHERE u.id = %s
-                GROUP BY u.id, u.nome, u.matricula, u.email, u.papel, u.status_aluno, u.celular, u.periodo;
-            """, (usuario_id,))
-            l = cursor.fetchone()
-        
-        if not l:
+        usuario = UsuarioRepository.obter_por_id(usuario_id)
+        if not usuario:
             raise HTTPException(status_code=404, detail="Usuário não encontrado.")
-            
-        return {
-            "id":                 l[0],
-            "nome":               l[1],
-            "matricula":          l[2],
-            "email":              l[3],
-            "papel":              l[4],
-            "status_aluno":       l[5],
-            "celular":            l[6],
-            "periodo":            l[7],
-            "materias_ensinadas": l[8] if l[8] else "—",
-            "materia_ids":        l[9] if l[9] else [],
-        }
+        return usuario
     except HTTPException:
         raise
     except Exception as e:
@@ -371,52 +296,14 @@ def criar_usuario(dados: dict):
     Campos: nome, matricula, senha, papel, email (opcional)
     """
     try:
-        with get_conexao() as conn:
-            cursor = conn.cursor()
+        papel = dados.get("papel", "aluno")
+        if papel not in ("admin", "professor", "aluno"):
+            raise HTTPException(status_code=400, detail="Papel inválido.")
             
-            # 1. Validação do papel
-            papel = dados.get("papel", "aluno")
-            if papel not in ("admin", "professor", "aluno"):
-                raise HTTPException(status_code=400, detail="Papel inválido.")
-
-            # 2. Tratamento de e-mail vazio para não dar erro UNIQUE no banco
-            email = dados.get("email")
-            if email == "":
-                email = None
-
-            # 3. Inserir o usuário
-            cursor.execute("""
-                INSERT INTO usuarios (nome, matricula, senha, email, papel, status_aluno, celular, periodo)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id;
-            """, (
-                dados.get("nome"),
-                dados.get("matricula"),
-                dados.get("senha"),
-                email,
-                papel,
-                dados.get("status_aluno", "ativo"),
-                dados.get("celular"),
-                dados.get("periodo")
-            ))
-            novo_id = cursor.fetchone()[0]
-
-            # 4. Vincular matérias se for professor
-            if papel == "professor":
-                materia_ids = dados.get("materia_ids", [])
-                if materia_ids:
-                    valores = ",".join(["(%s,%s)"] * len(materia_ids))
-                    params = []
-                    for m_id in materia_ids:
-                        params.extend([novo_id, m_id])
-                    cursor.execute(
-                        f"INSERT INTO professores_materias (usuario_id, materia_id) VALUES {valores};",
-                        tuple(params)
-                    )
-
-            conn.commit()
+        novo_id = UsuarioRepository.criar(dados)
         return {"sucesso": True, "mensagem": "Usuário criado com sucesso!", "id": novo_id}
-        
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao criar usuário: {str(e)}")
 
@@ -428,71 +315,11 @@ def editar_usuario(usuario_id: int, dados: dict):
     Se papel == 'professor', pode receber materia_ids para vínculos.
     """
     try:
-        with get_conexao() as conn:
-            cursor = conn.cursor()
-
-            papel = dados.get("papel")
-            if papel and papel not in ("admin", "professor", "aluno"):
-                raise HTTPException(status_code=400, detail="Papel inválido.")
-                
-            email = dados.get("email")
-            if email == "":
-                email = None
-
-            status_aluno = dados.get("status_aluno", "ativo")
-            celular = dados.get("celular")
-            periodo = dados.get("periodo")
-
-            # Atualiza campos básicos (incluindo senha se fornecida)
-            senha = dados.get("senha")
-            if senha and senha.strip():
-                cursor.execute("""
-                    UPDATE usuarios
-                    SET nome  = COALESCE(%s, nome),
-                        email = %s,
-                        papel = COALESCE(%s, papel),
-                        senha = %s,
-                        status_aluno = COALESCE(%s, status_aluno),
-                        celular = %s,
-                        periodo = %s
-                    WHERE id = %s;
-                """, (dados.get("nome"), email, papel, senha, status_aluno, celular, periodo, usuario_id))
-            else:
-                cursor.execute("""
-                    UPDATE usuarios
-                    SET nome  = COALESCE(%s, nome),
-                        email = %s,
-                        papel = COALESCE(%s, papel),
-                        status_aluno = COALESCE(%s, status_aluno),
-                        celular = %s,
-                        periodo = %s
-                    WHERE id = %s;
-                """, (dados.get("nome"), email, papel, status_aluno, celular, periodo, usuario_id))
-
-            # Se for professor, atualiza matérias
-            if papel == "professor":
-                cursor.execute(
-                    "DELETE FROM professores_materias WHERE usuario_id = %s;",
-                    (usuario_id,)
-                )
-                materia_ids = dados.get("materia_ids", [])
-                if materia_ids:
-                    valores = ",".join(["(%s,%s)"] * len(materia_ids))
-                    params = []
-                    for m_id in materia_ids:
-                        params.extend([usuario_id, m_id])
-                    cursor.execute(
-                        f"INSERT INTO professores_materias (usuario_id, materia_id) VALUES {valores};",
-                        tuple(params)
-                    )
-            # Se deixou de ser professor, remove vínculos de matéria
-            elif papel in ("admin", "aluno"):
-                cursor.execute(
-                    "DELETE FROM professores_materias WHERE usuario_id = %s;",
-                    (usuario_id,)
-                )
-
-            conn.commit()
+        papel = dados.get("papel")
+        if papel and papel not in ("admin", "professor", "aluno"):
+            raise HTTPException(status_code=400, detail="Papel inválido.")
+            
+        UsuarioRepository.atualizar(usuario_id, dados)
         return {"sucesso": True, "mensagem": "Usuário atualizado!"}
     except HTTPException:
         raise
@@ -504,14 +331,9 @@ def editar_usuario(usuario_id: int, dados: dict):
 def deletar_usuario(usuario_id: int):
     """Remove um usuário. Não permite deletar o admin principal (id=1)."""
     try:
-        if usuario_id == 1:
-            raise HTTPException(status_code=403, detail="O admin principal não pode ser removido.")
-        with get_conexao() as conn:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM usuarios WHERE id = %s;", (usuario_id,))
-            conn.commit()
+        UsuarioRepository.deletar(usuario_id)
         return {"sucesso": True, "mensagem": "Usuário removido!"}
-    except HTTPException:
-        raise
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao deletar: {str(e)}")
