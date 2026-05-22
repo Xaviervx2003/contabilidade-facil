@@ -131,7 +131,9 @@ const MissaoCard = ({ m, onConcluir, concluindo }) => {
             {/* Conteúdo Central */}
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                    <span style={{ fontSize: 18 }}>{m.icone || '🎯'}</span>
+                    <span style={{ fontSize: 18 }}>
+                        {m.icone?.includes(':') ? <Icon icon={m.icone} /> : (m.icone || '🎯')}
+                    </span>
                     <span style={{ fontWeight: 700, fontSize: 15, color: T.text }}>{m.titulo}</span>
 
                     {isConcluida && (
