@@ -13,11 +13,11 @@ import {
 } from '@coreui/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { API_URL } from '../../config'
 import { getAlunoMatricula } from '../../utils/auth'
 import { tokens } from '../../tokens'
 import { COLOR_PALETTES } from '../../tokens'
 import { useTheme } from '../../context/themeContext'
+import api from '../../services/api'
 
 const getInitials = (name) => {
   if (!name) return '??'
@@ -43,7 +43,6 @@ const Skeleton = ({ h = 20, w = '100%', radius = 12, className = '' }) => (
 const Perfil = () => {
   const nomeUsuario = sessionStorage.getItem('nome') || ''
   const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
-  const token = sessionStorage.getItem('token')
 
   const [activeTab, setActiveTab] = useState('dados') // 'dados' | 'seguranca' | 'aparencia'
   const queryClient = useQueryClient()
@@ -72,15 +71,11 @@ const Perfil = () => {
   const { data: perfil, isLoading, isError } = useQuery({
     queryKey: ['perfil', matricula],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/perfil/${matricula}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = await res.json()
+      const { data } = await api.get(`/api/perfil/${matricula}`)
       if (!data.sucesso) throw new Error(data.mensagem || 'Erro ao carregar')
       return data.dados
     },
-    enabled: !!matricula && !!token,
+    enabled: !!matricula,
     staleTime: 1000 * 60 * 5, // 5 minutos de cache
   })
 
@@ -100,15 +95,7 @@ const Perfil = () => {
     setPerfilFeedback({ tipo: '', msg: '' })
     setSalvandoPerfil(true)
     try {
-      const res = await fetch(`${API_URL}/api/perfil/${matricula}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      })
-      const data = await res.json()
+      const { data } = await api.put(`/api/perfil/${matricula}`, formData)
       if (data.sucesso) {
         setPerfilFeedback({ tipo: 'success', msg: 'Perfil atualizado com sucesso!' })
         queryClient.invalidateQueries(['perfil', matricula])
@@ -132,24 +119,13 @@ const Perfil = () => {
     formDataUpload.append('file', file)
 
     try {
-      const res = await fetch(`${API_URL}/api/perfil/upload-avatar`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formDataUpload
+      // Axios multipart: Content-Type é definido automaticamente com boundary
+      const { data } = await api.post('/api/perfil/upload-avatar', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       })
-      const data = await res.json()
       if (data.sucesso) {
-        // Enviar o novo avatar_url via PUT para o backend (API atualizar_perfil)
-        await fetch(`${API_URL}/api/perfil/${matricula}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ avatar_url: data.dados.url })
-        })
+        // Salva o novo avatar_url no perfil
+        await api.put(`/api/perfil/${matricula}`, { avatar_url: data.dados.url })
         queryClient.invalidateQueries(['perfil', matricula])
       } else {
         alert(data.mensagem)
@@ -176,19 +152,11 @@ const Perfil = () => {
 
     setSaving(true)
     try {
-      const res = await fetch(`${API_URL}/api/alterar-senha`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({
-          matricula,
-          senha_atual: senhaAtual,
-          nova_senha: novaSenha,
-        }),
+      const { data } = await api.post('/api/alterar-senha', {
+        matricula,
+        senha_atual: senhaAtual,
+        nova_senha: novaSenha,
       })
-      const data = await res.json()
       if (data.sucesso) {
         setFeedback({ tipo: 'success', msg: data.mensagem })
         setSenhaAtual('')
