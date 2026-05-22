@@ -261,3 +261,15 @@ INSERT INTO missoes_globais (titulo, dica, icon) VALUES
 ('Semana do Contador', 'Resolva 50 questões de Contabilidade Geral nesta semana.', 'solar:ranking-bold'),
 ('Maratona de Sábado', 'Conclua 2 simulados completos.', 'solar:fire-bold')
 ON CONFLICT DO NOTHING;
+
+-- ─── 10. SOLICITAÇÕES DE REORGANIZAÇÃO DE MATÉRIAS ─────────────
+CREATE TABLE IF NOT EXISTS solicitacoes_reorganizacao (
+    id SERIAL PRIMARY KEY,
+    materia_id INT NOT NULL REFERENCES materias(id) ON DELETE CASCADE,
+    novo_parent_id INT REFERENCES materias(id) ON DELETE CASCADE,
+    solicitado_por INT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'pendente',
+    processado_por INT REFERENCES usuarios(id) ON DELETE SET NULL,
+    criado_em TIMESTAMP DEFAULT NOW(),
+    processado_em TIMESTAMP
+);
