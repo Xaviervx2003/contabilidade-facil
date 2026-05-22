@@ -16,19 +16,7 @@ import { API_URL } from '../../config'
 import api from '../../services/api'
 import { getAlunoMatricula } from '../../utils/auth'
 import { useNavigate } from 'react-router-dom'
-
-/* ── Tokens de Design (Premium Airbnb Style) ────────────── */
-const tokens = {
-    rausch: '#FF385C',  // Coral principal
-    babu: '#00A699',    // Teal/Verde
-    arches: '#FC642D',  // Laranja
-    hof: '#484848',
-    foggy: '#767676',   // Cinza Muted
-    border: 'var(--color-border)',
-    bg: 'var(--color-bg-elevated)',
-    bgSub: 'var(--color-bg-tertiary)',
-    text: 'var(--color-text-primary)',
-}
+import { tokens } from '../../tokens'
 
 /* ── Circular Progress Ring ──────────────────────────────── */
 const RingProgress = ({ value, size = 120, stroke = 10, color = tokens.rausch }) => {

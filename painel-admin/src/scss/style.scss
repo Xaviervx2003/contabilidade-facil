@@ -55,6 +55,13 @@ $font-family-premium: 'Almarai', sans-serif;
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Accent / Paleta de destaque (padrão: Airbnb Coral) ── */
+  --accent-primary:       #FF385C;
+  --accent-primary-rgb:   255, 56, 92;
+  --accent-secondary:     #00A699;
+  --accent-secondary-rgb: 0, 166, 153;
+  --accent-tertiary:      #FC642D;
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -143,6 +150,12 @@ h4, h5, h6 {
   }
 }
 
+/* Skeleton shimmer — usado em múltiplas telas (centralizado aqui) */
+@keyframes skshimmer {
+  0%   { background-position: 200% 0 }
+  100% { background-position: -200% 0 }
+}
+
 .animate-in {
   animation: fadeInUp 0.6s ease-out forwards;
 }
@@ -208,8 +221,8 @@ h4, h5, h6 {
     }
 
     &.active {
-      color: #FF385C !important;
-      background-color: rgba(255, 56, 92, 0.1) !important;
+      color: var(--accent-primary) !important;
+      background-color: rgba(var(--accent-primary-rgb), 0.1) !important;
       font-weight: 800;
     }
 
@@ -223,7 +236,7 @@ h4, h5, h6 {
     }
 
     &.active .nav-icon {
-      color: #FF385C !important;
+      color: var(--accent-primary) !important;
     }
   }
 
@@ -309,12 +322,12 @@ h4, h5, h6 {
   }
 
   &.active {
-    color: #FF385C;
-    background-color: rgba(255, 56, 92, 0.1);
+    color: var(--accent-primary);
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
     font-weight: 800;
 
     .nav-icon {
-      color: #FF385C;
+      color: var(--accent-primary);
     }
   }
 }

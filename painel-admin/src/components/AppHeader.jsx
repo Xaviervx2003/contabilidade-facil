@@ -36,6 +36,7 @@ import {
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown, AppHeaderNotifications } from './header/index'
 import { useTheme } from '../context/themeContext'
+import ThemePicker from './ThemePicker'
 
 const AppHeader = () => {
   const headerRef = useRef()
@@ -120,6 +121,10 @@ const AppHeader = () => {
             >
               <CIcon icon={isDark ? cilSun : cilMoon} size="lg" />
             </button>
+          </CNavItem>
+          {/* Paleta de Cores */}
+          <CNavItem className="d-flex align-items-center ms-1">
+            <ThemePicker />
           </CNavItem>
           <li className="nav-item py-1">
             <div className="vr h-100 mx-2 text-body text-opacity-75"></div>

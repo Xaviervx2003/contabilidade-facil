@@ -345,11 +345,15 @@ class QuestaoRepository:
             return cursor.rowcount > 0
 
     @staticmethod
-    def listar_feedbacks(status: Optional[str] = None, busca: Optional[str] = None, page: Optional[int] = None, per_page: Optional[int] = None) -> Dict[str, Any]:
+    def listar_feedbacks(status: Optional[str] = None, busca: Optional[str] = None, page: Optional[int] = None, per_page: Optional[int] = None, usuario_id: Optional[int] = None, papel: Optional[str] = None) -> Dict[str, Any]:
         with get_conexao() as conn:
             cursor = conn.cursor()
             conditions = []
             params = []
+
+            if papel == "professor" and usuario_id:
+                conditions.append("q.criado_por = %s")
+                params.append(usuario_id)
 
             if status == "pendente":
                 conditions.append("f.resolvido = FALSE")

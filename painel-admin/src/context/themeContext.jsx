@@ -1,16 +1,18 @@
 /**
- * themeContext.jsx — Sistema de Tema Light/Dark
+ * themeContext.jsx — Sistema de Tema Light/Dark + Paleta de Cores de Destaque
  *
- * Gerencia o estado do tema (light/dark) e aplica CSS variables
- * para que todo o site use cores consistentes.
+ * Gerencia:
+ * 1. Tema claro/escuro (isDark / toggleTheme)
+ * 2. Paleta de cores de destaque (accentPalette / setAccentPalette)
  *
- * Integra com o CoreUI via `data-coreui-theme` para que os
- * componentes nativos (@coreui/react) também respeitem o tema.
+ * Ambos são persistidos em localStorage e aplicados via CSS variables,
+ * o que garante que todo o site reaja instantaneamente à troca.
  */
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
+import { COLOR_PALETTES, DEFAULT_PALETTE } from '../tokens'
 
-// ── Paleta de Cores ──────────────────────────────────────────────────────────
+// ── Paleta de Cores de Fundo (Light/Dark) ────────────────────────────────────
 const themes = {
   light: {
     primary: '#2c3e50',
@@ -94,25 +96,34 @@ const semanticColors = {
   }
 }
 
+// ── Context ───────────────────────────────────────────────────────────────────
 const ThemeContext = createContext()
 
 export const ThemeProvider = ({ children }) => {
+  // ── Estado: Light / Dark ───────────────────────────────────────────────────
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme-mode')
     if (saved) return saved === 'dark'
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
 
+  // ── Estado: Paleta de Destaque ─────────────────────────────────────────────
+  const [accentPalette, setAccentPaletteState] = useState(() => {
+    const saved = localStorage.getItem('theme-accent')
+    return saved && COLOR_PALETTES[saved] ? saved : DEFAULT_PALETTE
+  })
+
+  // ── Efeito: Aplicar Tema Claro/Escuro ─────────────────────────────────────
   useEffect(() => {
     localStorage.setItem('theme-mode', isDark ? 'dark' : 'light')
 
     const root = document.documentElement
 
-    // Sincronizar com CoreUI (para CButton, CCard, etc. funcionarem)
+    // Sincronizar com CoreUI
     root.setAttribute('data-coreui-theme', isDark ? 'dark' : 'light')
     root.setAttribute('data-theme', isDark ? 'dark' : 'light')
 
-    // Aplicar CSS variables customizadas
+    // Aplicar CSS variables de fundo/texto
     const currentTheme = isDark ? themes.dark : themes.light
     Object.entries(currentTheme).forEach(([key, value]) => {
       if (typeof value === 'object') {
@@ -130,10 +141,10 @@ export const ThemeProvider = ({ children }) => {
       root.style.setProperty(`--color-${key}`, value)
     })
 
-    // #1 — color-scheme: corrige scrollbars, inputs nativos e <select> no dark mode (Windows)
+    // color-scheme: corrige scrollbars e inputs nativos no dark mode
     root.style.colorScheme = isDark ? 'dark' : 'light'
 
-    // #2 — meta theme-color: sincroniza barra do browser/mobile com o tema
+    // meta theme-color: sincroniza barra do browser/mobile
     const bgColor = isDark ? themes.dark.bg.primary : themes.light.bg.primary
     let metaThemeColor = document.querySelector('meta[name="theme-color"]')
     if (!metaThemeColor) {
@@ -144,11 +155,39 @@ export const ThemeProvider = ({ children }) => {
     metaThemeColor.setAttribute('content', bgColor)
   }, [isDark])
 
+  // ── Efeito: Aplicar Paleta de Destaque ────────────────────────────────────
+  useEffect(() => {
+    const palette = COLOR_PALETTES[accentPalette] || COLOR_PALETTES[DEFAULT_PALETTE]
+    const root = document.documentElement
+
+    // Aplicar todas as CSS variables da paleta
+    Object.entries(palette.cssVars).forEach(([key, value]) => {
+      root.style.setProperty(key, value)
+    })
+
+    localStorage.setItem('theme-accent', accentPalette)
+  }, [accentPalette])
+
   const toggleTheme = () => setIsDark((prev) => !prev)
+
+  const setAccentPalette = (paletteId) => {
+    if (COLOR_PALETTES[paletteId]) {
+      setAccentPaletteState(paletteId)
+    }
+  }
+
+  const currentPalette = COLOR_PALETTES[accentPalette] || COLOR_PALETTES[DEFAULT_PALETTE]
 
   return (
     <ThemeContext.Provider
-      value={{ isDark, toggleTheme, currentTheme: isDark ? themes.dark : themes.light }}
+      value={{
+        isDark,
+        toggleTheme,
+        currentTheme: isDark ? themes.dark : themes.light,
+        accentPalette,
+        setAccentPalette,
+        currentPalette,
+      }}
     >
       {children}
     </ThemeContext.Provider>

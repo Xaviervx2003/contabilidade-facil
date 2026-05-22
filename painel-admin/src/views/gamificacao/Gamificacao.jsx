@@ -4,16 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
 import api from '../../services/api'
+import { tokens } from '../../tokens'
 
 import Missoes from './Missoes'
 import Conquistas from './Conquistas'
-
-const tokens = {
-  rausch: '#FF385C',
-  babu: '#00A699',
-  arches: '#FC642D',
-  foggy: '#767676',
-}
 
 const RankingTurma = () => {
   const [tipo, setTipo] = useState('streak')

@@ -5,17 +5,9 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
+import api from '../../services/api'
 import toast from 'react-hot-toast'
-
-/* ─── Tokens Airbnb-inspired ─────────────────────────────── */
-const tokens = {
-  rausch: '#FF385C',
-  babu: '#00A699',
-  arches: '#FC642D',
-  hof: '#484848',
-  foggy: '#767676',
-  swiss: '#B0B0B0',
-}
+import { tokens } from '../../tokens'
 
 const InboxDuvidas = () => {
   const [duvidas, setDuvidas] = useState([])
@@ -33,21 +25,22 @@ const InboxDuvidas = () => {
   const carregarDuvidas = async () => {
     setLoading(true)
     try {
-      // Endpoint sugerido: /api/admin/duvidas
-      const res = await fetch(`${API_URL}/api/admin/duvidas`).catch(() => null)
-      if (res && res.ok) {
-        const data = await res.json()
-        setDuvidas(data)
-      } else {
-        // Mock de dados para demonstração se o endpoint não existir
-        setDuvidas([
-          { id: 1, aluno_nome: 'João Silva', texto: 'Não entendi como funciona o método das partidas dobradas na prática.', data_criacao: '2026-05-14T10:00:00Z', materia: 'Contabilidade Introdutória', modulo_nome: 'Método das Partidas Dobradas', status: 'pendente' },
-          { id: 2, aluno_nome: 'Maria Souza', texto: 'Qual a diferença entre DRE e Balanço Patrimonial no curto prazo?', data_criacao: '2026-05-13T15:30:00Z', materia: 'Contabilidade Introdutória', modulo_nome: 'Demonstrações Contábeis', status: 'respondida', resposta_professor: 'A DRE foca no resultado (lucro/prejuízo) enquanto o Balanço foca na posição patrimonial.', video_resposta: 'https://youtube.com/watch?v=123' },
-          { id: 3, aluno_nome: 'Carlos Oliveira', texto: 'A depreciação acumulada é um ativo ou passivo?', data_criacao: '2026-05-14T08:20:00Z', materia: 'Contabilidade Intermediária', modulo_nome: 'Ativo Não Circulante', status: 'pendente' },
-        ])
-      }
+      const { data } = await api.get('/api/trilhas/duvidas/pendentes')
+      // Map API response to match UI expectations
+      const mappedData = data.map(d => ({
+        id: d.id,
+        aluno_nome: d.aluno_nome,
+        texto: d.texto,
+        data_criacao: d.data_criacao,
+        materia: d.trilha_nome || 'Trilha',
+        modulo_nome: d.modulo_nome,
+        status: d.resposta_professor ? 'respondida' : 'pendente',
+        resposta_professor: d.resposta_professor,
+      }))
+      setDuvidas(mappedData)
     } catch (e) {
       console.error(e)
+      toast.error('Erro ao carregar dúvidas pendentes.')
     } finally {
       setLoading(false)
     }
@@ -57,10 +50,9 @@ const InboxDuvidas = () => {
     if (!resposta.trim()) return toast.error('A resposta não pode estar vazia')
     setEnviando(true)
     try {
-      const res = await fetch(`${API_URL}/api/admin/responder-duvida/${selectedDuvida.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texto: resposta, video_url: videoUrl })
+      await api.put(`/api/trilhas/duvidas/${selectedDuvida.id}/responder`, {
+        resposta: resposta,
+        video_url: videoUrl
       })
       
       toast.success('Resposta enviada com sucesso!')
@@ -69,10 +61,8 @@ const InboxDuvidas = () => {
       carregarDuvidas()
       setSelectedDuvida(null)
     } catch (e) {
-      // Simulação de sucesso no mock
-      toast.success('Resposta enviada com sucesso (Simulado)!')
-      setDuvidas(prev => prev.map(d => d.id === selectedDuvida.id ? { ...d, status: 'respondida', resposta_professor: resposta, video_resposta: videoUrl } : d))
-      setSelectedDuvida(null)
+      console.error(e)
+      toast.error('Erro ao enviar resposta.')
     } finally {
       setEnviando(false)
     }

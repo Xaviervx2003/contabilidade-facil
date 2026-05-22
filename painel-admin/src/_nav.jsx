@@ -100,96 +100,40 @@ const getNavItens = () => {
     )
   }
 
-  // ── Seções de professor/admin ──
-  if (papelUsuario === 'professor' || papelUsuario === 'admin') {
+  // ── Seção Exclusiva Professor ──
+  if (papelUsuario === 'professor') {
     itens.unshift(
-      {
-        component: CNavTitle,
-        name: 'Principal',
-      },
-      {
-        component: CNavItem,
-        name: 'Dashboard',
-        to: '/dashboard',
-        icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
-      },
+      { component: CNavTitle, name: 'Visão Geral' },
+      { component: CNavItem, name: 'Meu Painel', to: '/dashboard', icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" /> }
     )
-
     itens.push(
-      {
-        component: CNavTitle,
-        name: 'Administração',
-      },
-      {
-        component: CNavItem,
-        name: 'Gestão de Questões',
-        to: '/questoes',
-        icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Gestão de Matérias',
-        to: '/materias',
-        icon: <CIcon icon={cilLibrary} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Gestão de Vídeos',
-        to: '/admin/videos',
-        icon: <CIcon icon={cilVideo} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Gestão de Trilhas',
-        to: '/admin/trilhas',
-        icon: <CIcon icon={cilListRich} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Inbox de Dúvidas',
-        to: '/admin/inbox',
-        icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Gestão de Missões',
-        to: '/admin/missoes',
-        icon: <CIcon icon={cilFlagAlt} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Relatórios',
-        to: '/relatorios',
-        icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Desempenho dos Alunos',
-        to: '/admin/desempenho',
-        icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Central de Risco',
-        to: '/admin/central-risco',
-        icon: <CIcon icon={cilWarning} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Feedbacks',
-        to: '/feedbacks',
-        icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" />,
-      },
+      { component: CNavTitle, name: 'Minhas Turmas & Conteúdos' },
+      { component: CNavItem, name: 'Minhas Questões', to: '/questoes', icon: <CIcon icon={cilNotes} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Inbox de Dúvidas', to: '/admin/inbox', icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Feedbacks', to: '/feedbacks', icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" /> }
     )
   }
 
+  // ── Seção Exclusiva Admin ──
   if (papelUsuario === 'admin') {
-    itens.splice(itens.length - 2, 0, {
-      component: CNavItem,
-      name: 'Gestão de Usuários',
-      to: '/usuarios',
-      icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
-    })
+    itens.unshift(
+      { component: CNavTitle, name: 'Principal' },
+      { component: CNavItem, name: 'Dashboard Global', to: '/dashboard', icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" /> }
+    )
+    itens.push(
+      { component: CNavTitle, name: 'Administração' },
+      { component: CNavItem, name: 'Gestão de Usuários', to: '/usuarios', icon: <CIcon icon={cilPeople} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Gestão de Questões', to: '/questoes', icon: <CIcon icon={cilNotes} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Gestão de Matérias', to: '/materias', icon: <CIcon icon={cilLibrary} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Gestão de Vídeos', to: '/admin/videos', icon: <CIcon icon={cilVideo} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Gestão de Trilhas', to: '/admin/trilhas', icon: <CIcon icon={cilListRich} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Inbox de Dúvidas', to: '/admin/inbox', icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Gestão de Missões', to: '/admin/missoes', icon: <CIcon icon={cilFlagAlt} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Relatórios Globais', to: '/relatorios', icon: <CIcon icon={cilChartLine} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Desempenho Geral', to: '/admin/desempenho', icon: <CIcon icon={cilChartLine} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Central de Risco', to: '/admin/central-risco', icon: <CIcon icon={cilWarning} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Feedbacks', to: '/feedbacks', icon: <CIcon icon={cilCommentSquare} customClassName="nav-icon" /> }
+    )
   }
 
   return itens

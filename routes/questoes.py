@@ -154,9 +154,10 @@ def listar_feedbacks(
     busca: Optional[str] = Query(None),
     page: Optional[int] = Query(None, ge=1),
     per_page: Optional[int] = Query(None, ge=1, le=100),
+    token: dict = Depends(usuario_autenticado),
 ):
     try:
-        return QuestaoRepository.listar_feedbacks(status, busca, page, per_page)
+        return QuestaoRepository.listar_feedbacks(status, busca, page, per_page, token["sub"], token.get("papel"))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar feedbacks: {str(e)}")
 

@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional
 from psycopg.rows import dict_row
 
 from database import get_conexao
 from models import TrilhaCreate, TrilhaUpdate, ModuloCreate, ModuloUpdate, ProgressoModulo, DuvidaTrilhaCreate, RespostaDuvida
+from utils.jwt_auth import usuario_autenticado
 
 router = APIRouter(prefix="/api/trilhas", tags=["Trilhas de Aprendizagem"])
 
@@ -377,19 +378,34 @@ def criar_duvida(duvida: DuvidaTrilhaCreate):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/duvidas/pendentes")
-def listar_duvidas_pendentes():
+def listar_duvidas_pendentes(token: dict = Depends(usuario_autenticado)):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor(row_factory=dict_row)
-            cursor.execute("""
-                SELECT d.*, u.nome as aluno_nome, m.nome as modulo_nome, t.nome as trilha_nome
+            
+            papel = token.get("papel")
+            usuario_id = token.get("sub")
+            
+            filtro = "WHERE d.resposta_professor IS NULL"
+            params = []
+            
+            if papel == "professor" and usuario_id:
+                filtro += """ 
+                    AND m.materia_id IN (
+                        SELECT materia_id FROM professores_materias WHERE usuario_id = %s
+                    )
+                """
+                params.append(usuario_id)
+
+            cursor.execute(f"""
+                SELECT d.*, u.nome as aluno_nome, m.nome as modulo_nome, t.nome as trilha_nome, m.materia_id
                 FROM duvidas_trilhas d
                 JOIN usuarios u ON u.id = d.usuario_id
                 JOIN modulos m ON m.id = d.modulo_id
                 JOIN trilhas t ON t.id = m.trilha_id
-                WHERE d.resposta_professor IS NULL
+                {filtro}
                 ORDER BY d.data_criacao ASC
-            """)
+            """, tuple(params))
             return cursor.fetchall()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

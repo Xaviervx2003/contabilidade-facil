@@ -16,15 +16,9 @@ import {
   useEditarQuestao, 
   useDeletarQuestao 
 } from '../../hooks/useQuestoes'
+import { tokens as tk } from '../../tokens'
 
-/* ── Tokens Airbnb ───────────────────────────────────────── */
-const tk = {
-  rausch:  '#FF385C',
-  babu:    '#00A699',
-  arches:  '#FC642D',
-  foggy:   '#767676',
-  swiss:   '#B0B0B0',
-}
+// Mantemos alias 'tk' para compatibilidade com o restante do arquivo
 
 const FONT = "'Nunito', 'Circular Std', sans-serif"
 const PER_PAGE = 20

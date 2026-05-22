@@ -121,13 +121,15 @@ const Dashboard = () => {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
           <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
-            Indicadores de Performance
+            {sessionStorage.getItem('papel') === 'professor' ? 'Métricas de Minhas Turmas' : 'Indicadores de Performance'}
           </div>
           <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>
-            Dashboard Administrativo
+            {sessionStorage.getItem('papel') === 'professor' ? 'Meu Painel de Professor' : 'Dashboard Administrativo'}
           </div>
           <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
-            Acompanhamento em tempo real do engajamento e desempenho acadêmico.
+            {sessionStorage.getItem('papel') === 'professor' 
+              ? 'Acompanhamento do engajamento dos alunos nas suas disciplinas.' 
+              : 'Acompanhamento em tempo real do engajamento e desempenho acadêmico.'}
           </div>
         </motion.div>
 

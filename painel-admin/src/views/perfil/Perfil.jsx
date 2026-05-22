@@ -15,19 +15,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
 import { getAlunoMatricula } from '../../utils/auth'
-
-/* ── Tokens de Design (Premium Airbnb Style) ────────────── */
-const tokens = {
-  rausch: '#FF385C',  // Coral principal
-  babu: '#00A699',    // Teal/Verde
-  arches: '#FC642D',  // Laranja
-  hof: '#484848',
-  foggy: '#767676',   // Cinza Muted
-  border: 'var(--color-border)',
-  bg: 'var(--color-bg-elevated)',
-  bgSub: 'var(--color-bg-tertiary)',
-  text: 'var(--color-text-primary)',
-}
+import { tokens } from '../../tokens'
+import { COLOR_PALETTES } from '../../tokens'
+import { useTheme } from '../../context/themeContext'
 
 const getInitials = (name) => {
   if (!name) return '??'
@@ -55,9 +45,10 @@ const Perfil = () => {
   const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
   const token = sessionStorage.getItem('token')
 
-  const [activeTab, setActiveTab] = useState('dados') // 'dados' | 'seguranca'
+  const [activeTab, setActiveTab] = useState('dados') // 'dados' | 'seguranca' | 'aparencia'
   const queryClient = useQueryClient()
   const fileInputRef = useRef(null)
+  const { accentPalette, setAccentPalette } = useTheme()
 
   // Estados dos dados complementares
   const [formData, setFormData] = useState({
@@ -264,36 +255,30 @@ const Perfil = () => {
 
         {/* TABS DE NAVEGAÇÃO */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: `1px solid ${tokens.border}`, paddingBottom: 16 }}>
-            <div 
-                onClick={() => setActiveTab('dados')}
+            {[
+              { id: 'dados', label: '👤 Informações Pessoais' },
+              { id: 'seguranca', label: '🔒 Segurança da Conta' },
+              { id: 'aparencia', label: '🎨 Aparência' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
                 style={{
-                    padding: '10px 20px',
-                    borderRadius: 20,
-                    cursor: 'pointer',
-                    fontWeight: 800,
-                    fontSize: 14,
-                    background: activeTab === 'dados' ? 'var(--color-text-primary)' : 'transparent',
-                    color: activeTab === 'dados' ? 'var(--color-bg-primary)' : tokens.foggy,
-                    transition: 'all 0.2s'
+                  padding: '10px 20px',
+                  borderRadius: 20,
+                  cursor: 'pointer',
+                  fontWeight: 800,
+                  fontSize: 14,
+                  border: 'none',
+                  background: activeTab === tab.id ? 'var(--color-text-primary)' : 'transparent',
+                  color: activeTab === tab.id ? 'var(--color-bg-primary)' : tokens.foggy,
+                  transition: 'all 0.2s'
                 }}
-            >
-                👤 Informações Pessoais
-            </div>
-            <div 
-                onClick={() => setActiveTab('seguranca')}
-                style={{
-                    padding: '10px 20px',
-                    borderRadius: 20,
-                    cursor: 'pointer',
-                    fontWeight: 800,
-                    fontSize: 14,
-                    background: activeTab === 'seguranca' ? 'var(--color-text-primary)' : 'transparent',
-                    color: activeTab === 'seguranca' ? 'var(--color-bg-primary)' : tokens.foggy,
-                    transition: 'all 0.2s'
-                }}
-            >
-                🔒 Segurança da Conta
-            </div>
+              >
+                {tab.label}
+              </button>
+            ))}
         </div>
 
         <div className="fade-in">
@@ -615,6 +600,67 @@ const Perfil = () => {
               </CForm>
             </motion.div>
           </CCol>
+          )}
+          {/* PAINEL DE APARÊNCIA */}
+          {activeTab === 'aparencia' && (
+            <CCol xs={12}>
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.05 }}
+                style={{ background: tokens.bg, border: `1px solid ${tokens.border}`, borderRadius: 24, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.02)' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <h4 style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text-primary)', margin: 0 }}>Paleta de Cores</h4>
+                  <Icon icon="solar:palette-bold-duotone" width="32" style={{ color: tokens.arches }} />
+                </div>
+                <p style={{ fontSize: 13, color: tokens.foggy, marginBottom: 28 }}>
+                  Escolha a cor de destaque da interface. Ela é aplicada em botões, barras de progresso, menu ativo e muito mais.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 16 }}>
+                  {Object.values(COLOR_PALETTES).map((palette) => {
+                    const isActive = accentPalette === palette.id
+                    return (
+                      <motion.button key={palette.id} whileHover={{ scale: 1.04, y: -3 }} whileTap={{ scale: 0.96 }}
+                        type="button" onClick={() => setAccentPalette(palette.id)} aria-pressed={isActive}
+                        style={{
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+                          padding: '18px 12px', borderRadius: 18,
+                          border: isActive ? `2.5px solid ${palette.primary}` : `1.5px solid ${tokens.border}`,
+                          background: isActive ? `${palette.primary}10` : tokens.bgSub,
+                          cursor: 'pointer', transition: 'all 0.2s',
+                          boxShadow: isActive ? `0 6px 20px ${palette.primary}25` : 'none',
+                        }}
+                      >
+                        <div style={{
+                          width: 52, height: 52, borderRadius: '50%',
+                          background: `conic-gradient(${palette.primary} 0deg 120deg, ${palette.secondary} 120deg 240deg, ${palette.accent} 240deg 360deg)`,
+                          boxShadow: isActive ? `0 6px 16px ${palette.primary}50` : '0 3px 8px rgba(0,0,0,0.1)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          {isActive && (
+                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
+                              style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Icon icon="solar:check-circle-bold" width="16" style={{ color: palette.primary }} />
+                            </motion.div>
+                          )}
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: 13, fontWeight: isActive ? 800 : 600, color: isActive ? palette.primary : 'var(--color-text-primary)' }}>
+                            {palette.emoji} {palette.label}
+                          </div>
+                          <div style={{ fontSize: 10, color: tokens.foggy, marginTop: 2, fontFamily: 'monospace' }}>{palette.primary}</div>
+                        </div>
+                      </motion.button>
+                    )
+                  })}
+                </div>
+                <div style={{ marginTop: 24, padding: '12px 16px', background: tokens.bgSub, borderRadius: 12, fontSize: 12, color: tokens.foggy, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Icon icon="solar:info-circle-linear" width="14" />
+                  A sua preferência de cor é salva automaticamente no navegador.
+                </div>
+              </motion.div>
+            </CCol>
           )}
 
         </div>

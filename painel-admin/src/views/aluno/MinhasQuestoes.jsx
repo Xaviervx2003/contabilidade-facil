@@ -26,19 +26,7 @@ import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
 import api from '../../services/api'
 import { getAlunoMatricula } from '../../utils/auth'
-
-/* ── Tokens de Design (Premium Airbnb Style) ────────────── */
-const tokens = {
-    rausch: '#FF385C',  // Coral principal
-    babu: '#00A699',    // Teal/Verde
-    arches: '#FC642D',  // Laranja
-    hof: '#484848',
-    foggy: '#767676',   // Cinza Muted
-    border: 'var(--color-border)',
-    bg: 'var(--color-bg-elevated)',
-    bgSub: 'var(--color-bg-tertiary)',
-    text: 'var(--color-text-primary)',
-}
+import { tokens } from '../../tokens'
 
 // ── Skeleton Loader ─────────────────────────────────────────────
 const Skeleton = ({ h = 20, w = '100%', radius = 12, className = '' }) => (
