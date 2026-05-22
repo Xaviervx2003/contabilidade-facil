@@ -30,7 +30,7 @@ const RankingTurma = () => {
       } catch {
         if (active) {
           setRanking([])
-          setError('Nao foi possivel carregar o ranking agora.')
+          setError('Não foi possível carregar o ranking agora.')
         }
       } finally {
         if (active) setLoading(false)
@@ -49,13 +49,13 @@ const RankingTurma = () => {
             Ranking da Turma
           </div>
           <div style={{ fontSize: 13, color: tokens.foggy }}>
-            Compare sua constancia e volume de estudos com a turma.
+            Compare sua constância e volume de estudos com a turma.
           </div>
         </div>
         <div className="d-flex bg-body-tertiary p-1 rounded-4 border">
           {[
-            { id: 'streak', label: 'Sequencia' },
-            { id: 'questoes', label: 'Questoes' },
+            { id: 'streak', label: 'Sequência' },
+            { id: 'questoes', label: 'Questões' },
           ].map((option) => (
             <CButton
               key={option.id}
@@ -91,7 +91,7 @@ const RankingTurma = () => {
           </div>
         ) : ranking.length === 0 ? (
           <div className="text-center py-5" style={{ color: tokens.foggy }}>
-            Ainda nao ha dados suficientes para montar o ranking.
+            Ainda não há dados suficientes para montar o ranking.
           </div>
         ) : (
           ranking.map((aluno) => {
@@ -121,10 +121,10 @@ const RankingTurma = () => {
                 <div className="flex-grow-1 min-width-0">
                   <div className="fw-bold text-truncate" style={{ color: 'var(--color-text-primary)' }}>
                     {aluno.nome}
-                    {isAtual && <span style={{ color: tokens.arches, fontSize: 12 }}> voce</span>}
+                    {isAtual && <span style={{ color: tokens.arches, fontSize: 12 }}> você</span>}
                   </div>
                   <div style={{ color: tokens.foggy, fontSize: 12 }}>
-                    {tipo === 'streak' ? 'Dias consecutivos de estudo' : 'Questoes respondidas'}
+                    {tipo === 'streak' ? 'Dias consecutivos de estudo' : 'Questões respondidas'}
                   </div>
                 </div>
                 <div className="fw-bold" style={{ color: tokens.arches, fontSize: 20 }}>
