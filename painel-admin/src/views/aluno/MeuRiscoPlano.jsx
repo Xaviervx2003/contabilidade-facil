@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
     CContainer,
     CRow,
@@ -14,6 +15,7 @@ import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
 import api from '../../services/api'
 import { getAlunoMatricula } from '../../utils/auth'
+import { useNavigate } from 'react-router-dom'
 
 /* ── Tokens de Design (Premium Airbnb Style) ────────────── */
 const tokens = {
@@ -49,50 +51,30 @@ const RingProgress = ({ value, size = 120, stroke = 10, color = tokens.rausch })
 }
 
 const MeuRiscoPlano = () => {
-    const [metrics, setMetrics] = useState(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
-    
+    const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
+    const navigate = useNavigate()
+
+    const { data: metrics, isLoading: loading, error: queryError } = useQuery({
+        queryKey: ['metricas-estudante', matricula],
+        queryFn: async () => {
+            if (!matricula) throw new Error('Esta área é exclusiva para alunos com matrícula ativa.')
+            try {
+                const res = await api.get(`/api/metricas-estudantes/desempenho/${matricula}`)
+                return res.data
+            } catch (apiError) {
+                if (apiError.response && apiError.response.status === 404) return null
+                throw new Error('Não foi possível carregar o seu diagnóstico. Tente novamente.')
+            }
+        },
+        enabled: !!matricula,
+        staleTime: 1000 * 60 * 5 // 5 minutos de cache
+    })
+
+    const error = queryError ? queryError.message : null
+
     // Configurações do simulador de horas
     const [horasSemanais, setHorasSemanais] = useState(8)
     const [checklistStatus, setChecklistStatus] = useState({})
-
-    const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
-
-    const carregarMetricas = useCallback(async () => {
-        if (!matricula) {
-            setError('Esta área é exclusiva para alunos com matrícula ativa.')
-            setLoading(false)
-            return
-        }
-
-        try {
-            setLoading(true)
-            const url = `/api/metricas-estudantes/desempenho/${matricula}`
-            
-            try {
-                const res = await api.get(url)
-                setMetrics(res.data)
-            } catch (apiError) {
-                if (apiError.response && apiError.response.status === 404) {
-                    // Sem histórico ainda
-                    setMetrics(null)
-                } else {
-                    throw apiError
-                }
-            }
-            setError(null)
-        } catch (err) {
-            console.error('❌ Erro metricas:', err)
-            setError('Não foi possível carregar o seu diagnóstico. Tente novamente.')
-        } finally {
-            setLoading(false)
-        }
-    }, [matricula])
-
-    useEffect(() => {
-        carregarMetricas()
-    }, [carregarMetricas])
 
     // Determina a checklist com base nas horas
     const obterMetasPorHoras = (horas) => {
@@ -244,7 +226,7 @@ const MeuRiscoPlano = () => {
                                 Você ainda não possui sessões de estudo completadas. Faça o seu primeiro quiz ou trilha de estudo para calcularmos seu risco de reprovação e criarmos um plano inteligente para você!
                             </p>
                             <CButton 
-                                href="/quiz" 
+                                onClick={() => navigate('/quiz')}
                                 style={{
                                     background: tokens.rausch, color: '#fff', border: 'none',
                                     borderRadius: 14, padding: '12px 28px',
@@ -382,7 +364,7 @@ const MeuRiscoPlano = () => {
                                                         </div>
 
                                                         <CButton
-                                                            href="/quiz"
+                                                            onClick={() => navigate(`/quiz?materia=${encodeURIComponent(item.materia)}`)}
                                                             style={{
                                                                 background: `${tokens.rausch}15`, color: tokens.rausch, border: 'none',
                                                                 borderRadius: 10, padding: '6px 12px',

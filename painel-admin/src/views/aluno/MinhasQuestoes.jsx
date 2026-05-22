@@ -288,8 +288,16 @@ const MinhasQuestoes = () => {
     const porPagina = 12
 
     // Estados de Métricas
-    const [metrics, setMetrics] = useState(null)
-    const [loadingMetrics, setLoadingMetrics] = useState(true)
+    const { data: metrics, isLoading: loadingMetrics } = useQuery({
+        queryKey: ['metricas-estudante', matricula],
+        queryFn: async () => {
+            if (!matricula) throw new Error('Matrícula não encontrada')
+            const res = await api.get(`/api/metricas-estudantes/desempenho/${matricula}`)
+            return res.data
+        },
+        enabled: !!matricula && !!token,
+        staleTime: 1000 * 60 * 5, // 5 minutos de cache
+    })
 
     // Estados dos Custom Dropdowns (Airbnb Style)
     const [activeDropdown, setActiveDropdown] = useState(null) // 'status' ou 'materia' ou null
@@ -491,19 +499,7 @@ const MinhasQuestoes = () => {
             .catch(() => { })
     }, [])
 
-    // Carregar métricas de performance do estudante
-    useEffect(() => {
-        if (!matricula || !token) return
-        setLoadingMetrics(true)
-        
-        api.get(`/api/metricas-estudantes/desempenho/${matricula}`)
-        .then(res => res.data)
-        .then(data => {
-            setMetrics(data)
-            setLoadingMetrics(false)
-        })
-        .catch(() => setLoadingMetrics(false))
-    }, [matricula, token])
+    // Carregar métricas removido (agora gerenciado pelo useQuery lá no topo)
 
     // Carregar lista de questões respondidas com paginação e filtros
     const carregarQuestoes = useCallback(() => {
