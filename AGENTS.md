@@ -44,3 +44,113 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 - **Use Opus para:** Decisões complexas de arquitetura, depuração profunda envolvendo múltiplos arquivos, redação de textos longos e sofisticados.
 - **Use Haiku para:** Consultas rápidas, classificação de dados, formatação e tarefas simples em alto volume.
 
+---
+
+## 🎨 Sistema de Design Tokens (OBRIGATÓRIO para novas views)
+
+> **REGRA CRÍTICA:** Nunca defina um objeto `tokens` ou `tk` local dentro de um arquivo `.jsx`.
+> A fonte da verdade é **única**: `painel-admin/src/tokens.js`.
+
+### Importação correta
+
+```js
+// ✅ CORRETO — Sempre use assim em qualquer view nova
+import { tokens } from '../../tokens'
+
+// ✅ Para views admin que usam alias 'tk':
+import { tokens as tk } from '../../tokens'
+
+// ✅ Para views que precisam das paletas de cores (ex: seletor de tema):
+import { COLOR_PALETTES } from '../../tokens'
+
+// ✅ Para cores dinâmicas que respondem à paleta ativa do usuário:
+import { buildTokens } from '../../tokens'
+import { useTheme } from '../../context/themeContext'
+const { currentPalette } = useTheme()
+const tk = buildTokens(currentPalette) // responde ao tema escolhido!
+```
+
+### ❌ Padrão PROIBIDO (nunca mais)
+
+```js
+// ❌ ERRADO — Nunca faça isso:
+const tokens = {
+  rausch: '#FF385C',
+  babu: '#00A699',
+  ...
+}
+```
+
+### Referência dos tokens disponíveis
+
+| Token | Valor padrão | Uso |
+|---|---|---|
+| `tokens.rausch` | `#FF385C` | Cor de destaque principal (botões, badges, destaques) |
+| `tokens.babu` | `#00A699` | Cor secundária (sucesso, confirmação) |
+| `tokens.arches` | `#FC642D` | Cor terciária (avisos, laranja) |
+| `tokens.hof` | `#484848` | Texto escuro |
+| `tokens.foggy` | `#767676` | Texto muted / secundário |
+| `tokens.swiss` | `#B0B0B0` | Bordas muted |
+| `tokens.border` | `var(--color-border)` | Bordas (tema-aware) |
+| `tokens.bg` | `var(--color-bg-elevated)` | Fundo de cards (tema-aware) |
+| `tokens.bgSub` | `var(--color-bg-tertiary)` | Fundo secundário (tema-aware) |
+| `tokens.text` | `var(--color-text-primary)` | Texto principal (tema-aware) |
+
+### Sistema de Paletas de Cores (Theme Picker)
+
+O usuário pode trocar a paleta de destaque do sistema pela tela de **Perfil → Aparência** ou pelo botão 🎨 no header.
+
+| ID | Emoji | Label | Primary |
+|---|---|---|---|
+| `rausch` | 🔴 | Coral (padrão) | `#FF385C` |
+| `ocean` | 🔵 | Oceano | `#0EA5E9` |
+| `violet` | 🟣 | Violeta | `#8B5CF6` |
+| `emerald` | 🟢 | Esmeralda | `#10B981` |
+| `amber` | 🟠 | Âmbar | `#F59E0B` |
+| `slate` | 🩵 | Ardósia | `#475569` |
+
+Para que um elemento **responda dinamicamente** à paleta ativa, use CSS variables:
+```css
+color: var(--accent-primary);
+background: var(--accent-primary);
+```
+
+### Template de nova view (copie isso)
+
+```jsx
+import React, { useState } from 'react'
+import { motion } from 'framer-motion'
+import { Icon } from '@iconify/react'
+import { tokens } from '../../tokens'          // ← OBRIGATÓRIO
+import { useTheme } from '../../context/themeContext'
+
+const FONT = "'Nunito', 'Circular Std', sans-serif"
+
+const MinhaNovaView = () => {
+  const { isDark } = useTheme()
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg-primary)', padding: '32px 16px', fontFamily: FONT }}>
+      <div style={{ maxWidth: 1080, margin: '0 auto' }}>
+
+        {/* HEADER PREMIUM */}
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
+          <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
+            Seção
+          </div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>
+            Título da Página
+          </div>
+          <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+            Descrição curta da tela.
+          </div>
+        </motion.div>
+
+        {/* CONTEÚDO */}
+      </div>
+    </div>
+  )
+}
+
+export default MinhaNovaView
+```
