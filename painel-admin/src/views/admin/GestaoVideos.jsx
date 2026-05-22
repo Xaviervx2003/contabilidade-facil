@@ -157,9 +157,6 @@ const GestaoVideos = () => {
 
   return (
     <div style={containerStyle}>
-      <style>{`
-        @keyframes skshimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-      `}</style>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         
         {/* HEADER */}

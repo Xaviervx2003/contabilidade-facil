@@ -287,11 +287,6 @@ const VideoGallery = () => {
   return (
     <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', padding: '32px 16px 48px', fontFamily: "'Nunito', sans-serif" }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
-        <style>{`
-          @keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-          .search-field { background: var(--color-bg-elevated); border: 1.5px solid var(--color-border); border-radius: 14px; transition: 0.2s; }
-          .search-field:focus-within { border-color: ${tokens.rausch}; box-shadow: 0 0 0 4px rgba(255, 56, 92, 0.1); }
-        `}</style>
 
         {/* HEADER PREMIUM IDENTICO AO PAINEL */}
         <motion.div 

@@ -200,7 +200,6 @@ const Divider = () => <div style={{ height: 1, background: 'var(--color-border)'
 /* ─── Skeleton Screen ─────────────────────────────────────── */
 const DashboardSkeleton = () => (
   <div style={{ padding: '32px 24px', background: 'var(--color-bg-primary)', minHeight: '100vh' }}>
-    <style>{`@keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
     <div style={{ maxWidth: 960, margin: '0 auto' }}>
       <div style={{ marginBottom: 28 }}>
         <SkeletonBlock h={34} w="260px" r={10} />
@@ -368,9 +367,6 @@ const DashboardAluno = () => {
 
   return (
     <div style={containerStyle}>
-      <style>{`
-        @keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-      `}</style>
 
       <div style={{ maxWidth: 960, margin: '0 auto', fontFamily: "'Nunito', sans-serif" }}>
 

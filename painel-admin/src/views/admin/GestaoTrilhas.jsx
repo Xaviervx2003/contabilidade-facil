@@ -296,10 +296,6 @@ const GestaoTrilhas = () => {
 
   return (
     <div style={containerStyle}>
-      <style>{`
-        @keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-        .gq-card { background: var(--color-bg-elevated); border: 1px solid var(--color-border); border-radius: 20px; }
-      `}</style>
 
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
         {/* HEADER */}

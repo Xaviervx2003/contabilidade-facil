@@ -193,7 +193,6 @@ const GestaoMaterias = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-bg-primary)', padding: '32px 16px 60px', fontFamily: FONT }}>
-      <style>{`.gq-hover:hover { background: var(--color-bg-tertiary); }`}</style>
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
 
         {/* HEADER */}

@@ -370,7 +370,6 @@ const Alunos = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-bg-primary)', padding: '32px 16px 48px' }}>
-      <style>{`@keyframes skshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
       <div style={{ maxWidth: 1000, margin: '0 auto' }}>
 
         {/* Header */}

@@ -2065,7 +2065,6 @@ const Quiz = () => {
   // Render
   return (
     <CContainer fluid className="py-3 py-md-4 px-3 px-md-4">
-      <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}@keyframes fade-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
       {!isLogado && status === 'ready' && (
         <CAlert
