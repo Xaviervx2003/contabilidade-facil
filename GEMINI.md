@@ -44,6 +44,37 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 - **Use Opus para:** Decisões complexas de arquitetura, depuração profunda envolvendo múltiplos arquivos, redação de textos longos e sofisticados.
 - **Use Haiku para:** Consultas rápidas, classificação de dados, formatação e tarefas simples em alto volume.
 
+- **Use Haiku para:** Consultas rápidas, classificação de dados, formatação e tarefas simples em alto volume.
+
+---
+
+## 🌐 Padrão de Requisições à API (Axios vs Fetch)
+
+> **REGRA CRÍTICA:** Nunca use a API nativa `fetch()` do JavaScript. Todas as requisições para o backend devem utilizar a instância global do Axios localizada em `painel-admin/src/services/api.js`.
+
+### ❌ Padrão PROIBIDO (nativo, manual e não centralizado):
+```js
+// ❌ NUNCA FAÇA ISSO!
+import { API_URL } from '../../config'
+const res = await fetch(`${API_URL}/api/endpoint`, {
+  headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
+})
+const data = await res.json()
+```
+
+### ✅ Padrão CORRETO (Automático, injeta JWT e lida com erros Globais):
+```js
+// ✅ CORRETO! Sempre importe o Axios pré-configurado
+import api from '../../services/api' // Ajuste o path relativo de acordo com o arquivo
+
+// GET
+const res = await api.get('/api/endpoint')
+const data = res.data 
+
+// POST
+await api.post('/api/endpoint', payload)
+```
+
 ---
 
 ## 🎨 Sistema de Design Tokens (OBRIGATÓRIO para novas views)
