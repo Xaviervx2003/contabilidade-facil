@@ -4,15 +4,7 @@ import { Icon } from '@iconify/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { API_URL } from '../../config'
 import { useTheme } from '../../context/themeContext'
-
-/* ── Tokens Airbnb ───────────────────────────────────────── */
-const tk = {
-  rausch:  '#FF385C',
-  babu:    '#00A699',
-  arches:  '#FC642D',
-  foggy:   '#767676',
-  swiss:   '#B0B0B0',
-}
+import { tokens as tk } from '../../tokens'
 
 const FONT = "'Nunito', 'Circular Std', sans-serif"
 

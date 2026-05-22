@@ -18,8 +18,6 @@ import {
 } from '../../hooks/useQuestoes'
 import { tokens as tk } from '../../tokens'
 
-// Mantemos alias 'tk' para compatibilidade com o restante do arquivo
-
 const FONT = "'Nunito', 'Circular Std', sans-serif"
 const PER_PAGE = 20
 

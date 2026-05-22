@@ -12,20 +12,9 @@ import { getAlunoMatricula } from '../../utils/auth'
 import { API_URL } from '../../config'
 import api from '../../services/api'
 import { formatIsoToDateString, formatIsoToShortDate } from '../../utils/formatDate'
+import { tokens as baseTokens } from '../../tokens'
 
-/* ─── Tokens Airbnb-inspired ─────────────────────────────── */
-const tokens = {
-    rausch: '#FF385C',
-    babu: '#00A699',
-    arches: '#FC642D',
-    hof: '#484848',
-    foggy: '#767676',
-    swiss: '#B0B0B0',
-    gold: '#FFD700',
-    silver: '#C0C0C0',
-    bronze: '#CD7F32',
-    platinum: '#E5E4E2'
-}
+const tokens = { ...baseTokens, gold: '#FFD700', silver: '#C0C0C0', bronze: '#CD7F32', platinum: '#E5E4E2' }
 
 /* ─── Section Card ───────────────────────────────────────── */
 const SCard = ({ children, style = {}, delay = 0 }) => (

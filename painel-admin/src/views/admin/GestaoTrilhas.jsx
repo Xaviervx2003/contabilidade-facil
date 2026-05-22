@@ -14,15 +14,7 @@ import { API_URL } from '../../config'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import { useTheme } from '../../context/themeContext'
-
-/* ── Tokens Airbnb ───────────────────────────────────────── */
-const tk = {
-  rausch:  '#FF385C',
-  babu:    '#00A699',
-  arches:  '#FC642D',
-  foggy:   '#767676',
-  swiss:   '#B0B0B0',
-}
+import { tokens as tk } from '../../tokens'
 
 const FONT = "'Nunito', 'Circular Std', sans-serif"
 

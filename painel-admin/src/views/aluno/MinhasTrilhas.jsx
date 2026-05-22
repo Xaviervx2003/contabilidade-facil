@@ -21,16 +21,7 @@ import { API_URL } from '../../config'
 import api from '../../services/api'
 import { getAlunoMatricula } from '../../utils/auth'
 import { useTheme } from '../../context/themeContext'
-
-/* ─── Tokens Airbnb-inspired ─────────────────────────────── */
-const tokens = {
-  rausch: '#FF385C',
-  babu: '#00A699',
-  arches: '#FC642D',
-  hof: '#484848',
-  foggy: '#767676',
-  swiss: '#B0B0B0',
-}
+import { tokens } from '../../tokens'
 
 /* ─── Helpers ─── */
 const getEmbedUrl = (url) => {

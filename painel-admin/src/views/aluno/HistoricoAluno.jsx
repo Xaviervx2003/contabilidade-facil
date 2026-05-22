@@ -14,16 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import SCard from '../../components/premium/SCard'
-
-/* ─── Tokens Airbnb-inspired ─────────────────────────────── */
-const tokens = {
-    rausch: '#FF385C',
-    babu: '#00A699',
-    arches: '#FC642D',
-    hof: '#484848',
-    foggy: '#767676',
-    swiss: '#B0B0B0',
-}
+import { tokens } from '../../tokens'
 
 /* ─── Helpers ─── */
 const formatarTempo = (seg) => {
