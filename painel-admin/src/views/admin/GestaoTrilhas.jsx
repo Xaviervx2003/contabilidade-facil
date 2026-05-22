@@ -10,7 +10,7 @@ import {
 } from '@coreui/react'
 import { Icon } from '@iconify/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { API_URL } from '../../config'
+import api from '../../services/api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import { useTheme } from '../../context/themeContext'
@@ -125,32 +125,32 @@ const GestaoTrilhas = () => {
   const { data: trilhas = [], isLoading: loadingTrilhas } = useQuery({
     queryKey: ['adminTrilhas'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/trilhas`)
-      return res.json()
+      const res = await api.get('/api/trilhas')
+      return res.data
     }
   })
 
   const { data: materias = [] } = useQuery({
     queryKey: ['adminMaterias'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/admin/materias`)
-      return res.json()
+      const res = await api.get('/api/admin/materias')
+      return res.data
     }
   })
 
   const { data: duvidasPendentes = [] } = useQuery({
     queryKey: ['adminDuvidasPendentes'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/trilhas/duvidas/pendentes`)
-      return res.json()
+      const res = await api.get('/api/trilhas/duvidas/pendentes')
+      return res.data
     }
   })
 
   const { data: dadosEngajamento = [], isLoading: loadingEngajamento } = useQuery({
     queryKey: ['adminEngajamento', trilhaAtiva?.id],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/trilhas/${trilhaAtiva.id}/engajamento`)
-      return res.json()
+      const res = await api.get(`/api/trilhas/${trilhaAtiva.id}/engajamento`)
+      return res.data
     },
     enabled: !!trilhaAtiva && modalEngajamento,
   })
@@ -164,17 +164,13 @@ const GestaoTrilhas = () => {
   const mutationSalvarTrilha = useMutation({
     mutationFn: async () => {
       if (trilhaAtiva) {
-        await fetch(`${API_URL}/api/trilhas/${trilhaAtiva.id}`, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nome: formTrilha.nome, descricao: formTrilha.descricao, status: formTrilha.status,
-            capa_url: formTrilha.capa_url || null, nivel: formTrilha.nivel || null
-          })
+        await api.put(`/api/trilhas/${trilhaAtiva.id}`, {
+          nome: formTrilha.nome, descricao: formTrilha.descricao, status: formTrilha.status,
+          capa_url: formTrilha.capa_url || null, nivel: formTrilha.nivel || null
         })
       } else {
-        await fetch(`${API_URL}/api/trilhas?usuario_id=${userId}`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...formTrilha, capa_url: formTrilha.capa_url || null, nivel: formTrilha.nivel || null })
+        await api.post(`/api/trilhas?usuario_id=${userId}`, {
+          ...formTrilha, capa_url: formTrilha.capa_url || null, nivel: formTrilha.nivel || null
         })
       }
     },
@@ -192,7 +188,7 @@ const GestaoTrilhas = () => {
   const deletarTrilha = async (id) => {
     if (!window.confirm("Certeza que deseja remover esta trilha e todos os seus módulos?")) return
     try {
-      await fetch(`${API_URL}/api/trilhas/${id}`, { method: 'DELETE' })
+      await api.delete(`/api/trilhas/${id}`)
       setSuccess('Trilha removida!')
       setTimeout(() => setSuccess(''), 3000)
       queryClient.invalidateQueries({ queryKey: ['adminTrilhas'] })
@@ -201,8 +197,8 @@ const GestaoTrilhas = () => {
 
   const duplicarTrilha = async (id) => {
     try {
-      const res = await fetch(`${API_URL}/api/trilhas/${id}/duplicar?usuario_id=${userId}`, { method: 'POST' })
-      if (!res.ok) throw new Error('Falha ao duplicar')
+      const res = await api.post(`/api/trilhas/${id}/duplicar?usuario_id=${userId}`)
+      if (!res.data) throw new Error('Falha ao duplicar')
       setSuccess('Trilha duplicada!')
       setTimeout(() => setSuccess(''), 3000)
       queryClient.invalidateQueries({ queryKey: ['adminTrilhas'] })
@@ -248,11 +244,13 @@ const GestaoTrilhas = () => {
         duracao_minutos: isNaN(duracaoVal) ? null : duracaoVal, material_apoio_url: formModulo.material_apoio_url || null
       }
 
-      const url = formModulo.id ? `${API_URL}/api/trilhas/modulos/${formModulo.id}` : `${API_URL}/api/trilhas/${trilhaAtiva.id}/modulos`
-      const method = formModulo.id ? 'PUT' : 'POST'
+      const url = formModulo.id ? `/api/trilhas/modulos/${formModulo.id}` : `/api/trilhas/${trilhaAtiva.id}/modulos`
 
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      if (!res.ok) throw new Error('Erro na API')
+      if (formModulo.id) {
+        await api.put(url, payload)
+      } else {
+        await api.post(url, payload)
+      }
 
       setSuccess(formModulo.id ? 'Módulo atualizado!' : 'Módulo adicionado!')
       setTimeout(() => setSuccess(''), 3000)
@@ -264,7 +262,7 @@ const GestaoTrilhas = () => {
   const deletarModulo = async (id) => {
     if (!window.confirm("Remover este módulo da trilha?")) return
     try {
-      await fetch(`${API_URL}/api/trilhas/modulos/${id}`, { method: 'DELETE' })
+      await api.delete(`/api/trilhas/modulos/${id}`)
       setSuccess('Módulo deletado!')
       setTimeout(() => setSuccess(''), 3000)
       queryClient.invalidateQueries({ queryKey: ['adminTrilhas'] })
@@ -274,15 +272,11 @@ const GestaoTrilhas = () => {
   const responderDuvida = async (id) => {
     if (!respostaDuvida.trim()) return
     try {
-      const res = await fetch(`${API_URL}/api/trilhas/duvidas/${id}/responder`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resposta: respostaDuvida })
-      })
-      if (res.ok) {
-        setSuccess('Resposta enviada!')
-        setTimeout(() => setSuccess(''), 3000)
-        setRespostaDuvida(''); setRespondendoId(null)
-        queryClient.invalidateQueries({ queryKey: ['adminDuvidasPendentes'] })
-      }
+      await api.put(`/api/trilhas/duvidas/${id}/responder`, { resposta: respostaDuvida })
+      setSuccess('Resposta enviada!')
+      setTimeout(() => setSuccess(''), 3000)
+      setRespostaDuvida(''); setRespondendoId(null)
+      queryClient.invalidateQueries({ queryKey: ['adminDuvidasPendentes'] })
     } catch (e) { setError('Erro ao responder.'); setTimeout(() => setError(''), 3000) }
   }
 

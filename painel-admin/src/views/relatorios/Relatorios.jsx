@@ -10,7 +10,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { CChartLine, CChartBar, CChartRadar } from '@coreui/react-chartjs'
-import { API_URL } from '../../config'
+import api from '../../services/api'
 import { tokens, alpha, acertoColor } from '../../components/abnb/Tokens'
 import { SCard, StatCard, AirbnbProgress, SkeletonBlock } from '../../components/abnb/Cards'
 
@@ -159,24 +159,25 @@ const Relatorios = () => {
 
   /* Carrega matérias e alunos para os selects de filtro */
   useEffect(() => {
-    fetch(`${API_URL}/api/admin/materias`)
-      .then(r => r.json())
-      .then(d => setMaterias(Array.isArray(d) ? d : []))
+    api.get('/api/admin/materias')
+      .then(res => setMaterias(Array.isArray(res.data) ? res.data : []))
       .catch(() => {})
 
     if (papel === 'admin') {
-      fetch(`${API_URL}/api/admin/usuarios`)
-        .then(r => r.json())
-        .then(d => {
+      api.get('/api/admin/usuarios')
+        .then(res => {
+          const d = res.data
           setAlunos(Array.isArray(d)
             ? d.filter(u => u.papel === 'aluno').map(u => ({ nome: u.nome, matricula: u.matricula }))
             : [])
         })
         .catch(() => {})
     } else if (papel === 'professor') {
-      fetch(`${API_URL}/api/metricas-estudantes/desempenho?por_pagina=100&pagina=1`)
-        .then(r => r.json())
-        .then(d => { setAlunos(Array.isArray(d.estudantes || d.alunos) ? (d.estudantes || d.alunos) : []) })
+      api.get('/api/metricas-estudantes/desempenho?por_pagina=100&pagina=1')
+        .then(res => { 
+          const d = res.data
+          setAlunos(Array.isArray(d.estudantes || d.alunos) ? (d.estudantes || d.alunos) : []) 
+        })
         .catch(() => {})
     }
   }, [papel])
@@ -191,9 +192,8 @@ const Relatorios = () => {
       if (ano) p.append('ano', ano)
       if (filtroMateria) p.append('materia_id', filtroMateria)
       if (filtroAluno) p.append('aluno_matricula', filtroAluno)
-      const res = await fetch(`${API_URL}/api/relatorios/estudo?${p}`)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      setDados(await res.json())
+      const res = await api.get(`/api/relatorios/estudo?${p}`)
+      setDados(res.data)
     } catch (e) {
       setErro(`Falha ao carregar relatório: ${e.message}`)
     } finally {

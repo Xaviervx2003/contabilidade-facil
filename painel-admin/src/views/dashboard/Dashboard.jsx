@@ -9,7 +9,7 @@ import { Icon } from '@iconify/react'
 import { useQueries } from '@tanstack/react-query'
 import { useInView } from 'react-intersection-observer'
 
-import { API_URL } from '../../config'
+import api from '../../services/api'
 import { useTheme } from '../../context/themeContext'
 import useAuthSession from '../../hooks/useAuthSession'
 import { tokens, alpha, acertoColor } from '../../components/abnb/Tokens'
@@ -19,15 +19,14 @@ const MainChart = React.lazy(() => import('./MainChart'))
 
 /* ── helpers ─────────────────────────────────────────── */
 const safeFetch = async (url) => {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  return res.json()
+  const res = await api.get(url)
+  return res.data
 }
 const buildUrl = (base, userId, extra = {}) => {
   const p = new URLSearchParams()
   if (userId) p.set('usuario_id', userId)
   Object.entries(extra).forEach(([k, v]) => p.set(k, v))
-  return `${API_URL}${base}?${p}`
+  return `${base}?${p}`
 }
 
 /* ── hook de dados ───────────────────────────────────── */

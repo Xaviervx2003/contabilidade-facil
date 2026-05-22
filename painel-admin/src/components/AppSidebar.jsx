@@ -19,7 +19,7 @@ import { sygnet } from 'src/assets/brand/sygnet'
 // ✅ getNavItens é uma função — chamamos com () para obter o array já filtrado por papel
 import getNavItens from '../_nav'
 
-import { API_URL } from '../config'
+import api from '../services/api'
 import { useTheme } from '../context/themeContext'
 
 const AppSidebar = () => {
@@ -37,13 +37,10 @@ const AppSidebar = () => {
         const papel = sessionStorage.getItem('papel') || 'aluno'
         if (papel !== 'admin' && papel !== 'professor') return
         
-        const res = await fetch(`${API_URL}/api/feedbacks_questoes/contagem`)
-        if (res.ok) {
-          const data = await res.json()
-          setPendentes(data.pendentes || 0)
-        }
+        const res = await api.get('/api/feedbacks_questoes/contagem')
+        setPendentes(res.data.pendentes || 0)
       } catch (err) {
-        console.error(err)
+        console.error('Erro ao buscar contagem de feedbacks:', err)
       }
     }
     fetchContagem()

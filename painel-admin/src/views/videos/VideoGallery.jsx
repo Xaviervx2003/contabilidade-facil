@@ -7,7 +7,6 @@ import {
   CButton, CCol,
   CFormSelect, CFormInput, CRow, CSpinner
 } from '@coreui/react'
-import { API_URL } from '../../config'
 import { useTheme } from '../../context/themeContext'
 import FolderCard from '../../components/premium/FolderCard'
 import { agruparPorMateria } from '../../utils/grouping'
@@ -16,9 +15,8 @@ import { tokens } from '../../tokens'
 
 /* ─── Helpers ─── */
 const fetchJSON = async (url) => {
-  const r = await fetch(url)
-  if (!r.ok) throw new Error(`HTTP ${r.status}`)
-  return r.json()
+  const r = await api.get(url)
+  return r.data
 }
 
 const extrairYouTubeId = (url) => {
@@ -195,11 +193,11 @@ const VideoGallery = () => {
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 }, colors: [tokens.rausch, tokens.babu, tokens.arches] })
     toast.success('Aula concluída com sucesso! 🎉')
     if (matricula) {
-      fetch(`${API_URL}/api/aluno/video-assistido/${video.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricula, origem: normalizarOrigemVideo(video.video_origem) }),
-      }).catch(() => { })
+      api.post(`/api/aluno/video-assistido/${video.id}`, { matricula, origem: normalizarOrigemVideo(video.video_origem) })
+        .then(() => {
+          setAssistidos(prev => [...new Set([...prev, chave])])
+        })
+        .catch(console.error)
     }
   }, [matricula, assistidos])
 

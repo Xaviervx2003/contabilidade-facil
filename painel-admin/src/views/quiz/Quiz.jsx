@@ -1967,11 +1967,7 @@ const Quiz = () => {
       const moduloId = params.get('modulo_id')
       if (moduloId && matricula) {
         try {
-          await fetch(`${API_URL}/api/trilhas/progresso/${moduloId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ matricula }),
-          })
+          await api.post(`/api/trilhas/progresso/${moduloId}`, { matricula })
         } catch (e) {
           console.error('Erro ao marcar progresso do módulo:', e)
         }

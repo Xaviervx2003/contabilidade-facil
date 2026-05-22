@@ -10,7 +10,7 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilBell, cilEnvelopeOpen, cilStar, cilInfo } from '@coreui/icons'
-import { API_URL } from '../../config'
+import api from '../../services/api'
 import { getAlunoMatricula } from '../../utils/auth'
 
 const AppHeaderNotifications = () => {
@@ -21,9 +21,8 @@ const AppHeaderNotifications = () => {
   const carregarNotificacoes = useCallback(async () => {
     if (!matricula) return
     try {
-      const res = await fetch(`${API_URL}/api/trilhas/notificacoes/${matricula}`)
-      const data = await res.json()
-      setNotificacoes(Array.isArray(data) ? data : [])
+      const res = await api.get(`/api/trilhas/notificacoes/${matricula}`)
+      setNotificacoes(Array.isArray(res.data) ? res.data : [])
     } catch (e) {
       console.error('Erro ao carregar notificações:', e)
     }
@@ -38,7 +37,7 @@ const AppHeaderNotifications = () => {
 
   const marcarLida = async (id) => {
     try {
-      await fetch(`${API_URL}/api/trilhas/notificacoes/${id}/lida`, { method: 'PUT' })
+      await api.put(`/api/trilhas/notificacoes/${id}/lida`)
       setNotificacoes(prev => prev.map(n => n.id === id ? { ...n, lida: true } : n))
     } catch (e) {
       console.error(e)

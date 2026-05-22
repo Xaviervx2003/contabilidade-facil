@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CCard, CCardBody } from '@coreui/react';
+import api from '../services/api';
 
 export const StreakBadge = ({ matricula }) => {
     const [streak, setStreak] = useState(null);
@@ -8,11 +9,8 @@ export const StreakBadge = ({ matricula }) => {
     useEffect(() => {
         const fetchStreak = async () => {
             try {
-                const res = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/aluno/streak/${matricula}`
-                );
-                const data = await res.json();
-                setStreak(data);
+                const res = await api.get(`/api/aluno/streak/${matricula}`);
+                setStreak(res.data);
             } catch (err) {
                 console.error('Erro ao buscar streak:', err);
             } finally {

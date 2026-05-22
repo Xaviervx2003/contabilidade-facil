@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { CSpinner, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
 import { Icon } from '@iconify/react'
-import { API_URL } from '../../config'
+import api from '../../services/api'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from '../../context/themeContext'
 import { tokens as tk } from '../../tokens'
@@ -58,9 +58,8 @@ const GestaoMissoes = () => {
   const fetchMissoes = async () => {
     setLoading(true)
     try {
-      const r = await fetch(`${API_URL}/api/admin/missoes`)
-      if (!r.ok) throw new Error(`HTTP ${r.status}`)
-      setMissoes(await r.json())
+      const r = await api.get('/api/admin/missoes')
+      setMissoes(r.data)
     } catch (e) {
       setErro(`Erro ao carregar: ${e.message}`)
     } finally {
@@ -82,13 +81,7 @@ const GestaoMissoes = () => {
         metrica_alvo: form.metrica_tipo !== 'manual' ? Number(form.metrica_alvo) : null,
         data_limite: form.data_limite || null,
       }
-      const r = await fetch(`${API_URL}/api/admin/missoes`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-      })
-      if (!r.ok) {
-        const err = await r.json()
-        throw new Error(err.detail || `HTTP ${r.status}`)
-      }
+      await api.post('/api/admin/missoes', payload)
       setSucesso('Missão criada com sucesso!')
       setForm(FORM_INICIAL)
       fetchMissoes()
@@ -102,8 +95,7 @@ const GestaoMissoes = () => {
 
   const handleDelete = async (id) => {
     try {
-      const r = await fetch(`${API_URL}/api/admin/missoes/${id}`, { method: 'DELETE' })
-      if (!r.ok) throw new Error()
+      await api.delete(`/api/admin/missoes/${id}`)
       setMissoes(m => m.filter(x => x.id !== id))
       setModalDel(null)
       setSucesso('Missão excluída!')

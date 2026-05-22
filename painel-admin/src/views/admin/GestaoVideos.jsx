@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { CSpinner, CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter } from '@coreui/react'
 import { Icon } from '@iconify/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { API_URL } from '../../config'
+import api from '../../services/api'
 import { useTheme } from '../../context/themeContext'
 import { tokens as tk } from '../../tokens'
 
@@ -79,11 +79,11 @@ const GestaoVideos = () => {
       if (materiaFiltro) params.append('materia_id', materiaFiltro)
 
       const [resVideos, resMaterias] = await Promise.all([
-        fetch(`${API_URL}/api/videos?${params.toString()}`),
-        fetch(`${API_URL}/api/admin/materias`)
+        api.get(`/api/videos?${params.toString()}`),
+        api.get('/api/admin/materias')
       ])
-      const respVideos = await resVideos.json()
-      const dataMaterias = await resMaterias.json()
+      const respVideos = resVideos.data
+      const dataMaterias = resMaterias.data
 
       if (respVideos.sucesso) {
         setVideos(respVideos.dados.data)
@@ -122,11 +122,12 @@ const GestaoVideos = () => {
     setError('')
     try {
       const payload = { titulo: formData.titulo, link_video: formData.link, materia_id: formData.materia_ids[0] || null }
-      const url = modoEdicao ? `${API_URL}/api/videos/${formData.id}` : `${API_URL}/api/videos`
-      const method = modoEdicao ? 'PUT' : 'POST'
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-
-      if (!res.ok) throw new Error('Falha ao salvar vídeo.')
+      const url = modoEdicao ? `/api/videos/${formData.id}` : `/api/videos`
+      if (modoEdicao) {
+        await api.put(url, payload)
+      } else {
+        await api.post(url, payload)
+      }
       setSuccess('Vídeo salvo com sucesso!')
       setTimeout(() => setSuccess(''), 3000)
       setModalVisible(false)
@@ -142,8 +143,7 @@ const GestaoVideos = () => {
   const excluirVideo = async (id) => {
     if (!window.confirm('Certeza que deseja remover este vídeo?')) return
     try {
-      const res = await fetch(`${API_URL}/api/videos/${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Falha ao excluir.')
+      await api.delete(`/api/videos/${id}`)
       setSuccess('Vídeo removido.')
       setTimeout(() => setSuccess(''), 3000)
       carregarDados()

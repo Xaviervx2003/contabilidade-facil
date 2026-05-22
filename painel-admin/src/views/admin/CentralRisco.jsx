@@ -21,7 +21,7 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilFilter, cilWarning } from '@coreui/icons'
-import { API_URL } from '../../config'
+import api from '../../services/api'
 
 const classificarRisco = (churn) => {
   if (churn >= 70) return { nivel: 'Alto', color: 'danger' }
@@ -47,9 +47,8 @@ const CentralRisco = () => {
         const params = new URLSearchParams({ pagina: String(pagina), por_pagina: '20' })
         if (userId) params.append('usuario_id', userId)
 
-        const res = await fetch(`${API_URL}/api/metricas-estudantes/central-risco?${params.toString()}`)
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const json = await res.json()
+        const res = await api.get(`/api/metricas-estudantes/central-risco?${params.toString()}`)
+        const json = res.data
         setEstudantes(Array.isArray(json.estudantes) ? json.estudantes : [])
         setTotalPaginas(Number(json.total_paginas || 1))
         setTotal(Number(json.total || 0))

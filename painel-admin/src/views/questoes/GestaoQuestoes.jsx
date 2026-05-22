@@ -5,7 +5,7 @@ import {
 } from '@coreui/react'
 import { Icon } from '@iconify/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { API_URL } from '../../config'
+import api from '../../services/api'
 import { useSearchParams } from 'react-router-dom'
 import MateriaMultiSelect from '../../components/MateriaMultiSelect'
 import { useTheme } from '../../context/themeContext'
@@ -235,12 +235,8 @@ const GestaoQuestoes = () => {
   /* ── Data fetching (Matérias) ────────────────────────────── */
   const carregarMaterias = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/admin/materias`, {
-        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
-      })
-      if (res.ok) {
-        setMateriasDisponiveis(await res.json())
-      }
+      const res = await api.get('/api/admin/materias')
+      setMateriasDisponiveis(res.data)
     } catch (e) { console.error(e) }
   }, [])
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { API_URL } from '../config'
+import api from '../services/api'
 
 
 const ListItem = ({ node, selected, loadingId, navigateTo, toggleItem, formatIndice }) => {
@@ -113,9 +113,8 @@ const MateriaMultiSelect = ({ materias = [], selected = [], onChange, esconderVa
         const load = async () => {
           setLoadingId(rootId)
           try {
-            const res = await fetch(`${API_URL}/api/admin/materias/${rootId}/filhos?esconder_vazias=${esconderVazias}`)
-            const data = await res.json()
-            setFilhosCache(prev => ({ ...prev, [rootId]: Array.isArray(data) ? data : [] }))
+            const res = await api.get(`/api/admin/materias/${rootId}/filhos?esconder_vazias=${esconderVazias}`)
+            setFilhosCache(prev => ({ ...prev, [rootId]: Array.isArray(res.data) ? res.data : [] }))
           } catch {}
           setLoadingId(null)
         }
@@ -162,9 +161,8 @@ const MateriaMultiSelect = ({ materias = [], selected = [], onChange, esconderVa
     if (filhosCache[node.id] === undefined) {
       setLoadingId(node.id)
       try {
-        const res = await fetch(`${API_URL}/api/admin/materias/${node.id}/filhos?esconder_vazias=${esconderVazias}`)
-        const data = await res.json()
-        setFilhosCache(prev => ({ ...prev, [node.id]: Array.isArray(data) ? data : [] }))
+        const res = await api.get(`/api/admin/materias/${node.id}/filhos?esconder_vazias=${esconderVazias}`)
+        setFilhosCache(prev => ({ ...prev, [node.id]: Array.isArray(res.data) ? res.data : [] }))
       } catch {
         setFilhosCache(prev => ({ ...prev, [node.id]: [] }))
       }
