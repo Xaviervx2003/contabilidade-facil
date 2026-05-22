@@ -1,29 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Icon } from '@iconify/react'
 import {
-    CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CContainer,
-    CRow,
-    CTable,
-    CTableBody,
-    CTableDataCell,
-    CTableHead,
-    CTableHeaderCell,
-    CTableRow,
-    CBadge,
-    CSpinner,
-    CAlert,
-    CButton,
-    CFormInput,
-    CButtonGroup,
-    CTooltip,
+    CRow, CCol, CBadge, CSpinner, CAlert, CButton, CFormInput, CTooltip
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilTrash, cilCheckCircle, cilSearch, cilPencil, cilBullhorn } from '@coreui/icons'
-import { API_URL } from '../../config'
 import { useNavigate } from 'react-router-dom'
+import { tokens } from '../../tokens'
+import { useTheme } from '../../context/themeContext'
 import { 
     useFeedbacksQuestoes, 
     useResolverFeedback, 
@@ -32,11 +15,16 @@ import {
     useAlternarPublicacaoFeedback 
 } from '../../hooks/useQuestoes'
 
+const FONT = "'Nunito', 'Circular Std', sans-serif"
+
 const FeedbacksQuestoes = () => {
+    const { isDark } = useTheme()
+    const navigate = useNavigate()
+    
     const [filtroStatus, setFiltroStatus] = useState('pendente')
     const [busca, setBusca] = useState('')
     const [debouncedBusca, setDebouncedBusca] = useState('')
-    const navigate = useNavigate()
+    const [respostaLocal, setRespostaLocal] = useState({}) // { [id]: 'texto' }
 
     const filtrosAtuais = useMemo(() => {
         const f = {}
@@ -64,9 +52,12 @@ const FeedbacksQuestoes = () => {
         }
     }
 
-    const handleResponder = async (id, texto) => {
+    const handleResponder = async (id) => {
+        const texto = respostaLocal[id]
+        if (!texto?.trim()) return
         try {
             await responderFeedback({ id, resposta: texto })
+            setRespostaLocal(prev => ({ ...prev, [id]: '' }))
         } catch (err) {
             alert('Não foi possível enviar a resposta. Tente novamente.')
         }
@@ -124,261 +115,251 @@ const FeedbacksQuestoes = () => {
     }, [busca])
 
     return (
-        <CContainer fluid>
-            <CRow>
-                <CCol xs={12}>
-                    <CCard className="mb-4">
-                        <CCardHeader>
-                            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                <div className="d-flex align-items-center gap-2">
-                                    <strong>Caixa de Entrada — Feedbacks dos Alunos</strong>
-                                    {pendentes > 0 && (
-                                        <CBadge color="danger" shape="rounded-pill">
-                                            {pendentes} pendente{pendentes > 1 ? 's' : ''}
-                                        </CBadge>
-                                    )}
-                                </div>
-                                <div className="d-flex gap-2 flex-wrap">
-                                    <CButton
-                                        color="success"
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={handleExportCSV}
-                                        disabled={feedbacks.length === 0}
-                                    >
-                                        📥 Exportar CSV
-                                    </CButton>
-                                    <CButton
-                                        color="primary"
-                                        size="sm"
-                                        variant="outline"
-                                        disabled={loading}
-                                    >
-                                        {loading ? <CSpinner size="sm"/> : 'Atualizado'}
-                                    </CButton>
-                                </div>
+        <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: 'calc(100vh - 80px)', fontFamily: FONT }}>
+            <div style={{ maxWidth: 1080, margin: '0 auto', padding: '32px 16px' }}>
+
+                {/* HEADER PREMIUM */}
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
+                    <div className="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                        <div>
+                            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
+                                Suporte Pedagógico
                             </div>
-
-                            {/* Barra de filtros */}
-                            <div className="d-flex justify-content-between align-items-center mt-3 gap-3 flex-wrap">
-                                <CButtonGroup size="sm">
-                                    <CButton
-                                        color={filtroStatus === 'pendente' ? 'warning' : 'light'}
-                                        onClick={() => setFiltroStatus('pendente')}
-                                    >
-                                        🔴 Pendentes
-                                    </CButton>
-                                    <CButton
-                                        color={filtroStatus === 'resolvido' ? 'success' : 'light'}
-                                        onClick={() => setFiltroStatus('resolvido')}
-                                    >
-                                        ✅ Resolvidos
-                                    </CButton>
-                                    <CButton
-                                        color={filtroStatus === 'todos' ? 'primary' : 'body'}
-                                        onClick={() => setFiltroStatus('todos')}
-                                    >
-                                        📋 Todos
-                                    </CButton>
-                                </CButtonGroup>
-
-                                <div className="position-relative" style={{ minWidth: '250px', maxWidth: '350px', flex: 1 }}>
-                                    <CFormInput
-                                        type="text"
-                                        size="sm"
-                                        placeholder="Buscar por aluno, comentário ou enunciado..."
-                                        value={busca}
-                                        onChange={(e) => setBusca(e.target.value)}
-                                    />
+                            <div className="d-flex align-items-center gap-2">
+                                <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>
+                                    Feedbacks e Dúvidas
                                 </div>
+                                {pendentes > 0 && (
+                                    <CBadge color="danger" shape="rounded-pill" style={{ fontSize: 12 }}>
+                                        {pendentes} pendente{pendentes > 1 ? 's' : ''}
+                                    </CBadge>
+                                )}
                             </div>
-                        </CCardHeader>
+                            <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+                                Gerencie as mensagens e reporte de questões enviadas pelos alunos.
+                            </div>
+                        </div>
 
-                        <CCardBody>
-                            {isError && <CAlert color="danger">Erro ao carregar feedbacks</CAlert>}
+                        <CButton
+                            onClick={handleExportCSV}
+                            disabled={feedbacks.length === 0}
+                            style={{
+                                background: 'transparent',
+                                border: `1.5px solid var(--color-border)`,
+                                color: 'var(--color-text-primary)',
+                                borderRadius: 20,
+                                padding: '8px 16px',
+                                fontSize: 13,
+                                fontWeight: 700,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6
+                            }}
+                        >
+                            <Icon icon="ph:download-simple-bold" width="16" />
+                            Exportar CSV
+                        </CButton>
+                    </div>
 
-                            {loading ? (
-                                <div className="text-center py-5">
-                                    <CSpinner color="primary" />
-                                    <p className="mt-2 text-muted">Carregando mensagens...</p>
-                                </div>
-                            ) : feedbacks.length === 0 ? (
-                                <div className="text-center py-5 text-muted">
-                                    <h5>
-                                        {filtroStatus === 'pendente'
-                                            ? 'Nenhum feedback pendente! 🎉'
-                                            : filtroStatus === 'resolvido'
-                                                ? 'Nenhum feedback resolvido encontrado.'
-                                                : 'Nenhum feedback recebido ainda!'}
-                                    </h5>
-                                    <p>As mensagens e dúvidas dos alunos aparecerão aqui.</p>
-                                </div>
-                            ) : (
-                                <CTable hover responsive align="middle" className="border">
-                                    <CTableHead>
-                                        <CTableRow>
-                                            <CTableHeaderCell>Data</CTableHeaderCell>
-                                            <CTableHeaderCell>Aluno</CTableHeaderCell>
-                                            <CTableHeaderCell>Questão Relacionada</CTableHeaderCell>
-                                            <CTableHeaderCell>Comentário</CTableHeaderCell>
-                                            <CTableHeaderCell className="text-center">Tipo</CTableHeaderCell>
-                                            <CTableHeaderCell className="text-center">Status</CTableHeaderCell>
-                                            <CTableHeaderCell className="text-center">Ações</CTableHeaderCell>
-                                        </CTableRow>
-                                    </CTableHead>
-                                    <CTableBody>
-                                        {feedbacks.map((item) => (
-                                            <CTableRow
-                                                key={item.id}
-                                                style={{
-                                                    ...(item.resolvido ? { opacity: 0.7 } : {}),
-                                                    ...(item.impacto >= 5 && !item.resolvido ? { backgroundColor: 'rgba(229, 83, 83, 0.15)' } : {})
-                                                }}
-                                            >
-                                                {/* Data */}
-                                                <CTableDataCell className="small text-muted" style={{ whiteSpace: 'nowrap' }}>
-                                                    {item.data_criacao}
-                                                </CTableDataCell>
+                    {/* Barra de Filtros */}
+                    <div className="d-flex justify-content-between align-items-center mt-4 gap-3 flex-wrap">
+                        <div className="d-flex gap-2 bg-body-tertiary p-1 rounded-4 border">
+                            {['pendente', 'resolvido', 'todos'].map(f => {
+                                const labels = { pendente: '🔴 Pendentes', resolvido: '✅ Resolvidos', todos: '📋 Todos' }
+                                return (
+                                    <CButton
+                                        key={f}
+                                        onClick={() => setFiltroStatus(f)}
+                                        style={{
+                                            background: filtroStatus === f ? 'var(--color-bg-elevated)' : 'transparent',
+                                            border: 'none',
+                                            borderRadius: 10,
+                                            padding: '8px 16px',
+                                            fontSize: 13,
+                                            fontWeight: 700,
+                                            color: filtroStatus === f ? (f === 'pendente' ? tokens.arches : f === 'resolvido' ? tokens.babu : tokens.rausch) : tokens.foggy,
+                                            boxShadow: filtroStatus === f ? '0 2px 10px rgba(0,0,0,0.05)' : 'none'
+                                        }}
+                                    >
+                                        {labels[f]}
+                                    </CButton>
+                                )
+                            })}
+                        </div>
 
-                                                {/* Aluno */}
-                                                <CTableDataCell>
-                                                    <div className="fw-bold text-primary">
-                                                        {item.nome_aluno ? item.nome_aluno.toUpperCase() : "ALUNO NÃO IDENTIFICADO"}
-                                                    </div>
-                                                </CTableDataCell>
+                        <div className="position-relative" style={{ minWidth: '250px', maxWidth: '350px', flex: 1 }}>
+                            <div className="position-absolute" style={{ left: 12, top: '50%', transform: 'translateY(-50%)', color: tokens.foggy }}>
+                                <Icon icon="ph:magnifying-glass-bold" width="18" />
+                            </div>
+                            <CFormInput
+                                type="text"
+                                placeholder="Buscar por aluno, comentário..."
+                                value={busca}
+                                onChange={(e) => setBusca(e.target.value)}
+                                style={{
+                                    paddingLeft: 40,
+                                    borderRadius: 12,
+                                    border: '1.5px solid var(--color-border)',
+                                    background: 'var(--color-bg-primary)',
+                                    color: 'var(--color-text-primary)'
+                                }}
+                            />
+                        </div>
+                    </div>
+                </motion.div>
 
-                                                {/* Questão + IMPACTO */}
-                                                <CTableDataCell style={{ minWidth: '280px' }}>
-                                                    <div className="d-flex flex-column gap-1">
-                                                        <div className="d-flex align-items-center gap-2">
-                                                            <CBadge color="dark" shape="rounded-pill">
-                                                                ID #{item.questao_id}
-                                                            </CBadge>
-                                                            {item.impacto >= 2 && !item.resolvido && (
-                                                                <CBadge color={item.impacto >= 5 ? 'danger' : 'warning'} shape="rounded-pill">
-                                                                    🔥 {item.impacto} reclamações
-                                                                </CBadge>
-                                                            )}
-                                                        </div>
-                                                        <div className="small text-body-secondary" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                                                            {item.enunciado_questao
-                                                                ? (item.enunciado_questao.length > 120
-                                                                    ? item.enunciado_questao.substring(0, 120) + '...'
-                                                                    : item.enunciado_questao)
-                                                                : <span className="text-danger">Enunciado indisponível</span>}
-                                                        </div>
-                                                    </div>
-                                                </CTableDataCell>
+                {/* CONTEÚDO */}
+                {isError && <CAlert color="danger">Erro ao carregar feedbacks</CAlert>}
 
-                                                {/* Comentário + RESPOSTA */}
-                                                <CTableDataCell>
-                                                    <div className="d-flex flex-column gap-2">
-                                                        {item.texto ? (
-                                                            <span className="fst-italic">"{item.texto}"</span>
-                                                        ) : (
-                                                            <span className="text-body-secondary fst-italic small">Sem comentário em texto</span>
-                                                        )}
-                                                        
-                                                        {/* Exibição da Resposta do Professor */}
-                                                        {item.resposta_professor ? (
-                                                            <div className="p-2 bg-body-tertiary border-start border-4 border-info small">
-                                                                <strong>Sua resposta:</strong> {item.resposta_professor}
-                                                            </div>
-                                                        ) : !item.resolvido && (
-                                                            <div className="mt-1">
-                                                                <CFormInput 
-                                                                    size="sm" 
-                                                                    placeholder="Escrever resposta..." 
-                                                                    onKeyDown={(e) => {
-                                                                        if (e.key === 'Enter' && e.target.value.trim()) {
-                                                                            handleResponder(item.id, e.target.value);
-                                                                            e.target.value = '';
-                                                                        }
-                                                                    }}
-                                                                />
-                                                                <small className="text-body-secondary" style={{ fontSize: '0.75rem' }}>Pressione Enter para enviar e resolver</small>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </CTableDataCell>
+                {loading ? (
+                    <div className="text-center py-5">
+                        <CSpinner color="primary" />
+                        <div className="mt-2 text-muted">Carregando mensagens...</div>
+                    </div>
+                ) : feedbacks.length === 0 ? (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-5 text-muted">
+                        <Icon icon="ph:empty-bold" width="48" style={{ color: tokens.foggy, marginBottom: 16 }} />
+                        <h5>
+                            {filtroStatus === 'pendente'
+                                ? 'Nenhum feedback pendente! 🎉'
+                                : filtroStatus === 'resolvido'
+                                    ? 'Nenhum feedback resolvido encontrado.'
+                                    : 'Nenhum feedback recebido ainda!'}
+                        </h5>
+                        <p style={{ color: tokens.foggy }}>As mensagens e dúvidas dos alunos aparecerão aqui.</p>
+                    </motion.div>
+                ) : (
+                    <CRow className="g-4">
+                        {feedbacks.map((item, i) => (
+                            <CCol xs={12} key={item.id}>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 15 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    whileHover={{ scale: 1.005 }}
+                                    style={{
+                                        background: 'var(--color-bg-elevated)',
+                                        border: `1.5px solid var(--color-border)`,
+                                        borderRadius: 20,
+                                        padding: '24px',
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        opacity: item.resolvido ? 0.75 : 1
+                                    }}
+                                >
+                                    {/* Faixa lateral indicadora de status */}
+                                    <div style={{
+                                        position: 'absolute', left: 0, top: 0, bottom: 0, width: 6,
+                                        background: item.resolvido ? tokens.babu : item.impacto >= 5 ? tokens.rausch : tokens.arches
+                                    }} />
 
-                                                {/* Tipo */}
-                                                <CTableDataCell className="text-center">
-                                                    {item.marcada_confusa ? (
-                                                        <CBadge color="warning" shape="rounded-pill">⚠️ Confusa</CBadge>
-                                                    ) : (
-                                                        <CBadge color="info" shape="rounded-pill">💬 Dúvida</CBadge>
-                                                    )}
-                                                </CTableDataCell>
+                                    <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+                                        <div>
+                                            <div className="d-flex align-items-center gap-2 mb-1">
+                                                <div className="fw-bold" style={{ fontSize: 16, color: 'var(--color-text-primary)' }}>
+                                                    {item.nome_aluno ? item.nome_aluno.toUpperCase() : "ALUNO NÃO IDENTIFICADO"}
+                                                </div>
+                                                <span style={{ fontSize: 12, color: tokens.foggy }}>• {item.data_criacao}</span>
+                                            </div>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <CBadge style={{ background: item.marcada_confusa ? tokens.arches : tokens.secondary, color: '#fff', fontSize: 11, padding: '4px 8px' }}>
+                                                    {item.marcada_confusa ? '⚠️ Confusa' : '💬 Dúvida'}
+                                                </CBadge>
+                                                {item.impacto >= 2 && !item.resolvido && (
+                                                    <CBadge style={{ background: item.impacto >= 5 ? tokens.rausch : tokens.arches, color: '#fff', fontSize: 11, padding: '4px 8px' }}>
+                                                        🔥 {item.impacto} reclamações
+                                                    </CBadge>
+                                                )}
+                                                <CBadge style={{ background: item.resolvido ? tokens.babu : 'var(--color-bg-tertiary)', color: item.resolvido ? '#fff' : tokens.foggy, fontSize: 11, padding: '4px 8px' }}>
+                                                    {item.resolvido ? '✅ Resolvido' : '🔴 Pendente'}
+                                                </CBadge>
+                                            </div>
+                                        </div>
 
-                                                {/* Status */}
-                                                <CTableDataCell className="text-center">
-                                                    {item.resolvido ? (
-                                                        <CTooltip content={`Resolvido em ${item.resolvido_em || '—'}`}>
-                                                            <CBadge color="success" shape="rounded-pill">✅ Resolvido</CBadge>
-                                                        </CTooltip>
-                                                    ) : (
-                                                        <CBadge color="danger" shape="rounded-pill">🔴 Pendente</CBadge>
-                                                    )}
-                                                </CTableDataCell>
+                                        <div className="d-flex gap-2">
+                                            {!item.resolvido && (
+                                                <CTooltip content="Marcar como resolvido">
+                                                    <CButton variant="ghost" onClick={() => handleResolver(item.id)} style={{ border: 'none', color: tokens.babu, padding: 4 }}>
+                                                        <Icon icon="ph:check-circle-bold" width="24" />
+                                                    </CButton>
+                                                </CTooltip>
+                                            )}
+                                            <CTooltip content="Editar Questão">
+                                                <CButton variant="ghost" onClick={() => navigate(`/questoes?busca=${item.questao_id}`)} style={{ border: 'none', color: 'var(--color-text-secondary)', padding: 4 }}>
+                                                    <Icon icon="ph:pencil-simple-bold" width="22" />
+                                                </CButton>
+                                            </CTooltip>
+                                            <CTooltip content={item.publico ? "Ocultar da Comunidade" : "Tornar Público"}>
+                                                <CButton variant="ghost" onClick={() => handlePublicar(item.id)} style={{ border: 'none', color: item.publico ? tokens.babu : tokens.arches, padding: 4 }}>
+                                                    <Icon icon={item.publico ? "ph:megaphone-bold" : "ph:megaphone-simple-slash-bold"} width="22" />
+                                                </CButton>
+                                            </CTooltip>
+                                            <CTooltip content="Excluir">
+                                                <CButton variant="ghost" onClick={() => handleDelete(item.id)} style={{ border: 'none', color: tokens.rausch, padding: 4 }}>
+                                                    <Icon icon="ph:trash-bold" width="22" />
+                                                </CButton>
+                                            </CTooltip>
+                                        </div>
+                                    </div>
 
-                                                {/* Ações */}
-                                                <CTableDataCell className="text-center">
-                                                    <div className="d-flex justify-content-center gap-1">
-                                                        {!item.resolvido && (
-                                                            <CTooltip content="Marcar como resolvido">
-                                                                <CButton
-                                                                    color="success"
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() => handleResolver(item.id)}
-                                                                >
-                                                                    <CIcon icon={cilCheckCircle} />
-                                                                </CButton>
-                                                            </CTooltip>
-                                                        )}
-                                                        <CTooltip content="Editar Questão">
-                                                            <CButton
-                                                                color="info"
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => navigate(`/questoes?busca=${item.questao_id}`)}
-                                                            >
-                                                                <CIcon icon={cilPencil} />
-                                                            </CButton>
-                                                        </CTooltip>
-                                                        <CTooltip content={item.publico ? "Ocultar da Comunidade" : "Tornar Público (Comunidade)"}>
-                                                            <CButton
-                                                                color={item.publico ? "success" : "warning"}
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handlePublicar(item.id)}
-                                                            >
-                                                                <CIcon icon={cilBullhorn} />
-                                                            </CButton>
-                                                        </CTooltip>
-                                                        <CTooltip content="Excluir permanentemente">
-                                                            <CButton
-                                                                color="danger"
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handleDelete(item.id)}
-                                                            >
-                                                                <CIcon icon={cilTrash} />
-                                                            </CButton>
-                                                        </CTooltip>
-                                                    </div>
-                                                </CTableDataCell>
-                                            </CTableRow>
-                                        ))}
-                                    </CTableBody>
-                                </CTable>
-                            )}
-                        </CCardBody>
-                    </CCard>
-                </CCol>
-            </CRow>
-        </CContainer>
+                                    {/* Detalhes da Questão */}
+                                    <div style={{ background: 'var(--color-bg-tertiary)', padding: '16px', borderRadius: 12, marginBottom: 16 }}>
+                                        <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700, marginBottom: 4 }}>
+                                            QUESTÃO #{item.questao_id}
+                                        </div>
+                                        <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
+                                            {item.enunciado_questao
+                                                ? (item.enunciado_questao.length > 200 ? item.enunciado_questao.substring(0, 200) + '...' : item.enunciado_questao)
+                                                : 'Enunciado indisponível'}
+                                        </div>
+                                    </div>
+
+                                    {/* Comentário e Resposta */}
+                                    <div className="d-flex flex-column gap-3">
+                                        <div>
+                                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700, marginBottom: 4 }}>COMENTÁRIO DO ALUNO</div>
+                                            <div style={{ fontSize: 15, color: 'var(--color-text-primary)' }}>
+                                                {item.texto ? `"${item.texto}"` : <span style={{ color: tokens.foggy, fontStyle: 'italic' }}>Sem comentário em texto</span>}
+                                            </div>
+                                        </div>
+
+                                        {item.resposta_professor ? (
+                                            <div style={{ borderLeft: `4px solid ${tokens.babu}`, paddingLeft: 12, marginLeft: 4 }}>
+                                                <div style={{ fontSize: 12, color: tokens.babu, fontWeight: 700, marginBottom: 2 }}>SUA RESPOSTA</div>
+                                                <div style={{ fontSize: 14, color: 'var(--color-text-primary)' }}>{item.resposta_professor}</div>
+                                            </div>
+                                        ) : !item.resolvido && (
+                                            <div className="d-flex gap-2 align-items-center mt-2">
+                                                <CFormInput
+                                                    type="text"
+                                                    placeholder="Escrever resposta para o aluno..."
+                                                    value={respostaLocal[item.id] || ''}
+                                                    onChange={(e) => setRespostaLocal({ ...respostaLocal, [item.id]: e.target.value })}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') handleResponder(item.id)
+                                                    }}
+                                                    style={{
+                                                        borderRadius: 12, border: '1.5px solid var(--color-border)',
+                                                        background: 'var(--color-bg-primary)', color: 'var(--color-text-primary)',
+                                                        flex: 1
+                                                    }}
+                                                />
+                                                <CButton 
+                                                    onClick={() => handleResponder(item.id)}
+                                                    style={{ background: tokens.babu, color: '#fff', border: 'none', borderRadius: 12, padding: '8px 16px', fontWeight: 700 }}
+                                                >
+                                                    Enviar
+                                                </CButton>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            </CCol>
+                        ))}
+                    </CRow>
+                )}
+            </div>
+        </div>
     )
 }
 
