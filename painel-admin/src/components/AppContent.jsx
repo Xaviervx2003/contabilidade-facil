@@ -9,8 +9,7 @@
 
 import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { CContainer, CSpinner } from '@coreui/react'
-
+import { CSpinner } from '@coreui/react'
 // routes config
 import { routes } from '../routes'
 import useAuthSession from '../hooks/useAuthSession'
@@ -19,14 +18,7 @@ const AppContent = () => {
   const { papel } = useAuthSession()
 
   return (
-    <CContainer className="px-4 relative max-w-[1360px] mx-auto min-h-screen" lg>
-      {/* Container Frame System */}
-      <div className="pointer-events-none absolute inset-0 flex justify-center z-[-1]">
-        <div className="w-full h-full relative">
-          <div className="absolute left-0 md:left-4 top-0 bottom-0 w-px bg-slate-200/70 dark:bg-slate-800/50"></div>
-          <div className="absolute right-0 md:right-4 top-0 bottom-0 w-px bg-slate-200/70 dark:bg-slate-800/50"></div>
-        </div>
-      </div>
+    <div style={{ padding: '24px', maxWidth: '1440px', margin: '0 auto', minHeight: '100vh' }}>
       <Suspense fallback={<CSpinner color="primary" />}>
         <Routes>
           {routes.map((route, idx) => {
@@ -56,7 +48,7 @@ const AppContent = () => {
           <Route path="/" element={<Navigate to="/quiz" replace />} />
         </Routes>
       </Suspense>
-    </CContainer>
+    </div>
   )
 }
 

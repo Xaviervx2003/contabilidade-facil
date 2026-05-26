@@ -11,7 +11,11 @@ router = APIRouter(prefix="/api/trilhas", tags=["Trilhas de Aprendizagem"])
 # ─── PROFESSOR / ADMIN ──────────────────────────────────────────────
 
 @router.get("")
-def listar_trilhas(usuario_id: Optional[int] = Query(None)):
+def listar_trilhas(
+    usuario_id: Optional[int] = Query(None),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100)
+):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor(row_factory=dict_row)
@@ -20,8 +24,12 @@ def listar_trilhas(usuario_id: Optional[int] = Query(None)):
                 FROM trilhas t
                 LEFT JOIN usuarios u ON u.id = t.criado_por
                 ORDER BY t.id DESC
-            """)
+                LIMIT %s OFFSET %s
+            """, (limit, (page - 1) * limit))
             trilhas = cursor.fetchall()
+
+            cursor.execute("SELECT COUNT(*) FROM trilhas")
+            total = cursor.fetchone()["count"]
             
             for t in trilhas:
                 cursor.execute("""
@@ -33,7 +41,12 @@ def listar_trilhas(usuario_id: Optional[int] = Query(None)):
                 """, (t["id"],))
                 t["modulos"] = cursor.fetchall()
                 
-            return trilhas
+            return {
+                "data": trilhas,
+                "total": total,
+                "page": page,
+                "limit": limit
+            }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -183,7 +196,11 @@ def deletar_modulo(modulo_id: int):
 # ─── ALUNO ─────────────────────────────────────────────────────────
 
 @router.get("/aluno/{matricula}")
-def listar_trilhas_aluno(matricula: str):
+def listar_trilhas_aluno(
+    matricula: str,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100)
+):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor(row_factory=dict_row)
@@ -202,8 +219,12 @@ def listar_trilhas_aluno(matricula: str):
                 LEFT JOIN usuarios u ON u.id = t.criado_por
                 WHERE t.status = 'publicado'
                 ORDER BY t.id DESC
-            """)
+                LIMIT %s OFFSET %s
+            """, (limit, (page - 1) * limit))
             trilhas = cursor.fetchall()
+            
+            cursor.execute("SELECT COUNT(*) FROM trilhas WHERE status = 'publicado'")
+            total = cursor.fetchone()["count"]
             
             for t in trilhas:
                 cursor.execute("""
@@ -236,7 +257,12 @@ def listar_trilhas_aluno(matricula: str):
                 
                 t["media_acertos"] = round(sum(somas_acertos) / len(somas_acertos), 1) if somas_acertos else None
                 
-            return trilhas
+            return {
+                "data": trilhas,
+                "total": total,
+                "page": page,
+                "limit": limit
+            }
     except HTTPException:
         raise
     except Exception as e:

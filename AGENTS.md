@@ -154,3 +154,18 @@ const MinhaNovaView = () => {
 
 export default MinhaNovaView
 ```
+
+
+## 🧩 Padrão de Refatoração e Componentização (Hooks e UI)
+
+Para views e componentes complexos (ex: `Quiz.jsx`, `MinhasQuestoes.jsx`), siga estritamente o padrão de separação de responsabilidades:
+
+1. **Lógica de Estado e Efeitos (Hooks Locais):**
+   - Extraia a lógica pesada (useStates, useQuery, useMutation, timers) para um arquivo de hook customizado dentro da pasta `hooks/` local da view.
+   - Exemplo: `src/views/quiz/hooks/useQuizLogic.js`.
+
+2. **Componentes Visuais Menores:**
+   - Extraia pequenos componentes reutilizáveis dentro da view para um arquivo na pasta `components/` local.
+   - Exemplo: `src/views/quiz/components/QuizComponents.jsx`.
+
+Essa prática evita arquivos gigantes, facilita manutenção, testes unitários, e melhora a velocidade do Hot Module Replacement (HMR) durante o desenvolvimento.

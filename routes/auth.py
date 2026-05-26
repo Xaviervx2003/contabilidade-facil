@@ -24,6 +24,16 @@ from utils.responses import api_response
 from utils.logger import setup_logger
 from utils.rate_limit import rate_limiter
 from utils.jwt_auth import criar_token, verificar_proprio_ou_admin, usuario_autenticado
+import re
+
+def validar_senha_forte(senha: str) -> bool:
+    if len(senha) < 8:
+        return False
+    if not re.search(r'[A-Za-z]', senha):
+        return False
+    if not re.search(r'[0-9\W_]', senha):
+        return False
+    return True
 
 logger = setup_logger(__name__)
 router = APIRouter(prefix="/api", tags=["Autenticação"])
@@ -81,8 +91,8 @@ def registrar_usuario(
 
         if not nome_limpo or not matricula_limpa or not senha_limpa:
             return api_response(sucesso=False, mensagem="Preencha nome, matrícula e senha.", status_code=400)
-        if len(senha_limpa) < 6:
-            return api_response(sucesso=False, mensagem="A senha deve ter pelo menos 6 caracteres.", status_code=400)
+        if not validar_senha_forte(senha_limpa):
+            return api_response(sucesso=False, mensagem="A senha deve ter pelo menos 8 caracteres, incluindo letras e números/símbolos.", status_code=400)
 
         try:
             novo_id = AuthRepository.registrar(nome_limpo, matricula_limpa, senha_limpa)
@@ -134,8 +144,8 @@ def verificar_identidade(dados: VerificaIdentidadeRequest):
 @router.post("/redefinir-senha")
 def redefinir_senha(dados: RedefineSenhaRequest):
     try:
-        if len(dados.nova_senha) < 6:
-            return api_response(sucesso=False, mensagem="Senha muito curta.", status_code=400)
+        if not validar_senha_forte(dados.nova_senha):
+            return api_response(sucesso=False, mensagem="A senha deve ter pelo menos 8 caracteres, incluindo letras e números/símbolos.", status_code=400)
 
         sucesso = AuthRepository.redefinir_senha(dados.matricula, dados.nova_senha)
         if sucesso:
@@ -154,8 +164,8 @@ def alterar_senha(dados: AlteraSenhaRequest, token_data: dict = Depends(usuario_
         if token_data.get("sub") != dados.matricula and token_data.get("papel") != "admin":
             return api_response(sucesso=False, mensagem="Você só pode alterar sua própria senha.", status_code=403)
 
-        if len(dados.nova_senha) < 6:
-            return api_response(sucesso=False, mensagem="A nova senha deve ter pelo menos 6 caracteres.", status_code=400)
+        if not validar_senha_forte(dados.nova_senha):
+            return api_response(sucesso=False, mensagem="A nova senha deve ter pelo menos 8 caracteres, incluindo letras e números/símbolos.", status_code=400)
 
         sucesso = AuthRepository.alterar_senha_segura(dados.matricula, dados.senha_atual, dados.nova_senha)
         if not sucesso:
