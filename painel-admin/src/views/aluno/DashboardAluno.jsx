@@ -117,7 +117,7 @@ const MiniBarChart = React.memo(({ data, isDark }) => {
 })
 
 /* ─── Stat Card (Airbnb style) ───────────────────────────── */
-const StatCard = ({ icon, label, value, sub, accent = tokens.rausch, delay = 0 }) => (
+const StatCard = ({ icon, label, value, sub, accent = tokens.rausch, delay = 0, children }) => (
   <motion.div
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
@@ -159,6 +159,7 @@ const StatCard = ({ icon, label, value, sub, accent = tokens.rausch, delay = 0 }
         {sub}
       </div>
     )}
+    {children}
   </motion.div>
 )
 
@@ -310,6 +311,19 @@ const DashboardAluno = () => {
   const { matricula, nome, token } = useAuthSession()
   const nomeUsuario = nome || ''
 
+  const [metaStreak, setMetaStreak] = useState(() => {
+    return parseInt(localStorage.getItem('meta_streak') || '7', 10)
+  })
+
+  const handleToggleMeta = (e) => {
+    e.stopPropagation()
+    const metas = [5, 7, 10, 15, 30, 60, 90]
+    const nextIdx = (metas.indexOf(metaStreak) + 1) % metas.length
+    const nextMeta = metas[nextIdx]
+    setMetaStreak(nextMeta)
+    localStorage.setItem('meta_streak', String(nextMeta))
+  }
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['dashboard-aluno', matricula],
     queryFn: async () => {
@@ -387,7 +401,54 @@ const DashboardAluno = () => {
         {/* ── Stat Cards ── */}
         <CRow className="g-3 mb-4">
           {[
-            { icon: 'solar:fire-bold-duotone', label: 'Streak', value: `${streak} dias`, sub: streak > 0 ? 'Sequência ativa 🔥' : 'Estude hoje!', accent: tokens.arches, delay: 0.05 },
+            {
+              icon: 'solar:fire-bold-duotone',
+              label: 'Streak',
+              value: `${streak} dias`,
+              sub: streak > 0 ? 'Sequência ativa 🔥' : 'Estude hoje!',
+              accent: tokens.arches,
+              delay: 0.05,
+              children: (
+                <div style={{ marginTop: 12, borderTop: '1px solid var(--color-border)', paddingTop: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <button
+                      onClick={handleToggleMeta}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        color: 'var(--accent-primary, #FF385C)',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        outline: 'none',
+                      }}
+                      title="Clique para mudar a meta de streak"
+                    >
+                      Meta: {metaStreak} dias
+                      <Icon icon="solar:pen-bold" width="10" />
+                    </button>
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: tokens.foggy }}>
+                      {Math.round(Math.min((streak / metaStreak) * 100, 100))}%
+                    </span>
+                  </div>
+                  <div style={{ height: 4, background: 'var(--color-bg-tertiary)', borderRadius: 99, overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${Math.min((streak / metaStreak) * 100, 100)}%`,
+                        background: tokens.arches,
+                        borderRadius: 99,
+                        transition: 'width 0.3s ease',
+                      }}
+                    />
+                  </div>
+                </div>
+              )
+            },
             { icon: 'solar:check-read-bold-duotone', label: 'Hoje', value: hoje.questoes, sub: `${hoje.sessoes} sessão · ${formatTempo(hoje.tempo_seg)}`, accent: tokens.babu, delay: 0.1 },
             { icon: 'solar:calendar-bold-duotone', label: 'Esta semana', value: semana.questoes, sub: `${semana.dias_estudados}/7 dias · ${formatTempo(semana.tempo_seg)}`, accent: tokens.rausch, delay: 0.15 },
             { icon: 'solar:graph-up-bold-duotone', label: 'Média geral', value: `${geral.media_geral}%`, sub: `${geral.total_questoes} questões no total`, accent: '#8B5CF6', delay: 0.2 },

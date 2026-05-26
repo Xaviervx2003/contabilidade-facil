@@ -102,8 +102,11 @@ const RankingTurma = () => {
                 key={`${tipo}-${aluno.matricula}`}
                 className="d-flex align-items-center gap-3 p-3 border-bottom"
                 style={{
-                  background: isAtual ? `${tokens.arches}12` : 'transparent',
+                  background: isAtual ? `${tokens.arches}0d` : 'transparent',
                   borderColor: 'var(--color-border)',
+                  borderLeft: isAtual ? `4px solid ${tokens.arches}` : '4px solid transparent',
+                  paddingLeft: isAtual ? 16 : 20,
+                  transition: 'all 0.2s',
                 }}
               >
                 <div
@@ -120,9 +123,25 @@ const RankingTurma = () => {
                   {aluno.posicao}
                 </div>
                 <div className="flex-grow-1 min-width-0">
-                  <div className="fw-bold text-truncate" style={{ color: 'var(--color-text-primary)' }}>
-                    {aluno.nome}
-                    {isAtual && <span style={{ color: tokens.arches, fontSize: 12 }}> você</span>}
+                  <div className="fw-bold d-flex align-items-center flex-wrap gap-2 text-truncate" style={{ color: 'var(--color-text-primary)' }}>
+                    <span>{aluno.nome}</span>
+                    {isAtual && (
+                      <span style={{
+                        background: tokens.arches,
+                        color: '#fff',
+                        fontSize: 9,
+                        fontWeight: 800,
+                        padding: '2px 8px',
+                        borderRadius: 8,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}>
+                        📍 Você
+                      </span>
+                    )}
                   </div>
                   <div style={{ color: tokens.foggy, fontSize: 12 }}>
                     {tipo === 'streak' ? 'Dias consecutivos de estudo' : 'Questões respondidas'}
@@ -174,7 +193,20 @@ const Gamificacao = () => {
             </div>
           </motion.div>
 
-          <div className="d-flex gap-2 mb-4 overflow-auto pb-2 border-bottom" style={{ borderColor: 'var(--color-border)' }}>
+          {/* TABS DE NAVEGAÇÃO PREMIUM (Segmented Control) */}
+          <div style={{
+            display: 'inline-flex',
+            background: 'var(--color-bg-tertiary)',
+            padding: 6,
+            borderRadius: 20,
+            border: '1px solid var(--color-border)',
+            gap: 4,
+            marginBottom: 32,
+            position: 'relative',
+            flexWrap: 'wrap',
+            maxWidth: '100%',
+            overflowX: 'auto'
+          }}>
             {[
               { id: 'desafios', label: 'Missões & XP', icon: 'solar:target-bold-duotone', color: tokens.rausch },
               { id: 'conquistas', label: 'Meus Emblemas', icon: 'solar:medal-ribbon-star-bold-duotone', color: tokens.babu },
@@ -187,29 +219,36 @@ const Gamificacao = () => {
                   type="button"
                   onClick={() => setAbaAtiva(tab.id)}
                   style={{
-                    background: 'transparent',
-                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: 16,
                     cursor: 'pointer',
-                    padding: '10px 16px',
-                    position: 'relative',
+                    fontWeight: 800,
+                    fontSize: 14,
+                    border: 'none',
+                    background: 'transparent',
                     color: isActive ? tab.color : tokens.foggy,
-                    fontWeight: 700,
-                    fontSize: 15,
-                    letterSpacing: '-0.2px',
-                    transition: '0.2s',
+                    position: 'relative',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 8,
+                    zIndex: 1,
+                    transition: 'color 0.2s',
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  <Icon icon={tab.icon} width="20" />
+                  <Icon icon={tab.icon} width="18" />
                   {tab.label}
                   {isActive && (
                     <motion.div
-                      layoutId="gamificacao-tab-underline"
-                      className="position-absolute bottom-0 start-0 end-0"
-                      style={{ height: 3, background: tab.color, borderRadius: '3px 3px 0 0' }}
+                      layoutId="gamificacao-tab-active-bg"
+                      className="position-absolute top-0 start-0 end-0 bottom-0"
+                      style={{
+                        background: 'var(--color-bg-elevated)',
+                        borderRadius: 12,
+                        border: '1px solid var(--color-border)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                        zIndex: -1
+                      }}
                     />
                   )}
                 </button>

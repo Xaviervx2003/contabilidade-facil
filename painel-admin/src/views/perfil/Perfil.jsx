@@ -224,32 +224,64 @@ const Perfil = () => {
           </p>
         </div>
 
-        {/* TABS DE NAVEGAÇÃO */}
-        <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: `1px solid ${tokens.border}`, paddingBottom: 16 }}>
+        {/* TABS DE NAVEGAÇÃO PREMIUM (Segmented Control) */}
+        <div style={{
+          display: 'inline-flex',
+          background: 'var(--color-bg-tertiary)',
+          padding: 6,
+          borderRadius: 20,
+          border: '1px solid var(--color-border)',
+          gap: 4,
+          marginBottom: 32,
+          position: 'relative',
+          flexWrap: 'wrap'
+        }}>
             {[
-              { id: 'dados', label: '👤 Informações Pessoais' },
-              { id: 'seguranca', label: '🔒 Segurança da Conta' },
-              { id: 'aparencia', label: '🎨 Aparência' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: 20,
-                  cursor: 'pointer',
-                  fontWeight: 800,
-                  fontSize: 14,
-                  border: 'none',
-                  background: activeTab === tab.id ? 'var(--color-text-primary)' : 'transparent',
-                  color: activeTab === tab.id ? 'var(--color-bg-primary)' : tokens.foggy,
-                  transition: 'all 0.2s'
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
+              { id: 'dados', label: 'Informações Pessoais', icon: 'solar:user-circle-bold-duotone' },
+              { id: 'seguranca', label: 'Segurança da Conta', icon: 'solar:shield-keyhole-bold-duotone' },
+              { id: 'aparencia', label: 'Aparência', icon: 'solar:palette-bold-duotone' },
+            ].map(tab => {
+              const isActive = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    padding: '10px 20px',
+                    borderRadius: 16,
+                    cursor: 'pointer',
+                    fontWeight: 800,
+                    fontSize: 14,
+                    border: 'none',
+                    background: 'transparent',
+                    color: isActive ? 'var(--accent-primary, #FF385C)' : tokens.foggy,
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    zIndex: 1,
+                    transition: 'color 0.2s'
+                  }}
+                >
+                  <Icon icon={tab.icon} width="18" />
+                  {tab.label}
+                  {isActive && (
+                    <motion.div
+                      layoutId="perfil-tab-active-bg"
+                      className="position-absolute top-0 start-0 end-0 bottom-0"
+                      style={{
+                        background: 'var(--color-bg-elevated)',
+                        borderRadius: 12,
+                        border: '1px solid var(--color-border)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                        zIndex: -1
+                      }}
+                    />
+                  )}
+                </button>
+              )
+            })}
         </div>
 
         <div className="fade-in">

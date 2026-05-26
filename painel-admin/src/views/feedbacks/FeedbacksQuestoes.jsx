@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
-    CRow, CCol, CBadge, CSpinner, CAlert, CButton, CFormInput, CFormTextarea, CTooltip
+    CRow, CCol, CSpinner, CAlert, CButton, CFormInput, CFormTextarea, CTooltip
 } from '@coreui/react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
@@ -18,6 +18,27 @@ import {
 } from '../../hooks/useQuestoes'
 
 const FONT = "'Nunito', 'Circular Std', sans-serif"
+
+// Helpers para avatar do aluno
+const getIniciais = (nome) => {
+    if (!nome) return '??'
+    const partes = nome.trim().split(/\s+/)
+    if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase()
+    return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase()
+}
+
+const getCorAvatar = (nome) => {
+    const cores = [
+        '#FF5A5F', '#3b5998', '#34a853', '#8a3ab9',
+        '#fbbc05', '#1abc9c', '#e67e22', '#2980b9',
+    ]
+    let hash = 0
+    if (!nome) return cores[0]
+    for (let i = 0; i < nome.length; i++) {
+        hash = nome.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    return cores[Math.abs(hash) % cores.length]
+}
 
 const FeedbacksQuestoes = () => {
     const { isDark } = useTheme()
@@ -131,7 +152,7 @@ const FeedbacksQuestoes = () => {
 
     return (
         <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: 'calc(100vh - 80px)', fontFamily: FONT }}>
-            <div style={{ maxWidth: 1080, margin: '0 auto', padding: '32px 16px' }}>
+            <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px' }}>
 
                 {/* HEADER PREMIUM */}
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
@@ -141,17 +162,24 @@ const FeedbacksQuestoes = () => {
                                 Suporte Pedagógico
                             </div>
                             <div className="d-flex align-items-center gap-2">
-                                <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>
+                                <div style={{ fontSize: 28, fontWeight: 900, color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>
                                     Feedbacks e Dúvidas
                                 </div>
                                 {pendentes > 0 && (
-                                    <CBadge color="danger" shape="rounded-pill" style={{ fontSize: 12 }}>
+                                    <span style={{
+                                        background: 'var(--accent-primary, #FF385C)',
+                                        color: '#fff',
+                                        fontSize: 11,
+                                        fontWeight: 800,
+                                        padding: '4px 10px',
+                                        borderRadius: 20,
+                                    }}>
                                         {pendentes} pendente{pendentes > 1 ? 's' : ''}
-                                    </CBadge>
+                                    </span>
                                 )}
                             </div>
                             <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
-                                Gerencie as mensagens e reporte de questões enviadas pelos alunos.
+                                Gerencie as dúvidas e reportes de questões enviadas pelos estudantes.
                             </div>
                         </div>
 
@@ -159,52 +187,72 @@ const FeedbacksQuestoes = () => {
                             onClick={handleExportCSV}
                             disabled={feedbacks.length === 0}
                             style={{
-                                background: 'transparent',
-                                border: `1.5px solid var(--color-border)`,
+                                background: 'var(--color-bg-elevated)',
+                                border: `1px solid var(--color-border)`,
                                 color: 'var(--color-text-primary)',
-                                borderRadius: 20,
-                                padding: '8px 16px',
+                                borderRadius: 16,
+                                padding: '10px 18px',
                                 fontSize: 13,
                                 fontWeight: 700,
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: 6
+                                gap: 6,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                                cursor: 'pointer',
                             }}
                         >
-                            <Icon icon="ph:download-simple-bold" width="16" />
+                            <Icon icon="solar:download-minimalistic-bold-duotone" width="18" style={{ color: tokens.rausch }} />
                             Exportar CSV
                         </CButton>
                     </div>
 
-                    {/* Barra de Filtros */}
+                    {/* Barra de Filtros e Busca */}
                     <div className="d-flex justify-content-between align-items-center mt-4 gap-3 flex-wrap">
-                        <div className="d-flex gap-2 bg-body-tertiary p-1 rounded-4 border">
+                        
+                        {/* Segmented Control */}
+                        <div style={{
+                            display: 'inline-flex',
+                            background: 'var(--color-bg-tertiary)',
+                            padding: 5,
+                            borderRadius: 16,
+                            border: '1px solid var(--color-border)',
+                            gap: 2,
+                            position: 'relative',
+                        }}>
                             {['pendente', 'resolvido', 'todos'].map(f => {
                                 const labels = { pendente: '🔴 Pendentes', resolvido: '✅ Resolvidos', todos: '📋 Todos' }
+                                const isActive = filtroStatus === f
                                 return (
-                                    <CButton
+                                    <button
                                         key={f}
+                                        type="button"
                                         onClick={() => setFiltroStatus(f)}
                                         style={{
-                                            background: filtroStatus === f ? 'var(--color-bg-elevated)' : 'transparent',
                                             border: 'none',
-                                            borderRadius: 10,
+                                            borderRadius: 12,
                                             padding: '8px 16px',
                                             fontSize: 13,
-                                            fontWeight: 700,
-                                            color: filtroStatus === f ? (f === 'pendente' ? tokens.arches : f === 'resolvido' ? tokens.babu : tokens.rausch) : tokens.foggy,
-                                            boxShadow: filtroStatus === f ? '0 2px 10px rgba(0,0,0,0.05)' : 'none'
+                                            fontWeight: 800,
+                                            background: isActive ? 'var(--color-bg-elevated)' : 'transparent',
+                                            color: isActive 
+                                                ? (f === 'pendente' ? tokens.arches : f === 'resolvido' ? tokens.babu : tokens.rausch) 
+                                                : tokens.foggy,
+                                            boxShadow: isActive ? '0 2px 6px rgba(0,0,0,0.04)' : 'none',
+                                            cursor: 'pointer',
+                                            position: 'relative',
+                                            transition: 'color 0.2s',
                                         }}
                                     >
                                         {labels[f]}
-                                    </CButton>
+                                    </button>
                                 )
                             })}
                         </div>
 
+                        {/* Campo de Busca */}
                         <div className="position-relative" style={{ minWidth: '250px', maxWidth: '350px', flex: 1 }}>
                             <div className="position-absolute" style={{ left: 12, top: '50%', transform: 'translateY(-50%)', color: tokens.foggy }}>
-                                <Icon icon="ph:magnifying-glass-bold" width="18" />
+                                <Icon icon="solar:magnifer-bold-duotone" width="18" />
                             </div>
                             <CFormInput
                                 type="text"
@@ -213,10 +261,12 @@ const FeedbacksQuestoes = () => {
                                 onChange={(e) => setBusca(e.target.value)}
                                 style={{
                                     paddingLeft: 40,
-                                    borderRadius: 12,
-                                    border: '1.5px solid var(--color-border)',
-                                    background: 'var(--color-bg-primary)',
-                                    color: 'var(--color-text-primary)'
+                                    borderRadius: 14,
+                                    border: '1px solid var(--color-border)',
+                                    background: 'var(--color-bg-elevated)',
+                                    color: 'var(--color-text-primary)',
+                                    fontSize: 14,
+                                    height: '42px',
                                 }}
                             />
                         </div>
@@ -224,154 +274,250 @@ const FeedbacksQuestoes = () => {
                 </motion.div>
 
                 {/* CONTEÚDO */}
-                {isError && <CAlert color="danger">Erro ao carregar feedbacks</CAlert>}
+                {isError && <CAlert color="danger" style={{ borderRadius: 16 }}>Erro ao carregar feedbacks</CAlert>}
 
                 {loading ? (
                     <div className="text-center py-5">
-                        <CSpinner color="primary" />
-                        <div className="mt-2 text-muted">Carregando mensagens...</div>
+                        <CSpinner size="md" />
+                        <div className="mt-2 text-muted" style={{ fontSize: 13, fontWeight: 600 }}>Carregando feedbacks...</div>
                     </div>
                 ) : feedbacks.length === 0 ? (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-5 text-muted">
-                        <Icon icon="ph:empty-bold" width="48" style={{ color: tokens.foggy, marginBottom: 16 }} />
-                        <h5>
+                        <Icon icon="solar:dialog-close-bold-duotone" width="48" style={{ color: tokens.swiss, marginBottom: 16 }} />
+                        <h5 style={{ fontWeight: 800, color: 'var(--color-text-primary)' }}>
                             {filtroStatus === 'pendente'
                                 ? 'Nenhum feedback pendente! 🎉'
                                 : filtroStatus === 'resolvido'
                                     ? 'Nenhum feedback resolvido encontrado.'
                                     : 'Nenhum feedback recebido ainda!'}
                         </h5>
-                        <p style={{ color: tokens.foggy }}>As mensagens e dúvidas dos alunos aparecerão aqui.</p>
+                        <p style={{ color: tokens.foggy, fontSize: 13 }}>As mensagens e dúvidas dos alunos aparecerão aqui.</p>
                     </motion.div>
                 ) : (
                     <CRow className="g-4">
-                        {feedbacks.map((item, i) => (
-                            <CCol xs={12} key={item.id}>
-                                <motion.div
-                                    initial={{ opacity: 0, y: 15 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    whileHover={{ scale: 1.005 }}
-                                    style={{
-                                        background: 'var(--color-bg-elevated)',
-                                        border: `1.5px solid var(--color-border)`,
-                                        borderRadius: 20,
-                                        padding: '24px',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        opacity: item.resolvido ? 0.75 : 1
-                                    }}
-                                >
-                                    {/* Faixa lateral indicadora de status */}
-                                    <div style={{
-                                        position: 'absolute', left: 0, top: 0, bottom: 0, width: 6,
-                                        background: item.resolvido ? tokens.babu : item.impacto >= 5 ? tokens.rausch : tokens.arches
-                                    }} />
-
-                                    <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
-                                        <div>
-                                            <div className="d-flex align-items-center gap-2 mb-1">
-                                                <div className="fw-bold" style={{ fontSize: 16, color: 'var(--color-text-primary)' }}>
-                                                    {item.nome_aluno ? item.nome_aluno.toUpperCase() : "ALUNO NÃO IDENTIFICADO"}
+                        {feedbacks.map((item, i) => {
+                            const avatarNome = item.nome_aluno || "Aluno Indefinido"
+                            return (
+                                <CCol xs={12} key={item.id}>
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 15 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: i * 0.04 }}
+                                        style={{
+                                            background: 'var(--color-bg-elevated)',
+                                            border: `1px solid var(--color-border)`,
+                                            borderRadius: 24,
+                                            padding: '24px',
+                                            position: 'relative',
+                                            boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                                            opacity: item.resolvido ? 0.8 : 1,
+                                            transition: 'box-shadow 0.2s, opacity 0.2s',
+                                        }}
+                                    >
+                                        {/* Status header do card */}
+                                        <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+                                            
+                                            {/* Info do Aluno */}
+                                            <div className="d-flex align-items-center gap-3">
+                                                <div style={{
+                                                    width: 44,
+                                                    height: 44,
+                                                    borderRadius: '50%',
+                                                    background: getCorAvatar(avatarNome),
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    color: '#fff',
+                                                    fontWeight: 800,
+                                                    fontSize: '14px',
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                                                }}>
+                                                    {getIniciais(avatarNome)}
                                                 </div>
-                                                <span style={{ fontSize: 12, color: tokens.foggy }}>• {item.data_criacao}</span>
+                                                <div>
+                                                    <div className="fw-bold" style={{ fontSize: 15, color: 'var(--color-text-primary)', textTransform: 'capitalize' }}>
+                                                        {avatarNome.toLowerCase()}
+                                                    </div>
+                                                    <div style={{ fontSize: 12, color: tokens.foggy, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                        <Icon icon="solar:calendar-linear" width="12" />
+                                                        {item.data_criacao}
+                                                    </div>
+                                                </div>
                                             </div>
+
+                                            {/* Badges de Tags e Ações */}
                                             <div className="d-flex align-items-center gap-2">
-                                                <CBadge style={{ background: item.marcada_confusa ? tokens.arches : tokens.secondary, color: '#fff', fontSize: 11, padding: '4px 8px' }}>
-                                                    {item.marcada_confusa ? '⚠️ Confusa' : '💬 Dúvida'}
-                                                </CBadge>
+                                                
+                                                {/* Tags */}
+                                                <span style={{
+                                                    background: item.marcada_confusa ? 'rgba(252, 100, 45, 0.08)' : 'rgba(118, 118, 118, 0.08)',
+                                                    color: item.marcada_confusa ? tokens.arches : tokens.foggy,
+                                                    fontSize: '11px',
+                                                    fontWeight: 800,
+                                                    padding: '4px 10px',
+                                                    borderRadius: 12,
+                                                }}>
+                                                    {item.marcada_confusa ? '⚠️ Questão Confusa' : '💬 Dúvida Geral'}
+                                                </span>
+                                                
                                                 {item.impacto >= 2 && !item.resolvido && (
-                                                    <CBadge style={{ background: item.impacto >= 5 ? tokens.rausch : tokens.arches, color: '#fff', fontSize: 11, padding: '4px 8px' }}>
-                                                        🔥 {item.impacto} reclamações
-                                                    </CBadge>
+                                                    <span style={{
+                                                        background: 'rgba(255, 56, 92, 0.08)',
+                                                        color: tokens.rausch,
+                                                        fontSize: '11px',
+                                                        fontWeight: 800,
+                                                        padding: '4px 10px',
+                                                        borderRadius: 12,
+                                                    }}>
+                                                        🔥 {item.impacto} Reclamações
+                                                    </span>
                                                 )}
-                                                <CBadge style={{ background: item.resolvido ? tokens.babu : 'var(--color-bg-tertiary)', color: item.resolvido ? '#fff' : tokens.foggy, fontSize: 11, padding: '4px 8px' }}>
+
+                                                <span style={{
+                                                    background: item.resolvido ? 'rgba(0, 166, 153, 0.08)' : 'rgba(252, 100, 45, 0.08)',
+                                                    color: item.resolvido ? tokens.babu : tokens.arches,
+                                                    fontSize: '11px',
+                                                    fontWeight: 800,
+                                                    padding: '4px 10px',
+                                                    borderRadius: 12,
+                                                }}>
                                                     {item.resolvido ? '✅ Resolvido' : '🔴 Pendente'}
-                                                </CBadge>
+                                                </span>
+
+                                                {/* Divisor */}
+                                                <div style={{ width: '1px', height: '16px', background: 'var(--color-border)', margin: '0 4px' }} />
+
+                                                {/* Ações */}
+                                                <div className="d-flex gap-1">
+                                                    {!item.resolvido && (
+                                                        <CTooltip content="Resolver">
+                                                            <CButton onClick={() => handleResolver(item.id)} style={{ border: 'none', background: 'none', color: tokens.babu, padding: 6, display: 'flex', alignItems: 'center' }}>
+                                                                <Icon icon="solar:check-circle-bold-duotone" width="22" />
+                                                            </CButton>
+                                                        </CTooltip>
+                                                    )}
+                                                    <CTooltip content="Editar Questão">
+                                                        <CButton onClick={() => navigate(`/questoes?busca=${item.questao_id}`)} style={{ border: 'none', background: 'none', color: tokens.rausch, padding: 6, display: 'flex', alignItems: 'center' }}>
+                                                            <Icon icon="solar:pen-bold-duotone" width="22" />
+                                                        </CButton>
+                                                    </CTooltip>
+                                                    <CTooltip content={item.publico ? "Tornar Privado" : "Tornar Público"}>
+                                                        <CButton onClick={() => handlePublicar(item.id)} style={{ border: 'none', background: 'none', color: item.publico ? tokens.babu : tokens.swiss, padding: 6, display: 'flex', alignItems: 'center' }}>
+                                                            <Icon icon={item.publico ? "solar:bell-ring-bold-duotone" : "solar:bell-off-bold-duotone"} width="22" />
+                                                        </CButton>
+                                                    </CTooltip>
+                                                    <CTooltip content="Excluir">
+                                                        <CButton onClick={() => handleDelete(item.id)} style={{ border: 'none', background: 'none', color: tokens.rausch, padding: 6, display: 'flex', alignItems: 'center' }}>
+                                                            <Icon icon="solar:trash-bin-trash-bold-duotone" width="22" />
+                                                        </CButton>
+                                                    </CTooltip>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="d-flex gap-2">
-                                            {!item.resolvido && (
-                                                <CTooltip content="Marcar como resolvido">
-                                                    <CButton variant="ghost" onClick={() => handleResolver(item.id)} style={{ border: 'none', color: tokens.babu, padding: 4 }}>
-                                                        <Icon icon="ph:check-circle-bold" width="24" />
-                                                    </CButton>
-                                                </CTooltip>
-                                            )}
-                                            <CTooltip content="Editar Questão">
-                                                <CButton variant="ghost" onClick={() => navigate(`/questoes?busca=${item.questao_id}`)} style={{ border: 'none', color: 'var(--color-text-secondary)', padding: 4 }}>
-                                                    <Icon icon="ph:pencil-simple-bold" width="22" />
-                                                </CButton>
-                                            </CTooltip>
-                                            <CTooltip content={item.publico ? "Ocultar da Comunidade" : "Tornar Público"}>
-                                                <CButton variant="ghost" onClick={() => handlePublicar(item.id)} style={{ border: 'none', color: item.publico ? tokens.babu : tokens.arches, padding: 4 }}>
-                                                    <Icon icon={item.publico ? "ph:megaphone-bold" : "ph:megaphone-simple-slash-bold"} width="22" />
-                                                </CButton>
-                                            </CTooltip>
-                                            <CTooltip content="Excluir">
-                                                <CButton variant="ghost" onClick={() => handleDelete(item.id)} style={{ border: 'none', color: tokens.rausch, padding: 4 }}>
-                                                    <Icon icon="ph:trash-bold" width="22" />
-                                                </CButton>
-                                            </CTooltip>
+                                        {/* Preview da Questão */}
+                                        <div style={{
+                                            background: 'var(--color-bg-tertiary)',
+                                            padding: '16px 20px',
+                                            borderRadius: 16,
+                                            border: '1px dashed var(--color-border)',
+                                            marginBottom: 20
+                                        }}>
+                                            <div style={{ fontSize: '11px', color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+                                                Questão Referenciada — ID #{item.questao_id}
+                                            </div>
+                                            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.5, fontStyle: 'italic' }}>
+                                                {item.enunciado_questao
+                                                    ? (item.enunciado_questao.length > 220 ? item.enunciado_questao.substring(0, 220) + '...' : item.enunciado_questao)
+                                                    : 'Enunciado não disponível'}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Detalhes da Questão */}
-                                    <div style={{ background: 'var(--color-bg-tertiary)', padding: '16px', borderRadius: 12, marginBottom: 16 }}>
-                                        <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700, marginBottom: 4 }}>
-                                            QUESTÃO #{item.questao_id}
+                                        {/* Comentário do Estudante */}
+                                        <div style={{ marginBottom: 20 }}>
+                                            <div style={{ fontSize: '11px', color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                                                Mensagem do Estudante
+                                            </div>
+                                            <div style={{
+                                                fontSize: '15px',
+                                                fontWeight: 500,
+                                                color: 'var(--color-text-primary)',
+                                                background: 'rgba(var(--accent-primary-rgb, 255, 56, 92), 0.03)',
+                                                borderLeft: `3px solid ${item.marcada_confusa ? tokens.arches : tokens.rausch}`,
+                                                padding: '12px 16px',
+                                                borderRadius: '0 12px 12px 0',
+                                                lineHeight: 1.5
+                                            }}>
+                                                {item.texto ? `"${item.texto}"` : <span style={{ color: tokens.foggy, fontStyle: 'italic' }}>Reporte de erro sem comentário em texto.</span>}
+                                            </div>
                                         </div>
-                                        <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
-                                            {item.enunciado_questao
-                                                ? (item.enunciado_questao.length > 200 ? item.enunciado_questao.substring(0, 200) + '...' : item.enunciado_questao)
-                                                : 'Enunciado indisponível'}
-                                        </div>
-                                    </div>
 
-                                    {/* Comentário e Resposta */}
-                                    <div className="d-flex flex-column gap-3">
+                                        {/* Resposta do Suporte / Input */}
                                         <div>
-                                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700, marginBottom: 4 }}>COMENTÁRIO DO ALUNO</div>
-                                            <div style={{ fontSize: 15, color: 'var(--color-text-primary)' }}>
-                                                {item.texto ? `"${item.texto}"` : <span style={{ color: tokens.foggy, fontStyle: 'italic' }}>Sem comentário em texto</span>}
-                                            </div>
+                                            {item.resposta_professor ? (
+                                                <div style={{
+                                                    background: 'rgba(0, 166, 153, 0.03)',
+                                                    borderLeft: `3px solid ${tokens.babu}`,
+                                                    padding: '12px 16px',
+                                                    borderRadius: '0 12px 12px 0',
+                                                    marginTop: 10
+                                                }}>
+                                                    <div style={{ fontSize: '11px', color: tokens.babu, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+                                                        Sua Resposta Enviada
+                                                    </div>
+                                                    <div style={{ fontSize: '14px', color: 'var(--color-text-primary)', lineHeight: 1.5 }}>
+                                                        {item.resposta_professor}
+                                                    </div>
+                                                </div>
+                                            ) : !item.resolvido && (
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
+                                                    <CFormTextarea
+                                                        rows={3}
+                                                        placeholder="Responder para o estudante..."
+                                                        value={respostaLocal[item.id] || ''}
+                                                        onChange={(e) => setRespostaLocal({ ...respostaLocal, [item.id]: e.target.value })}
+                                                        style={{
+                                                            borderRadius: 14,
+                                                            border: '1px solid var(--color-border)',
+                                                            background: 'var(--color-bg-tertiary)',
+                                                            color: 'var(--color-text-primary)',
+                                                            fontSize: '14px',
+                                                            fontFamily: FONT,
+                                                            padding: '12px',
+                                                            outline: 'none',
+                                                            resize: 'none',
+                                                        }}
+                                                    />
+                                                    <div className="d-flex justify-content-end">
+                                                        <CButton 
+                                                            disabled={submittingIds.has(item.id) || !respostaLocal[item.id]?.trim()}
+                                                            onClick={() => handleResponder(item.id)}
+                                                            style={{
+                                                                background: tokens.babu,
+                                                                color: '#fff',
+                                                                border: 'none',
+                                                                borderRadius: 12,
+                                                                padding: '8px 20px',
+                                                                fontWeight: 800,
+                                                                fontSize: '13px',
+                                                                boxShadow: `0 4px 12px ${tokens.babu}25`,
+                                                                cursor: 'pointer',
+                                                            }}
+                                                        >
+                                                            {submittingIds.has(item.id) 
+                                                                ? <CSpinner size="sm" style={{ width: '14px', height: '14px' }} /> 
+                                                                : 'Enviar Resposta'
+                                                            }
+                                                        </CButton>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
-                                        {item.resposta_professor ? (
-                                            <div style={{ borderLeft: `4px solid ${tokens.babu}`, paddingLeft: 12, marginLeft: 4 }}>
-                                                <div style={{ fontSize: 12, color: tokens.babu, fontWeight: 700, marginBottom: 2 }}>SUA RESPOSTA</div>
-                                                <div style={{ fontSize: 14, color: 'var(--color-text-primary)' }}>{item.resposta_professor}</div>
-                                            </div>
-                                        ) : !item.resolvido && (
-                                            <div className="d-flex flex-column gap-2 mt-2" style={{ width: '100%' }}>
-                                                 <CFormTextarea
-                                                     rows={3}
-                                                     placeholder="Escrever resposta para o aluno..."
-                                                     value={respostaLocal[item.id] || ''}
-                                                     onChange={(e) => setRespostaLocal({ ...respostaLocal, [item.id]: e.target.value })}
-                                                     style={{
-                                                         borderRadius: 12, border: '1.5px solid var(--color-border)',
-                                                         background: 'var(--color-bg-primary)', color: 'var(--color-text-primary)',
-                                                         fontSize: 14,
-                                                         fontFamily: FONT
-                                                     }}
-                                                 />
-                                                 <div className="d-flex justify-content-end">
-                                                     <CButton 
-                                                         disabled={submittingIds.has(item.id) || !respostaLocal[item.id]?.trim()}
-                                                         onClick={() => handleResponder(item.id)}
-                                                         style={{ background: tokens.babu, color: '#fff', border: 'none', borderRadius: 12, padding: '8px 16px', fontWeight: 700 }}
-                                                     >
-                                                         {submittingIds.has(item.id) ? <CSpinner size="sm" /> : 'Enviar Resposta'}
-                                                     </CButton>
-                                                 </div>
-                                             </div>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            </CCol>
-                        ))}
+                                    </motion.div>
+                                </CCol>
+                            )
+                        })}
                     </CRow>
                 )}
             </div>

@@ -1,28 +1,7 @@
-import React from 'react'
-import {
-  CAvatar,
-  CBadge,
-  CDropdown,
-  CDropdownDivider,
-  CDropdownHeader,
-  CDropdownItem,
-  CDropdownMenu,
-  CDropdownToggle,
-} from '@coreui/react'
-import {
-  cilBell,
-  cilEnvelopeOpen,
-  cilTask,
-  cilCommentSquare,
-  cilSettings,
-  cilCreditCard,
-  cilFile,
-  cilLockLocked,
-  cilUser,
-  cilHistory,
-  cilAccountLogout,
-} from '@coreui/icons'
-import CIcon from '@coreui/icons-react'
+import React, { useState, useRef, useEffect } from 'react'
+import { CAvatar } from '@coreui/react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Icon } from '@iconify/react'
 import { useNavigate } from 'react-router-dom'
 import useAuthSession from '../../hooks/useAuthSession'
 
@@ -36,8 +15,8 @@ const getIniciais = (nome) => {
 // Gera uma cor de fundo baseada no nome (consistente por usuário)
 const getCorAvatar = (nome) => {
   const cores = [
-    '#e74c3c', '#3498db', '#2ecc71', '#9b59b6',
-    '#f39c12', '#1abc9c', '#e67e22', '#2980b9',
+    '#FF5A5F', '#3b5998', '#34a853', '#8a3ab9',
+    '#fbbc05', '#1abc9c', '#e67e22', '#2980b9',
   ]
   let hash = 0
   for (let i = 0; i < nome.length; i++) {
@@ -50,26 +29,72 @@ const AppHeaderDropdown = () => {
   const navigate = useNavigate()
   const { nome, papel } = useAuthSession()
   const userName = nome || 'Usuário'
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
+  // Fecha o dropdown ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleLogout = () => {
     sessionStorage.clear()
     window.location.href = '#/login'
   }
 
-  // Estilo padrão para itens ainda não implementados
-  const emBreve = {
-    opacity: 0.45,
-    cursor: 'not-allowed',
-    pointerEvents: 'none',
+  // Itens em Breve
+  const handleFutureClick = (e) => {
+    e.preventDefault()
+  }
+
+  const dropdownItemStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    width: '100%',
+    padding: '10px 20px',
+    border: 'none',
+    background: 'transparent',
+    color: 'var(--color-text-primary)',
+    textAlign: 'left',
+    fontSize: '14px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'background-color 0.15s, color 0.15s',
+  }
+
+  const headerStyle = {
+    padding: '12px 20px',
+    borderBottom: '1px solid var(--color-border)',
+    marginBottom: 8,
   }
 
   return (
-    <CDropdown variant="nav-item">
-      <CDropdownToggle placement="bottom-end" className="py-0 pe-0" caret={false}>
+    <div ref={dropdownRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      {/* Gatilho (Avatar) */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          borderRadius: '50%',
+          outline: 'none',
+        }}
+        aria-label="Menu do usuário"
+        aria-expanded={isOpen}
+      >
         <CAvatar
           size="md"
-          color="secondary"
-          textColor="white"
           style={{
             backgroundColor: getCorAvatar(userName),
             display: 'flex',
@@ -77,101 +102,123 @@ const AppHeaderDropdown = () => {
             justifyContent: 'center',
             fontWeight: 700,
             fontSize: '0.85rem',
+            color: '#fff',
+            boxShadow: isOpen ? '0 0 0 2px var(--accent-primary)' : '0 2px 6px rgba(0,0,0,0.08)',
+            transition: 'all 0.2s',
           }}
         >
           {getIniciais(userName)}
         </CAvatar>
-      </CDropdownToggle>
+      </button>
 
-      <CDropdownMenu className="pt-0" placement="bottom-end">
+      {/* Menu Suspenso */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 12px)',
+              right: 0,
+              width: 260,
+              background: 'var(--color-bg-elevated)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 20,
+              boxShadow: '0 16px 48px rgba(0,0,0,0.12)',
+              zIndex: 1050,
+              padding: '8px 0',
+            }}
+          >
+            {/* Cabeçalho do Dropdown */}
+            <div style={headerStyle}>
+              <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--color-text-primary)', textTransform: 'capitalize' }}>
+                Olá, {userName.split(' ')[0]}!
+              </div>
+              <div style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: 'var(--accent-primary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                marginTop: 2,
+              }}>
+                {papel === 'aluno' ? '🏆 Estudante' : papel === 'admin' ? '🛡️ Administrador' : '💼 Professor'}
+              </div>
+            </div>
 
-        {/* Saudação */}
-        <CDropdownHeader className="bg-body-secondary fw-semibold mb-2">
-          Olá, {userName}!
-          <div className="small text-muted text-capitalize">{papel}</div>
-        </CDropdownHeader>
+            {/* Links Ativos */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <motion.button
+                whileHover={{ x: 3, backgroundColor: 'var(--color-bg-tertiary)' }}
+                onClick={() => {
+                  setIsOpen(false)
+                  navigate('/perfil')
+                }}
+                style={dropdownItemStyle}
+              >
+                <Icon icon="solar:user-bold-duotone" width="18" style={{ color: 'var(--accent-primary)' }} />
+                Minha Conta
+              </motion.button>
 
-        {/* ── Funcionalidades ativas ── */}
-        <CDropdownItem onClick={() => navigate('/perfil')} style={{ cursor: 'pointer' }}>
-          <CIcon icon={cilUser} className="me-2" />
-          Minha Conta
-        </CDropdownItem>
+              <motion.button
+                whileHover={{ x: 3, backgroundColor: 'var(--color-bg-tertiary)' }}
+                onClick={() => {
+                  setIsOpen(false)
+                  navigate('/aluno/historico')
+                }}
+                style={dropdownItemStyle}
+              >
+                <Icon icon="solar:history-bold-duotone" width="18" style={{ color: 'var(--accent-primary)' }} />
+                Meu Histórico
+              </motion.button>
+            </div>
 
-        <CDropdownItem onClick={() => navigate('/aluno/historico')} style={{ cursor: 'pointer' }}>
-          <CIcon icon={cilHistory} className="me-2" />
-          Meu Histórico
-        </CDropdownItem>
+            {/* Separador */}
+            <div style={{ height: 1, background: 'var(--color-border)', margin: '8px 0' }} />
 
-        {/* ── Funcionalidades futuras ── */}
-        <CDropdownHeader className="bg-body-secondary fw-semibold my-2">
-          Em breve
-        </CDropdownHeader>
+            {/* Em Breve / Configurações */}
+            <div style={{ display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
+              <button onClick={handleFutureClick} style={{ ...dropdownItemStyle, cursor: 'not-allowed' }} title="Recurso em breve">
+                <Icon icon="solar:bell-bold-duotone" width="18" />
+                <span>Notificações</span>
+                <span style={{ fontSize: '9px', fontWeight: 800, background: 'var(--color-bg-tertiary)', padding: '2px 6px', borderRadius: 6, marginLeft: 'auto' }}>breve</span>
+              </button>
 
-        <CDropdownItem style={emBreve}>
-          <CIcon icon={cilBell} className="me-2" />
-          Notificações
-          <CBadge color="secondary" className="ms-2">em breve</CBadge>
-        </CDropdownItem>
+              <button onClick={handleFutureClick} style={{ ...dropdownItemStyle, cursor: 'not-allowed' }} title="Recurso em breve">
+                <Icon icon="solar:letter-bold-duotone" width="18" />
+                <span>Mensagens</span>
+                <span style={{ fontSize: '9px', fontWeight: 800, background: 'var(--color-bg-tertiary)', padding: '2px 6px', borderRadius: 6, marginLeft: 'auto' }}>breve</span>
+              </button>
 
-        <CDropdownItem style={emBreve}>
-          <CIcon icon={cilEnvelopeOpen} className="me-2" />
-          Mensagens
-          <CBadge color="secondary" className="ms-2">em breve</CBadge>
-        </CDropdownItem>
+              <button onClick={handleFutureClick} style={{ ...dropdownItemStyle, cursor: 'not-allowed' }} title="Recurso em breve">
+                <Icon icon="solar:settings-bold-duotone" width="18" />
+                <span>Configurações</span>
+                <span style={{ fontSize: '9px', fontWeight: 800, background: 'var(--color-bg-tertiary)', padding: '2px 6px', borderRadius: 6, marginLeft: 'auto' }}>breve</span>
+              </button>
+            </div>
 
-        <CDropdownItem style={emBreve}>
-          <CIcon icon={cilTask} className="me-2" />
-          Tarefas
-          <CBadge color="secondary" className="ms-2">em breve</CBadge>
-        </CDropdownItem>
+            {/* Separador */}
+            <div style={{ height: 1, background: 'var(--color-border)', margin: '8px 0' }} />
 
-        <CDropdownItem style={emBreve}>
-          <CIcon icon={cilCommentSquare} className="me-2" />
-          Comentários
-          <CBadge color="secondary" className="ms-2">em breve</CBadge>
-        </CDropdownItem>
-
-        <CDropdownHeader className="bg-body-secondary fw-semibold my-2">
-          Configurações
-        </CDropdownHeader>
-
-        <CDropdownItem style={emBreve}>
-          <CIcon icon={cilSettings} className="me-2" />
-          Preferências
-          <CBadge color="secondary" className="ms-2">em breve</CBadge>
-        </CDropdownItem>
-
-        <CDropdownItem style={emBreve}>
-          <CIcon icon={cilCreditCard} className="me-2" />
-          Pagamentos
-          <CBadge color="secondary" className="ms-2">em breve</CBadge>
-        </CDropdownItem>
-
-        <CDropdownItem style={emBreve}>
-          <CIcon icon={cilFile} className="me-2" />
-          Projetos
-          <CBadge color="secondary" className="ms-2">em breve</CBadge>
-        </CDropdownItem>
-
-        <CDropdownItem style={emBreve}>
-          <CIcon icon={cilLockLocked} className="me-2" />
-          Bloquear Conta
-          <CBadge color="secondary" className="ms-2">em breve</CBadge>
-        </CDropdownItem>
-
-        <CDropdownDivider />
-
-        {/* Logout */}
-        <CDropdownItem
-          onClick={handleLogout}
-          style={{ cursor: 'pointer', color: 'var(--cui-danger)' }}
-        >
-          <CIcon icon={cilAccountLogout} className="me-2" />
-          Sair do Sistema
-        </CDropdownItem>
-
-      </CDropdownMenu>
-    </CDropdown>
+            {/* Sair */}
+            <motion.button
+              whileHover={{ backgroundColor: 'rgba(255, 56, 92, 0.08)' }}
+              onClick={handleLogout}
+              style={{
+                ...dropdownItemStyle,
+                color: '#FF385C',
+              }}
+            >
+              <Icon icon="solar:logout-bold-duotone" width="18" />
+              Sair do Sistema
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
