@@ -680,7 +680,6 @@ export const useQuizLogic = () => {
     simuladoMutation,
     fetchAndStartSimuladoRapido,
     handleConfirmAnswer,
-    n,
     handleNextQuestion,
     handleSkip,
     feedbackMutation,
