@@ -36,6 +36,7 @@ import useAuthSession from '../../hooks/useAuthSession'
 import { getMatricula } from '../../utils/auth'
 import { toast } from 'react-hot-toast'
 import { confirmDialog } from '../../utils/confirm'
+import { Icon } from '@iconify/react'
 import gradeCurricular from '../../data/grade_curricular.json'
 import curriculumMapping from '../../data/curriculumMapping.json'
 
@@ -119,49 +120,111 @@ const Quiz = () => {
     <CContainer fluid className="py-3 py-md-4 px-3 px-md-4">
 
       {!isLogado && status === 'ready' && (
-        <CAlert
-          color="info"
-          className="rounded-4 border-0 shadow-sm mb-4 d-flex align-items-center justify-content-between p-3"
-          style={{ background: isDark ? 'rgba(var(--cui-info-rgb), 0.1)' : 'rgba(var(--cui-info-rgb), 0.05)' }}
+        <div
+          className="rounded-4 border-0 mb-4 d-flex align-items-center justify-content-between p-3"
+          style={{
+            background: 'var(--color-bg-elevated)',
+            border: '1px solid var(--color-border)',
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.05)',
+            backdropFilter: 'blur(8px)',
+          }}
         >
           <div className="d-flex align-items-center gap-3">
-            <div className="fs-3">👤</div>
+            <div
+              className="rounded-circle d-flex align-items-center justify-content-center"
+              style={{
+                width: 48,
+                height: 48,
+                background: 'rgba(14, 165, 233, 0.1)',
+                color: '#0ea5e9',
+              }}
+            >
+              <Icon icon="solar:user-circle-bold-duotone" width="28" height="28" />
+            </div>
             <div>
-              <div className="fw-bold text-info">Modo Visitante</div>
-              <div className="small text-body-secondary">Faça login para salvar seu progresso e acessar métricas.</div>
+              <div className="fw-bold" style={{ color: 'var(--color-text-primary)', fontSize: '15px' }}>Modo Visitante</div>
+              <div className="small text-body-secondary" style={{ fontSize: '13px' }}>Faça login para salvar seu progresso e acessar métricas.</div>
             </div>
           </div>
-          <CButton color="primary" size="sm" className="rounded-pill px-3 shadow-sm" onClick={() => window.location.href = '#/login'}>
+          <button
+            className="rounded-pill px-4 py-2 fw-bold text-white transition-all shadow-sm"
+            style={{
+              background: 'var(--accent-primary, #FF385C)',
+              border: 'none',
+              fontSize: '13px',
+              cursor: 'pointer',
+            }}
+            onClick={() => window.location.href = '#/login'}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9' }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
+          >
             Login
-          </CButton>
-        </CAlert>
+          </button>
+        </div>
       )}
       {savedSnapshot && status === 'ready' && (
-        <CAlert
-          color="warning"
-          className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4"
+        <div
+          className="rounded-4 border-0 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3 p-3"
+          style={{
+            background: 'var(--color-bg-elevated)',
+            border: '1px solid var(--color-border)',
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.05)',
+            backdropFilter: 'blur(8px)',
+          }}
         >
-          <span>
-            📌 Você tem um quiz em andamento ({savedSnapshot.questionsAndAnswers?.length ?? 0}{' '}
-            questões respondidas).
-          </span>
+          <div className="d-flex align-items-center gap-3">
+            <div
+              className="rounded-circle d-flex align-items-center justify-content-center"
+              style={{
+                width: 48,
+                height: 48,
+                background: 'rgba(245, 158, 11, 0.1)',
+                color: '#f59e0b',
+              }}
+            >
+              <Icon icon="solar:history-bold-duotone" width="26" height="26" />
+            </div>
+            <div>
+              <div className="fw-bold" style={{ color: 'var(--color-text-primary)', fontSize: '15px' }}>Quiz em andamento</div>
+              <div className="small text-body-secondary" style={{ fontSize: '13px' }}>
+                Você tem um quiz em andamento ({savedSnapshot.questionsAndAnswers?.length ?? 0} questões respondidas).
+              </div>
+            </div>
+          </div>
           <div className="d-flex gap-2 flex-shrink-0">
-            <CButton color="warning" size="sm" onClick={() => resumeSnapshot(savedSnapshot)}>
+            <button
+              className="rounded-pill px-4 py-2 fw-bold text-white transition-all"
+              style={{
+                background: '#f59e0b',
+                border: 'none',
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+              onClick={() => resumeSnapshot(savedSnapshot)}
+              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9' }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
+            >
               Continuar
-            </CButton>
-            <CButton
-              color="secondary"
-              size="sm"
-              variant="outline"
+            </button>
+            <button
+              className="rounded-pill px-4 py-2 fw-bold text-body-secondary transition-all"
+              style={{
+                background: 'transparent',
+                border: '1.5px solid var(--color-border)',
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
               onClick={() => {
                 setSavedSnapshot(null)
                 sessionStorage.removeItem(SESSION_KEY)
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-hover)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
             >
               Descartar
-            </CButton>
+            </button>
           </div>
-        </CAlert>
+        </div>
       )}
 
       <CRow className="justify-content-center">

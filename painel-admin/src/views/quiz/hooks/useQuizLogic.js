@@ -40,6 +40,7 @@ const playSound = (correct, enabled) => {
 
 export const useQuizLogic = () => {
   const [status, setStatus] = useState('ready')
+  const [isConfirmingFinish, setIsConfirmingFinish] = useState(false)
   const [questions, setQuestions] = useState([])
   const [queue, setQueue] = useState([])
   const [skippedSet, setSkippedSet] = useState(new Set())
@@ -239,8 +240,10 @@ export const useQuizLogic = () => {
   }, [remainingSeconds, status])
 
   useEffect(() => {
-    if (status === 'finished' && !saved) handleSaveSession()
-  }, [status, saved])
+    if (status === 'finished' && !saved && !saving) {
+      handleSaveSession()
+    }
+  }, [status, saved, saving, handleSaveSession])
 
   // Start quiz functions
   const startQuizWithTime = (questionsData, timeLimit) => {
@@ -457,13 +460,21 @@ export const useQuizLogic = () => {
   }
 
   const handleFinishEarly = async () => {
-    if (!await confirmDialog('Encerrar o simulado?')) return
-    sessionStorage.removeItem(SESSION_KEY)
-    setElapsedSeconds(Math.round((Date.now() - startTime) / 1000))
-    setFeedback(
-      `Simulado encerrado. ${questionsAndAnswers.length} de ${questions.length} questões respondidas.`,
-    )
-    setStatus('finished')
+    if (isConfirmingFinish) return
+    setIsConfirmingFinish(true)
+    try {
+      const confirmed = await confirmDialog('Encerrar o simulado?')
+      if (!confirmed) return
+
+      sessionStorage.removeItem(SESSION_KEY)
+      setElapsedSeconds(Math.round((Date.now() - startTime) / 1000))
+      setFeedback(
+        `Simulado encerrado. ${(questionsAndAnswers || []).length} de ${questions.length} questões respondidas.`,
+      )
+      setStatus('finished')
+    } finally {
+      setIsConfirmingFinish(false)
+    }
   }
 
   const handleRetryErrors = () => {
@@ -525,7 +536,7 @@ export const useQuizLogic = () => {
 
   const handleSaveSession = useCallback(() => {
     if (status !== 'finished' || saved) return
-    const respondidas = questionsAndAnswers.length
+    const respondidas = (questionsAndAnswers || []).length
     const porcentagem = calculateCorrectAnswersPercentage(respondidas, score)
     const materiaLabel =
       materiasSelected.length > 0
@@ -544,7 +555,7 @@ export const useQuizLogic = () => {
       questoes_respondidas: respondidas,
       taxa_acerto: porcentagem,
       tempo_gasto_segundos: elapsedSeconds,
-      lista_detalhes: questionsAndAnswers.map((qa) => ({ id: qa.id, acertou: qa.isCorrect })),
+      lista_detalhes: (questionsAndAnswers || []).map((qa) => ({ id: qa.id, acertou: qa.isCorrect })),
     })
   }, [
     status,
@@ -560,7 +571,7 @@ export const useQuizLogic = () => {
   ])
 
   const handleShare = useCallback(async () => {
-    const totalResp = questionsAndAnswers.length
+    const totalResp = (questionsAndAnswers || []).length
     const scorePerc = calculateCorrectAnswersPercentage(totalResp || questions.length, score)
     const m = Math.floor(elapsedSeconds / 60)
     const s = elapsedSeconds % 60
@@ -578,7 +589,7 @@ export const useQuizLogic = () => {
   // Derived values
   const currentIndex = queue[0] ?? 0
   const currentQuestion = (status === 'quiz' && queue.length > 0) ? (questions[currentIndex] ?? null) : null
-  const totalAnswered = questionsAndAnswers.length
+  const totalAnswered = (questionsAndAnswers || []).length
   const totalQuestions = questions.length
   const finalScore = calculateCorrectAnswersPercentage(totalAnswered || totalQuestions, score)
   const timerCritical = remainingSeconds <= 60

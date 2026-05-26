@@ -966,35 +966,113 @@ export const QuizRunning = ({
         style={{ zIndex: 1 }}
       >
         <div className="d-flex gap-2 order-2 order-md-1 justify-content-center">
-          <CButton
-            color="danger"
-            variant="outline"
-            size="sm"
+          <button
             onClick={onFinishEarly}
             disabled={totalAnswered === 0}
+            className="d-flex align-items-center gap-2 px-3 py-2 fw-bold transition-all"
+            style={{
+              background: 'transparent',
+              color: 'var(--cui-danger)',
+              border: '2px solid rgba(239, 68, 68, 0.2)',
+              borderRadius: '30px',
+              fontSize: '13px',
+              cursor: totalAnswered === 0 ? 'not-allowed' : 'pointer',
+              opacity: totalAnswered === 0 ? 0.4 : 1,
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (totalAnswered > 0) {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
+                e.currentTarget.style.borderColor = 'var(--cui-danger)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+            }}
           >
-            ⛔ Encerrar
-          </CButton>
+            <Icon icon="solar:stop-circle-bold-duotone" width="18" height="18" />
+            Encerrar
+          </button>
           {!isAnswerConfirmed && queue.length > 1 && (
-            <CButton color="secondary" variant="outline" size="sm" onClick={onSkip}>
-              ⏭ Pular
-            </CButton>
+            <button
+              onClick={onSkip}
+              className="d-flex align-items-center gap-2 px-3 py-2 fw-bold transition-all text-body-secondary"
+              style={{
+                background: 'transparent',
+                border: '2px solid var(--color-border)',
+                borderRadius: '30px',
+                fontSize: '13px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--color-hover)';
+                e.currentTarget.style.borderColor = 'var(--color-border-hover, var(--color-border))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.borderColor = 'var(--color-border)';
+              }}
+            >
+              <Icon icon="solar:skip-forward-bold-duotone" width="18" height="18" />
+              Pular
+            </button>
           )}
         </div>
         <div className="order-1 order-md-2 w-100" style={{ maxWidth: '400px', margin: '0 auto' }}>
           {!isAnswerConfirmed ? (
-            <CButton
-              color="success"
+            <button
               disabled={!selectedOption}
               onClick={onConfirmAnswer}
-              className="fw-bold px-4 py-2 w-100"
+              className="fw-bold px-4 py-2 w-100 transition-all text-white"
+              style={{
+                background: selectedOption ? 'var(--accent-primary, #FF385C)' : 'var(--color-border)',
+                border: 'none',
+                borderRadius: '30px',
+                fontSize: '15px',
+                cursor: selectedOption ? 'pointer' : 'not-allowed',
+                boxShadow: selectedOption ? '0 4px 12px rgba(255, 56, 92, 0.25)' : 'none',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (selectedOption) {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(255, 56, 92, 0.35)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = selectedOption ? '0 4px 12px rgba(255, 56, 92, 0.25)' : 'none';
+              }}
             >
               Confirmar resposta
-            </CButton>
+            </button>
           ) : (
-            <CButton color="primary" onClick={onNextQuestion} className="fw-bold px-4 py-2 w-100">
-              {queue.length <= 1 ? 'Finalizar Quiz ✓' : 'Próxima →'}
-            </CButton>
+            <button
+              onClick={onNextQuestion}
+              className="fw-bold px-4 py-2 w-100 transition-all text-white"
+              style={{
+                background: 'var(--accent-primary, #FF385C)',
+                border: 'none',
+                borderRadius: '30px',
+                fontSize: '15px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(255, 56, 92, 0.25)',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(255, 56, 92, 0.35)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 56, 92, 0.25)';
+              }}
+            >
+              {queue.length <= 1 ? 'Finalizar Quiz ✓' : 'Próxima'}
+              {queue.length > 1 && <Icon icon="solar:arrow-right-bold" className="ms-2" width="16" />}
+            </button>
           )}
         </div>
       </div>
@@ -1134,15 +1212,59 @@ export const FinishedScreen = ({
     [validTabs, setActiveTab],
   )
 
+  const gradeDetails = useMemo(() => {
+    if (!grade || !grade.grade) {
+      return {
+        emoji: '📝',
+        title: 'Quiz Concluído!',
+        message: 'Você finalizou o quiz. Confira seus resultados abaixo.'
+      }
+    }
+    const letter = grade.grade;
+    if (letter.startsWith('A')) {
+      return {
+        emoji: '🏆',
+        title: 'Desempenho Excelente!',
+        message: grade.remarks || 'Você dominou completamente este quiz!'
+      }
+    }
+    if (letter.startsWith('B')) {
+      return {
+        emoji: '🥈',
+        title: 'Muito Bom!',
+        message: grade.remarks || 'Ótimo desempenho! Continue assim!'
+      }
+    }
+    if (letter.startsWith('C')) {
+      return {
+        emoji: '🥉',
+        title: 'Bom Trabalho!',
+        message: grade.remarks || 'Você foi aprovado e está no caminho certo!'
+      }
+    }
+    if (letter.startsWith('D')) {
+      return {
+        emoji: '📚',
+        title: 'Estude um Pouco Mais!',
+        message: grade.remarks || 'Você passou, mas revise os pontos fracos.'
+      }
+    }
+    return {
+      emoji: '✍️',
+      title: 'Continue Estudando!',
+      message: grade.remarks || 'Aprender é uma jornada. Revise seus erros!'
+    }
+  }, [grade])
+
   return (
     <div style={{ animation: 'fade-up .35s ease' }}>
       <CCardBody className="p-4 p-md-5 text-center">
         <div className="mb-4" style={{ animation: 'bounce 2s infinite' }}>
-          <span style={{ fontSize: 64 }}>{grade.emoji}</span>
+          <span style={{ fontSize: 64 }}>{gradeDetails.emoji}</span>
         </div>
 
-        <h2 className="fw-bold mb-1">{grade.title}</h2>
-        <p className="text-body-secondary mb-4">{grade.message}</p>
+        <h2 className="fw-bold mb-1">{gradeDetails.title}</h2>
+        <p className="text-body-secondary mb-4">{gradeDetails.message}</p>
 
         {!isLogado && (
           <div className="p-4 rounded-4 bg-primary bg-opacity-10 border border-primary border-opacity-25 mb-4 shadow-sm">
@@ -1231,20 +1353,101 @@ export const FinishedScreen = ({
           </CRow>
 
           <div className="d-flex flex-wrap justify-content-center gap-2">
-            <CButton color="primary" onClick={onReplay}>
-              🔄 Refazer
-            </CButton>
+            <button
+              onClick={onReplay}
+              className="d-flex align-items-center gap-2 px-4 py-2 fw-bold text-white transition-all shadow-sm"
+              style={{
+                background: 'var(--accent-primary, #FF385C)',
+                border: 'none',
+                borderRadius: '30px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(255, 56, 92, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 56, 92, 0.2)';
+              }}
+            >
+              <Icon icon="solar:restart-bold-duotone" width="18" height="18" />
+              Refazer
+            </button>
             {score < totalAnswered && (
-              <CButton color="danger" variant="outline" onClick={onRetryErrors}>
-                ❌ Refazer erros ({totalAnswered - score})
-              </CButton>
+              <button
+                onClick={onRetryErrors}
+                className="d-flex align-items-center gap-2 px-4 py-2 fw-bold transition-all"
+                style={{
+                  background: 'transparent',
+                  color: 'var(--cui-danger)',
+                  border: '2px solid rgba(239, 68, 68, 0.2)',
+                  borderRadius: '30px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
+                  e.currentTarget.style.borderColor = 'var(--cui-danger)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                }}
+              >
+                <Icon icon="solar:close-circle-bold-duotone" width="18" height="18" />
+                Refazer erros ({totalAnswered - score})
+              </button>
             )}
-            <CButton color="success" variant="outline" onClick={onShare}>
-              📤 Compartilhar
-            </CButton>
-            <CButton color="secondary" variant="outline" onClick={onReset}>
-              🏠 Voltar
-            </CButton>
+            <button
+              onClick={onShare}
+              className="d-flex align-items-center gap-2 px-4 py-2 fw-bold text-success transition-all"
+              style={{
+                background: 'transparent',
+                border: '2px solid rgba(25, 135, 84, 0.2)',
+                borderRadius: '30px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(25, 135, 84, 0.08)';
+                e.currentTarget.style.borderColor = 'var(--cui-success)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.borderColor = 'rgba(25, 135, 84, 0.2)';
+              }}
+            >
+              <Icon icon="solar:share-bold-duotone" width="18" height="18" />
+              Compartilhar
+            </button>
+            <button
+              onClick={onReset}
+              className="d-flex align-items-center gap-2 px-4 py-2 fw-bold text-body-secondary transition-all"
+              style={{
+                background: 'transparent',
+                border: '2px solid var(--color-border)',
+                borderRadius: '30px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--color-hover)';
+                e.currentTarget.style.borderColor = 'var(--color-border-hover, var(--color-border))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.borderColor = 'var(--color-border)';
+              }}
+            >
+              <Icon icon="solar:home-2-bold-duotone" width="18" height="18" />
+              Voltar
+            </button>
           </div>
         </div>
 

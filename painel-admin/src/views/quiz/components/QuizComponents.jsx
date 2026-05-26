@@ -24,7 +24,7 @@ export const SkeletonQuiz = ({ isDark }) => {
   )
 }
 
-export const ReviewTable = ({ questionsAndAnswers, isDark }) => (
+export const ReviewTable = ({ questionsAndAnswers = [], isDark }) => (
   <div className="table-responsive" style={{ animation: 'fade-up .35s ease' }}>
     <table className="table table-borderless w-100 m-0" style={{ fontSize: 13 }}>
       <thead>
