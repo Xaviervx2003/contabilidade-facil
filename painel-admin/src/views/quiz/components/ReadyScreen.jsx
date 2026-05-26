@@ -1,10 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import { CButton, CProgress, CBadge, CFormInput, CFormSelect, CFormCheck, CFormSwitch, CRow, CCol } from '@coreui/react';
 import { Icon } from '@iconify/react';
+import CIcon from '@coreui/icons-react';
+import {
+  cilCheckCircle,
+  cilXCircle,
+  cilLightbulb,
+  cilVideo,
+  cilFullscreen,
+  cilFullscreenExit,
+  cilStar,
+} from '@coreui/icons';
 import { ChecklistItem, FilterGroupHeader } from './QuizComponents';
 import { tokens } from '../../../tokens';
 import gradeCurricular from '../../../data/grade_curricular.json';
 import curriculumMapping from '../../../data/curriculumMapping.json';
+import MateriaMultiSelect from '../../../components/MateriaMultiSelect';
 
 const TIME_OPTIONS = [
   { value: 300, label: '5 minutos' },
