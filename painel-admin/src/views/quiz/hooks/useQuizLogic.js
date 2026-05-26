@@ -554,7 +554,8 @@ export const useQuizLogic = () => {
     const raw = sessionStorage.getItem(SESSION_KEY)
     if (raw) {
       try {
-        setSavedSnapshot(JSON.parse(raw))
+        const parsed = JSON.parse(raw)
+        setSavedSnapshot(parsed)
       } catch {
         sessionStorage.removeItem(SESSION_KEY)
       }
@@ -564,11 +565,11 @@ export const useQuizLogic = () => {
       if (materiaId) {
         setMateriasSelected([materiaId])
       }
-      if (params.get('ids') || params.get('materia_id')) {
-        fetchAndStart()
-      }
+      // Não chamar fetchAndStart aqui para evitar loop de renderização
+      // O usuário deve iniciar o quiz manualmente ou através de outros meios
     }
-  }, [fetchAndStart])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (status !== 'quiz') return
