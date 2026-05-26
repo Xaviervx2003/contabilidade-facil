@@ -16,6 +16,7 @@ import { tokens } from '../../../tokens';
 import gradeCurricular from '../../../data/grade_curricular.json';
 import curriculumMapping from '../../../data/curriculumMapping.json';
 import MateriaMultiSelect from '../../../components/MateriaMultiSelect';
+import useAuthSession from '../../../hooks/useAuthSession';
 
 const TIME_OPTIONS = [
   { value: 300, label: '5 minutos' },
