@@ -3,6 +3,8 @@ import { CButton, CProgress, CBadge, CFormInput, CFormSelect, CFormCheck, CFormS
 import { Icon } from '@iconify/react';
 import { ChecklistItem, FilterGroupHeader } from './QuizComponents';
 import { tokens } from '../../../tokens';
+import gradeCurricular from '../../../data/grade_curricular.json';
+import curriculumMapping from '../../../data/curriculumMapping.json';
 
 const TIME_OPTIONS = [
   { value: 300, label: '5 minutos' },
