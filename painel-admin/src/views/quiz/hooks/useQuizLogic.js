@@ -83,9 +83,6 @@ export const useQuizLogic = () => {
 
   // Theme detection
   const { isDark: themeIsDark } = useTheme()
-  useEffect(() => {
-    setIsDark(themeIsDark)
-  }, [themeIsDark])
 
   // Fullscreen
   const toggleFullscreen = useCallback(() => {
@@ -102,17 +99,6 @@ export const useQuizLogic = () => {
     }
   }, [])
 
-  useEffect(() => {
-    const handler = () => setIsFullscreen(!!document.fullscreenElement)
-    document.addEventListener('fullscreenchange', handler)
-    return () => document.removeEventListener('fullscreenchange', handler)
-  }, [])
-
-  // Sound persistence
-  useEffect(() => {
-    localStorage.setItem('quiz_sound', String(soundEnabled))
-  }, [soundEnabled])
-
   // Load favorites using React Query
   const { data: favoritosData = [] } = useQuery({
     queryKey: ['favoritos', matricula],
@@ -124,13 +110,6 @@ export const useQuizLogic = () => {
     enabled: !!matricula,
     staleTime: 1000 * 60 * 5,
   })
-
-  // Sincroniza o state local com os dados da query (para manter atualizações otimistas)
-  useEffect(() => {
-    if (Array.isArray(favoritosData)) {
-      setFavoritos(favoritosData.map((item) => item.questao_id))
-    }
-  }, [favoritosData])
 
   const toggleFavoritoMutation = useMutation({
     mutationFn: async ({ questaoId, isFavorito }) => {
@@ -176,74 +155,6 @@ export const useQuizLogic = () => {
     },
     staleTime: 1000 * 60 * 10,
   })
-
-  // Snapshot restore
-  useEffect(() => {
-    const raw = sessionStorage.getItem(SESSION_KEY)
-    if (raw) {
-      try {
-        setSavedSnapshot(JSON.parse(raw))
-      } catch {
-        sessionStorage.removeItem(SESSION_KEY)
-      }
-    } else {
-      // Se não houver snapshot, verificamos se veio por Estudo Dirigido (IDs específicos) ou Trilha (Materia ID)
-      const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
-      const materiaId = params.get('materia_id')
-      if (materiaId) {
-        setMateriasSelected([materiaId])
-      }
-      if (params.get('ids') || params.get('materia_id')) {
-        fetchAndStart()
-      }
-    }
-  }, [])
-
-  // Save snapshot
-  useEffect(() => {
-    if (status !== 'quiz') return
-    try {
-      sessionStorage.setItem(
-        SESSION_KEY,
-        JSON.stringify({
-          questions,
-          queue,
-          score,
-          questionsAndAnswers,
-          tempoLimite,
-          remainingSeconds,
-          startTime,
-          skippedSet: [...skippedSet],
-        }),
-      )
-    } catch { }
-  }, [status, queue, score, questionsAndAnswers, remainingSeconds])
-
-  useEffect(() => {
-    if (status === 'finished') sessionStorage.removeItem(SESSION_KEY)
-  }, [status])
-
-  // Timer
-  useEffect(() => {
-    if (status !== 'quiz' || isAnswerConfirmed) return
-    const t = setInterval(() => setRemainingSeconds((p) => p - 1), 1000)
-    return () => clearInterval(t)
-  }, [status, isAnswerConfirmed])
-
-  useEffect(() => {
-    if (status === 'quiz' && remainingSeconds <= 0) {
-      setElapsedSeconds(tempoLimite)
-      setRemainingSeconds(0)
-      setStatus('finished')
-      setFeedback('O tempo acabou. O quiz foi finalizado automaticamente.')
-    }
-  }, [remainingSeconds, status])
-
-  useEffect(() => {
-    if (status === 'finished' && !saved && !saving) {
-      handleSaveSession()
-    }
-  }, [status, saved, saving, handleSaveSession])
 
   // Start quiz functions
   const startQuizWithTime = (questionsData, timeLimit) => {
@@ -321,7 +232,7 @@ export const useQuizLogic = () => {
     }
   })
 
-  const fetchAndStart = async () => {
+  const fetchAndStart = useCallback(async () => {
     const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
     const explicitIds = params.get('ids')
 
@@ -347,7 +258,18 @@ export const useQuizLogic = () => {
 
     const url = `${API_URL}/api/questoes${params.toString() ? '?' + params.toString() : ''}`
     fetchQuestoesMutation.mutate(url)
-  }
+  }, [
+    materiasSelected,
+    disciplinaPai,
+    matricula,
+    modoEstudo,
+    bancaSelecionada,
+    orgaoSelecionado,
+    cargoSelecionado,
+    anoSelecionado,
+    quantidade,
+    fetchQuestoesMutation
+  ])
 
   const simuladoMutation = useMutation({
     mutationFn: async () => {
@@ -372,9 +294,9 @@ export const useQuizLogic = () => {
     }
   })
 
-  const fetchAndStartSimuladoRapido = async () => {
+  const fetchAndStartSimuladoRapido = useCallback(async () => {
     simuladoMutation.mutate()
-  }
+  }, [simuladoMutation])
 
   const handleConfirmAnswer = () => {
     if (!selectedOption) {
@@ -597,6 +519,91 @@ export const useQuizLogic = () => {
   const isRevisiting = status === 'quiz' && skippedSet.has(currentIndex)
   const pendingSkipped = skippedSet.size - (isRevisiting ? 1 : 0)
   const grade = useMemo(() => calculateGrade(finalScore), [finalScore])
+
+  // React Effects moved to the bottom to avoid TDZ issues with functions like fetchAndStart / handleSaveSession
+  useEffect(() => {
+    setIsDark(themeIsDark)
+  }, [themeIsDark])
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', handler)
+    return () => document.removeEventListener('fullscreenchange', handler)
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('quiz_sound', String(soundEnabled))
+  }, [soundEnabled])
+
+  useEffect(() => {
+    if (Array.isArray(favoritosData)) {
+      setFavoritos(favoritosData.map((item) => item.questao_id))
+    }
+  }, [favoritosData])
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem(SESSION_KEY)
+    if (raw) {
+      try {
+        setSavedSnapshot(JSON.parse(raw))
+      } catch {
+        sessionStorage.removeItem(SESSION_KEY)
+      }
+    } else {
+      const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
+      const materiaId = params.get('materia_id')
+      if (materiaId) {
+        setMateriasSelected([materiaId])
+      }
+      if (params.get('ids') || params.get('materia_id')) {
+        fetchAndStart()
+      }
+    }
+  }, [fetchAndStart])
+
+  useEffect(() => {
+    if (status !== 'quiz') return
+    try {
+      sessionStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({
+          questions,
+          queue,
+          score,
+          questionsAndAnswers,
+          tempoLimite,
+          remainingSeconds,
+          startTime,
+          skippedSet: [...skippedSet],
+        }),
+      )
+    } catch { }
+  }, [status, queue, score, questionsAndAnswers, remainingSeconds, tempoLimite, startTime, skippedSet])
+
+  useEffect(() => {
+    if (status === 'finished') sessionStorage.removeItem(SESSION_KEY)
+  }, [status])
+
+  useEffect(() => {
+    if (status !== 'quiz' || isAnswerConfirmed) return
+    const t = setInterval(() => setRemainingSeconds((p) => p - 1), 1000)
+    return () => clearInterval(t)
+  }, [status, isAnswerConfirmed])
+
+  useEffect(() => {
+    if (status === 'quiz' && remainingSeconds <= 0) {
+      setElapsedSeconds(tempoLimite)
+      setRemainingSeconds(0)
+      setStatus('finished')
+      setFeedback('O tempo acabou. O quiz foi finalizado automaticamente.')
+    }
+  }, [remainingSeconds, status, tempoLimite])
+
+  useEffect(() => {
+    if (status === 'finished' && !saved && !saving) {
+      handleSaveSession()
+    }
+  }, [status, saved, saving, handleSaveSession])
   
   // Clean Code: Função auxiliar no lugar de ternário aninhado
   const getGradeColor = (score) => {
