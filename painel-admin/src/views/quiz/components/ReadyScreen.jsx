@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { CButton, CProgress, CBadge, CFormInput, CFormSelect, CFormCheck, CFormSwitch } from '@coreui/react';
+import { CButton, CProgress, CBadge, CFormInput, CFormSelect, CFormCheck, CFormSwitch, CRow, CCol } from '@coreui/react';
 import { Icon } from '@iconify/react';
 import { ChecklistItem, FilterGroupHeader } from './QuizComponents';
 import { tokens } from '../../../tokens';
