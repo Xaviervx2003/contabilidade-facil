@@ -11,7 +11,7 @@ import {
   cilFullscreenExit,
   cilStar,
 } from '@coreui/icons';
-import { ChecklistItem, FilterGroupHeader } from './QuizComponents';
+import { ChecklistItem, FilterGroupHeader, ReviewTable } from './QuizComponents';
 import { tokens } from '../../../tokens';
 import gradeCurricular from '../../../data/grade_curricular.json';
 import curriculumMapping from '../../../data/curriculumMapping.json';
@@ -721,7 +721,7 @@ const ReadyScreen = ({
   )
 }
 
-const QuizRunning = ({
+export const QuizRunning = ({
   isDark,
   currentQuestion,
   queue,
@@ -1102,7 +1102,7 @@ const QuizRunning = ({
   )
 }
 
-const FinishedScreen = ({
+export const FinishedScreen = ({
   grade,
   gradeColor,
   finalScore,

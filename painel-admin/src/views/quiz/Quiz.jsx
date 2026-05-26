@@ -107,14 +107,11 @@ const playSound = (correct, enabled) => {
 
 import {
   SkeletonQuiz,
-  ReviewTable,
-  FilterGroupHeader,
-  ChecklistItem,
 } from './components/QuizComponents'
 
 
 import { useQuizLogic } from './hooks/useQuizLogic';
-import ReadyScreen from './components/ReadyScreen';
+import ReadyScreen, { QuizRunning, FinishedScreen } from './components/ReadyScreen';
 
 const Quiz = () => {
   const { status, setStatus, questions, setQuestions, queue, setQueue, skippedSet, setSkippedSet, selectedOption, setSelectedOption, score, setScore, error, setError, feedback, setFeedback, tempoLimite, setTempoLimite, remainingSeconds, setRemainingSeconds, startTime, setStartTime, elapsedSeconds, setElapsedSeconds, saving, setSaving, saved, setSaved, questionsAndAnswers, setQuestionsAndAnswers, activeTab, setActiveTab, isAnswerConfirmed, setIsAnswerConfirmed, isConfusing, setIsConfusing, commentText, setCommentText, commentStatus, setCommentStatus, materiasSelected, setMateriasSelected, quantidade, setQuantidade, isDark, setIsDark, isFullscreen, setIsFullscreen, soundEnabled, setSoundEnabled, savedSnapshot, setSavedSnapshot, showDica, setShowDica, modoEstudo, setModoEstudo, bancaSelecionada, setBancaSelecionada, orgaoSelecionado, setOrgaoSelecionado, cargoSelecionado, setCargoSelecionado, anoSelecionado, setAnoSelecionado, favoritos, setFavoritos, disciplinaPai, setDisciplinaPai, queryClient, nomeAluno, toggleFullscreen, toggleFavoritoMutation, alternarFavorito, materias, loadingMaterias, startQuizWithTime, startQuiz, resumeSnapshot, fetchQuestoesMutation, fetchAndStart, simuladoMutation, fetchAndStartSimuladoRapido, handleConfirmAnswer, handleNextQuestion, handleSkip, feedbackMutation, handleSendComment, handleFinishEarly, handleRetryErrors, handleReplay, handleReset, saveSessionMutation, handleSaveSession, handleShare, currentIndex, currentQuestion, totalAnswered, totalQuestions, finalScore, timerCritical, progress, isRevisiting, pendingSkipped, grade, getGradeColor, gradeColor, nome, isLogado, matricula, filtrosDisponiveis } = useQuizLogic();
