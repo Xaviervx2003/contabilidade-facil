@@ -12,9 +12,14 @@ import { getAlunoMatricula } from '../../utils/auth'
 import { API_URL } from '../../config'
 import api from '../../services/api'
 import { formatIsoToDateString, formatIsoToShortDate } from '../../utils/formatDate'
-import { tokens as baseTokens } from '../../tokens'
+import { tokens } from '../../tokens'
 
-const tokens = { ...baseTokens, gold: '#FFD700', silver: '#C0C0C0', bronze: '#CD7F32', platinum: '#E5E4E2' }
+const MEDAL_COLORS = {
+    gold: '#FFD700',
+    silver: '#C0C0C0',
+    bronze: '#CD7F32',
+    platinum: '#E5E4E2'
+}
 
 /* ─── Section Card ───────────────────────────────────────── */
 const SCard = ({ children, style = {}, delay = 0 }) => (
@@ -107,9 +112,9 @@ const Conquistas = ({ isTab = false }) => {
 
     const getMedalColor = (tipo) => {
         switch (tipo) {
-            case 'ouro': return tokens.gold;
-            case 'prata': return tokens.silver;
-            case 'bronze': return tokens.bronze;
+            case 'ouro': return MEDAL_COLORS.gold;
+            case 'prata': return MEDAL_COLORS.silver;
+            case 'bronze': return MEDAL_COLORS.bronze;
             case 'platina': return tokens.babu;
             default: return tokens.arches;
         }

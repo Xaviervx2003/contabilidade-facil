@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
-    CRow, CCol, CBadge, CSpinner, CAlert, CButton, CFormInput, CTooltip
+    CRow, CCol, CBadge, CSpinner, CAlert, CButton, CFormInput, CFormTextarea, CTooltip
 } from '@coreui/react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
@@ -344,29 +344,29 @@ const FeedbacksQuestoes = () => {
                                                 <div style={{ fontSize: 14, color: 'var(--color-text-primary)' }}>{item.resposta_professor}</div>
                                             </div>
                                         ) : !item.resolvido && (
-                                            <div className="d-flex gap-2 align-items-center mt-2">
-                                                <CFormInput
-                                                    type="text"
-                                                    placeholder="Escrever resposta para o aluno..."
-                                                    value={respostaLocal[item.id] || ''}
-                                                    onChange={(e) => setRespostaLocal({ ...respostaLocal, [item.id]: e.target.value })}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') handleResponder(item.id)
-                                                    }}
-                                                    style={{
-                                                        borderRadius: 12, border: '1.5px solid var(--color-border)',
-                                                        background: 'var(--color-bg-primary)', color: 'var(--color-text-primary)',
-                                                        flex: 1
-                                                    }}
-                                                />
-                                                <CButton 
-                                                    disabled={submittingIds.has(item.id)}
-                                                    onClick={() => handleResponder(item.id)}
-                                                    style={{ background: tokens.babu, color: '#fff', border: 'none', borderRadius: 12, padding: '8px 16px', fontWeight: 700 }}
-                                                >
-                                                    {submittingIds.has(item.id) ? <CSpinner size="sm" /> : 'Enviar'}
-                                                </CButton>
-                                            </div>
+                                            <div className="d-flex flex-column gap-2 mt-2" style={{ width: '100%' }}>
+                                                 <CFormTextarea
+                                                     rows={3}
+                                                     placeholder="Escrever resposta para o aluno..."
+                                                     value={respostaLocal[item.id] || ''}
+                                                     onChange={(e) => setRespostaLocal({ ...respostaLocal, [item.id]: e.target.value })}
+                                                     style={{
+                                                         borderRadius: 12, border: '1.5px solid var(--color-border)',
+                                                         background: 'var(--color-bg-primary)', color: 'var(--color-text-primary)',
+                                                         fontSize: 14,
+                                                         fontFamily: FONT
+                                                     }}
+                                                 />
+                                                 <div className="d-flex justify-content-end">
+                                                     <CButton 
+                                                         disabled={submittingIds.has(item.id) || !respostaLocal[item.id]?.trim()}
+                                                         onClick={() => handleResponder(item.id)}
+                                                         style={{ background: tokens.babu, color: '#fff', border: 'none', borderRadius: 12, padding: '8px 16px', fontWeight: 700 }}
+                                                     >
+                                                         {submittingIds.has(item.id) ? <CSpinner size="sm" /> : 'Enviar Resposta'}
+                                                     </CButton>
+                                                 </div>
+                                             </div>
                                         )}
                                     </div>
                                 </motion.div>

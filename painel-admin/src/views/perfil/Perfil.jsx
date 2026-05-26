@@ -286,7 +286,8 @@ const Perfil = () => {
                       alt="Avatar" 
                       style={{
                         width: 80, height: 80, borderRadius: '50%', objectFit: 'cover',
-                        boxShadow: `0 8px 20px ${tokens.rausch}40`, border: `2px solid ${tokens.rausch}`
+                        boxShadow: `0 8px 20px ${tokens.rausch}40`, border: `2px solid ${tokens.rausch}`,
+                        opacity: uploading ? 0.5 : 1
                       }}
                     />
                   ) : (
@@ -295,9 +296,21 @@ const Perfil = () => {
                       background: `linear-gradient(135deg, ${tokens.rausch}, ${tokens.arches})`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: '#fff', fontSize: 32, fontWeight: 800,
-                      boxShadow: `0 8px 20px ${tokens.rausch}40`
+                      boxShadow: `0 8px 20px ${tokens.rausch}40`,
+                      opacity: uploading ? 0.5 : 1
                     }}>
                       {initials}
+                    </div>
+                  )}
+                  {uploading && (
+                    <div style={{
+                      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      background: 'rgba(0,0,0,0.55)', borderRadius: '50%', color: '#fff', fontSize: 10, fontWeight: 700,
+                      zIndex: 2
+                    }}>
+                      <CSpinner size="sm" className="mb-1" color="light" />
+                      <span style={{ fontSize: 9 }}>Enviando...</span>
                     </div>
                   )}
                   <button 
@@ -309,10 +322,11 @@ const Perfil = () => {
                       borderRadius: '50%', width: 32, height: 32,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-                      padding: 0
+                      padding: 0, zIndex: 3
                     }}
                     title="Alterar Foto"
                     aria-label="Alterar Foto"
+                    disabled={uploading}
                   >
                     {uploading ? <CSpinner size="sm" /> : <Icon icon="solar:camera-bold-duotone" width="18" style={{ color: tokens.rausch }} />}
                   </button>
@@ -322,6 +336,7 @@ const Perfil = () => {
                     style={{ display: 'none' }} 
                     ref={fileInputRef} 
                     onChange={handleUploadAvatar} 
+                    disabled={uploading}
                   />
                 </div>
                 <div>
