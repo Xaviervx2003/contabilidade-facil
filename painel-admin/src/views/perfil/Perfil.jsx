@@ -18,6 +18,7 @@ import { tokens } from '../../tokens'
 import { COLOR_PALETTES } from '../../tokens'
 import { useTheme } from '../../context/themeContext'
 import api from '../../services/api'
+import { API_URL } from '../../config'
 import useAuthSession from '../../hooks/useAuthSession'
 import { toast } from 'react-hot-toast'
 
