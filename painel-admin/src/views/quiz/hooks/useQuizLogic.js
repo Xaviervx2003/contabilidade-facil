@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../../services/api'
 import { API_URL } from '../../../config'
@@ -39,6 +39,7 @@ const playSound = (correct, enabled) => {
 }
 
 export const useQuizLogic = () => {
+  const hasAttemptedSave = useRef(false)
   const [status, setStatus] = useState('ready')
   const [isConfirmingFinish, setIsConfirmingFinish] = useState(false)
   const [questions, setQuestions] = useState([])
@@ -158,6 +159,7 @@ export const useQuizLogic = () => {
 
   // Start quiz functions
   const startQuizWithTime = (questionsData, timeLimit) => {
+    hasAttemptedSave.current = false
     const indices = [...Array(questionsData.length).keys()]
     setError('')
     setFeedback('')
@@ -412,6 +414,7 @@ export const useQuizLogic = () => {
   const handleReplay = () => startQuiz(shuffle(questions))
 
   const handleReset = () => {
+    hasAttemptedSave.current = false
     sessionStorage.removeItem(SESSION_KEY)
     setStatus('ready')
     setQuestions([])
@@ -458,6 +461,11 @@ export const useQuizLogic = () => {
 
   const handleSaveSession = useCallback(() => {
     if (status !== 'finished' || saved) return
+    if (!isLogado || !matricula) {
+      setSaved(true)
+      setFeedback('Sessão encerrada (Modo Visitante).')
+      return
+    }
     const respondidas = (questionsAndAnswers || []).length
     const porcentagem = calculateCorrectAnswersPercentage(respondidas, score)
     const materiaLabel =
@@ -482,6 +490,7 @@ export const useQuizLogic = () => {
   }, [
     status,
     saved,
+    isLogado,
     questionsAndAnswers,
     score,
     matricula,
@@ -600,10 +609,13 @@ export const useQuizLogic = () => {
   }, [remainingSeconds, status, tempoLimite])
 
   useEffect(() => {
-    if (status === 'finished' && !saved && !saving) {
+    if (status === 'finished' && !hasAttemptedSave.current) {
+      hasAttemptedSave.current = true
       handleSaveSession()
+    } else if (status !== 'finished') {
+      hasAttemptedSave.current = false
     }
-  }, [status, saved, saving, handleSaveSession])
+  }, [status, handleSaveSession])
   
   // Clean Code: Função auxiliar no lugar de ternário aninhado
   const getGradeColor = (score) => {
