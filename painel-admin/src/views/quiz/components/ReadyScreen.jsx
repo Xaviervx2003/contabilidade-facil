@@ -4,6 +4,17 @@ import { Icon } from '@iconify/react';
 import { ChecklistItem, FilterGroupHeader } from './QuizComponents';
 import { tokens } from '../../../tokens';
 
+const TIME_OPTIONS = [
+  { value: 300, label: '5 minutos' },
+  { value: 600, label: '10 minutos' },
+  { value: 900, label: '15 minutos' },
+  { value: 1200, label: '20 minutos' },
+  { value: 1800, label: '30 minutos' },
+  { value: 3600, label: '1 hora' },
+];
+
+const LETTERS = ['A', 'B', 'C', 'D', 'E'];
+
 const ReadyScreen = ({
   materias,
   materiasSelected,
