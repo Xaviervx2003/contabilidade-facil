@@ -27,6 +27,7 @@ import { API_URL } from '../../config'
 import api from '../../services/api'
 import { getAlunoMatricula } from '../../utils/auth'
 import { tokens } from '../../tokens'
+import useAuthSession from '../../hooks/useAuthSession'
 
 // ── Skeleton Loader ─────────────────────────────────────────────
 const Skeleton = ({ h = 20, w = '100%', radius = 12, className = '' }) => (
@@ -262,9 +263,8 @@ const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => {
 
 
 const MinhasQuestoes = () => {
-    const nome = sessionStorage.getItem('nome')
-    const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
-    const token = sessionStorage.getItem('token')
+    const { nome, matricula: matriculaSessao, token } = useAuthSession()
+    const matricula = getAlunoMatricula() || matriculaSessao
 
     // Estados principais de listagem
     const [dados, setDados] = useState({ questoes: [], total: 0, total_paginas: 1 })

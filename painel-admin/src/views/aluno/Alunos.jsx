@@ -10,6 +10,7 @@ import { API_URL } from '../../config'
 import api from '../../services/api'
 import { tokens, alpha, acertoColor } from '../../components/abnb/Tokens'
 import { AirbnbProgress, SkeletonBlock } from '../../components/abnb/Cards'
+import useAuthSession from '../../hooks/useAuthSession'
 
 /* ── helpers ──────────────────────────────────────────────────── */
 const formatarTempo = (segundos) => {
@@ -309,6 +310,7 @@ const AlunoCard = ({ aluno, index }) => {
 
 /* ── Componente Principal ─────────────────────────────────────── */
 const Alunos = () => {
+  const { userId } = useAuthSession()
   const [listaAlunos, setListaAlunos] = useState([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState(null)
@@ -320,7 +322,6 @@ const Alunos = () => {
     setLoading(true)
     setErro(null)
     try {
-      const userId = sessionStorage.getItem('userId')
       const params = new URLSearchParams({ pagina: pagina.toString(), por_pagina: '20' })
       if (userId) params.append('usuario_id', userId)
 

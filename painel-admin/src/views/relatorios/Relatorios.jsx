@@ -13,6 +13,7 @@ import { CChartLine, CChartBar, CChartRadar } from '@coreui/react-chartjs'
 import api from '../../services/api'
 import { tokens, alpha, acertoColor } from '../../components/abnb/Tokens'
 import { SCard, StatCard, AirbnbProgress, SkeletonBlock } from '../../components/abnb/Cards'
+import useAuthSession from '../../hooks/useAuthSession'
 
 /* ── helpers ──────────────────────────────────────────────────── */
 const formatTempo = (s = 0) => {
@@ -144,8 +145,7 @@ const Relatorios = () => {
   const [alunos, setAlunos] = useState([])
   const [filtroAluno, setFiltroAluno] = useState('')
 
-  const userId = sessionStorage.getItem('userId')
-  const papel = sessionStorage.getItem('papel')
+  const { userId, papel } = useAuthSession()
 
   /* Detecta tema */
   const [isDark, setIsDark] = useState(false)

@@ -62,6 +62,10 @@ $font-family-premium: 'Almarai', sans-serif;
   --accent-secondary:     #00A699;
   --accent-secondary-rgb: 0, 166, 153;
   --accent-tertiary:      #FC642D;
+
+  /* Skeleton Shimmer Colors */
+  --sk1: #f0f0f0;
+  --sk2: #e0e0e0;
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -92,6 +96,10 @@ $font-family-premium: 'Almarai', sans-serif;
   --color-disabled: #3a3a3a;
   --color-icon: #9ca3af;
   --color-icon-hover: #E1E0CC;
+
+  /* Skeleton Shimmer Colors */
+  --sk1: #1e2535;
+  --sk2: #252f42;
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -154,6 +162,12 @@ h4, h5, h6 {
 @keyframes skshimmer {
   0%   { background-position: 200% 0 }
   100% { background-position: -200% 0 }
+}
+
+.skshimmer {
+  background: linear-gradient(90deg, var(--sk1) 25%, var(--sk2) 50%, var(--sk1) 75%);
+  background-size: 200% 100%;
+  animation: skshimmer 1.4s ease infinite;
 }
 
 /* shimmer variant (Quiz) */

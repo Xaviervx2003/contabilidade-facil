@@ -1,8 +1,8 @@
 /**
  * useAuthSession — Hook centralizado para dados de sessão do usuário.
  * Substitui sessionStorage.getItem() espalhado em 10+ componentes.
- * 
- * Uso: const { matricula, userId, papel, nome, isLogado, isAdmin, isProfessor, isAluno } = useAuthSession()
+ *
+ * Uso: const { matricula, userId, papel, nome, token, isLogado, isAdmin, isProfessor, isAluno } = useAuthSession()
  */
 import { useMemo } from 'react'
 
@@ -14,12 +14,14 @@ const useAuthSession = () => {
     const userId = get('userId')
     const papel = get('papel') || 'aluno'
     const nome = get('nome')
+    const token = get('token')
 
     return {
       matricula,
       userId: userId ? parseInt(userId, 10) : null,
       papel,
       nome,
+      token,
       isLogado: !!papel && papel !== '',
       isAdmin: papel === 'admin',
       isProfessor: papel === 'professor',

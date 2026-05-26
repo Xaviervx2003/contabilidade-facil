@@ -5,6 +5,8 @@ import {
     CRow, CCol, CBadge, CSpinner, CAlert, CButton, CFormInput, CTooltip
 } from '@coreui/react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-hot-toast'
+import { confirmDialog } from '../../utils/confirm'
 import { tokens } from '../../tokens'
 import { useTheme } from '../../context/themeContext'
 import { 
@@ -25,6 +27,7 @@ const FeedbacksQuestoes = () => {
     const [busca, setBusca] = useState('')
     const [debouncedBusca, setDebouncedBusca] = useState('')
     const [respostaLocal, setRespostaLocal] = useState({}) // { [id]: 'texto' }
+    const [submittingIds, setSubmittingIds] = useState(new Set())
 
     const filtrosAtuais = useMemo(() => {
         const f = {}
@@ -47,36 +50,48 @@ const FeedbacksQuestoes = () => {
     const handleResolver = async (id) => {
         try {
             await resolverFeedback(id)
+            toast.success('Feedback resolvido com sucesso!')
         } catch (err) {
-            alert('Não foi possível marcar como resolvido. Tente novamente.')
+            toast.error('Não foi possível marcar como resolvido. Tente novamente.')
         }
     }
 
     const handleResponder = async (id) => {
         const texto = respostaLocal[id]
         if (!texto?.trim()) return
+
+        setSubmittingIds(prev => new Set(prev).add(id))
         try {
             await responderFeedback({ id, resposta: texto })
             setRespostaLocal(prev => ({ ...prev, [id]: '' }))
+            toast.success('Resposta enviada!')
         } catch (err) {
-            alert('Não foi possível enviar a resposta. Tente novamente.')
+            toast.error('Não foi possível enviar a resposta. Tente novamente.')
+        } finally {
+            setSubmittingIds(prev => {
+                const newSet = new Set(prev)
+                newSet.delete(id)
+                return newSet
+            })
         }
     }
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Tem certeza que deseja APAGAR permanentemente este feedback?')) return
+        if (!await confirmDialog('Tem certeza que deseja APAGAR permanentemente este feedback?')) return
         try {
             await deletarFeedback(id)
+            toast.success('Feedback apagado!')
         } catch (err) {
-            alert('Não foi possível apagar o feedback. Tente novamente.')
+            toast.error('Não foi possível apagar o feedback. Tente novamente.')
         }
     }
 
     const handlePublicar = async (id) => {
         try {
             await publicarFeedback(id)
+            toast.success('Status de publicação alterado!')
         } catch (err) {
-            alert('Não foi possível alterar a publicação do feedback. Tente novamente.')
+            toast.error('Não foi possível alterar a publicação do feedback. Tente novamente.')
         }
     }
 
@@ -345,10 +360,11 @@ const FeedbacksQuestoes = () => {
                                                     }}
                                                 />
                                                 <CButton 
+                                                    disabled={submittingIds.has(item.id)}
                                                     onClick={() => handleResponder(item.id)}
                                                     style={{ background: tokens.babu, color: '#fff', border: 'none', borderRadius: 12, padding: '8px 16px', fontWeight: 700 }}
                                                 >
-                                                    Enviar
+                                                    {submittingIds.has(item.id) ? <CSpinner size="sm" /> : 'Enviar'}
                                                 </CButton>
                                             </div>
                                         )}

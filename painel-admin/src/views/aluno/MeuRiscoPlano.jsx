@@ -17,6 +17,7 @@ import api from '../../services/api'
 import { getAlunoMatricula } from '../../utils/auth'
 import { useNavigate } from 'react-router-dom'
 import { tokens } from '../../tokens'
+import useAuthSession from '../../hooks/useAuthSession'
 
 /* ── Circular Progress Ring ──────────────────────────────── */
 const RingProgress = ({ value, size = 120, stroke = 10, color = tokens.rausch }) => {
@@ -39,7 +40,8 @@ const RingProgress = ({ value, size = 120, stroke = 10, color = tokens.rausch })
 }
 
 const MeuRiscoPlano = () => {
-    const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
+    const { matricula: matriculaSessao } = useAuthSession()
+    const matricula = getAlunoMatricula() || matriculaSessao
     const navigate = useNavigate()
 
     const { data: metrics, isLoading: loading, error: queryError } = useQuery({

@@ -13,9 +13,10 @@ import { CContainer, CSpinner } from '@coreui/react'
 
 // routes config
 import { routes } from '../routes'
+import useAuthSession from '../hooks/useAuthSession'
 
 const AppContent = () => {
-  const papel = sessionStorage.getItem('papel') || 'aluno'
+  const { papel } = useAuthSession()
 
   return (
     <CContainer className="px-4 relative max-w-[1360px] mx-auto min-h-screen" lg>

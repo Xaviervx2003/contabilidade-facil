@@ -12,6 +12,7 @@ import FolderCard from '../../components/premium/FolderCard'
 import { agruparPorMateria } from '../../utils/grouping'
 import api from '../../services/api'
 import { tokens } from '../../tokens'
+import useAuthSession from '../../hooks/useAuthSession'
 
 /* ─── Helpers ─── */
 const fetchJSON = async (url) => {
@@ -182,7 +183,7 @@ const VideoGallery = () => {
   const [viewMode, setViewMode] = useState('folders') // 'folders' ou 'items'
   const [activeFolder, setActiveFolder] = useState(null)
   const { isDark } = useTheme()
-  const matricula = sessionStorage.getItem('matricula')
+  const { matricula } = useAuthSession()
 
   useEffect(() => { ls.set('videosAssistidos', assistidos) }, [assistidos])
 

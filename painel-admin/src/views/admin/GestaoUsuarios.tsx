@@ -16,6 +16,7 @@ import {
 import CIcon from '@coreui/icons-react'
 import { cilPencil, cilTrash, cilUserPlus, cilChartLine, cilArrowLeft, cilArrowRight } from '@coreui/icons'
 import { API_URL } from '../../config'
+import { confirmDialog } from '../../utils/confirm'
 
 // ── 📘 Tipos & Interfaces ──────────────────────────────────────
 type Papel = 'admin' | 'professor' | 'aluno'
@@ -231,7 +232,7 @@ const GestaoUsuarios = () => {
 
     // ── 🗑️ Deletar ──────────────────────────────────────────────
     const deletar = useCallback(async (id: number, nome: string) => {
-        if (!window.confirm(`Remover "${nome}"? Esta ação não pode ser desfeita.`)) return
+        if (!await confirmDialog(`Remover "${nome}"? Esta ação não pode ser desfeita.`)) return
         try {
             await removerUsuario(id)
             setSucesso('Usuário removido!')

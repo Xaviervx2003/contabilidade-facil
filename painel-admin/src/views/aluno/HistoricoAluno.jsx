@@ -15,6 +15,7 @@ import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import SCard from '../../components/premium/SCard'
 import { tokens } from '../../tokens'
+import useAuthSession from '../../hooks/useAuthSession'
 
 /* ─── Helpers ─── */
 const formatarTempo = (seg) => {
@@ -199,7 +200,7 @@ const HistoricoAluno = () => {
     const [filtroResultado, setFiltroResultado] = useState('')
     const [progressoGeral, setProgressoGeral] = useState(null)
     const [ranking, setRanking] = useState(null)
-    const matricula = sessionStorage.getItem('matricula')
+    const { matricula } = useAuthSession()
 
     const buscarDados = useCallback(async () => {
         if (!matricula) return

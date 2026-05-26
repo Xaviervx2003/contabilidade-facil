@@ -95,10 +95,8 @@ export const Divider = () => (
 
 /* ── Skeleton block ──────────────────────────────────── */
 export const SkeletonBlock = ({ h = 20, w = '100%', r = 12 }) => (
-  <div style={{
-    height: h, width: w, borderRadius: r,
-    background: 'linear-gradient(90deg, var(--sk1,#f0f0f0) 25%, var(--sk2,#e0e0e0) 50%, var(--sk1,#f0f0f0) 75%)',
-    backgroundSize: '200% 100%',
-    animation: 'skshimmer 1.4s ease infinite',
-  }} />
+  <div
+    className="skshimmer"
+    style={{ height: h, width: w, borderRadius: r }}
+  />
 )

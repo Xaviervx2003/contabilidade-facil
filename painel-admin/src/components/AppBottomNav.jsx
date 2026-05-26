@@ -10,12 +10,13 @@ import {
   cilUser,
 } from '@coreui/icons'
 import { useTheme } from '../context/themeContext'
+import useAuthSession from '../hooks/useAuthSession'
 
 const AppBottomNav = () => {
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
   const { isDark } = useTheme()
-  const isLogado = !!sessionStorage.getItem('papel')
+  const { isLogado } = useAuthSession()
 
   return (
     <nav className={`bottom-nav d-md-none ${isDark ? 'bottom-nav-dark' : 'bottom-nav-light'}`}>

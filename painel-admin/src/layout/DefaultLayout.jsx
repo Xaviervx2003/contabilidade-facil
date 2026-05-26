@@ -8,10 +8,10 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
 import { AppContent, AppSidebar, AppFooter, AppHeader, AppBottomNav } from '../components/index'
+import useAuthSession from '../hooks/useAuthSession'
 
 const DefaultLayout = () => {
-  // 'papel' — mesma chave usada no Login.jsx ao salvar
-  const papel = sessionStorage.getItem('papel')
+  const { papel } = useAuthSession()
   const isPublicRoute = window.location.hash.includes('/quiz') || window.location.hash.includes('/videos')
 
   if (!papel && !isPublicRoute) {

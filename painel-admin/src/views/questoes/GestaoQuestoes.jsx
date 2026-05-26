@@ -17,6 +17,7 @@ import {
   useDeletarQuestao 
 } from '../../hooks/useQuestoes'
 import { tokens as tk } from '../../tokens'
+import { confirmDialog } from '../../utils/confirm'
 
 const FONT = "'Nunito', 'Circular Std', sans-serif"
 const PER_PAGE = 20
@@ -50,12 +51,10 @@ const validar = (f) => {
 
 /* ── Skeleton ─────────────────────────────────────────────── */
 const Skel = ({ h = 20, w = '100%', r = 10 }) => (
-  <div style={{
-    height: h, width: w, borderRadius: r,
-    background: 'linear-gradient(90deg,var(--sk1)25%,var(--sk2)50%,var(--sk1)75%)',
-    backgroundSize: '200% 100%',
-    animation: 'skshimmer 1.4s ease infinite',
-  }} />
+  <div
+    className="skshimmer"
+    style={{ height: h, width: w, borderRadius: r }}
+  />
 )
 
 /* ── Card base ───────────────────────────────────────────── */
@@ -296,7 +295,7 @@ const GestaoQuestoes = () => {
   }
 
   const deletar = async (id) => {
-    if (!window.confirm('Excluir esta questão permanentemente?')) return
+    if (!await confirmDialog('Excluir esta questão permanentemente?')) return
     try {
       await deletarQuestao(id)
       setSuccess('Questão removida!')
@@ -320,8 +319,6 @@ const GestaoQuestoes = () => {
     background: 'var(--color-bg-primary)',
     padding: '32px 16px 60px',
     fontFamily: FONT,
-    '--sk1': isDark ? '#1e2535' : '#f0f0f0',
-    '--sk2': isDark ? '#252f42' : '#e0e0e0',
   }
 
   return (

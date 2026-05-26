@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import api from '../../services/api'
 import { useTheme } from '../../context/themeContext'
 import { tokens as tk } from '../../tokens'
+import { confirmDialog } from '../../utils/confirm'
 
 const FONT = "'Nunito', 'Circular Std', sans-serif"
 
@@ -42,13 +43,12 @@ const ASelect = ({ value, onChange, children }) => (
   <select value={value} onChange={onChange} style={{ width: '100%', height: 42, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s', cursor: 'pointer' }} onFocus={e => e.target.style.borderColor = tk.rausch} onBlur={e => e.target.style.borderColor = 'var(--color-border)'}>{children}</select>
 )
 
-const Skel = ({ isDark }) => {
-  const bg = isDark ? '#1e2535' : '#f0f0f0'
-  const hl = isDark ? '#252f42' : '#e0e0e0'
-  return (
-    <div style={{ height: 280, borderRadius: 16, background: `linear-gradient(90deg, ${bg} 25%, ${hl} 50%, ${bg} 75%)`, backgroundSize: '200% 100%', animation: 'skshimmer 1.5s ease infinite' }} />
-  )
-}
+const Skel = () => (
+  <div
+    className="skshimmer"
+    style={{ height: 280, borderRadius: 16 }}
+  />
+)
 
 const GestaoVideos = () => {
   const [videos, setVideos] = useState([])
@@ -141,7 +141,7 @@ const GestaoVideos = () => {
   }
 
   const excluirVideo = async (id) => {
-    if (!window.confirm('Certeza que deseja remover este vídeo?')) return
+    if (!await confirmDialog('Certeza que deseja remover este vídeo?')) return
     try {
       await api.delete(`/api/videos/${id}`)
       setSuccess('Vídeo removido.')
@@ -203,7 +203,7 @@ const GestaoVideos = () => {
         {/* GRID DE VÍDEOS */}
         {loading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
-            {[0,1,2,3,4,5,6,7].map(i => <Skel key={i} isDark={isDark} />)}
+            {[0,1,2,3,4,5,6,7].map(i => <Skel key={i} />)}
           </div>
         ) : videos.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 0', color: tk.foggy }}>

@@ -15,6 +15,8 @@ import {
   useProcessarSolicitacao,
 } from '../../hooks/useMaterias'
 import { tokens as tk } from '../../tokens'
+import useAuthSession from '../../hooks/useAuthSession'
+import { confirmDialog } from '../../utils/confirm'
 
 const FONT = "'Nunito', 'Circular Std', sans-serif"
 
@@ -38,9 +40,9 @@ const useToast = () => {
 }
 
 const GestaoMaterias = () => {
-  const userId    = parseInt(sessionStorage.getItem('userId'), 10)
-  const userPapel = sessionStorage.getItem('userPapel') || 'aluno'
-  const isAdmin   = userPapel === 'admin'
+  const { userId, papel } = useAuthSession()
+  const userPapel = papel
+  const isAdmin   = papel === 'admin'
 
   // ── React Query ─────────────────────────────────────────
   const { data: materias = [], isLoading } = useMaterias()
@@ -120,16 +122,16 @@ const GestaoMaterias = () => {
     )
   }
 
-  const handleDeletar = (id, nome) => {
-    if (!window.confirm(`Deletar "${nome}"?`)) return
+  const handleDeletar = async (id, nome) => {
+    if (!await confirmDialog(`Deletar "${nome}"?`)) return
     deletar(id, {
       onSuccess: () => showSuccess('Matéria removida!'),
       onError:   () => showError('Erro ao deletar.'),
     })
   }
 
-  const handleLimpar = () => {
-    if (!window.confirm('Remover todas as matérias sem questões e sem filhos?')) return
+  const handleLimpar = async () => {
+    if (!await confirmDialog('Remover todas as matérias sem questões e sem filhos?')) return
     limpar(undefined, {
       onSuccess: (data) => showSuccess(data?.mensagem || 'Faxina concluída!'),
       onError:   () => showError('Erro na faxina.'),

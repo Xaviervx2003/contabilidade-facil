@@ -32,7 +32,10 @@ import { API_URL } from '../../config'
 import { calculateGrade, formatSeconds, shuffle } from '../../utils/quizUtils'
 import MateriaMultiSelect from '../../components/MateriaMultiSelect'
 import { useTheme } from '../../context/themeContext'
+import useAuthSession from '../../hooks/useAuthSession'
 import { getMatricula } from '../../utils/auth'
+import { toast } from 'react-hot-toast'
+import { confirmDialog } from '../../utils/confirm'
 import gradeCurricular from '../../data/grade_curricular.json'
 import curriculumMapping from '../../data/curriculumMapping.json'
 
@@ -619,12 +622,12 @@ const ReadyScreen = ({
         isOpen={activeStep === 1}
         onToggle={() => {
           if (modoFoco === 'concurso' && !disciplinaPai) {
-            alert('Selecione uma disciplina primeiro!')
+            toast.error('Selecione uma disciplina primeiro!')
             setActiveStep(0)
             return
           }
           if (modoFoco === 'faculdade' && !disciplinaFaculdade) {
-            alert('Selecione uma disciplina da faculdade primeiro!')
+            toast.error('Selecione uma disciplina da faculdade primeiro!')
             setActiveStep(0)
             return
           }
@@ -1356,7 +1359,7 @@ const FinishedScreen = ({
   activeTab,
   setActiveTab,
 }) => {
-  const isLogado = !!sessionStorage.getItem('papel')
+  const { isLogado } = useAuthSession()
   // 🧠 Padrão defensivo: validar dados antes de renderizar
   const validTabs = useMemo(() => ['stats', 'qna'], [])
   const safeActiveTab = validTabs.includes(activeTab) ? activeTab : 'stats'
@@ -1537,8 +1540,8 @@ const Quiz = () => {
   const [disciplinaPai, setDisciplinaPai] = useState(null) // ID da disciplina raiz selecionada
   const queryClient = useQueryClient()
 
-  const nomeAluno = sessionStorage.getItem('nome') || 'Aluno'
-  const matricula = getMatricula()
+  const { nome, isLogado, matricula } = useAuthSession()
+  const nomeAluno = nome || 'Aluno'
 
   // Theme detection
   const { isDark: themeIsDark } = useTheme()
@@ -1916,8 +1919,8 @@ const Quiz = () => {
     feedbackMutation.mutate({ qId: q.id, texto: commentText, confusa: isConfusing })
   }
 
-  const handleFinishEarly = () => {
-    if (!window.confirm('Encerrar o simulado?')) return
+  const handleFinishEarly = async () => {
+    if (!await confirmDialog('Encerrar o simulado?')) return
     sessionStorage.removeItem(SESSION_KEY)
     setElapsedSeconds(Math.round((Date.now() - startTime) / 1000))
     setFeedback(
@@ -1930,7 +1933,7 @@ const Quiz = () => {
     const wrongIds = new Set(questionsAndAnswers.filter((qa) => !qa.isCorrect).map((qa) => qa.id))
     const wrongQuestions = questions.filter((q) => wrongIds.has(q.id))
     if (wrongQuestions.length === 0) {
-      alert('Parabéns! Você não errou nenhuma questão. 🎉')
+      toast.success('Parabéns! Você não errou nenhuma questão. 🎉')
       return
     }
     startQuiz(wrongQuestions)
@@ -2030,7 +2033,7 @@ const Quiz = () => {
         await navigator.share({ title: 'Quiz de Contabilidade', text })
       } else {
         await navigator.clipboard.writeText(text)
-        alert('✅ Copiado!')
+        toast.success('Copiado para a área de transferência! ✅')
       }
     } catch { }
   }, [elapsedSeconds, score, questionsAndAnswers, questions])
@@ -2055,8 +2058,6 @@ const Quiz = () => {
     return 'danger'
   }
   const gradeColor = getGradeColor(finalScore)
-  
-  const isLogado = !!sessionStorage.getItem('papel')
 
   // Render
   return (

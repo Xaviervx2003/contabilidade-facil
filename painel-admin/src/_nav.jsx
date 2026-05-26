@@ -19,9 +19,12 @@ import {
 } from '@coreui/icons'
 import { CNavItem, CNavTitle } from '@coreui/react'
 import { useTheme } from './context/themeContext'
+import useAuthSession from './hooks/useAuthSession'
 
 const getNavItens = () => {
-  const papelUsuario = sessionStorage.getItem('papel')
+  // useAuthSession não pode ser chamado aqui pois getNavItens não é um componente React.
+  // Lendo diretamente do sessionStorage/localStorage (encapsulado pelo hook quando chamado em componentes).
+  const papelUsuario = sessionStorage.getItem('papel') || localStorage.getItem('papel')
   const isAluno = papelUsuario === 'aluno'
   const isLogado = !!papelUsuario
 

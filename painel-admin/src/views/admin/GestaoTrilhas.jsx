@@ -15,17 +15,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import { useTheme } from '../../context/themeContext'
 import { tokens as tk } from '../../tokens'
+import useAuthSession from '../../hooks/useAuthSession'
+import { confirmDialog } from '../../utils/confirm'
 
 const FONT = "'Nunito', 'Circular Std', sans-serif"
 
 /* ── Componentes de UI Básicos ───────────────────────────── */
 const Skel = ({ h = 20, w = '100%', r = 10 }) => (
-  <div style={{
-    height: h, width: w, borderRadius: r,
-    background: 'linear-gradient(90deg,var(--sk1)25%,var(--sk2)50%,var(--sk1)75%)',
-    backgroundSize: '200% 100%',
-    animation: 'skshimmer 1.4s ease infinite',
-  }} />
+  <div
+    className="skshimmer"
+    style={{ height: h, width: w, borderRadius: r }}
+  />
 )
 
 const Label = ({ children }) => (
@@ -111,7 +111,7 @@ const GestaoTrilhas = () => {
   const [respondendoId, setRespondendoId] = useState(null)
   
   const queryClient = useQueryClient()
-  const userId = sessionStorage.getItem('userId')
+  const { userId } = useAuthSession()
 
   const [trilhaAtiva, setTrilhaAtiva] = useState(null)
   const [formTrilha, setFormTrilha] = useState({ nome: '', descricao: '', status: 'rascunho', capa_url: '', nivel: '', modulos: [] })
@@ -186,7 +186,7 @@ const GestaoTrilhas = () => {
   const salvarTrilha = () => mutationSalvarTrilha.mutate()
 
   const deletarTrilha = async (id) => {
-    if (!window.confirm("Certeza que deseja remover esta trilha e todos os seus módulos?")) return
+    if (!await confirmDialog("Certeza que deseja remover esta trilha e todos os seus módulos?")) return
     try {
       await api.delete(`/api/trilhas/${id}`)
       setSuccess('Trilha removida!')
@@ -260,7 +260,7 @@ const GestaoTrilhas = () => {
   }
 
   const deletarModulo = async (id) => {
-    if (!window.confirm("Remover este módulo da trilha?")) return
+    if (!await confirmDialog("Remover este módulo da trilha?")) return
     try {
       await api.delete(`/api/trilhas/modulos/${id}`)
       setSuccess('Módulo deletado!')
@@ -285,7 +285,6 @@ const GestaoTrilhas = () => {
   const containerStyle = {
     minHeight: '100vh', background: 'var(--color-bg-primary)',
     padding: '32px 16px 60px', fontFamily: FONT,
-    '--sk1': isDark ? '#1e2535' : '#f0f0f0', '--sk2': isDark ? '#252f42' : '#e0e0e0',
   }
 
   return (

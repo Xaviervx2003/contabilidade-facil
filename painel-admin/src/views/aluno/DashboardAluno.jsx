@@ -19,6 +19,7 @@ import { Icon } from '@iconify/react'
 /* ─── Tokens Airbnb-inspired (centralizado) ──────────────── */
 import { tokens, alpha, acertoColor } from '../../components/abnb/Tokens'
 import { AirbnbProgress as _Progress, MateriaRow as _MateriaRow } from '../../components/abnb/Cards'
+import useAuthSession from '../../hooks/useAuthSession'
 
 /* ─── Helpers ──────────────────────────────────────────────── */
 const formatTempo = (seg) => {
@@ -40,12 +41,10 @@ const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
 /* ─── Skeleton ───────────────────────────────────────────── */
 const SkeletonBlock = ({ h = 20, w = '100%', r = 12 }) => (
-  <div style={{
-    height: h, width: w, borderRadius: r,
-    background: 'linear-gradient(90deg, var(--sk1) 25%, var(--sk2) 50%, var(--sk1) 75%)',
-    backgroundSize: '200% 100%',
-    animation: 'skshimmer 1.4s ease infinite',
-  }} />
+  <div
+    className="skshimmer"
+    style={{ height: h, width: w, borderRadius: r }}
+  />
 )
 
 import { CChartBar } from '@coreui/react-chartjs'
@@ -308,8 +307,8 @@ const MateriaRow = ({ m, i, color }) => (
 const DashboardAluno = () => {
   const { isDark } = useTheme()
   const navigate = useNavigate()
-  const matricula = sessionStorage.getItem('matricula')
-  const nomeUsuario = sessionStorage.getItem('nome') || ''
+  const { matricula, nome, token } = useAuthSession()
+  const nomeUsuario = nome || ''
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['dashboard-aluno', matricula],
@@ -334,7 +333,7 @@ const DashboardAluno = () => {
       return res.data
     },
     staleTime: 1000 * 60 * 10,
-    enabled: !!sessionStorage.getItem('token'),
+    enabled: !!token,
   })
 
   const { data: quizInsights } = useQuery({
@@ -361,8 +360,6 @@ const DashboardAluno = () => {
     minHeight: '100vh',
     background: 'var(--color-bg-primary)',
     padding: '32px 16px 48px',
-    '--sk1': isDark ? '#1e2535' : '#f0f0f0',
-    '--sk2': isDark ? '#252f42' : '#e0e0e0',
   }
 
   return (
@@ -608,7 +605,10 @@ const DashboardAluno = () => {
             {loadingMissoes ? (
               [0, 1, 2].map(i => (
                 <CCol key={i} xs={12} md={4}>
-                  <div style={{ height: 160, background: 'var(--color-bg-tertiary)', borderRadius: 20, animation: 'skshimmer 1.4s ease infinite', backgroundSize: '200% 100%' }} />
+                  <div
+                    className="skshimmer"
+                    style={{ height: 160, borderRadius: 20 }}
+                  />
                 </CCol>
               ))
             ) : erroMissoes ? (

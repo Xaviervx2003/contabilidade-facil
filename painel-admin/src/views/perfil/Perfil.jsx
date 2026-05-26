@@ -18,6 +18,8 @@ import { tokens } from '../../tokens'
 import { COLOR_PALETTES } from '../../tokens'
 import { useTheme } from '../../context/themeContext'
 import api from '../../services/api'
+import useAuthSession from '../../hooks/useAuthSession'
+import { toast } from 'react-hot-toast'
 
 const getInitials = (name) => {
   if (!name) return '??'
@@ -41,8 +43,8 @@ const Skeleton = ({ h = 20, w = '100%', radius = 12, className = '' }) => (
 )
 
 const Perfil = () => {
-  const nomeUsuario = sessionStorage.getItem('nome') || ''
-  const matricula = getAlunoMatricula() || sessionStorage.getItem('matricula')
+  const { nome, matricula } = useAuthSession()
+  const nomeUsuario = nome || ''
 
   const [activeTab, setActiveTab] = useState('dados') // 'dados' | 'seguranca' | 'aparencia'
   const queryClient = useQueryClient()
@@ -127,11 +129,12 @@ const Perfil = () => {
         // Salva o novo avatar_url no perfil
         await api.put(`/api/perfil/${matricula}`, { avatar_url: data.dados.url })
         queryClient.invalidateQueries(['perfil', matricula])
+        toast.success('Avatar atualizado!')
       } else {
-        alert(data.mensagem)
+        toast.error(data.mensagem)
       }
     } catch {
-      alert('Erro ao enviar foto.')
+      toast.error('Erro ao enviar foto.')
     } finally {
       setUploading(false)
     }
@@ -297,19 +300,22 @@ const Perfil = () => {
                       {initials}
                     </div>
                   )}
-                  <div 
+                  <button 
+                    type="button"
                     onClick={() => fileInputRef.current?.click()}
                     style={{
                       position: 'absolute', bottom: -5, right: -5, 
                       background: tokens.bg, border: `1px solid ${tokens.border}`,
                       borderRadius: '50%', width: 32, height: 32,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                      cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+                      padding: 0
                     }}
                     title="Alterar Foto"
+                    aria-label="Alterar Foto"
                   >
                     {uploading ? <CSpinner size="sm" /> : <Icon icon="solar:camera-bold-duotone" width="18" style={{ color: tokens.rausch }} />}
-                  </div>
+                  </button>
                   <input 
                     type="file" 
                     accept="image/*" 

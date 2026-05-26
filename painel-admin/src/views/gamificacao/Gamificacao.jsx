@@ -5,6 +5,7 @@ import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
 import api from '../../services/api'
 import { tokens } from '../../tokens'
+import useAuthSession from '../../hooks/useAuthSession'
 
 import Missoes from './Missoes'
 import Conquistas from './Conquistas'
@@ -14,7 +15,7 @@ const RankingTurma = () => {
   const [ranking, setRanking] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const matricula = sessionStorage.getItem('matricula')
+  const { matricula } = useAuthSession()
 
   useEffect(() => {
     let active = true
@@ -164,27 +165,30 @@ const Gamificacao = () => {
             animate={{ opacity: 1, y: 0 }}
             style={{ marginBottom: 32 }}
           >
-            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Gamificacao</div>
+            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Gamificação</div>
             <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
               Desafios & Conquistas
             </div>
             <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
-              Cumpra missoes, ganhe XP e desbloqueie emblemas exclusivos.
+              Cumpra missões, ganhe XP e desbloqueie emblemas exclusivos.
             </div>
           </motion.div>
 
           <div className="d-flex gap-2 mb-4 overflow-auto pb-2 border-bottom" style={{ borderColor: 'var(--color-border)' }}>
             {[
-              { id: 'desafios', label: 'Missoes & XP', icon: 'solar:target-bold-duotone', color: tokens.rausch },
+              { id: 'desafios', label: 'Missões & XP', icon: 'solar:target-bold-duotone', color: tokens.rausch },
               { id: 'conquistas', label: 'Meus Emblemas', icon: 'solar:medal-ribbon-star-bold-duotone', color: tokens.babu },
               { id: 'ranking', label: 'Ranking da Turma', icon: 'solar:cup-star-bold-duotone', color: tokens.arches },
             ].map(tab => {
               const isActive = abaAtiva === tab.id
               return (
-                <div
+                <button
                   key={tab.id}
+                  type="button"
                   onClick={() => setAbaAtiva(tab.id)}
                   style={{
+                    background: 'transparent',
+                    border: 'none',
                     cursor: 'pointer',
                     padding: '10px 16px',
                     position: 'relative',
@@ -208,7 +212,7 @@ const Gamificacao = () => {
                       style={{ height: 3, background: tab.color, borderRadius: '3px 3px 0 0' }}
                     />
                   )}
-                </div>
+                </button>
               )
             })}
           </div>

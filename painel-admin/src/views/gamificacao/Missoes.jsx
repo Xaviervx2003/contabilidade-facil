@@ -4,6 +4,7 @@ import { API_URL } from '../../config'
 import api from '../../services/api'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
+import useAuthSession from '../../hooks/useAuthSession'
 
 /* ── Tokens de cor (inspirado Airbnb + Duolingo) ──────────── */
 const T = {
@@ -234,12 +235,11 @@ const Missoes = ({ isTab = false }) => {
     const [concluindo, setConcluindo] = useState(null)
     const [toast, setToast] = useState(null)
 
-    const matricula = sessionStorage.getItem('matricula')
+    const { matricula, token } = useAuthSession()
 
     const fetchMissoes = useCallback(async () => {
         setLoading(true)
         try {
-            const token = sessionStorage.getItem('token')
             if (!token) {
                 setErro('Faça login para ver seus desafios.')
                 return

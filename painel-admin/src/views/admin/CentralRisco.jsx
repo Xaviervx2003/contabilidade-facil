@@ -22,6 +22,7 @@ import {
 import CIcon from '@coreui/icons-react'
 import { cilFilter, cilWarning } from '@coreui/icons'
 import api from '../../services/api'
+import useAuthSession from '../../hooks/useAuthSession'
 
 const classificarRisco = (churn) => {
   if (churn >= 70) return { nivel: 'Alto', color: 'danger' }
@@ -30,6 +31,7 @@ const classificarRisco = (churn) => {
 }
 
 const CentralRisco = () => {
+  const { userId } = useAuthSession()
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState('')
   const [estudantes, setEstudantes] = useState([])
@@ -43,7 +45,6 @@ const CentralRisco = () => {
       setLoading(true)
       setErro('')
       try {
-        const userId = sessionStorage.getItem('userId')
         const params = new URLSearchParams({ pagina: String(pagina), por_pagina: '20' })
         if (userId) params.append('usuario_id', userId)
 

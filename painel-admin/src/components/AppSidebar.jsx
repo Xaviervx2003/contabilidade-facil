@@ -21,12 +21,14 @@ import getNavItens from '../_nav'
 
 import api from '../services/api'
 import { useTheme } from '../context/themeContext'
+import useAuthSession from '../hooks/useAuthSession'
 
 const AppSidebar = () => {
   const dispatch = useDispatch()
   const unfoldable = useSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.sidebarShow)
   const { isDark } = useTheme()
+  const { papel } = useAuthSession()
 
   const [pendentes, setPendentes] = React.useState(0)
   const [navItensState, setNavItensState] = React.useState([])
@@ -34,7 +36,6 @@ const AppSidebar = () => {
   React.useEffect(() => {
     const fetchContagem = async () => {
       try {
-        const papel = sessionStorage.getItem('papel') || 'aluno'
         if (papel !== 'admin' && papel !== 'professor') return
         
         const res = await api.get('/api/feedbacks_questoes/contagem')

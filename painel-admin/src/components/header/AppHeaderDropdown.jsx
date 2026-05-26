@@ -24,6 +24,7 @@ import {
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { useNavigate } from 'react-router-dom'
+import useAuthSession from '../../hooks/useAuthSession'
 
 // Gera as iniciais a partir do nome (ex: "João Silva" → "JS")
 const getIniciais = (nome) => {
@@ -47,8 +48,8 @@ const getCorAvatar = (nome) => {
 
 const AppHeaderDropdown = () => {
   const navigate = useNavigate()
-  const userName = sessionStorage.getItem('nome') || 'Usuário'
-  const papel = sessionStorage.getItem('papel') || 'aluno'
+  const { nome, papel } = useAuthSession()
+  const userName = nome || 'Usuário'
 
   const handleLogout = () => {
     sessionStorage.clear()

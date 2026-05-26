@@ -37,6 +37,7 @@ import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown, AppHeaderNotifications } from './header/index'
 import { useTheme } from '../context/themeContext'
 import ThemePicker from './ThemePicker'
+import useAuthSession from '../hooks/useAuthSession'
 
 const AppHeader = () => {
   const headerRef = useRef()
@@ -44,7 +45,7 @@ const AppHeader = () => {
 
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
-  const isLogado = !!sessionStorage.getItem('papel')
+  const { isLogado } = useAuthSession()
 
   useEffect(() => {
     const handleScroll = () => {
