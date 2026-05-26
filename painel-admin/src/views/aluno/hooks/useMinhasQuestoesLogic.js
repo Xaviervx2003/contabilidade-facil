@@ -94,7 +94,7 @@ export const useMinhasQuestoesLogic = () => {
     const [formModalOpen, setFormModalOpen] = useState(false)
     const [selectedQuestaoParaDuvida, setSelectedQuestaoParaDuvida] = useState('')
     
-    const { data: questoesResolvidas = [], isLoading: loadingQuestoes } = useQuery({
+    const { data: questoesResolvidas = [] } = useQuery({
         queryKey: ['questoes-resolvidas-form', matricula],
         queryFn: async () => {
             const { data } = await api.get(
@@ -365,6 +365,7 @@ export const useMinhasQuestoesLogic = () => {
     setFormModalOpen,
     selectedQuestaoParaDuvida,
     setSelectedQuestaoParaDuvida,
+    questoesResolvidas,
     abrirNovaPergunta,
     handleSubmitNovaPergunta,
     debugLogs,

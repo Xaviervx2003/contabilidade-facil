@@ -90,6 +90,7 @@ const MinhasQuestoes = () => {
     setFormModalOpen,
     selectedQuestaoParaDuvida,
     setSelectedQuestaoParaDuvida,
+    questoesResolvidas,
     abrirNovaPergunta,
     handleSubmitNovaPergunta,
     debugLogs,

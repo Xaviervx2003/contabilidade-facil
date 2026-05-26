@@ -672,6 +672,7 @@ export const useQuizLogic = () => {
         toggleFavoritoMutation,
     alternarFavorito,
     materias,
+    loadingMaterias,
     startQuizWithTime,
     startQuiz,
     resumeSnapshot,
