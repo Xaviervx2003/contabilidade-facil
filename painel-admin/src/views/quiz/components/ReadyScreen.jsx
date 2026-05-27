@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { CButton, CProgress, CBadge, CFormInput, CFormSelect, CFormCheck, CFormSwitch, CRow, CCol, CAlert, CFormTextarea } from '@coreui/react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { CButton, CProgress, CBadge, CFormInput, CFormSelect, CFormCheck, CFormSwitch, CRow, CCol, CAlert, CFormTextarea, CCardBody } from '@coreui/react';
 import { Icon } from '@iconify/react';
 import CIcon from '@coreui/icons-react';
 import {
@@ -12,6 +12,20 @@ import {
   cilStar,
 } from '@coreui/icons';
 import { ChecklistItem, FilterGroupHeader, ReviewTable } from './QuizComponents';
+import { toast } from 'react-hot-toast';
+
+const obterLinkEmbed = (videoUrl) => {
+  if (!videoUrl) return null
+  let embedUrl = videoUrl
+  if (videoUrl.includes('youtube.com/watch?v=')) {
+    embedUrl = videoUrl.replace('watch?v=', 'embed/').split('&')[0]
+  } else if (videoUrl.includes('youtu.be/')) {
+    embedUrl = videoUrl.replace('youtu.be/', 'www.youtube.com/embed/')
+  } else if (videoUrl.includes('vimeo.com/')) {
+    embedUrl = videoUrl.replace('vimeo.com/', 'player.vimeo.com/video/')
+  }
+  return embedUrl
+}
 import { tokens } from '../../../tokens';
 import gradeCurricular from '../../../data/grade_curricular.json';
 import curriculumMapping from '../../../data/curriculumMapping.json';
@@ -769,7 +783,7 @@ export const QuizRunning = ({
 
       const key = event.key.toUpperCase()
 
-      if (!isAnswerConfirmed && LETTERS.includes(key)) {
+      if (!isAnswerConfirmed && LETTERS.includes(key) && currentQuestion) {
         const letterIndex = LETTERS.indexOf(key)
         if (letterIndex < currentQuestion.options.length) {
           event.preventDefault()
@@ -791,6 +805,9 @@ export const QuizRunning = ({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isAnswerConfirmed, selectedOption, currentQuestion, onSelectOption, onConfirmAnswer, onNextQuestion])
+
+  // Guard: nunca renderizar sem currentQuestion (proteção contra race conditions de estado)
+  if (!currentQuestion) return null
 
   return (
     <div style={{ animation: 'fade-up .3s ease' }}>
