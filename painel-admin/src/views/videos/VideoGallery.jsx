@@ -13,6 +13,7 @@ import { agruparPorMateria } from '../../utils/grouping'
 import api from '../../services/api'
 import { tokens } from '../../tokens'
 import useAuthSession from '../../hooks/useAuthSession'
+import { API_URL } from '../../config'
 
 /* ─── Helpers ─── */
 const fetchJSON = async (url) => {
