@@ -985,7 +985,7 @@ export const QuizRunning = ({
         <div className="d-flex gap-2 order-2 order-md-1 justify-content-center">
           <button
             onClick={onFinishEarly}
-            disabled={totalAnswered === 0 || isConfirmingFinish}
+            disabled={isConfirmingFinish}
             className="d-flex align-items-center gap-2 px-3 py-2 fw-bold transition-all"
             style={{
               background: 'transparent',
@@ -993,12 +993,12 @@ export const QuizRunning = ({
               border: '2px solid rgba(239, 68, 68, 0.2)',
               borderRadius: '30px',
               fontSize: '13px',
-              cursor: totalAnswered === 0 ? 'not-allowed' : 'pointer',
-              opacity: totalAnswered === 0 ? 0.4 : 1,
+              cursor: isConfirmingFinish ? 'wait' : 'pointer',
+              opacity: isConfirmingFinish ? 0.6 : 1,
               transition: 'all 0.2s ease',
             }}
             onMouseEnter={(e) => {
-              if (totalAnswered > 0) {
+              if (!isConfirmingFinish) {
                 e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
                 e.currentTarget.style.borderColor = 'var(--cui-danger)';
               }
