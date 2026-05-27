@@ -17,8 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 
 /* ─── Tokens Airbnb-inspired (centralizado) ──────────────── */
-import { tokens, alpha, acertoColor } from '../../components/abnb/Tokens'
-import { buildTokens } from '../../tokens'
+import { buildTokens, alpha } from '../../tokens'
 import { AirbnbProgress as _Progress, MateriaRow as _MateriaRow } from '../../components/abnb/Cards'
 import useAuthSession from '../../hooks/useAuthSession'
 
@@ -408,7 +407,7 @@ const DashboardAluno = () => {
               label: 'Streak',
               value: `${streak} dias`,
               sub: streak > 0 ? 'Sequência ativa 🔥' : 'Estude hoje!',
-              accent: tokens.arches,
+              accent: tk.arches,
               delay: 0.05,
               children: (
                 <div style={{ marginTop: 12, borderTop: '1px solid var(--color-border)', paddingTop: 10 }}>

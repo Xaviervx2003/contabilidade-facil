@@ -116,6 +116,57 @@ export const COLOR_PALETTES = {
       '--accent-tertiary':      '#334155',
     }
   },
+  rose: {
+    id: 'rose',
+    label: 'Rosa',
+    emoji: '🌹',
+    primary:   '#E11D48',
+    secondary: '#F43F5E',
+    accent:    '#BE123C',
+    foggy:     '#881337',
+    swiss:     '#FDA4AF',
+    cssVars: {
+      '--accent-primary':       '#E11D48',
+      '--accent-primary-rgb':   '225, 29, 72',
+      '--accent-secondary':     '#F43F5E',
+      '--accent-secondary-rgb': '244, 63, 94',
+      '--accent-tertiary':      '#BE123C',
+    }
+  },
+  indigo: {
+    id: 'indigo',
+    label: 'Índigo',
+    emoji: '🌌',
+    primary:   '#4F46E5',
+    secondary: '#6366F1',
+    accent:    '#4338CA',
+    foggy:     '#312E81',
+    swiss:     '#A5B4FC',
+    cssVars: {
+      '--accent-primary':       '#4F46E5',
+      '--accent-primary-rgb':   '79, 70, 229',
+      '--accent-secondary':     '#6366F1',
+      '--accent-secondary-rgb': '99, 102, 241',
+      '--accent-tertiary':      '#4338CA',
+    }
+  },
+  teal: {
+    id: 'teal',
+    label: 'Turquesa',
+    emoji: '🌊',
+    primary:   '#0D9488',
+    secondary: '#14B8A6',
+    accent:    '#0F766E',
+    foggy:     '#115E59',
+    swiss:     '#5EEAD4',
+    cssVars: {
+      '--accent-primary':       '#0D9488',
+      '--accent-primary-rgb':   '13, 148, 136',
+      '--accent-secondary':     '#14B8A6',
+      '--accent-secondary-rgb': '20, 184, 166',
+      '--accent-tertiary':      '#0F766E',
+    }
+  },
 }
 
 export const DEFAULT_PALETTE = 'rausch'
