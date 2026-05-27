@@ -32,6 +32,7 @@ import useAuthSession from '../../hooks/useAuthSession'
 import QuestoesFiltro from './components/QuestoesFiltro';
 import QuestoesLista from './components/QuestoesLista';
 import QuestoesFeedbacks from './components/QuestoesFeedbacks';
+import useMinhasQuestoesLogic from './hooks/useMinhasQuestoesLogic';
 
 const MinhasQuestoes = () => {
     const logicProps = useMinhasQuestoesLogic();
