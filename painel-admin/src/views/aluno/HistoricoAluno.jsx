@@ -14,8 +14,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import SCard from '../../components/premium/SCard'
-import { tokens } from '../../tokens'
 import useAuthSession from '../../hooks/useAuthSession'
+import { useTheme } from '../../context/themeContext'
+import { buildTokens } from '../../tokens'
 
 /* ─── Helpers ─── */
 const formatarTempo = (seg) => {
@@ -72,10 +73,10 @@ const Heatmap = ({ data }) => {
 
     const getColor = (qtd) => {
         if (qtd === 0) return 'var(--color-bg-tertiary)'
-        if (qtd <= 5) return `${tokens.rausch}20`
-        if (qtd <= 15) return `${tokens.rausch}60`
-        if (qtd <= 30) return `${tokens.rausch}90`
-        return tokens.rausch
+        if (qtd <= 5) return `color-mix(in srgb, var(--accent-primary) 20%, transparent)`
+        if (qtd <= 15) return `color-mix(in srgb, var(--accent-primary) 60%, transparent)`
+        if (qtd <= 30) return `color-mix(in srgb, var(--accent-primary) 90%, transparent)`
+        return 'var(--accent-primary)'
     }
 
     return (
@@ -108,9 +109,9 @@ const Heatmap = ({ data }) => {
                     ))}
                 </div>
                 <div className="d-flex justify-content-end align-items-center mt-3 gap-2">
-                    <span style={{ fontSize: 10, color: tokens.foggy, fontWeight: 700 }}>MENOS</span>
+                    <span style={{ fontSize: 10, color: 'var(--color-text-muted, #767676)', fontWeight: 700 }}>MENOS</span>
                     {[0, 5, 15, 30, 50].map(n => <div key={n} style={{ width: 10, height: 10, borderRadius: 2, background: getColor(n+1) }} />)}
-                    <span style={{ fontSize: 10, color: tokens.foggy, fontWeight: 700 }}>MAIS</span>
+                    <span style={{ fontSize: 10, color: 'var(--color-text-muted, #767676)', fontWeight: 700 }}>MAIS</span>
                 </div>
             </div>
 
@@ -173,7 +174,7 @@ const ModalSessoes = ({ matricula, onClose }) => {
                                     <CTableDataCell className="fw-bold">{new Date(s.criado_em).toLocaleDateString('pt-BR')}</CTableDataCell>
                                     <CTableDataCell>{s.materia_nome || 'Geral'}</CTableDataCell>
                                     <CTableDataCell className="text-center">
-                                        <CBadge style={{ background: s.percentual_acerto >= 70 ? tokens.babu : tokens.rausch }}>{s.percentual_acerto}%</CBadge>
+                                        <CBadge style={{ background: s.percentual_acerto >= 70 ? 'var(--accent-secondary)' : 'var(--accent-primary)' }}>{s.percentual_acerto}%</CBadge>
                                     </CTableDataCell>
                                     <CTableDataCell className="text-center text-muted small">{formatarTempo(s.tempo_seg)}</CTableDataCell>
                                 </CTableRow>
@@ -182,7 +183,7 @@ const ModalSessoes = ({ matricula, onClose }) => {
                     </CTable>
                 )}
                 <div className="d-flex justify-content-end mt-3">
-                    <CButton onClick={onClose} style={{ background: tokens.rausch, color: '#fff', borderRadius: 12, fontWeight: 800, border: 'none' }}>Fechar</CButton>
+                    <CButton onClick={onClose} style={{ background: 'var(--accent-primary)', color: '#fff', borderRadius: 12, fontWeight: 800, border: 'none' }}>Fechar</CButton>
                 </div>
             </CModalBody>
         </CModal>
@@ -190,6 +191,8 @@ const ModalSessoes = ({ matricula, onClose }) => {
 }
 
 const HistoricoAluno = () => {
+    const { currentPalette } = useTheme()
+    const tk = buildTokens(currentPalette)
     const [dados, setDados] = useState(null)
     const [loading, setLoading] = useState(true)
     const [modalSessoes, setModalSessoes] = useState(false)
@@ -264,7 +267,7 @@ const HistoricoAluno = () => {
 
     if (loading) return (
         <div className="d-flex justify-content-center align-items-center vh-100" style={{ background: 'var(--color-bg-primary)' }}>
-            <CSpinner style={{ color: tokens.rausch }} />
+            <CSpinner style={{ color: 'var(--accent-primary)' }} />
         </div>
     )
 
@@ -278,11 +281,11 @@ const HistoricoAluno = () => {
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
                     <div className="d-flex justify-content-between align-items-end">
                         <div>
-                            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Sua Jornada</div>
+                            <div style={{ color: 'var(--accent-primary)', fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Sua Jornada</div>
                             <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
                                 Meu Histórico 📊
                             </div>
-                            <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+                            <div style={{ fontSize: 14, color: 'var(--color-text-muted, #767676)', marginTop: 6 }}>
                                 Acompanhe seu desempenho e identifique onde você pode brilhar.
                             </div>
                         </div>
@@ -290,14 +293,14 @@ const HistoricoAluno = () => {
                             <CButton 
                                 onClick={() => setModalSessoes(true)}
                                 variant="ghost" className="fw-bold d-flex align-items-center gap-2"
-                                style={{ color: tokens.hof, background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: 12 }}
+                                style={{ color: 'var(--color-text-primary)', background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: 12 }}
                             >
                                 <Icon icon="solar:history-bold-duotone" width="20" />
                                 Sessões
                             </CButton>
                             <CButton 
                                 onClick={handleShare}
-                                style={{ background: tokens.rausch, color: '#fff', borderRadius: 12, fontWeight: 800, border: 'none' }}
+                                style={{ background: 'var(--accent-primary)', color: '#fff', borderRadius: 12, fontWeight: 800, border: 'none' }}
                                 className="px-4 d-flex align-items-center gap-2"
                             >
                                 <Icon icon="solar:share-bold-duotone" width="20" />
@@ -346,14 +349,14 @@ const HistoricoAluno = () => {
                                 onClick={limparFiltros}
                                 variant="ghost" 
                                 className="flex-grow-1 fw-bold" 
-                                style={{ color: tokens.foggy, borderRadius: 12 }}
+                                style={{ color: 'var(--color-text-muted, #767676)', borderRadius: 12 }}
                             >
                                 Limpar
                             </CButton>
                             <CButton 
                                 onClick={buscarDados}
                                 className="flex-grow-1 fw-bold" 
-                                style={{ background: tokens.hof, color: '#fff', borderRadius: 12, border: 'none' }}
+                                style={{ background: 'var(--color-text-primary)', color: 'var(--color-bg-primary)', borderRadius: 12, border: 'none' }}
                             >
                                 Filtrar
                             </CButton>
@@ -365,25 +368,25 @@ const HistoricoAluno = () => {
                 <CRow className="g-4 mb-4">
                     <CCol xs={6} md={3}>
                         <SCard padding="20px">
-                            <div style={{ color: tokens.rausch, marginBottom: 8 }}><Icon icon="solar:fire-bold-duotone" width="32" /></div>
+                            <div style={{ color: 'var(--accent-primary)', marginBottom: 8 }}><Icon icon="solar:fire-bold-duotone" width="32" /></div>
                             <div style={{ fontSize: 24, fontWeight: 800 }}>{constancia.dias} dias</div>
-                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>CONSTÂNCIA ATUAL</div>
+                            <div style={{ fontSize: 12, color: 'var(--color-text-muted, #767676)', fontWeight: 700 }}>CONSTÂNCIA ATUAL</div>
                             {constancia.tendencia === 'up' && <div className="text-success small fw-bold mt-1">📈 Subindo!</div>}
                         </SCard>
                     </CCol>
                     <CCol xs={6} md={3}>
                         <SCard padding="20px">
-                            <div style={{ color: tokens.babu, marginBottom: 8 }}><Icon icon="solar:medal-ribbon-star-bold-duotone" width="32" /></div>
+                            <div style={{ color: 'var(--accent-secondary)', marginBottom: 8 }}><Icon icon="solar:medal-ribbon-star-bold-duotone" width="32" /></div>
                             <div style={{ fontSize: 24, fontWeight: 800 }}>{dados?.resumo?.media_geral}%</div>
-                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>MÉDIA DE ACERTOS</div>
+                            <div style={{ fontSize: 12, color: 'var(--color-text-muted, #767676)', fontWeight: 700 }}>MÉDIA DE ACERTOS</div>
                             <div className="text-muted small mt-1">{medalha(dados?.resumo?.media_geral)} Nível Pro</div>
                         </SCard>
                     </CCol>
                     <CCol xs={6} md={3}>
                         <SCard padding="20px">
-                            <div style={{ color: tokens.arches, marginBottom: 8 }}><Icon icon="solar:checklist-bold-duotone" width="32" /></div>
+                            <div style={{ color: 'var(--accent-tertiary)', marginBottom: 8 }}><Icon icon="solar:checklist-bold-duotone" width="32" /></div>
                             <div style={{ fontSize: 24, fontWeight: 800 }}>{dados?.resumo?.total_questoes}</div>
-                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>QUESTÕES FEITAS</div>
+                            <div style={{ fontSize: 12, color: 'var(--color-text-muted, #767676)', fontWeight: 700 }}>QUESTÕES FEITAS</div>
                             <div className="text-muted small mt-1">Total no sistema</div>
                         </SCard>
                     </CCol>
@@ -391,7 +394,7 @@ const HistoricoAluno = () => {
                         <SCard padding="20px">
                             <div style={{ color: '#9d7ef7', marginBottom: 8 }}><Icon icon="solar:ranking-bold-duotone" width="32" /></div>
                             <div style={{ fontSize: 24, fontWeight: 800 }}>{ranking?.posicao || '—'}º</div>
-                            <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 700 }}>RANKING TURMA</div>
+                            <div style={{ fontSize: 12, color: 'var(--color-text-muted, #767676)', fontWeight: 700 }}>RANKING TURMA</div>
                             <div className="text-muted small mt-1">Top {100 - (ranking?.percentil || 0)}% da classe</div>
                         </SCard>
                     </CCol>
@@ -401,10 +404,10 @@ const HistoricoAluno = () => {
                 <SCard className="mb-4" padding="20px">
                     <div className="d-flex align-items-center justify-content-between mb-2">
                         <div className="d-flex align-items-center gap-2">
-                            <Icon icon="solar:chart-square-bold-duotone" width="24" style={{ color: tokens.babu }} />
+                            <Icon icon="solar:chart-square-bold-duotone" width="24" style={{ color: 'var(--accent-secondary)' }} />
                             <span style={{ fontWeight: 800, fontSize: 16 }}>Progresso no Edital</span>
                         </div>
-                        <span style={{ fontWeight: 800, color: tokens.babu }}>{progressoGeral?.percentual || 0}%</span>
+                        <span style={{ fontWeight: 800, color: 'var(--accent-secondary)' }}>{progressoGeral?.percentual || 0}%</span>
                     </div>
                     <CProgress value={progressoGeral?.percentual || 0} color="success" height={12} className="rounded-pill" />
                     <div className="mt-2 small text-muted fw-bold">
@@ -428,10 +431,10 @@ const HistoricoAluno = () => {
                                         hide={false} 
                                         axisLine={false} 
                                         tickLine={false} 
-                                        tick={{ fontSize: 10, fill: tokens.foggy, fontWeight: 700 }}
+                                        tick={{ fontSize: 10, fill: 'var(--color-text-muted, #767676)', fontWeight: 700 }}
                                         tickFormatter={(v) => new Date(v + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase()}
                                     />
-                                    <Bar dataKey="questoes" fill={tokens.rausch} radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="questoes" fill="var(--accent-primary)" radius={[4, 4, 0, 0]} />
                                     <Tooltip cursor={{ fill: 'transparent' }} content={({ active, payload }) => {
                                         if (active && payload && payload.length) {
                                             return <div className="p-2 rounded-3 bg-dark text-white small" style={{ fontSize: 10 }}>{payload[0].value} questões</div>
@@ -442,8 +445,8 @@ const HistoricoAluno = () => {
                             </ResponsiveContainer>
                             <div className="d-flex justify-content-center gap-3 mt-2">
                                 <div className="d-flex align-items-center gap-1">
-                                    <div style={{ width: 8, height: 8, borderRadius: 2, background: tokens.rausch }} />
-                                    <span style={{ fontSize: 10, fontWeight: 800, color: tokens.foggy }}>QUESTÕES RESOLVIDAS</span>
+                                    <div style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--accent-primary)' }} />
+                                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted, #767676)' }}>QUESTÕES RESOLVIDAS</span>
                                 </div>
                             </div>
                         </SCard>
@@ -469,7 +472,7 @@ const HistoricoAluno = () => {
                                     <CTableDataCell className="text-center">
                                         <div className="d-flex align-items-center justify-content-center gap-2">
                                             <div style={{ width: 40, height: 6, background: 'var(--color-bg-tertiary)', borderRadius: 10, overflow: 'hidden' }}>
-                                                <div style={{ width: `${a.media_acerto}%`, height: '100%', background: a.media_acerto >= 70 ? tokens.babu : tokens.rausch }} />
+                                                <div style={{ width: `${a.media_acerto}%`, height: '100%', background: a.media_acerto >= 70 ? 'var(--accent-secondary)' : 'var(--accent-primary)' }} />
                                             </div>
                                             <span className="fw-bold" style={{ fontSize: 11 }}>{a.media_acerto}%</span>
                                         </div>
@@ -477,8 +480,8 @@ const HistoricoAluno = () => {
                                     <CTableDataCell className="text-end px-0">
                                         <CBadge 
                                             style={{ 
-                                                background: a.media_acerto >= 70 ? `${tokens.babu}15` : `${tokens.rausch}15`,
-                                                color: a.media_acerto >= 70 ? tokens.babu : tokens.rausch,
+                                                background: a.media_acerto >= 70 ? `color-mix(in srgb, var(--accent-secondary) 15%, transparent)` : `color-mix(in srgb, var(--accent-primary) 15%, transparent)`,
+                                                color: a.media_acerto >= 70 ? 'var(--accent-secondary)' : 'var(--accent-primary)',
                                                 borderRadius: 8, padding: '6px 10px', fontSize: 10
                                             }}
                                         >

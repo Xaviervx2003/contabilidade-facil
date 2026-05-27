@@ -8,9 +8,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
 import api from '../../services/api'
-import { tokens, alpha, acertoColor } from '../../components/abnb/Tokens'
+import { tokens, alpha } from '../../components/abnb/Tokens'
 import { AirbnbProgress, SkeletonBlock } from '../../components/abnb/Cards'
 import useAuthSession from '../../hooks/useAuthSession'
+import { useTheme } from '../../context/themeContext'
+import { buildTokens } from '../../tokens'
 
 /* ── helpers ──────────────────────────────────────────────────── */
 const formatarTempo = (segundos) => {
@@ -49,9 +51,9 @@ const PaginacaoPremium = ({ paginaAtual, totalPaginas, onChange }) => {
 
   const btnAtivo = {
     ...btnBase,
-    background: tokens.rausch,
+    background: 'var(--accent-primary)',
     color: '#fff',
-    boxShadow: `0 4px 14px ${alpha(tokens.rausch, 0.45)}`,
+    boxShadow: `0 4px 14px color-mix(in srgb, var(--accent-primary) 45%, transparent)`,
     transform: 'scale(1.1)',
   }
 
@@ -65,7 +67,7 @@ const PaginacaoPremium = ({ paginaAtual, totalPaginas, onChange }) => {
   const btnNav = (disabled) => ({
     ...btnBase,
     background: disabled ? 'var(--color-bg-tertiary)' : 'var(--color-bg-elevated)',
-    color: disabled ? tokens.swiss : tokens.foggy,
+    color: disabled ? 'var(--color-border)' : 'var(--color-text-muted, #767676)',
     border: '1px solid var(--color-border)',
     cursor: disabled ? 'not-allowed' : 'pointer',
     opacity: disabled ? 0.5 : 1,
@@ -88,7 +90,7 @@ const PaginacaoPremium = ({ paginaAtual, totalPaginas, onChange }) => {
       {/* Páginas */}
       {getPages().map((page, idx) =>
         page === '...' ? (
-          <span key={`dots-${idx}`} style={{ color: tokens.foggy, fontSize: 14, padding: '0 4px', userSelect: 'none' }}>
+          <span key={`dots-${idx}`} style={{ color: 'var(--color-text-muted, #767676)', fontSize: 14, padding: '0 4px', userSelect: 'none' }}>
             ···
           </span>
         ) : (
@@ -125,11 +127,11 @@ const PaginacaoPremium = ({ paginaAtual, totalPaginas, onChange }) => {
 const AlunoCard = ({ aluno, index }) => {
   const [aberto, setAberto] = useState(false)
   const media = aluno.media_numero || 0
-  const color = acertoColor(media)
+  const color = media >= 70 ? 'var(--accent-secondary)' : media >= 40 ? 'var(--accent-tertiary)' : 'var(--accent-primary)'
   const totalErros = Object.values(aluno.erros_por_materia || {}).reduce((s, d) => s + (d.erros || 0), 0)
 
   const statusLabel = media >= 70 ? 'Aprovado' : media >= 40 ? 'Atenção' : 'Crítico'
-  const statusColor = media >= 70 ? tokens.babu : media >= 40 ? tokens.arches : tokens.rausch
+  const statusColor = color
 
   return (
     <motion.div
@@ -144,10 +146,10 @@ const AlunoCard = ({ aluno, index }) => {
         overflow: 'hidden',
         transition: 'box-shadow 0.2s',
       }}
-      whileHover={{ boxShadow: `0 4px 20px ${alpha(tokens.rausch, 0.08)}` }}
+      whileHover={{ boxShadow: `0 4px 20px color-mix(in srgb, var(--accent-primary) 8%, transparent)` }}
     >
       {/* Linha de destaque de cor superior */}
-      <div style={{ height: 3, background: `linear-gradient(90deg, ${statusColor}, ${alpha(statusColor, 0.3)})` }} />
+      <div style={{ height: 3, background: `linear-gradient(90deg, ${statusColor}, color-mix(in srgb, ${statusColor} 30%, transparent))` }} />
 
       {/* Cabeçalho do card (clicável) */}
       <div
@@ -157,7 +159,7 @@ const AlunoCard = ({ aluno, index }) => {
         {/* Avatar */}
         <div style={{
           width: 46, height: 46, borderRadius: 14,
-          background: alpha(color, 0.12),
+          background: `color-mix(in srgb, ${color} 12%, transparent)`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color, flexShrink: 0,
         }}>
@@ -169,7 +171,7 @@ const AlunoCard = ({ aluno, index }) => {
           <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {aluno.nome}
           </div>
-          <div style={{ fontSize: 12, color: tokens.foggy, marginTop: 2, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-muted, #767676)', marginTop: 2, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <span>Mat. {aluno.matricula}</span>
             <span>·</span>
             <span>{aluno.sessoes} sessões</span>
@@ -189,8 +191,8 @@ const AlunoCard = ({ aluno, index }) => {
           {/* Badge de status */}
           <div style={{
             padding: '4px 12px', borderRadius: 99, fontSize: 11, fontWeight: 700,
-            background: alpha(statusColor, 0.1), color: statusColor,
-            border: `1px solid ${alpha(statusColor, 0.2)}`,
+            background: `color-mix(in srgb, ${statusColor} 10%, transparent)`, color: statusColor,
+            border: `1px solid color-mix(in srgb, ${statusColor} 20%, transparent)`,
           }}>
             {statusLabel}
           </div>
@@ -201,7 +203,7 @@ const AlunoCard = ({ aluno, index }) => {
               {media.toFixed(1)}%
             </div>
             {totalErros > 0 && (
-              <div style={{ fontSize: 11, color: tokens.rausch, marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: 'var(--accent-primary)', marginTop: 2 }}>
                 {totalErros} erro{totalErros !== 1 ? 's' : ''}
               </div>
             )}
@@ -209,7 +211,7 @@ const AlunoCard = ({ aluno, index }) => {
 
           {/* Chevron */}
           <motion.div animate={{ rotate: aberto ? 180 : 0 }} transition={{ duration: 0.2 }}>
-            <Icon icon="solar:alt-arrow-down-linear" width="18" style={{ color: tokens.foggy }} />
+            <Icon icon="solar:alt-arrow-down-linear" width="18" style={{ color: 'var(--color-text-muted, #767676)' }} />
           </motion.div>
         </div>
       </div>
@@ -231,8 +233,8 @@ const AlunoCard = ({ aluno, index }) => {
                 {[
                   { icon: 'solar:target-bold-duotone', label: 'Precisão', value: `${media.toFixed(1)}%`, color },
                   { icon: 'solar:folder-check-bold-duotone', label: 'Sessões', value: aluno.sessoes, color: '#6366f1' },
-                  { icon: 'solar:notes-bold-duotone', label: 'Questões', value: aluno.questoes, color: tokens.babu },
-                  { icon: 'solar:clock-circle-bold-duotone', label: 'Tempo Médio', value: formatarTempo(aluno.tempo_medio_segundos), color: tokens.arches },
+                  { icon: 'solar:notes-bold-duotone', label: 'Questões', value: aluno.questoes, color: 'var(--accent-secondary)' },
+                  { icon: 'solar:clock-circle-bold-duotone', label: 'Tempo Médio', value: formatarTempo(aluno.tempo_medio_segundos), color: 'var(--accent-tertiary)' },
                 ].map((s, i) => (
                   <div key={i} style={{
                     background: 'var(--color-bg-tertiary)',
@@ -241,7 +243,7 @@ const AlunoCard = ({ aluno, index }) => {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Icon icon={s.icon} width="16" style={{ color: s.color }} />
-                      <span style={{ fontSize: 10, fontWeight: 700, color: tokens.foggy, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-muted, #767676)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
                         {s.label}
                       </span>
                     </div>
@@ -256,11 +258,11 @@ const AlunoCard = ({ aluno, index }) => {
               {Object.keys(aluno.erros_por_materia || {}).length > 0 ? (
                 <div>
                   <div style={{
-                    fontSize: 11, fontWeight: 700, color: tokens.foggy,
+                    fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted, #767676)',
                     textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 14,
                     display: 'flex', alignItems: 'center', gap: 6,
                   }}>
-                    <Icon icon="solar:danger-bold-duotone" width="14" style={{ color: tokens.rausch }} />
+                    <Icon icon="solar:danger-bold-duotone" width="14" style={{ color: 'var(--accent-primary)' }} />
                     Gargalos por Matéria
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -268,14 +270,15 @@ const AlunoCard = ({ aluno, index }) => {
                       .sort(([, a], [, b]) => (b.erros / Math.max(b.total, 1)) - (a.erros / Math.max(a.total, 1)))
                       .map(([mat, d], i) => {
                         const pctErro = d.total > 0 ? (d.erros / d.total) * 100 : 0
-                        const c = d.erros > 0 ? acertoColor(100 - pctErro) : tokens.babu
+                        const pctAcertoLocal = 100 - pctErro
+                        const c = d.erros > 0 ? (pctAcertoLocal >= 70 ? 'var(--accent-secondary)' : pctAcertoLocal >= 40 ? 'var(--accent-tertiary)' : 'var(--accent-primary)') : 'var(--accent-secondary)'
                         return (
                           <div key={i}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                               <span style={{ fontSize: 13, color: 'var(--color-text-primary)', fontWeight: 500 }}>{mat}</span>
                               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                                 {d.erros > 0 && (
-                                  <span style={{ fontSize: 11, color: tokens.rausch, fontWeight: 600 }}>
+                                  <span style={{ fontSize: 11, color: 'var(--accent-primary)', fontWeight: 600 }}>
                                     {d.erros} erro{d.erros !== 1 ? 's' : ''}
                                   </span>
                                 )}
@@ -286,7 +289,7 @@ const AlunoCard = ({ aluno, index }) => {
                             </div>
                             <AirbnbProgress
                               value={pctErro}
-                              color={d.erros > 0 ? tokens.rausch : tokens.babu}
+                              color={d.erros > 0 ? 'var(--accent-primary)' : 'var(--accent-secondary)'}
                             />
                           </div>
                         )
@@ -295,8 +298,8 @@ const AlunoCard = ({ aluno, index }) => {
                   </div>
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', color: tokens.foggy, fontSize: 13, padding: '16px 0' }}>
-                  <Icon icon="solar:check-circle-bold-duotone" width="24" style={{ color: tokens.babu, marginBottom: 8, display: 'block', margin: '0 auto 8px' }} />
+                <div style={{ textAlign: 'center', color: 'var(--color-text-muted, #767676)', fontSize: 13, padding: '16px 0' }}>
+                  <Icon icon="solar:check-circle-bold-duotone" width="24" style={{ color: 'var(--accent-secondary)', marginBottom: 8, display: 'block', margin: '0 auto 8px' }} />
                   Nenhum histórico detalhado de erros disponível.
                 </div>
               )}
@@ -310,6 +313,8 @@ const AlunoCard = ({ aluno, index }) => {
 
 /* ── Componente Principal ─────────────────────────────────────── */
 const Alunos = () => {
+  const { currentPalette } = useTheme()
+  const tk = buildTokens(currentPalette)
   const { userId } = useAuthSession()
   const [listaAlunos, setListaAlunos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -363,10 +368,10 @@ const Alunos = () => {
   }
 
   const FILTROS = [
-    { key: 'all', label: 'Todos', icon: 'solar:users-group-rounded-bold-duotone', color: tokens.foggy },
-    { key: 'alto', label: 'Alto Risco', icon: 'solar:danger-bold-duotone', color: tokens.rausch },
-    { key: 'medio', label: 'Atenção', icon: 'solar:fire-bold-duotone', color: tokens.arches },
-    { key: 'baixo', label: 'Aprovados', icon: 'solar:check-circle-bold-duotone', color: tokens.babu },
+    { key: 'all', label: 'Todos', icon: 'solar:users-group-rounded-bold-duotone', color: tk.foggy },
+    { key: 'alto', label: 'Alto Risco', icon: 'solar:danger-bold-duotone', color: tk.rausch },
+    { key: 'medio', label: 'Atenção', icon: 'solar:fire-bold-duotone', color: tk.arches },
+    { key: 'baixo', label: 'Aprovados', icon: 'solar:check-circle-bold-duotone', color: tk.babu },
   ]
 
   return (
@@ -375,13 +380,13 @@ const Alunos = () => {
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
-          <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
+          <div style={{ color: tk.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
             Painel Operacional
           </div>
           <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>
             Desempenho dos Alunos
           </div>
-          <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+          <div style={{ fontSize: 14, color: tk.foggy, marginTop: 6 }}>
             Diagnóstico individual de aproveitamento, sessões e gargalos de aprendizado.
           </div>
         </motion.div>
@@ -398,7 +403,7 @@ const Alunos = () => {
             borderRadius: 16, padding: '14px 18px',
           }}
         >
-          <div style={{ fontSize: 11, fontWeight: 700, color: tokens.foggy, textTransform: 'uppercase', letterSpacing: '0.6px', width: '100%', marginBottom: 4 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: tk.foggy, textTransform: 'uppercase', letterSpacing: '0.6px', width: '100%', marginBottom: 4 }}>
             Filtrar por Risco na Página Atual
           </div>
           {FILTROS.map(f => (
@@ -411,17 +416,17 @@ const Alunos = () => {
                 display: 'flex', alignItems: 'center', gap: 7,
                 padding: '8px 16px', borderRadius: 99, cursor: 'pointer',
                 fontWeight: 700, fontSize: 13, transition: 'all 0.15s',
-                border: filtroRisco === f.key ? `1.5px solid ${alpha(f.color, 0.5)}` : '1.5px solid var(--color-border)',
-                background: filtroRisco === f.key ? alpha(f.color, 0.08) : 'transparent',
-                color: filtroRisco === f.key ? f.color : tokens.foggy,
+                border: filtroRisco === f.key ? `1.5px solid color-mix(in srgb, ${f.color} 50%, transparent)` : '1.5px solid var(--color-border)',
+                background: filtroRisco === f.key ? `color-mix(in srgb, ${f.color} 8%, transparent)` : 'transparent',
+                color: filtroRisco === f.key ? f.color : tk.foggy,
               }}
             >
               <Icon icon={f.icon} width="15" />
               {f.label}
               <span style={{
                 marginLeft: 2, fontSize: 11, fontWeight: 800,
-                background: filtroRisco === f.key ? alpha(f.color, 0.15) : 'var(--color-bg-tertiary)',
-                color: filtroRisco === f.key ? f.color : tokens.foggy,
+                background: filtroRisco === f.key ? `color-mix(in srgb, ${f.color} 15%, transparent)` : 'var(--color-bg-tertiary)',
+                color: filtroRisco === f.key ? f.color : tk.foggy,
                 padding: '1px 7px', borderRadius: 99,
               }}>
                 {contagem[f.key]}
@@ -457,11 +462,11 @@ const Alunos = () => {
               borderRadius: 20,
             }}
           >
-            <Icon icon="solar:users-group-rounded-bold-duotone" width="48" style={{ color: tokens.swiss, marginBottom: 16 }} />
+            <Icon icon="solar:users-group-rounded-bold-duotone" width="48" style={{ color: tk.swiss, marginBottom: 16 }} />
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 6 }}>
               Nenhum aluno encontrado
             </div>
-            <div style={{ fontSize: 13, color: tokens.foggy }}>
+            <div style={{ fontSize: 13, color: tk.foggy }}>
               {filtroRisco === 'all'
                 ? 'Nenhum estudante registrou sessões de teste no momento.'
                 : `Nenhum aluno no filtro "${FILTROS.find(f => f.key === filtroRisco)?.label}" para esta página.`}
@@ -470,8 +475,8 @@ const Alunos = () => {
         ) : (
           <div>
             {/* Info de contagem */}
-            <div style={{ fontSize: 12, color: tokens.foggy, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Icon icon="solar:filter-bold-duotone" width="14" style={{ color: tokens.rausch }} />
+            <div style={{ fontSize: 12, color: tk.foggy, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon icon="solar:filter-bold-duotone" width="14" style={{ color: tk.rausch }} />
               Exibindo <strong style={{ color: 'var(--color-text-primary)' }}>{alunosFiltrados.length}</strong> aluno{alunosFiltrados.length !== 1 ? 's' : ''}
               {filtroRisco !== 'all' && ` com filtro "${FILTROS.find(f => f.key === filtroRisco)?.label}"`}
             </div>

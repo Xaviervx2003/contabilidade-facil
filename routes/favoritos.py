@@ -3,9 +3,10 @@ routes/favoritos.py — Gestão de questões favoritas do aluno.
 Permite marcar/desmarcar questões para revisão futura.
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel
 from database import get_conexao
+from utils.jwt_auth import verificar_proprio_ou_admin, usuario_autenticado
 
 router = APIRouter(prefix="/api", tags=["Favoritos"])
 
@@ -16,7 +17,7 @@ class FavoritoRequest(BaseModel):
 
 
 @router.get("/favoritos/{matricula}")
-def listar_favoritos(matricula: str):
+def listar_favoritos(matricula: str, token: dict = Depends(verificar_proprio_ou_admin)):
     """Retorna todas as questões favoritadas pelo aluno."""
     with get_conexao() as conn:
         cursor = conn.cursor()
@@ -28,7 +29,9 @@ def listar_favoritos(matricula: str):
 
 
 @router.post("/favoritos/adicionar")
-def adicionar_favorito(dados: FavoritoRequest):
+def adicionar_favorito(dados: FavoritoRequest, token: dict = Depends(usuario_autenticado)):
+    if dados.matricula != token.get("sub") and token.get("papel") != "admin":
+        raise HTTPException(status_code=403, detail="Não autorizado a favoritar para este usuário")
     """Adiciona uma questão aos favoritos do aluno."""
     with get_conexao() as conn:
         cursor = conn.cursor()
@@ -47,7 +50,7 @@ def adicionar_favorito(dados: FavoritoRequest):
 
 
 @router.delete("/favoritos/remover/{questao_id}")
-def remover_favorito(questao_id: int, matricula: str = Query(...)):
+def remover_favorito(questao_id: int, matricula: str = Query(...), token: dict = Depends(verificar_proprio_ou_admin)):
     """Remove uma questão dos favoritos do aluno."""
     with get_conexao() as conn:
         cursor = conn.cursor()

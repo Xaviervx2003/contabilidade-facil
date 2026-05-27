@@ -18,8 +18,11 @@ router = APIRouter(prefix="/api/aluno", tags=["Dashboard Aluno"])
 logger = logging.getLogger(__name__)
 repo = AnalyticsRepository()
 
+from utils.jwt_auth import verificar_proprio_ou_admin
+from fastapi import Depends
+
 @router.get("/dashboard/{matricula}")
-def dashboard_aluno(matricula: str):
+def dashboard_aluno(matricula: str, token: dict = Depends(verificar_proprio_ou_admin)):
     """
     Retorna todos os dados necessários para a home do aluno em uma única chamada.
     """

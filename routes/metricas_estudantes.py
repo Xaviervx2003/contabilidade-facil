@@ -122,10 +122,14 @@ def obter_desempenho_estudantes(
         logger.error(f"Erro métricas: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Erro interno ao processar métricas.")
 
+from utils.jwt_auth import verificar_proprio_ou_admin
+from fastapi import Depends
+
 @router.get("/desempenho/{matricula}", response_model=MetricasEstudanteResponse)
 def obter_metricas_individual_route(
     matricula: str,
-    usuario_id: Optional[int] = Query(None)
+    usuario_id: Optional[int] = Query(None),
+    token: dict = Depends(verificar_proprio_ou_admin)
 ):
     try:
         row = get_metricas_individual(matricula)

@@ -306,6 +306,7 @@ def get_conquistas(matricula: str, token: dict = Depends(verificar_proprio_ou_ad
 def get_leaderboard(
     tipo:   str = Query("streak", description="streak ou questoes"),
     limite: int = Query(10, ge=1, le=100, description="Limite de resultados"),
+    token: dict = Depends(usuario_autenticado),
 ):
     """Retorna ranking dos alunos por streak ou questões."""
     try:
@@ -523,9 +524,12 @@ def listar_missoes_fallback(token: dict = Depends(usuario_autenticado)):
 
 
 @router.post("/api/missoes/concluir")
-def concluir_missao(payload: dict):
+def concluir_missao(payload: dict, token: dict = Depends(usuario_autenticado)):
     matricula = payload.get("matricula")
     missao_id = payload.get("missao_id")
+    
+    if not matricula or (matricula != token.get("sub") and token.get("papel") != "admin"):
+        raise HTTPException(status_code=403, detail="Não autorizado a concluir missões para este usuário")
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()

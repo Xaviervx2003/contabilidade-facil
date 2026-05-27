@@ -4,7 +4,7 @@ from psycopg.rows import dict_row
 
 from database import get_conexao
 from models import TrilhaCreate, TrilhaUpdate, ModuloCreate, ModuloUpdate, ProgressoModulo, DuvidaTrilhaCreate, RespostaDuvida
-from utils.jwt_auth import usuario_autenticado
+from utils.jwt_auth import usuario_autenticado, verificar_proprio_ou_admin
 
 router = APIRouter(prefix="/api/trilhas", tags=["Trilhas de Aprendizagem"])
 
@@ -199,7 +199,8 @@ def deletar_modulo(modulo_id: int):
 def listar_trilhas_aluno(
     matricula: str,
     page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100)
+    limit: int = Query(20, ge=1, le=100),
+    token: dict = Depends(verificar_proprio_ou_admin)
 ):
     try:
         with get_conexao() as conn:
@@ -269,7 +270,10 @@ def listar_trilhas_aluno(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/progresso/{modulo_id}")
-def marcar_modulo_concluido(modulo_id: int, progresso: ProgressoModulo):
+def marcar_modulo_concluido(modulo_id: int, progresso: ProgressoModulo, token: dict = Depends(usuario_autenticado)):
+    if token.get("papel") == "aluno" and token.get("sub") != progresso.matricula:
+        raise HTTPException(status_code=403, detail="Acesso negado. Você só pode marcar o seu próprio progresso.")
+
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
@@ -382,7 +386,10 @@ def listar_duvidas_modulo(modulo_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/duvidas")
-def criar_duvida(duvida: DuvidaTrilhaCreate):
+def criar_duvida(duvida: DuvidaTrilhaCreate, token: dict = Depends(usuario_autenticado)):
+    if token.get("papel") == "aluno" and token.get("sub") != duvida.matricula:
+        raise HTTPException(status_code=403, detail="Acesso negado. Você só pode enviar dúvidas no seu próprio nome.")
+
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()
@@ -476,7 +483,7 @@ def responder_duvida(duvida_id: int, resp: RespostaDuvida):
 # ─── ENDPOINTS DE NOTIFICAÇÕES ────────────────────────────────────
 
 @router.get("/notificacoes/{matricula}")
-def listar_notificacoes(matricula: str):
+def listar_notificacoes(matricula: str, token: dict = Depends(verificar_proprio_ou_admin)):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor(row_factory=dict_row)

@@ -2,15 +2,16 @@
 routes/progresso.py – Progresso individual do aluno no edital de questões.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import Optional
 from database import get_conexao
+from utils.jwt_auth import verificar_proprio_ou_admin
 
 router = APIRouter(prefix="/api", tags=["Progresso"])
 
 
 @router.get("/aluno/progresso/{matricula}")
-def progresso_aluno(matricula: str, materia_id: Optional[int] = None):
+def progresso_aluno(matricula: str, materia_id: Optional[int] = None, token: dict = Depends(verificar_proprio_ou_admin)):
     try:
         with get_conexao() as conn:
             cursor = conn.cursor()

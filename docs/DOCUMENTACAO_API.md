@@ -10,13 +10,16 @@ Este documento contém os detalhes técnicos para integração com o backend do 
 
 ---
 
-## 🔑 Autenticação
+## 🔑 Autenticação e Segurança (Prevenção de IDOR)
 
-A maioria das rotas do sistema utiliza autenticação baseada em sessão (salva no frontend).
+A maioria das rotas do sistema utiliza autenticação baseada em sessão (salva no frontend) e é estritamente validada no backend por middlewares que previnem o vazamento de dados (IDOR).
 
 - **Login**: `POST /api/login`
   - Payload: `{ "matricula": "XXX", "senha": "YYY" }`
-  - Retorno: `{ "id": 1, "nome": "Nome", "papel": "admin" }`
+  - Retorno: `{ "id": 1, "nome": "Nome", "papel": "admin", "token": "JWT..." }`
+
+> [!CAUTION]
+> **Atenção:** Qualquer rota que manipule dados de um aluno (Progresso, Favoritos, Histórico, Gamificação) DEVE utilizar o middleware `Depends(verificar_proprio_ou_admin)` ou `Depends(usuario_autenticado)` da biblioteca `utils.jwt_auth`. O backend irá confrontar a matrícula presente no token JWT (campo `sub`) com a matrícula solicitada na URL/Body. Se elas não baterem e o usuário não for um admin, a requisição retornará `403 Forbidden`.
 
 ---
 

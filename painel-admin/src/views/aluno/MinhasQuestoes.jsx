@@ -29,83 +29,45 @@ import { getAlunoMatricula } from '../../utils/auth'
 import { tokens } from '../../tokens'
 import useAuthSession from '../../hooks/useAuthSession'
 
-// ── Skeleton Loader ─────────────────────────────────────────────
-import { Skeleton, FeedbackSkeleton, StatCard, FAQItem } from './components/MinhasQuestoesComponents';
-import { useMinhasQuestoesLogic } from './hooks/useMinhasQuestoesLogic';
+import QuestoesFiltro from './components/QuestoesFiltro';
+import QuestoesLista from './components/QuestoesLista';
+import QuestoesFeedbacks from './components/QuestoesFeedbacks';
+
 const MinhasQuestoes = () => {
-  const {
-    matricula,
-    dados,
-    setDados,
-    loading,
-    setLoading,
-    pagina,
-    setPagina,
-    filtroAcerto,
-    setFiltroAcerto,
-    filtroMateria,
-    setFiltroMateria,
-    materias,
-    setMaterias,
-    porPagina,
-    metrics,
-    loadingMetrics,
-    activeDropdown,
-    setActiveDropdown,
-    buscaMateria,
-    setBuscaMateria,
-    dropdownStatusRef,
-    dropdownMateriaRef,
-    selectedQuestaoId,
-    setSelectedQuestaoId,
-    questaoDetail,
-    setQuestaoDetail,
-    loadingDetail,
-    setLoadingDetail,
-    modalOpen,
-    setModalOpen,
-    errorDetail,
-    setErrorDetail,
-    duvidaModalOpen,
-    setDuvidaModalOpen,
-    textoDuvida,
-    setTextoDuvida,
-    marcadaConfusa,
-    setMarcadaConfusa,
-    submittingDuvida,
-    setSubmittingDuvida,
-    duvidaMessage,
-    setDuvidaMessage,
-    activeTab,
-    setActiveTab,
-    queryClient,
-    shouldReduceMotion,
-    searchFeedbacks,
-    setSearchFeedbacks,
-    expandedId,
-    setExpandedId,
-    stats,
-    filteredFeedbacks,
-    formModalOpen,
-    setFormModalOpen,
-    selectedQuestaoParaDuvida,
-    setSelectedQuestaoParaDuvida,
-    questoesResolvidas,
-    abrirNovaPergunta,
-    handleSubmitNovaPergunta,
-    debugLogs,
-    setDebugLogs,
-    showDebugPanel,
-    setShowDebugPanel,
-    addDebugLog,
-    closeTimerRef,
-    handleSubmitDuvida,
-        carregarQuestoes,
-    abrirRevisao,
-    obterRotuloStatus,
-    obterRotuloMateria,
-    materiasFiltradas
-  } = useMinhasQuestoesLogic();
+    const logicProps = useMinhasQuestoesLogic();
+    const {
+        loadingMetrics,
+        metrics,
+        dados,
+        activeTab,
+        setActiveTab,
+        selectedQuestaoId,
+        questaoDetail,
+        loadingDetail,
+        errorDetail,
+        modalOpen,
+        setModalOpen,
+        duvidaModalOpen,
+        setDuvidaModalOpen,
+        textoDuvida,
+        setTextoDuvida,
+        marcadaConfusa,
+        setMarcadaConfusa,
+        submittingDuvida,
+        duvidaMessage,
+        setDuvidaMessage,
+        formModalOpen,
+        setFormModalOpen,
+        selectedQuestaoParaDuvida,
+        setSelectedQuestaoParaDuvida,
+        questoesResolvidas,
+        handleSubmitNovaPergunta,
+        handleSubmitDuvida,
+        debugLogs,
+        setDebugLogs,
+        showDebugPanel,
+        setShowDebugPanel
+    } = logicProps;
     return (
         <div className="fade-in pb-5" style={{ background: 'var(--color-bg-primary)', minHeight: '100vh', fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
             <CContainer fluid className="px-3 px-md-5" style={{ paddingTop: 32 }}>
@@ -162,577 +124,111 @@ const MinhasQuestoes = () => {
 {activeTab === 'historico' && (
                         <>
                             {/* CARDS DE METRICAS (KPIs) */}
-                    <CRow className="g-4 mb-4">
-                        <CCol xs={12} sm={4}>
-                            <motion.div
-                                initial={{ opacity: 0, y: 15 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.05 }}
-                                style={{
-                                    background: tokens.bg,
-                                    border: `1px solid ${tokens.border}`,
-                                    borderRadius: 20,
-                                    padding: 20,
-                                    boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 16
-                                }}
-                            >
-                                <div style={{
-                                    width: 48, height: 48, borderRadius: 14,
-                                    background: `${tokens.rausch}15`, color: tokens.rausch,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                }}>
-                                    <Icon icon="solar:pen-bold-duotone" width="24" />
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase' }}>QUESTÕES RESOLVIDAS</div>
-                                    <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--color-text-primary)', marginTop: 2 }}>
-                                        {loadingMetrics ? <CSpinner size="sm" color="danger" /> : (metrics?.questoes ?? total)}
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </CCol>
-
-                        <CCol xs={12} sm={4}>
-                            <motion.div
-                                initial={{ opacity: 0, y: 15 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.1 }}
-                                style={{
-                                    background: tokens.bg,
-                                    border: `1px solid ${tokens.border}`,
-                                    borderRadius: 20,
-                                    padding: 20,
-                                    boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 16
-                                }}
-                            >
-                                <div style={{
-                                    width: 48, height: 48, borderRadius: 14,
-                                    background: `${tokens.babu}15`, color: tokens.babu,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                }}>
-                                    <Icon icon="solar:target-bold-duotone" width="24" />
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase' }}>TAXA DE ACERTO MÉDIA</div>
-                                    <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--color-text-primary)', marginTop: 2 }}>
-                                        {loadingMetrics ? <CSpinner size="sm" color="success" /> : `${metrics?.media_numero ?? 0}%`}
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </CCol>
-
-                        <CCol xs={12} sm={4}>
-                            <motion.div
-                                initial={{ opacity: 0, y: 15 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.15 }}
-                                style={{
-                                    background: tokens.bg,
-                                    border: `1px solid ${tokens.border}`,
-                                    borderRadius: 20,
-                                    padding: 20,
-                                    boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 16
-                                }}
-                            >
-                                <div style={{
-                                    width: 48, height: 48, borderRadius: 14,
-                                    background: `${tokens.arches}15`, color: tokens.arches,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                }}>
-                                    <Icon icon="solar:playback-speed-bold-duotone" width="24" />
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase' }}>SESSÕES DE ESTUDO</div>
-                                    <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--color-text-primary)', marginTop: 2 }}>
-                                        {loadingMetrics ? <CSpinner size="sm" color="warning" /> : (metrics?.sessoes ?? 0)}
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </CCol>
-                    </CRow>
-
-                    {/* FILTROS EXCLUSIVOS AIRBNB STYLE */}
-                    <div style={{ position: 'relative', zIndex: 10 }}>
-                        <div className="d-flex flex-column flex-md-row gap-3 align-items-center mb-4">
-                            
-                            {/* Segmento 1: Status de Acertos */}
-                            <div 
-                                ref={dropdownStatusRef}
-                                style={{ flex: 1, width: '100%', position: 'relative' }}
-                            >
-                                <div 
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        setActiveDropdown(activeDropdown === 'status' ? null : 'status')
-                                    }}
-                                    style={{
-                                        background: tokens.bg,
-                                        border: `1px solid ${activeDropdown === 'status' ? tokens.rausch : tokens.border}`,
-                                        borderRadius: 20,
-                                        padding: '12px 20px',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        transition: 'all 0.2s',
-                                        boxShadow: '0 8px 24px rgba(0,0,0,0.02)'
-                                    }}
-                                >
-                                    <div>
-                                        <div style={{ fontSize: 9, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status da Resolução</div>
-                                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginTop: 2 }}>
-                                            {obterRotuloStatus()}
+                            <CRow className="g-4 mb-4">
+                                <CCol xs={12} sm={4}>
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 15 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.05 }}
+                                        style={{
+                                            background: tokens.bg,
+                                            border: `1px solid ${tokens.border}`,
+                                            borderRadius: 20,
+                                            padding: 20,
+                                            boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 16
+                                        }}
+                                    >
+                                        <div style={{
+                                            width: 48, height: 48, borderRadius: 14,
+                                            background: `${tokens.rausch}15`, color: tokens.rausch,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}>
+                                            <Icon icon="solar:pen-bold-duotone" width="24" />
                                         </div>
-                                    </div>
-                                    <Icon 
-                                        icon="solar:alt-arrow-down-bold" 
-                                        style={{ color: tokens.foggy, transition: 'transform 0.2s', transform: activeDropdown === 'status' ? 'rotate(180deg)' : 'none' }} 
-                                        width="14"
-                                    />
-                                </div>
-
-                                <AnimatePresence>
-                                    {activeDropdown === 'status' && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            transition={{ duration: 0.15 }}
-                                            style={{
-                                                position: 'absolute',
-                                                top: '108%',
-                                                left: 0,
-                                                width: '100%',
-                                                background: tokens.bg,
-                                                border: `1px solid ${tokens.border}`,
-                                                borderRadius: 18,
-                                                boxShadow: '0 12px 36px rgba(0,0,0,0.1)',
-                                                padding: 10,
-                                                zIndex: 99,
-                                            }}
-                                        >
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                                {/* Option 1: Todas */}
-                                                <div 
-                                                    onClick={() => { setFiltroAcerto(''); setPagina(1); setActiveDropdown(null) }}
-                                                    style={{
-                                                        padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
-                                                        display: 'flex', alignItems: 'center', gap: 10,
-                                                        background: filtroAcerto === '' ? 'var(--color-bg-tertiary)' : 'transparent',
-                                                        transition: 'background 0.2s'
-                                                    }}
-                                                >
-                                                    <Icon icon="solar:checklist-bold-duotone" style={{ color: tokens.foggy }} width="18" />
-                                                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Todas as resoluções</span>
-                                                </div>
-
-                                                {/* Option 2: Acertos */}
-                                                <div 
-                                                    onClick={() => { setFiltroAcerto('acerto'); setPagina(1); setActiveDropdown(null) }}
-                                                    style={{
-                                                        padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
-                                                        display: 'flex', alignItems: 'center', gap: 10,
-                                                        background: filtroAcerto === 'acerto' ? 'var(--color-bg-tertiary)' : 'transparent',
-                                                        transition: 'background 0.2s'
-                                                    }}
-                                                >
-                                                    <Icon icon="solar:check-circle-bold-duotone" style={{ color: tokens.babu }} width="18" />
-                                                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Apenas Acertos</span>
-                                                </div>
-
-                                                {/* Option 3: Erros */}
-                                                <div 
-                                                    onClick={() => { setFiltroAcerto('erro'); setPagina(1); setActiveDropdown(null) }}
-                                                    style={{
-                                                        padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
-                                                        display: 'flex', alignItems: 'center', gap: 10,
-                                                        background: filtroAcerto === 'erro' ? 'var(--color-bg-tertiary)' : 'transparent',
-                                                        transition: 'background 0.2s'
-                                                    }}
-                                                >
-                                                    <Icon icon="solar:bill-cross-bold-duotone" style={{ color: tokens.rausch }} width="18" />
-                                                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Apenas Erros</span>
-                                                </div>
+                                        <div>
+                                            <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase' }}>QUESTÕES RESOLVIDAS</div>
+                                            <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--color-text-primary)', marginTop: 2 }}>
+                                                {loadingMetrics ? <CSpinner size="sm" color="danger" /> : (metrics?.questoes ?? dados?.total ?? 0)}
                                             </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-
-                            {/* Segmento 2: Matéria Relacionada */}
-                            <div 
-                                ref={dropdownMateriaRef}
-                                style={{ flex: 1, width: '100%', position: 'relative' }}
-                            >
-                                <div 
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        setActiveDropdown(activeDropdown === 'materia' ? null : 'materia')
-                                    }}
-                                    style={{
-                                        background: tokens.bg,
-                                        border: `1px solid ${activeDropdown === 'materia' ? tokens.rausch : tokens.border}`,
-                                        borderRadius: 20,
-                                        padding: '12px 20px',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        transition: 'all 0.2s',
-                                        boxShadow: '0 8px 24px rgba(0,0,0,0.02)'
-                                    }}
-                                >
-                                    <div>
-                                        <div style={{ fontSize: 9, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Matéria Relacionada</div>
-                                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginTop: 2, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: 280 }}>
-                                            {obterRotuloMateria()}
                                         </div>
-                                    </div>
-                                    <Icon 
-                                        icon="solar:alt-arrow-down-bold" 
-                                        style={{ color: tokens.foggy, transition: 'transform 0.2s', transform: activeDropdown === 'materia' ? 'rotate(180deg)' : 'none' }} 
-                                        width="14"
-                                    />
-                                </div>
+                                    </motion.div>
+                                </CCol>
 
-                                <AnimatePresence>
-                                    {activeDropdown === 'materia' && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            transition={{ duration: 0.15 }}
-                                            style={{
-                                                position: 'absolute',
-                                                top: '108%',
-                                                right: 0,
-                                                width: '100%',
-                                                minWidth: 280,
-                                                background: tokens.bg,
-                                                border: `1px solid ${tokens.border}`,
-                                                borderRadius: 18,
-                                                boxShadow: '0 12px 36px rgba(0,0,0,0.1)',
-                                                padding: 14,
-                                                zIndex: 99,
-                                            }}
-                                        >
-                                            {/* Busca Interna estilo Airbnb */}
-                                            <div style={{ position: 'relative', marginBottom: 12 }}>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Buscar matéria..."
-                                                    value={buscaMateria}
-                                                    onChange={e => setBuscaMateria(e.target.value)}
-                                                    onClick={e => e.stopPropagation()} // Impede fechar ao clicar na busca
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '10px 14px 10px 36px',
-                                                        borderRadius: 12,
-                                                        border: `1px solid ${tokens.border}`,
-                                                        background: tokens.bgSub,
-                                                        color: 'var(--color-text-primary)',
-                                                        fontSize: 12,
-                                                        fontWeight: 600,
-                                                        outline: 'none'
-                                                    }}
-                                                />
-                                                <Icon 
-                                                    icon="solar:magnifer-linear" 
-                                                    style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: tokens.foggy }} 
-                                                    width="16"
-                                                />
+                                <CCol xs={12} sm={4}>
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 15 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.1 }}
+                                        style={{
+                                            background: tokens.bg,
+                                            border: `1px solid ${tokens.border}`,
+                                            borderRadius: 20,
+                                            padding: 20,
+                                            boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 16
+                                        }}
+                                    >
+                                        <div style={{
+                                            width: 48, height: 48, borderRadius: 14,
+                                            background: `${tokens.babu}15`, color: tokens.babu,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}>
+                                            <Icon icon="solar:target-bold-duotone" width="24" />
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase' }}>TAXA DE ACERTO MÉDIA</div>
+                                            <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--color-text-primary)', marginTop: 2 }}>
+                                                {loadingMetrics ? <CSpinner size="sm" color="success" /> : `${metrics?.media_numero ?? 0}%`}
                                             </div>
+                                        </div>
+                                    </motion.div>
+                                </CCol>
 
-                                            {/* Lista Scrollável */}
-                                            <div style={{ maxHeight: 220, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, paddingRight: 2 }}>
-                                                {/* Opção Todas */}
-                                                <div 
-                                                    onClick={() => { setFiltroMateria(''); setPagina(1); setActiveDropdown(null); setBuscaMateria('') }}
-                                                    style={{
-                                                        padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
-                                                        display: 'flex', alignItems: 'center', gap: 8,
-                                                        background: filtroMateria === '' ? 'var(--color-bg-tertiary)' : 'transparent',
-                                                        transition: 'background 0.2s'
-                                                    }}
-                                                >
-                                                    <Icon icon="solar:book-bookmark-bold-duotone" style={{ color: tokens.foggy }} width="16" />
-                                                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Todas as matérias</span>
-                                                </div>
-
-                                                {/* Lista Filtrada */}
-                                                {materiasFiltradas.length === 0 ? (
-                                                    <div style={{ textAlign: 'center', color: tokens.foggy, fontSize: 11, padding: '10px 0' }}>
-                                                        Nenhuma matéria encontrada.
-                                                    </div>
-                                                ) : (
-                                                    materiasFiltradas.map(m => {
-                                                        const isSelected = String(filtroMateria) === String(m.id)
-                                                        return (
-                                                            <div 
-                                                                key={m.id}
-                                                                onClick={() => { setFiltroMateria(String(m.id)); setPagina(1); setActiveDropdown(null); setBuscaMateria('') }}
-                                                                style={{
-                                                                    padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
-                                                                    display: 'flex', alignItems: 'center', gap: 8,
-                                                                    background: isSelected ? 'var(--color-bg-tertiary)' : 'transparent',
-                                                                    transition: 'background 0.2s'
-                                                                }}
-                                                            >
-                                                                <Icon icon="solar:notebook-bold-duotone" style={{ color: isSelected ? tokens.rausch : tokens.foggy }} width="16" />
-                                                                <span style={{ fontSize: 12, fontWeight: 700, color: isSelected ? tokens.rausch : 'var(--color-text-primary)' }}>
-                                                                    {m.nome}
-                                                                </span>
-                                                            </div>
-                                                        )
-                                                    })
-                                                )}
+                                <CCol xs={12} sm={4}>
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 15 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.15 }}
+                                        style={{
+                                            background: tokens.bg,
+                                            border: `1px solid ${tokens.border}`,
+                                            borderRadius: 20,
+                                            padding: 20,
+                                            boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 16
+                                        }}
+                                    >
+                                        <div style={{
+                                            width: 48, height: 48, borderRadius: 14,
+                                            background: `${tokens.arches}15`, color: tokens.arches,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}>
+                                            <Icon icon="solar:playback-speed-bold-duotone" width="24" />
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase' }}>SESSÕES DE ESTUDO</div>
+                                            <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--color-text-primary)', marginTop: 2 }}>
+                                                {loadingMetrics ? <CSpinner size="sm" color="warning" /> : (metrics?.sessoes ?? 0)}
                                             </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        </div>
-                    </div>
+                                        </div>
+                                    </motion.div>
+                                </CCol>
+                            </CRow>
 
-                    {/* FEED DE QUESTÕES */}
-                    {loading ? (
-                        <div className="text-center py-5">
-                            <CSpinner color="danger" />
-                            <p className="mt-3 text-body-secondary" style={{ fontWeight: 600 }}>Carregando suas resoluções...</p>
-                        </div>
-                    ) : (
-                        <>
-                            {questoes.length === 0 ? (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.98 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    style={{
-                                        background: tokens.bg,
-                                        border: `1px solid ${tokens.border}`,
-                                        borderRadius: 24,
-                                        padding: '50px 20px',
-                                        textAlign: 'center'
-                                    }}
-                                >
-                                    <Icon icon="solar:document-bold-duotone" width="48" style={{ color: tokens.foggy, marginBottom: 16 }} />
-                                    <h5 style={{ fontWeight: 800, color: 'var(--color-text-primary)' }}>Nenhuma questão resolvida encontrada</h5>
-                                    <p style={{ color: tokens.foggy, fontSize: 13, maxWidth: 400, margin: '8px auto 0' }}>
-                                        Tente alterar os filtros ou comece a praticar resolvendo quizes do sistema!
-                                    </p>
-                                </motion.div>
-                            ) : (
-                                <CRow className="g-3">
-                                    <AnimatePresence mode="popLayout">
-                                        {questoes.map((item, idx) => {
-                                            const statusCor = item.acertou ? tokens.babu : tokens.rausch
-                                            const statusBg = item.acertou ? `${tokens.babu}15` : `${tokens.rausch}15`
-                                            return (
-                                                <CCol xs={12} md={6} key={item.questao_id || idx}>
-                                                    <motion.div
-                                                        initial={{ opacity: 0, y: 12 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        exit={{ opacity: 0, scale: 0.95 }}
-                                                        transition={{ duration: 0.2 }}
-                                                        whileHover={{ y: -2 }}
-                                                        style={{
-                                                            background: tokens.bg,
-                                                            border: `1px solid ${tokens.border}`,
-                                                            borderRadius: 20,
-                                                            padding: 20,
-                                                            boxShadow: '0 4px 20px rgba(0,0,0,0.01)',
-                                                            height: '100%',
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            justifyContent: 'space-between',
-                                                            gap: 16
-                                                        }}
-                                                    >
-                                                        <div>
-                                                            {/* Card Header Info */}
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                                                                <span style={{ fontSize: 10, color: tokens.foggy, fontWeight: 800 }}>
-                                                                    ID: #{item.questao_id}
-                                                                </span>
-                                                                <span style={{
-                                                                    fontSize: 11, fontWeight: 800,
-                                                                    background: statusBg, color: statusCor,
-                                                                    padding: '4px 10px', borderRadius: 99
-                                                                }}>
-                                                                    {item.acertou ? 'Acertou ✅' : 'Errou ❌'}
-                                                                </span>
-                                                            </div>
-
-                                                            {/* Enunciado */}
-                                                            <p style={{
-                                                                fontSize: 14, fontWeight: 700,
-                                                                color: 'var(--color-text-primary)',
-                                                                lineHeight: 1.5,
-                                                                marginBottom: 10,
-                                                                display: '-webkit-box',
-                                                                WebkitLineClamp: 3,
-                                                                WebkitBoxOrient: 'vertical',
-                                                                overflow: 'hidden',
-                                                                textOverflow: 'ellipsis'
-                                                            }}>
-                                                                {item.enunciado}
-                                                            </p>
-
-                                                            {/* Tags */}
-                                                            <div className="d-flex flex-wrap gap-1 mt-2">
-                                                                <span style={{ background: tokens.bgSub, color: tokens.foggy, padding: '4px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700, textTransform: 'capitalize' }}>
-                                                                    {item.materias}
-                                                                </span>
-                                                                {item.assunto && item.assunto !== 'Sem assunto' && (
-                                                                    <span style={{ background: tokens.bgSub, color: tokens.foggy, padding: '4px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700 }}>
-                                                                        {item.assunto}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Footer Row */}
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${tokens.border}`, paddingTop: 12, marginTop: 4 }}>
-                                                            <span style={{ fontSize: 11, color: tokens.foggy, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                                <Icon icon="solar:calendar-linear" />
-                                                                {item.data ? new Date(item.data).toLocaleDateString('pt-BR') : 'Sem data'}
-                                                            </span>
-
-                                                            <CButton
-                                                                onClick={() => abrirRevisao(item.questao_id)}
-                                                                style={{
-                                                                    background: `${tokens.babu}15`, color: tokens.babu, border: 'none',
-                                                                    borderRadius: 10, padding: '6px 12px',
-                                                                    fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', gap: 6,
-                                                                    transition: 'all 0.2s'
-                                                                }}
-                                                            >
-                                                                <Icon icon="solar:eye-bold" /> Revisar
-                                                            </CButton>
-                                                        </div>
-                                                    </motion.div>
-                                                </CCol>
-                                            )
-                                        })}
-                                    </AnimatePresence>
-                                </CRow>
-                            )}
-
-                            {/* PAGINAÇÃO PREMIUM */}
-                            {total_paginas > 1 && (
-                                <div className="d-flex justify-content-center mt-5">
-                                    <CPagination style={{ gap: 4 }}>
-                                        <CPaginationItem 
-                                            disabled={pagina === 1} 
-                                            onClick={() => setPagina(p => p - 1)}
-                                            style={{ cursor: pagina === 1 ? 'not-allowed' : 'pointer' }}
-                                        >
-                                            Anterior
-                                        </CPaginationItem>
-                                        {[...Array(total_paginas)].map((_, i) => {
-                                            const isActive = pagina === i + 1
-                                            return (
-                                                <CPaginationItem 
-                                                    key={i} 
-                                                    active={isActive} 
-                                                    onClick={() => setPagina(i + 1)}
-                                                    style={{
-                                                        cursor: 'pointer',
-                                                        background: isActive ? tokens.rausch : 'transparent',
-                                                        borderColor: isActive ? tokens.rausch : 'var(--color-border)',
-                                                        color: isActive ? '#fff' : 'var(--color-text-primary)',
-                                                        fontWeight: 700,
-                                                        borderRadius: 8
-                                                    }}
-                                                >
-                                                    {i + 1}
-                                                </CPaginationItem>
-                                            )
-                                        })}
-                                        <CPaginationItem 
-                                            disabled={pagina === total_paginas} 
-                                            onClick={() => setPagina(p => p + 1)}
-                                            style={{ cursor: pagina === total_paginas ? 'not-allowed' : 'pointer' }}
-                                        >
-                                            Próxima
-                                        </CPaginationItem>
-                                    </CPagination>
-                                </div>
-                            )}
-                        </>
-                    )}
+                            <QuestoesFiltro {...logicProps} />
+                            <QuestoesLista {...logicProps} />
                         </>
                     )}
 
                     {activeTab === 'feedbacks' && (
-                        <div className="fade-in">
-                            <div className="mb-4 d-flex flex-column lg:flex-row justify-content-between gap-4">
-                                <div className="d-flex flex-wrap gap-3 w-100 lg:w-auto">
-                                    <StatCard icon="solar:document-text-linear" label="Total" value={stats.total} color={tokens.rausch} />
-                                    <StatCard icon="solar:check-circle-linear" label="Respondidos" value={stats.resolvidos} color={tokens.babu} />
-                                    <StatCard icon="solar:clock-circle-linear" label="Em Aberto" value={stats.pendentes} color={tokens.arches} />
-                                </div>
-                            </div>
-
-                            <div className="d-flex flex-column flex-md-row gap-3 align-items-center mb-4">
-                                <div style={{ position: 'relative', flex: 1, width: '100%' }}>
-                                    <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: tokens.foggy }}>
-                                        <Icon icon="solar:magnifer-linear" width="20" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        placeholder="Pesquisar dúvidas..."
-                                        className="w-100"
-                                        style={{
-                                            background: tokens.bg, border: `1px solid ${tokens.border}`,
-                                            borderRadius: 16, padding: '14px 16px 14px 44px',
-                                            fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)', outline: 'none'
-                                        }}
-                                        value={searchFeedbacks}
-                                        onChange={(e) => setSearchFeedbacks(e.target.value)}
-                                    />
-                                </div>
-                                <CButton
-                                    onClick={abrirNovaPergunta}
-                                    style={{
-                                        background: tokens.rausch, color: '#fff', border: 'none',
-                                        borderRadius: 16, padding: '14px 24px', fontWeight: 800, fontSize: 13,
-                                        display: 'flex', alignItems: 'center', gap: 8
-                                    }}
-                                >
-                                    <Icon icon="solar:chat-round-plus-bold" width="20" /> Mande sua Dúvida
-                                </CButton>
-                            </div>
-
-                            {loadingFeedbacks ? (
-                                <div className="grid grid-cols-1 gap-1">
-                                    {[...Array(3)].map((_, i) => <FeedbackSkeleton key={i} />)}
-                                </div>
-                            ) : filteredFeedbacks.length === 0 ? (
-                                <div style={{ background: tokens.bg, border: `1px solid ${tokens.border}`, borderRadius: 24, padding: '50px 20px', textAlign: 'center' }}>
-                                    Nenhum feedback encontrado.
-                                </div>
-                            ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                    {filteredFeedbacks.map((item, idx) => (
-                                        <FAQItem
-                                            key={item.id} item={item} index={idx}
-                                            isOpen={expandedId === item.id}
-                                            onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                                            onRevisarQuestao={abrirRevisao}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                        <QuestoesFeedbacks {...logicProps} />
                     )}
 
                 </div>

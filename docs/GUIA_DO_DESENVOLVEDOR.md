@@ -305,3 +305,38 @@ Pré-calcular métricas (média, total de questões, erros por matéria) uma vez
 
 - **`column does not exist`**: Sempre verifique se está usando `matricula_aluno` e `criado_em`.
 - **`null value not allowed for key`**: Acontece se o `assunto_estudado` estiver vazio. Use o `COALESCE` conforme seção 10.
+
+---
+
+## 12. 🔒 PREVENÇÃO A IDOR E SEGURANÇA
+
+Ataques de **IDOR** (Insecure Direct Object Reference) ocorrem quando uma API confia na entrada do usuário (como uma matrícula ou ID na URL) sem verificar se o usuário autenticado realmente tem permissão para acessar aquele dado.
+
+### 🚫 O Erro Comum (NÃO FAÇA ISSO)
+```python
+# Qualquer aluno logado (ou não) poderia enviar ?matricula=outrapessoa e roubar dados!
+@router.get("/api/aluno/progresso/{matricula}")
+def progresso_aluno(matricula: str):
+    # busca no banco pela matricula da URL
+```
+
+### ✅ A Solução Obrigatória
+Qualquer rota que lide com dados específicos de um usuário **DEVE** utilizar os middlewares de autenticação fornecidos em `utils.jwt_auth`.
+
+```python
+from fastapi import Depends
+from utils.jwt_auth import verificar_proprio_ou_admin, usuario_autenticado
+
+# 1. Se a rota tem {matricula} na URL e precisa garantir que o usuário é o dono (ou admin):
+@router.get("/api/aluno/progresso/{matricula}")
+def progresso_aluno(matricula: str, token: dict = Depends(verificar_proprio_ou_admin)):
+    # O middleware já aborta com 403 se a matrícula da URL for diferente do token (e não for admin)
+    
+# 2. Se a rota usa POST/PUT com payload JSON contendo a matrícula:
+@router.post("/api/favoritos/adicionar")
+def adicionar_favorito(dados: FavoritoRequest, token: dict = Depends(usuario_autenticado)):
+    if dados.matricula != token.get("sub") and token.get("papel") != "admin":
+        raise HTTPException(status_code=403, detail="Não autorizado")
+```
+
+Sempre confronte a propriedade requisitada com a chave de segurança extraída do token JWT (`token["sub"]` contém a matrícula validada)!
