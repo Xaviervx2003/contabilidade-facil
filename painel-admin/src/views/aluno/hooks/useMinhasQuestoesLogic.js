@@ -382,3 +382,5 @@ export const useMinhasQuestoesLogic = () => {
     materiasFiltradas
   }
 }
+
+export default useMinhasQuestoesLogic
