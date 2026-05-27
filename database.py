@@ -35,9 +35,9 @@ def iniciar_pool(tentativas: int = 10, espera_segundos: int = 2):
         try:
             _pool = ConnectionPool(
                 conninfo=CONN_STR,
-                min_size=2,
+                min_size=0,
                 max_size=20,
-                max_idle=5,
+                max_idle=300,
                 timeout=30.0,
                 check=ConnectionPool.check_connection,
                 open=True,
