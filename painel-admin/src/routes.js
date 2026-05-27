@@ -39,11 +39,11 @@ export const routes = [
     element: Dashboard,
     allowedRoles: ['admin', 'professor'],
   },
-  { path: '/aluno/dashboard', name: 'Meu Painel', element: DashboardAluno, allowedRoles: ['aluno'] },
+  { path: '/aluno/dashboard', name: 'Meu Painel', element: DashboardAluno },
   { path: '/quiz', name: 'Quiz', element: Quiz },
   { path: '/videos', name: 'Vídeo-Aulas', element: VideoGallery },
 
-  { path: '/aluno/questoes', name: 'Histórico & Dúvidas', element: MinhasQuestoes, allowedRoles: ['aluno'] },
+  { path: '/aluno/questoes', name: 'Histórico & Dúvidas', element: MinhasQuestoes },
   {
     path: '/questoes',
     name: 'Gestão de Questões',
@@ -111,10 +111,10 @@ export const routes = [
     element: GestaoMissoes,
     allowedRoles: ['admin'],
   },
-  { path: '/aluno/historico', name: 'Meu Histórico', element: HistoricoAluno, allowedRoles: ['aluno'] },
-  { path: '/aluno/meu-risco-plano', name: 'Meu Risco + Plano', element: MeuRiscoPlano, allowedRoles: ['aluno'] },
-  { path: '/aluno/trilhas', name: 'Minhas Trilhas', element: MinhasTrilhas, allowedRoles: ['aluno'] },
-  { path: '/aluno/gamificacao', name: 'Gamificação & Ranking', element: Gamificacao, allowedRoles: ['aluno'] },
+  { path: '/aluno/historico', name: 'Meu Histórico', element: HistoricoAluno },
+  { path: '/aluno/meu-risco-plano', name: 'Meu Risco + Plano', element: MeuRiscoPlano },
+  { path: '/aluno/trilhas', name: 'Minhas Trilhas', element: MinhasTrilhas },
+  { path: '/aluno/gamificacao', name: 'Gamificação & Ranking', element: Gamificacao },
 ]
 
 export default routes

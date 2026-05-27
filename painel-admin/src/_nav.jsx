@@ -24,8 +24,8 @@ import useAuthSession from './hooks/useAuthSession'
 const getNavItens = () => {
   // useAuthSession não pode ser chamado aqui pois getNavItens não é um componente React.
   // Lendo diretamente do sessionStorage/localStorage (encapsulado pelo hook quando chamado em componentes).
-  const papelUsuario = sessionStorage.getItem('papel') || localStorage.getItem('papel')
-  const isAluno = papelUsuario === 'aluno'
+  const papelUsuario = sessionStorage.getItem('papel') || localStorage.getItem('papel') || 'aluno'
+  const isAluno = papelUsuario !== 'admin' && papelUsuario !== 'professor'
   const isLogado = !!papelUsuario
 
   const itens = [
