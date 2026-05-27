@@ -209,7 +209,7 @@ const AppHeaderDropdown = () => {
               onClick={handleLogout}
               style={{
                 ...dropdownItemStyle,
-                color: '#FF385C',
+                color: 'var(--accent-primary, #FF385C)',
               }}
             >
               <Icon icon="solar:logout-bold-duotone" width="18" />

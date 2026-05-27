@@ -8,7 +8,7 @@ import useAuthSession from '../../hooks/useAuthSession'
 
 /* ── Tokens de cor (inspirado Airbnb + Duolingo) ──────────── */
 const T = {
-    coral: '#FF385C',
+    coral: 'var(--accent-primary, #FF385C)',
     teal: '#00A699',
     orange: '#FC642D',
     gold: '#F5A623',
@@ -31,9 +31,9 @@ const calcularPrazo = (data_limite) => {
     if (!data_limite) return null
     const diff = Math.ceil((new Date(data_limite + 'T23:59:59') - new Date()) / 86400000)
     if (diff < 0) return { texto: 'Expirou', cor: '#ef4444', urgente: true }
-    if (diff === 0) return { texto: 'Vence hoje!', cor: '#f59e0b', urgente: true }
-    if (diff === 1) return { texto: 'Vence amanhã', cor: '#f59e0b', urgente: true }
-    if (diff <= 3) return { texto: `${diff} dias`, cor: '#f59e0b', urgente: false }
+    if (diff === 0) return { texto: 'Vence hoje!', cor: 'var(--color-warning, #f59e0b)', urgente: true }
+    if (diff === 1) return { texto: 'Vence amanhã', cor: 'var(--color-warning, #f59e0b)', urgente: true }
+    if (diff <= 3) return { texto: `${diff} dias`, cor: 'var(--color-warning, #f59e0b)', urgente: false }
     return { texto: `${diff} dias`, cor: T.teal, urgente: false }
 }
 

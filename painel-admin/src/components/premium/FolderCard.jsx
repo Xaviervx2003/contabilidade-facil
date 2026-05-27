@@ -10,7 +10,7 @@ const FolderCard = ({
   title, 
   itemCount, 
   progress = 0, 
-  color = '#FF385C', 
+  color = 'var(--accent-primary, #FF385C)', 
   icon = 'solar:folder-2-bold-duotone',
   onClick 
 }) => {

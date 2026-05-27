@@ -1150,7 +1150,7 @@ const MinhasQuestoes = () => {
                                     <div key={i} style={{
                                         borderBottom: `1px solid ${tokens.border}`,
                                         paddingBottom: 8,
-                                        color: log.type === 'error' ? tokens.rausch : log.type === 'success' ? '#10b981' : log.type === 'warning' ? '#f59e0b' : 'var(--color-text-primary)'
+                                        color: log.type === 'error' ? tokens.rausch : log.type === 'success' ? '#10b981' : log.type === 'warning' ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-primary)'
                                     }}>
                                         <div style={{ fontSize: 10, opacity: 0.6, fontWeight: 700, marginBottom: 2 }}>[{log.time}]</div>
                                         <div style={{ fontWeight: 650, lineHeight: 1.4 }}>{log.msg}</div>

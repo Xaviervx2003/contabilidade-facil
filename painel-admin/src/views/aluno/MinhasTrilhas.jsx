@@ -331,7 +331,7 @@ const MinhasTrilhas = () => {
           <CModalHeader className="border-0 pb-0 pt-4 px-4 bg-body-elevated" style={{ backdropFilter: 'blur(12px)', background: 'rgba(var(--color-bg-elevated-rgb), 0.85)' }}>
             <div className="w-100">
               <div className="d-flex align-items-center gap-2 mb-1">
-                <span className="px-2 py-1 rounded-pill fw-bold" style={{ background: 'rgba(255, 56, 92, 0.12)', color: '#FF385C', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                <span className="px-2 py-1 rounded-pill fw-bold" style={{ background: 'rgba(255, 56, 92, 0.12)', color: 'var(--accent-primary, #FF385C)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                   {moduloAtivo?.ordem}º Módulo
                 </span>
                 <span style={{ fontSize: 11, color: '#767676', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -347,7 +347,7 @@ const MinhasTrilhas = () => {
                   onClick={() => setAbaAtiva('aula')}
                   style={{
                     cursor: 'pointer', paddingBottom: 10, position: 'relative',
-                    color: abaAtiva === 'aula' ? '#FF385C' : '#767676',
+                    color: abaAtiva === 'aula' ? 'var(--accent-primary, #FF385C)' : '#767676',
                     fontWeight: 700, fontSize: 15, letterSpacing: '-0.2px',
                     transition: '0.2s'
                   }}
@@ -357,7 +357,7 @@ const MinhasTrilhas = () => {
                     <motion.div
                       layoutId="tab-underline"
                       className="position-absolute bottom-0 start-0 end-0"
-                      style={{ height: 3, background: '#FF385C', borderRadius: '3px 3px 0 0' }}
+                      style={{ height: 3, background: 'var(--accent-primary, #FF385C)', borderRadius: '3px 3px 0 0' }}
                     />
                   )}
                 </div>
@@ -365,7 +365,7 @@ const MinhasTrilhas = () => {
                   onClick={() => setAbaAtiva('duvidas')}
                   style={{
                     cursor: 'pointer', paddingBottom: 10, position: 'relative',
-                    color: abaAtiva === 'duvidas' ? '#FF385C' : '#767676',
+                    color: abaAtiva === 'duvidas' ? 'var(--accent-primary, #FF385C)' : '#767676',
                     fontWeight: 700, fontSize: 15, letterSpacing: '-0.2px',
                     transition: '0.2s'
                   }}
@@ -376,7 +376,7 @@ const MinhasTrilhas = () => {
                     <motion.div
                       layoutId="tab-underline"
                       className="position-absolute bottom-0 start-0 end-0"
-                      style={{ height: 3, background: '#FF385C', borderRadius: '3px 3px 0 0' }}
+                      style={{ height: 3, background: 'var(--accent-primary, #FF385C)', borderRadius: '3px 3px 0 0' }}
                     />
                   )}
                 </div>
@@ -415,12 +415,12 @@ const MinhasTrilhas = () => {
                           className="mb-4 p-3 rounded-4"
                           style={{ background: 'rgba(0, 166, 153, 0.08)', border: '1.5px solid rgba(0, 166, 153, 0.15)' }}
                         >
-                          <h6 className="fw-bold mb-2" style={{ color: '#00A699', fontSize: 11, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Material de Estudo</h6>
+                          <h6 className="fw-bold mb-2" style={{ color: 'var(--accent-secondary, #00A699)', fontSize: 11, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Material de Estudo</h6>
                           <CButton
                             href={moduloAtivo.material_apoio_url}
                             target="_blank"
                             className="w-100 fw-bold border-0 shadow-sm"
-                            style={{ background: '#00A699', color: '#fff', borderRadius: 12, fontSize: 14, padding: '10px' }}
+                            style={{ background: 'var(--accent-secondary, #00A699)', color: '#fff', borderRadius: 12, fontSize: 14, padding: '10px' }}
                           >
                             <Icon icon="solar:cloud-download-bold-duotone" className="me-2" width="18" /> Baixar PDF / Slides
                           </CButton>
@@ -454,7 +454,7 @@ const MinhasTrilhas = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="align-self-end fw-bold px-4 py-2 border-0 shadow-sm"
-                      style={{ background: '#FF385C', color: '#fff', borderRadius: 12, fontSize: 15 }}
+                      style={{ background: 'var(--accent-primary, #FF385C)', color: '#fff', borderRadius: 12, fontSize: 15 }}
                       onClick={enviarDuvida}
                       disabled={enviandoDuvida}
                     >
@@ -465,7 +465,7 @@ const MinhasTrilhas = () => {
 
                 <div className="mt-5">
                   <h6 className="fw-bold border-bottom pb-2 mb-4 d-flex align-items-center gap-2" style={{ fontSize: 16, letterSpacing: '-0.4px' }}>
-                    <Icon icon="solar:chat-square-dots-bold-duotone" style={{ color: '#FF385C' }} width="20" />
+                    <Icon icon="solar:chat-square-dots-bold-duotone" style={{ color: 'var(--accent-primary, #FF385C)' }} width="20" />
                     Comentários da Turma ({duvidas.length})
                   </h6>
                   <div className="d-flex flex-column gap-3">
@@ -491,8 +491,8 @@ const MinhasTrilhas = () => {
                         </div>
                         <div className="small" style={{ lineHeight: 1.6, color: 'var(--color-text-secondary)' }}>{d.texto}</div>
                         {d.resposta_professor && (
-                          <div className="ms-4 p-3 mt-3 rounded-4 border-start border-4 shadow-sm" style={{ background: 'rgba(0, 166, 153, 0.06)', borderStartColor: '#00A699' }}>
-                            <div className="fw-bold small mb-1 d-flex align-items-center gap-1" style={{ color: '#00A699', fontSize: 12 }}>
+                          <div className="ms-4 p-3 mt-3 rounded-4 border-start border-4 shadow-sm" style={{ background: 'rgba(0, 166, 153, 0.06)', borderStartColor: 'var(--accent-secondary, #00A699)' }}>
+                            <div className="fw-bold small mb-1 d-flex align-items-center gap-1" style={{ color: 'var(--accent-secondary, #00A699)', fontSize: 12 }}>
                               <Icon icon="solar:verified-check-bold" width="14" /> Resposta do Professor
                             </div>
                             <div className="small" style={{ opacity: 0.9, lineHeight: 1.5 }}>{d.resposta_professor}</div>
@@ -555,7 +555,7 @@ const MinhasTrilhas = () => {
                     setModalAula(false)
                   }}
                   className="fw-bold border-0 shadow-sm px-4 py-2"
-                  style={{ background: '#00A699', color: '#fff', borderRadius: 12, fontSize: 14 }}
+                  style={{ background: 'var(--accent-secondary, #00A699)', color: '#fff', borderRadius: 12, fontSize: 14 }}
                 >
                   {salvando === moduloAtivo?.id ? <CSpinner size="sm" /> : <><Icon icon="solar:check-circle-bold-duotone" className="me-2" width="18" /> Concluir Aula</>}
                 </motion.button>

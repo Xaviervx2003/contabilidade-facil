@@ -20,8 +20,8 @@ const diasRestantesLabel = (data_limite) => {
   if (!data_limite) return null
   const diff = Math.ceil((new Date(data_limite + 'T23:59:59') - new Date()) / 86400000)
   if (diff < 0)  return { text: 'Expirada', color: tk.rausch }
-  if (diff === 0) return { text: 'Vence hoje!', color: '#f59e0b' }
-  if (diff === 1) return { text: 'Vence amanhã', color: '#f59e0b' }
+  if (diff === 0) return { text: 'Vence hoje!', color: 'var(--color-warning, #f59e0b)' }
+  if (diff === 1) return { text: 'Vence amanhã', color: 'var(--color-warning, #f59e0b)' }
   return { text: `${diff} dias restantes`, color: tk.babu }
 }
 

@@ -984,6 +984,30 @@ table {
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
+// QUIZ STICKY FOOTER E ESPAÇAMENTOS
+// ════════════════════════════════════════════════════════════════════════════════
+
+.quiz-container {
+  padding-bottom: 100px !important; // Desktop: espaço apenas para o footer sticky
+}
+
+.quiz-sticky-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1020; // Abaixo da navbar (1030) do CoreUI/Header e AppBottomNav
+}
+
+@media (max-width: 767.98px) {
+  .quiz-container {
+    padding-bottom: 150px !important; // Mobile: espaço para footer sticky + AppBottomNav
+  }
+  .quiz-sticky-footer {
+    bottom: 65px; // Senta exatamente acima do AppBottomNav
+  }
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════════
 // PONTO 15: iOS ZOOM PREVENTION
 // Removido o font-size: 16px !important pois quebra a altura de botões em linha.
 // Substituído por maximum-scale=1 no index.html para evitar o zoom.

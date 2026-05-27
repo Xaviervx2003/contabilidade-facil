@@ -138,7 +138,7 @@ const AppHeader = () => {
               onMouseEnter={(e) => { 
                 e.currentTarget.style.opacity = 1; 
                 e.currentTarget.style.backgroundColor = 'rgba(255, 56, 92, 0.08)'; 
-                e.currentTarget.style.color = '#FF385C' 
+                e.currentTarget.style.color = 'var(--accent-primary, #FF385C)' 
               }}
               onMouseLeave={(e) => { 
                 e.currentTarget.style.opacity = 0.8; 

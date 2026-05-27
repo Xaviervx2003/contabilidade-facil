@@ -52,7 +52,12 @@ class SessaoRepository:
                 update_params = []
                 insert_params = []
 
-                for detalhe in sessao.lista_detalhes:
+                # PREVENÇÃO DE DEADLOCKS: Ordena os detalhes pelo ID da questão
+                # Isso garante que a aquisição de Row-Level Locks no Postgres (durante o executemany)
+                # sempre ocorra na mesma ordem, evitando colisões mortais entre sessões simultâneas.
+                detalhes_ordenados = sorted(sessao.lista_detalhes, key=lambda x: x.id)
+
+                for detalhe in detalhes_ordenados:
                     acertou = bool(detalhe.acertou)
                     incremento_acerto = 1 if acertou else 0
                     update_params.append((incremento_acerto, detalhe.id))

@@ -112,12 +112,13 @@ import {
 
 
 import { useQuizLogic } from './hooks/useQuizLogic';
-import ReadyScreen, { QuizRunning, FinishedScreen } from './components/ReadyScreen';
+import ReadyScreen, { QuizRunning } from './components/ReadyScreen';
+import FinishedScreen from './components/FinishedScreen';
 
 const Quiz = () => {
   const { status, setStatus, isConfirmingFinish, questions, setQuestions, queue, setQueue, skippedSet, setSkippedSet, selectedOption, setSelectedOption, score, setScore, error, setError, feedback, setFeedback, tempoLimite, setTempoLimite, remainingSeconds, setRemainingSeconds, startTime, setStartTime, elapsedSeconds, setElapsedSeconds, saving, setSaving, saved, setSaved, questionsAndAnswers, setQuestionsAndAnswers, activeTab, setActiveTab, isAnswerConfirmed, setIsAnswerConfirmed, isConfusing, setIsConfusing, commentText, setCommentText, commentStatus, setCommentStatus, materiasSelected, setMateriasSelected, quantidade, setQuantidade, isDark, setIsDark, isFullscreen, setIsFullscreen, soundEnabled, setSoundEnabled, savedSnapshot, setSavedSnapshot, showDica, setShowDica, modoEstudo, setModoEstudo, bancaSelecionada, setBancaSelecionada, orgaoSelecionado, setOrgaoSelecionado, cargoSelecionado, setCargoSelecionado, anoSelecionado, setAnoSelecionado, favoritos, setFavoritos, disciplinaPai, setDisciplinaPai, queryClient, nomeAluno, toggleFullscreen, toggleFavoritoMutation, alternarFavorito, materias, loadingMaterias, startQuizWithTime, startQuiz, resumeSnapshot, fetchQuestoesMutation, fetchAndStart, simuladoMutation, fetchAndStartSimuladoRapido, handleConfirmAnswer, handleNextQuestion, handleSkip, feedbackMutation, handleSendComment, handleFinishEarly, handleRetryErrors, handleReplay, handleReset, saveSessionMutation, handleSaveSession, handleShare, currentIndex, currentQuestion, totalAnswered, totalQuestions, finalScore, timerCritical, progress, isRevisiting, pendingSkipped, grade, getGradeColor, gradeColor, nome, isLogado, matricula, filtrosDisponiveis } = useQuizLogic();
   return (
-    <CContainer fluid className="py-3 py-md-4 px-3 px-md-4">
+    <CContainer fluid className="py-3 py-md-4 px-3 px-md-4 quiz-container">
 
       {!isLogado && status === 'ready' && (
         <div
@@ -179,7 +180,7 @@ const Quiz = () => {
                 width: 48,
                 height: 48,
                 background: 'rgba(245, 158, 11, 0.1)',
-                color: '#f59e0b',
+                color: 'var(--accent-primary, #f59e0b)',
               }}
             >
               <Icon icon="solar:history-bold-duotone" width="26" height="26" />
@@ -195,7 +196,7 @@ const Quiz = () => {
             <button
               className="rounded-pill px-4 py-2 fw-bold text-white transition-all"
               style={{
-                background: '#f59e0b',
+                background: 'var(--accent-primary, #f59e0b)',
                 border: 'none',
                 fontSize: '13px',
                 cursor: 'pointer',
