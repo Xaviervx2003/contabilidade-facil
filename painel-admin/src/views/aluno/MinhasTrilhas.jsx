@@ -101,7 +101,8 @@ const MinhasTrilhas = () => {
     }
   }
 
-  const trilhasFiltradas = trilhas.filter(t => {
+  const safeTrilhas = Array.isArray(trilhas) ? trilhas : []
+  const trilhasFiltradas = safeTrilhas.filter(t => {
     if (filtro === 'concluida') return t.progresso_percentual === 100
     if (filtro === 'progresso') return t.progresso_percentual > 0 && t.progresso_percentual < 100
     return true
