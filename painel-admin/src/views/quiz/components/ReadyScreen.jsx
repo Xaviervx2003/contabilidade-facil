@@ -1320,9 +1320,9 @@ export const FinishedScreen = ({
           style={{ display: safeActiveTab === 'stats' ? 'block' : 'none' }}
         >
           <CBadge color={gradeColor} className="fs-2 px-4 py-2 mb-2">
-            {grade.grade}
+            {grade?.grade || 'F'}
           </CBadge>
-          {grade.remarks && <p className="text-body-secondary mb-3">{grade.remarks}</p>}
+          {grade?.remarks && <p className="text-body-secondary mb-3">{grade.remarks}</p>}
 
           <CRow className="g-3 mb-4">
             <CCol xs={6} md={3}>
