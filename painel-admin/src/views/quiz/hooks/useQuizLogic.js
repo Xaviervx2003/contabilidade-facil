@@ -630,6 +630,7 @@ export const useQuizLogic = () => {
     filtrosDisponiveis,
     status,
     setStatus,
+    isConfirmingFinish,
     questions,
     setQuestions,
     queue,

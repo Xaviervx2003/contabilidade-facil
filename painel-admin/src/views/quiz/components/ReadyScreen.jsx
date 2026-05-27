@@ -767,8 +767,7 @@ export const QuizRunning = ({
   commentStatus,
   isConfusing,
   setIsConfusing,
-  handleFinishEarly,
-  setError,
+  isConfirmingFinish,
 }) => {
   // Ponto 12: Atalhos de teclado — A/B/C/D/E seleciona, Enter confirma, N próxima
   useEffect(() => {
@@ -986,7 +985,7 @@ export const QuizRunning = ({
         <div className="d-flex gap-2 order-2 order-md-1 justify-content-center">
           <button
             onClick={onFinishEarly}
-            disabled={totalAnswered === 0}
+            disabled={totalAnswered === 0 || isConfirmingFinish}
             className="d-flex align-items-center gap-2 px-3 py-2 fw-bold transition-all"
             style={{
               background: 'transparent',
