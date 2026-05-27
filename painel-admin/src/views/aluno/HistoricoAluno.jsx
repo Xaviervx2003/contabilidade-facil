@@ -15,7 +15,6 @@ import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import SCard from '../../components/premium/SCard'
 import useAuthSession from '../../hooks/useAuthSession'
-import { useTheme } from '../../context/themeContext'
 import { buildTokens } from '../../tokens'
 
 /* ─── Helpers ─── */

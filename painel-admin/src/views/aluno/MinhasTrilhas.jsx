@@ -76,8 +76,6 @@ const MinhasTrilhas = () => {
     enabled: !!matricula,
   })
 
-  })
-
   const mutationConcluir = useMutation({
     mutationFn: async (moduloId) => {
       await api.post(`/api/trilhas/progresso/${moduloId}`, { matricula })
