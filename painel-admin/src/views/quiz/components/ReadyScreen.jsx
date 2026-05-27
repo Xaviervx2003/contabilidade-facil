@@ -978,9 +978,16 @@ export const QuizRunning = ({
         </CAlert>
       )}
 
+      {/* ───────────────────────────────────────────────────────────────── */}
+      {/* 5. RODAPÉ FIXO (Pular, Encerrar, Confirmar) */}
+      {/* ───────────────────────────────────────────────────────────────── */}
       <div
-        className="d-flex flex-column flex-md-row justify-content-md-between align-items-stretch align-items-md-center gap-2 mt-3 sticky-bottom bg-body py-3 border-top"
-        style={{ zIndex: 1 }}
+        className="d-flex flex-column flex-md-row justify-content-md-between align-items-stretch align-items-md-center gap-2 mt-3 bg-body py-3 border-top"
+        style={{ 
+          position: 'sticky',
+          bottom: window.innerWidth < 768 ? '65px' : '0',
+          zIndex: 10 
+        }}
       >
         <div className="d-flex gap-2 order-2 order-md-1 justify-content-center">
           <button
