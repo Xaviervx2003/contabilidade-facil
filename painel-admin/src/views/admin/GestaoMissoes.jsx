@@ -4,47 +4,50 @@ import { Icon } from '@iconify/react'
 import api from '../../services/api'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from '../../context/themeContext'
-import { tokens as tk } from '../../tokens'
+import { buildTokens } from '../../tokens'
 
 const FONT = "'Nunito', 'Circular Std', sans-serif"
 
-/* ── Helpers ── */
-const METRICA_LABELS = {
-  manual:       { label: 'Manual',            icon: 'solar:hand-stars-bold-duotone', color: tk.foggy },
-  sessoes:      { label: 'Nº de Sessões',     icon: 'solar:book-bold-duotone',       color: tk.babu },
-  media_acerto: { label: 'Média de Acertos',  icon: 'solar:target-bold-duotone',     color: tk.arches },
-  questoes:     { label: 'Qtd. de Questões',  icon: 'solar:pen-bold-duotone',        color: '#8B5CF6' },
-}
-
-const diasRestantesLabel = (data_limite) => {
-  if (!data_limite) return null
-  const diff = Math.ceil((new Date(data_limite + 'T23:59:59') - new Date()) / 86400000)
-  if (diff < 0)  return { text: 'Expirada', color: tk.rausch }
-  if (diff === 0) return { text: 'Vence hoje!', color: 'var(--color-warning, #f59e0b)' }
-  if (diff === 1) return { text: 'Vence amanhã', color: 'var(--color-warning, #f59e0b)' }
-  return { text: `${diff} dias restantes`, color: tk.babu }
-}
-
-const FORM_INICIAL = { titulo: '', descricao: '', xp: 100, icone: '🎯', cor: tk.rausch, metrica_tipo: 'manual', metrica_alvo: '', data_limite: '' }
-
 /* ── Componentes UI Básicos ── */
 const Label = ({ children }) => (
-  <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.9px', color: tk.foggy, marginBottom: 6, fontFamily: FONT }}>{children}</div>
+  <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.9px', color: 'var(--color-text-muted, #767676)', marginBottom: 6, fontFamily: FONT }}>{children}</div>
 )
 
 const AInput = ({ value, onChange, placeholder, type = 'text', min, required }) => (
-  <input required={required} type={type} min={min} value={value} onChange={onChange} placeholder={placeholder} style={{ width: '100%', height: 42, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = tk.rausch} onBlur={e => e.target.style.borderColor = 'var(--color-border)'} />
+  <input required={required} type={type} min={min} value={value} onChange={onChange} placeholder={placeholder} style={{ width: '100%', height: 42, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--color-border)'} />
 )
 
 const ATextarea = ({ value, onChange, placeholder, rows = 3, required }) => (
-  <textarea required={required} rows={rows} value={value} onChange={onChange} placeholder={placeholder} style={{ width: '100%', borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '12px 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s', resize: 'vertical' }} onFocus={e => e.target.style.borderColor = tk.rausch} onBlur={e => e.target.style.borderColor = 'var(--color-border)'} />
+  <textarea required={required} rows={rows} value={value} onChange={onChange} placeholder={placeholder} style={{ width: '100%', borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '12px 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s', resize: 'vertical' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--color-border)'} />
 )
 
 const ASelect = ({ value, onChange, children }) => (
-  <select value={value} onChange={onChange} style={{ width: '100%', height: 42, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s', cursor: 'pointer' }} onFocus={e => e.target.style.borderColor = tk.rausch} onBlur={e => e.target.style.borderColor = 'var(--color-border)'}>{children}</select>
+  <select value={value} onChange={onChange} style={{ width: '100%', height: 42, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s', cursor: 'pointer' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--color-border)'}>{children}</select>
 )
 
 const GestaoMissoes = () => {
+  const { isDark, currentPalette } = useTheme()
+  const tk = buildTokens(currentPalette)
+
+  /* ── Helpers ── */
+  const METRICA_LABELS = {
+    manual:       { label: 'Manual',            icon: 'solar:hand-stars-bold-duotone', color: tk.foggy },
+    sessoes:      { label: 'Nº de Sessões',     icon: 'solar:book-bold-duotone',       color: tk.babu },
+    media_acerto: { label: 'Média de Acertos',  icon: 'solar:target-bold-duotone',     color: tk.arches },
+    questoes:     { label: 'Qtd. de Questões',  icon: 'solar:pen-bold-duotone',        color: '#8B5CF6' },
+  }
+
+  const diasRestantesLabel = (data_limite) => {
+    if (!data_limite) return null
+    const diff = Math.ceil((new Date(data_limite + 'T23:59:59') - new Date()) / 86400000)
+    if (diff < 0)  return { text: 'Expirada', color: tk.rausch }
+    if (diff === 0) return { text: 'Vence hoje!', color: 'var(--color-warning, #f59e0b)' }
+    if (diff === 1) return { text: 'Vence amanhã', color: 'var(--color-warning, #f59e0b)' }
+    return { text: `${diff} dias restantes`, color: tk.babu }
+  }
+
+  const FORM_INICIAL = { titulo: '', descricao: '', xp: 100, icone: '🎯', cor: tk.rausch, metrica_tipo: 'manual', metrica_alvo: '', data_limite: '' }
+
   const [missoes, setMissoes] = useState([])
   const [loading, setLoading] = useState(true)
   const [salvando, setSalvando] = useState(false)
@@ -52,8 +55,6 @@ const GestaoMissoes = () => {
   const [sucesso, setSucesso] = useState('')
   const [form, setForm] = useState(FORM_INICIAL)
   const [modalDel, setModalDel] = useState(null)
-  
-  const { isDark } = useTheme()
 
   const fetchMissoes = async () => {
     setLoading(true)

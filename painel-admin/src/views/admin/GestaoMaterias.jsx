@@ -14,7 +14,8 @@ import {
   useSolicitarMover,
   useProcessarSolicitacao,
 } from '../../hooks/useMaterias'
-import { tokens as tk } from '../../tokens'
+import { buildTokens } from '../../tokens'
+import { useTheme } from '../../context/themeContext'
 import useAuthSession from '../../hooks/useAuthSession'
 import { confirmDialog } from '../../utils/confirm'
 
@@ -22,11 +23,11 @@ const FONT = "'Nunito', 'Circular Std', sans-serif"
 
 /* ── Componentes de UI Básicos ───────────────────────────── */
 const Label = ({ children }) => (
-  <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.9px', color: tk.foggy, marginBottom: 6, fontFamily: FONT }}>{children}</div>
+  <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.9px', color: 'var(--color-text-muted, #767676)', marginBottom: 6, fontFamily: FONT }}>{children}</div>
 )
 
 const AInput = ({ value, onChange, placeholder, autoFocus }) => (
-  <input autoFocus={autoFocus} value={value} onChange={onChange} placeholder={placeholder} style={{ width: '100%', height: 42, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = tk.rausch} onBlur={e => e.target.style.borderColor = 'var(--color-border)'} />
+  <input autoFocus={autoFocus} value={value} onChange={onChange} placeholder={placeholder} style={{ width: '100%', height: 42, borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', padding: '0 14px', fontSize: 13, fontFamily: FONT, outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--color-border)'} />
 )
 
 /* ── Toast flutuante ─────────────────────────────────────── */
@@ -40,6 +41,8 @@ const useToast = () => {
 }
 
 const GestaoMaterias = () => {
+  const { currentPalette } = useTheme()
+  const tk = buildTokens(currentPalette)
   const { userId, papel } = useAuthSession()
   const userPapel = papel
   const isAdmin   = papel === 'admin'
@@ -187,7 +190,7 @@ const GestaoMaterias = () => {
   const TreeLine = ({ depth }) => {
     if (depth === 0) return null
     return (
-      <span style={{ color: tk.foggy, marginRight: 8, display: 'inline-flex', alignItems: 'center', opacity: 0.3 }}>
+      <span style={{ color: 'var(--color-text-muted, #767676)', marginRight: 8, display: 'inline-flex', alignItems: 'center', opacity: 0.3 }}>
         <Icon icon="solar:round-alt-arrow-right-bold-duotone" width="16" />
       </span>
     )

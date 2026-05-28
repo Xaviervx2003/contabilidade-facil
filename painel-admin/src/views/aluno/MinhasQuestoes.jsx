@@ -26,7 +26,8 @@ import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
 import api from '../../services/api'
 import { getAlunoMatricula } from '../../utils/auth'
-import { tokens } from '../../tokens'
+import { buildTokens } from '../../tokens'
+import { useTheme } from '../../context/themeContext'
 import useAuthSession from '../../hooks/useAuthSession'
 
 import QuestoesFiltro from './components/QuestoesFiltro';
@@ -35,6 +36,8 @@ import QuestoesFeedbacks from './components/QuestoesFeedbacks';
 import useMinhasQuestoesLogic from './hooks/useMinhasQuestoesLogic';
 
 const MinhasQuestoes = () => {
+    const { currentPalette } = useTheme()
+    const tk = buildTokens(currentPalette)
     const logicProps = useMinhasQuestoesLogic();
     const {
         loadingMetrics,
@@ -80,16 +83,16 @@ const MinhasQuestoes = () => {
                         animate={{ opacity: 1, y: 0 }}
                         style={{ marginBottom: 36 }}
                     >
-                        <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Sua Performance</div>
+                        <div style={{ color: tk.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Sua Performance</div>
                         <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>Minhas Questões 📝</div>
-                        <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+                        <div style={{ fontSize: 14, color: tk.foggy, marginTop: 6 }}>
                             Acompanhe seu histórico detalhado de resoluções e revise explicações com apoio em vídeo.
                         </div>
                     </motion.div>
 
                     
                     {/* TABS DE NAVEGAÇÃO */}
-                    <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: `1px solid ${tokens.border}`, paddingBottom: 16 }}>
+                    <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: `1px solid ${tk.border}`, paddingBottom: 16 }}>
                         <div 
                             onClick={() => setActiveTab('historico')}
                             style={{
@@ -99,7 +102,7 @@ const MinhasQuestoes = () => {
                                 fontWeight: 800,
                                 fontSize: 14,
                                 background: activeTab === 'historico' ? 'var(--color-text-primary)' : 'transparent',
-                                color: activeTab === 'historico' ? 'var(--color-bg-primary)' : tokens.foggy,
+                                color: activeTab === 'historico' ? 'var(--color-bg-primary)' : tk.foggy,
                                 transition: 'all 0.2s'
                             }}
                         >
@@ -114,7 +117,7 @@ const MinhasQuestoes = () => {
                                 fontWeight: 800,
                                 fontSize: 14,
                                 background: activeTab === 'feedbacks' ? 'var(--color-text-primary)' : 'transparent',
-                                color: activeTab === 'feedbacks' ? 'var(--color-bg-primary)' : tokens.foggy,
+                                color: activeTab === 'feedbacks' ? 'var(--color-bg-primary)' : tk.foggy,
                                 transition: 'all 0.2s'
                             }}
                         >
@@ -132,8 +135,8 @@ const MinhasQuestoes = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.05 }}
                                         style={{
-                                            background: tokens.bg,
-                                            border: `1px solid ${tokens.border}`,
+                                            background: tk.bg,
+                                            border: `1px solid ${tk.border}`,
                                             borderRadius: 20,
                                             padding: 20,
                                             boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
@@ -144,13 +147,13 @@ const MinhasQuestoes = () => {
                                     >
                                         <div style={{
                                             width: 48, height: 48, borderRadius: 14,
-                                            background: `${tokens.rausch}15`, color: tokens.rausch,
+                                            background: `${tk.rausch}15`, color: tk.rausch,
                                             display: 'flex', alignItems: 'center', justifyContent: 'center'
                                         }}>
                                             <Icon icon="solar:pen-bold-duotone" width="24" />
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase' }}>QUESTÕES RESOLVIDAS</div>
+                                            <div style={{ fontSize: 11, color: tk.foggy, fontWeight: 700, textTransform: 'uppercase' }}>QUESTÕES RESOLVIDAS</div>
                                             <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--color-text-primary)', marginTop: 2 }}>
                                                 {loadingMetrics ? <CSpinner size="sm" color="danger" /> : (metrics?.questoes ?? dados?.total ?? 0)}
                                             </div>
@@ -164,8 +167,8 @@ const MinhasQuestoes = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.1 }}
                                         style={{
-                                            background: tokens.bg,
-                                            border: `1px solid ${tokens.border}`,
+                                            background: tk.bg,
+                                            border: `1px solid ${tk.border}`,
                                             borderRadius: 20,
                                             padding: 20,
                                             boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
@@ -176,13 +179,13 @@ const MinhasQuestoes = () => {
                                     >
                                         <div style={{
                                             width: 48, height: 48, borderRadius: 14,
-                                            background: `${tokens.babu}15`, color: tokens.babu,
+                                            background: `${tk.babu}15`, color: tk.babu,
                                             display: 'flex', alignItems: 'center', justifyContent: 'center'
                                         }}>
                                             <Icon icon="solar:target-bold-duotone" width="24" />
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase' }}>TAXA DE ACERTO MÉDIA</div>
+                                            <div style={{ fontSize: 11, color: tk.foggy, fontWeight: 700, textTransform: 'uppercase' }}>TAXA DE ACERTO MÉDIA</div>
                                             <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--color-text-primary)', marginTop: 2 }}>
                                                 {loadingMetrics ? <CSpinner size="sm" color="success" /> : `${metrics?.media_numero ?? 0}%`}
                                             </div>
@@ -196,8 +199,8 @@ const MinhasQuestoes = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.15 }}
                                         style={{
-                                            background: tokens.bg,
-                                            border: `1px solid ${tokens.border}`,
+                                            background: tk.bg,
+                                            border: `1px solid ${tk.border}`,
                                             borderRadius: 20,
                                             padding: 20,
                                             boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
@@ -208,13 +211,13 @@ const MinhasQuestoes = () => {
                                     >
                                         <div style={{
                                             width: 48, height: 48, borderRadius: 14,
-                                            background: `${tokens.arches}15`, color: tokens.arches,
+                                            background: `${tk.arches}15`, color: tk.arches,
                                             display: 'flex', alignItems: 'center', justifyContent: 'center'
                                         }}>
                                             <Icon icon="solar:playback-speed-bold-duotone" width="24" />
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 700, textTransform: 'uppercase' }}>SESSÕES DE ESTUDO</div>
+                                            <div style={{ fontSize: 11, color: tk.foggy, fontWeight: 700, textTransform: 'uppercase' }}>SESSÕES DE ESTUDO</div>
                                             <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--color-text-primary)', marginTop: 2 }}>
                                                 {loadingMetrics ? <CSpinner size="sm" color="warning" /> : (metrics?.sessoes ?? 0)}
                                             </div>
@@ -238,18 +241,18 @@ const MinhasQuestoes = () => {
             
             <CModal visible={formModalOpen} onClose={() => setFormModalOpen(false)} size="md" backdrop="static">
                 <div style={{ fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
-                    <CModalHeader closeButton style={{ borderBottom: `1px solid ${tokens.border}` }}>
+                    <CModalHeader closeButton style={{ borderBottom: `1px solid ${tk.border}` }}>
                         <CModalTitle style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text-primary)' }}>Mande sua Dúvida</CModalTitle>
                     </CModalHeader>
                     <form onSubmit={handleSubmitNovaPergunta}>
                         <CModalBody>
                             {duvidaMessage && <CAlert color={duvidaMessage.tipo} className="mb-3">{duvidaMessage.texto}</CAlert>}
                             <div className="mb-3">
-                                <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy }}>Sobre qual questão é sua dúvida? (Opcional)</CFormLabel>
+                                <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tk.foggy }}>Sobre qual questão é sua dúvida? (Opcional)</CFormLabel>
                                 <CFormSelect
                                     value={selectedQuestaoParaDuvida}
                                     onChange={e => setSelectedQuestaoParaDuvida(e.target.value)}
-                                    style={{ borderRadius: 12, background: tokens.bg, color: 'var(--color-text-primary)' }}
+                                    style={{ borderRadius: 12, background: tk.bg, color: 'var(--color-text-primary)' }}
                                 >
                                     <option value="">Geral / Outro Assunto</option>
                                     {questoesResolvidas.map(q => (
@@ -258,16 +261,16 @@ const MinhasQuestoes = () => {
                                 </CFormSelect>
                             </div>
                             <div className="mb-3">
-                                <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy }}>Dúvida/Sugestão</CFormLabel>
+                                <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tk.foggy }}>Dúvida/Sugestão</CFormLabel>
                                 <CFormTextarea rows={4} value={textoDuvida} onChange={e => setTextoDuvida(e.target.value)} required />
                             </div>
-                            <div style={{ background: `${tokens.rausch}05`, border: `1px dashed ${tokens.rausch}30`, borderRadius: 16, padding: 16 }}>
+                            <div style={{ background: `${tk.rausch}05`, border: `1px dashed ${tk.rausch}30`, borderRadius: 16, padding: 16 }}>
                                 <CFormCheck id="marcadaConfusaGeral" label="Marcar como CONFUSA (Possível erro no gabarito)" checked={marcadaConfusa} onChange={e => setMarcadaConfusa(e.target.checked)} />
                             </div>
                         </CModalBody>
                         <CModalFooter>
                             <CButton color="secondary" onClick={() => setFormModalOpen(false)}>Cancelar</CButton>
-                            <CButton type="submit" style={{ background: tokens.rausch, color: '#fff', border: 'none' }} disabled={submittingDuvida}>
+                            <CButton type="submit" style={{ background: tk.rausch, color: '#fff', border: 'none' }} disabled={submittingDuvida}>
                                 {submittingDuvida ? <CSpinner size="sm" /> : 'Enviar Pergunta'}
                             </CButton>
                         </CModalFooter>
@@ -283,9 +286,9 @@ const MinhasQuestoes = () => {
                 backdrop="static"
             >
                 <div style={{ fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
-                    <CModalHeader style={{ borderBottom: `1px solid ${tokens.border}` }}>
+                    <CModalHeader style={{ borderBottom: `1px solid ${tk.border}` }}>
                         <CModalTitle style={{ fontWeight: 800, fontSize: 16, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <Icon icon="solar:document-bold" style={{ color: tokens.rausch }} />
+                            <Icon icon="solar:document-bold" style={{ color: tk.rausch }} />
                             Detalhes da Questão #{selectedQuestaoId}
                         </CModalTitle>
                     </CModalHeader>
@@ -320,22 +323,22 @@ const MinhasQuestoes = () => {
                                     </CBadge>
                                 )}
                                 {questaoDetail.assunto && (
-                                    <CBadge color="danger" style={{ background: `${tokens.rausch}15`, color: tokens.rausch, padding: '6px 10px', fontSize: 10, fontWeight: 700 }}>
+                                    <CBadge color="danger" style={{ background: `${tk.rausch}15`, color: tk.rausch, padding: '6px 10px', fontSize: 10, fontWeight: 700 }}>
                                         {questaoDetail.assunto}
                                     </CBadge>
                                 )}
                             </div>
 
                             {/* Enunciado Integral */}
-                            <div style={{ background: tokens.bgSub, borderRadius: 16, padding: 20, border: `1px solid ${tokens.border}`, marginBottom: 24 }}>
-                                <h6 style={{ fontWeight: 800, fontSize: 12, color: tokens.foggy, textTransform: 'uppercase', marginBottom: 8 }}>Enunciado da Questão</h6>
+                            <div style={{ background: tk.bgSub, borderRadius: 16, padding: 20, border: `1px solid ${tk.border}`, marginBottom: 24 }}>
+                                <h6 style={{ fontWeight: 800, fontSize: 12, color: tk.foggy, textTransform: 'uppercase', marginBottom: 8 }}>Enunciado da Questão</h6>
                                 <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
                                     {questaoDetail.question}
                                 </p>
                             </div>
 
                             {/* Alternativas */}
-                            <h6 style={{ fontWeight: 800, fontSize: 12, color: tokens.foggy, textTransform: 'uppercase', marginBottom: 12 }}>Alternativas Cadastradas</h6>
+                            <h6 style={{ fontWeight: 800, fontSize: 12, color: tk.foggy, textTransform: 'uppercase', marginBottom: 12 }}>Alternativas Cadastradas</h6>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
                                 {questaoDetail.options?.map((opcao, idx) => {
                                     const letra = String.fromCharCode(65 + idx) // A, B, C, D, E
@@ -350,15 +353,15 @@ const MinhasQuestoes = () => {
                                                 gap: 12,
                                                 padding: '14px 16px',
                                                 borderRadius: 14,
-                                                background: ehCorreta ? `${tokens.babu}10` : 'transparent',
-                                                border: `1px solid ${ehCorreta ? tokens.babu : tokens.border}`,
+                                                background: ehCorreta ? `${tk.babu}10` : 'transparent',
+                                                border: `1px solid ${ehCorreta ? tk.babu : tk.border}`,
                                                 transition: 'all 0.2s'
                                             }}
                                         >
                                             <span style={{
                                                 width: 24, height: 24, borderRadius: '50%',
-                                                background: ehCorreta ? tokens.babu : tokens.bgSub,
-                                                color: ehCorreta ? '#fff' : tokens.foggy,
+                                                background: ehCorreta ? tk.babu : tk.bgSub,
+                                                color: ehCorreta ? '#fff' : tk.foggy,
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                 fontSize: 12, fontWeight: 800, flexShrink: 0
                                             }}>
@@ -367,7 +370,7 @@ const MinhasQuestoes = () => {
                                             <div style={{ 
                                                 fontSize: 13, 
                                                 fontWeight: ehCorreta ? 700 : 600, 
-                                                color: ehCorreta ? tokens.babu : 'var(--color-text-primary)',
+                                                color: ehCorreta ? tk.babu : 'var(--color-text-primary)',
                                                 lineHeight: 1.4
                                             }}>
                                                 {opcao}
@@ -375,7 +378,7 @@ const MinhasQuestoes = () => {
                                             {ehCorreta && (
                                                 <Icon 
                                                     icon="solar:check-circle-bold" 
-                                                    style={{ color: tokens.babu, marginLeft: 'auto', alignSelf: 'center', flexShrink: 0 }} 
+                                                    style={{ color: tk.babu, marginLeft: 'auto', alignSelf: 'center', flexShrink: 0 }} 
                                                     width="18" 
                                                 />
                                             )}
@@ -386,9 +389,9 @@ const MinhasQuestoes = () => {
 
                             {/* Explicação Teórica do Professor */}
                             {questaoDetail.explicacao && (
-                                <div style={{ background: 'var(--color-bg-tertiary)', borderRadius: 16, padding: 20, border: `1px solid ${tokens.border}`, marginBottom: 24 }}>
-                                    <h6 style={{ fontWeight: 800, fontSize: 12, color: tokens.foggy, textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                        <Icon icon="solar:lightbulb-bold-duotone" style={{ color: tokens.arches }} />
+                                <div style={{ background: 'var(--color-bg-tertiary)', borderRadius: 16, padding: 20, border: `1px solid ${tk.border}`, marginBottom: 24 }}>
+                                    <h6 style={{ fontWeight: 800, fontSize: 12, color: tk.foggy, textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <Icon icon="solar:lightbulb-bold-duotone" style={{ color: tk.arches }} />
                                         Explicação do Professor
                                     </h6>
                                     <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
@@ -399,14 +402,14 @@ const MinhasQuestoes = () => {
 
                             {/* Resolução em Vídeo */}
                             {questaoDetail.link_video && (
-                                <div style={{ background: `${tokens.rausch}08`, borderRadius: 16, padding: 20, border: `1px dashed ${tokens.rausch}` }}>
+                                <div style={{ background: `${tk.rausch}08`, borderRadius: 16, padding: 20, border: `1px dashed ${tk.rausch}` }}>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                                         <div>
-                                            <h6 style={{ fontWeight: 800, fontSize: 13, color: tokens.rausch, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <h6 style={{ fontWeight: 800, fontSize: 13, color: tk.rausch, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                                                 <Icon icon="solar:videocamera-record-bold-duotone" />
                                                 Resolução em Vídeo Disponível!
                                             </h6>
-                                            <p style={{ fontSize: 11, color: tokens.foggy, margin: 0 }}>
+                                            <p style={{ fontSize: 11, color: tk.foggy, margin: 0 }}>
                                                 Assista à explicação detalhada desta questão explicada passo a passo.
                                             </p>
                                         </div>
@@ -415,7 +418,7 @@ const MinhasQuestoes = () => {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             style={{
-                                                background: tokens.rausch, color: '#fff', border: 'none',
+                                                background: tk.rausch, color: '#fff', border: 'none',
                                                 borderRadius: 12, padding: '8px 16px',
                                                 fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6,
                                                 boxShadow: '0 4px 10px rgba(255, 56, 92, 0.15)'
@@ -429,7 +432,7 @@ const MinhasQuestoes = () => {
                         </div>
                     ) : null}
                 </CModalBody>
-                <CModalFooter style={{ borderTop: `1px solid ${tokens.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <CModalFooter style={{ borderTop: `1px solid ${tk.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <CButton
                         onClick={() => {
                             setDuvidaMessage(null)
@@ -438,7 +441,7 @@ const MinhasQuestoes = () => {
                             setDuvidaModalOpen(true)
                         }}
                         style={{
-                            background: tokens.rausch,
+                            background: tk.rausch,
                             color: '#fff',
                             border: 'none',
                             borderRadius: 12,
@@ -473,7 +476,7 @@ const MinhasQuestoes = () => {
                 backdrop="static"
             >
                 <div style={{ fontFamily: "'Circular Std', 'Nunito', sans-serif" }}>
-                    <CModalHeader closeButton style={{ borderBottom: `1px solid ${tokens.border}` }}>
+                    <CModalHeader closeButton style={{ borderBottom: `1px solid ${tk.border}` }}>
                         <CModalTitle style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text-primary)' }}>
                             Mande sua Dúvida — Questão #{selectedQuestaoId}
                         </CModalTitle>
@@ -487,7 +490,7 @@ const MinhasQuestoes = () => {
                         )}
 
                         <div className="mb-4">
-                            <CFormLabel style={{ fontSize: 12, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase' }}>
+                            <CFormLabel style={{ fontSize: 12, color: tk.foggy, fontWeight: 800, textTransform: 'uppercase' }}>
                                 Explique o que não ficou claro ou qual a sua dúvida:
                             </CFormLabel>
                             <CFormTextarea
@@ -498,8 +501,8 @@ const MinhasQuestoes = () => {
                                 required
                                 style={{
                                     borderRadius: 14,
-                                    border: `1px solid ${tokens.border}`,
-                                    background: tokens.bg,
+                                    border: `1px solid ${tk.border}`,
+                                    background: tk.bg,
                                     color: 'var(--color-text-primary)',
                                     fontSize: 13,
                                     fontWeight: 600,
@@ -511,8 +514,8 @@ const MinhasQuestoes = () => {
                         </div>
 
                         <div style={{
-                            background: `${tokens.rausch}05`,
-                            border: `1px dashed ${tokens.rausch}30`,
+                            background: `${tk.rausch}05`,
+                            border: `1px dashed ${tk.rausch}30`,
                             borderRadius: 16,
                             padding: 16,
                             marginBottom: 4
@@ -524,12 +527,12 @@ const MinhasQuestoes = () => {
                                 onChange={e => setMarcadaConfusa(e.target.checked)}
                                 style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text-primary)', cursor: 'pointer' }}
                             />
-                            <div style={{ fontSize: 11, color: tokens.foggy, marginTop: 4, marginLeft: 24 }}>
+                            <div style={{ fontSize: 11, color: tk.foggy, marginTop: 4, marginLeft: 24 }}>
                                 Se você acha que o enunciado, gabarito ou as alternativas estão incorretos ou confusos.
                             </div>
                         </div>
                     </CModalBody>
-                    <CModalFooter style={{ borderTop: `1px solid ${tokens.border}` }}>
+                    <CModalFooter style={{ borderTop: `1px solid ${tk.border}` }}>
                         <CButton
                             color="secondary"
                             onClick={() => setDuvidaModalOpen(false)}
@@ -541,7 +544,7 @@ const MinhasQuestoes = () => {
                         <CButton
                             type="submit"
                             style={{
-                                background: tokens.rausch, color: '#fff', border: 'none',
+                                background: tk.rausch, color: '#fff', border: 'none',
                                 borderRadius: 10, fontWeight: 700, fontSize: 12,
                                 display: 'flex', alignItems: 'center', gap: 6,
                                 fontFamily: "'Circular Std', 'Nunito', sans-serif"
@@ -585,7 +588,7 @@ const MinhasQuestoes = () => {
                     <Icon 
                         icon="solar:shield-warning-bold" 
                         width="16" 
-                        style={{ color: debugLogs.some(l => l.type === 'error') ? tokens.rausch : '#10b981' }} 
+                        style={{ color: debugLogs.some(l => l.type === 'error') ? tk.rausch : '#10b981' }} 
                     />
                     Console de Diagnóstico {debugLogs.filter(l => l.type === 'error').length > 0 && `(${debugLogs.filter(l => l.type === 'error').length} 🚨)`}
                 </CButton>
@@ -598,7 +601,7 @@ const MinhasQuestoes = () => {
                         width: 350,
                         maxHeight: 450,
                         background: 'var(--color-bg-elevated)',
-                        border: `1px solid ${tokens.border}`,
+                        border: `1px solid ${tk.border}`,
                         borderRadius: 20,
                         boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
                         overflow: 'hidden',
@@ -607,11 +610,11 @@ const MinhasQuestoes = () => {
                     }}>
                         <div style={{
                             padding: '14px 18px',
-                            borderBottom: `1px solid ${tokens.border}`,
+                            borderBottom: `1px solid ${tk.border}`,
                             fontWeight: 850,
                             fontSize: 13,
                             background: 'rgba(255, 56, 92, 0.08)',
-                            color: tokens.rausch,
+                            color: tk.rausch,
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center'
@@ -623,7 +626,7 @@ const MinhasQuestoes = () => {
                                 size="sm" 
                                 color="link" 
                                 onClick={() => setDebugLogs([])} 
-                                style={{ fontSize: 11, padding: 0, color: tokens.foggy, textDecoration: 'none', fontWeight: 700 }}
+                                style={{ fontSize: 11, padding: 0, color: tk.foggy, textDecoration: 'none', fontWeight: 700 }}
                             >
                                 Limpar
                             </CButton>
@@ -639,15 +642,15 @@ const MinhasQuestoes = () => {
                             gap: 12
                         }}>
                             {debugLogs.length === 0 ? (
-                                <div style={{ color: tokens.foggy, textAlign: 'center', padding: '32px 16px', fontWeight: 600 }}>
+                                <div style={{ color: tk.foggy, textAlign: 'center', padding: '32px 16px', fontWeight: 600 }}>
                                     Nenhum log registrado ainda.<br/>Abra a revisão e clique no botão de dúvida para testar.
                                 </div>
                             ) : (
                                 debugLogs.map((log, i) => (
                                     <div key={i} style={{
-                                        borderBottom: `1px solid ${tokens.border}`,
+                                        borderBottom: `1px solid ${tk.border}`,
                                         paddingBottom: 8,
-                                        color: log.type === 'error' ? tokens.rausch : log.type === 'success' ? '#10b981' : log.type === 'warning' ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-primary)'
+                                        color: log.type === 'error' ? tk.rausch : log.type === 'success' ? '#10b981' : log.type === 'warning' ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-primary)'
                                     }}>
                                         <div style={{ fontSize: 10, opacity: 0.6, fontWeight: 700, marginBottom: 2 }}>[{log.time}]</div>
                                         <div style={{ fontWeight: 650, lineHeight: 1.4 }}>{log.msg}</div>

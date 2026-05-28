@@ -7,7 +7,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
 import { confirmDialog } from '../../utils/confirm'
-import { tokens } from '../../tokens'
+import { buildTokens } from '../../tokens'
 import { useTheme } from '../../context/themeContext'
 import { 
     useFeedbacksQuestoes, 
@@ -41,7 +41,8 @@ const getCorAvatar = (nome) => {
 }
 
 const FeedbacksQuestoes = () => {
-    const { isDark } = useTheme()
+    const { isDark, currentPalette } = useTheme()
+    const tk = buildTokens(currentPalette)
     const navigate = useNavigate()
     
     const [filtroStatus, setFiltroStatus] = useState('pendente')
@@ -158,7 +159,7 @@ const FeedbacksQuestoes = () => {
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
                     <div className="d-flex justify-content-between align-items-start flex-wrap gap-3">
                         <div>
-                            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
+                            <div style={{ color: tk.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
                                 Suporte Pedagógico
                             </div>
                             <div className="d-flex align-items-center gap-2">
@@ -178,7 +179,7 @@ const FeedbacksQuestoes = () => {
                                     </span>
                                 )}
                             </div>
-                            <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+                            <div style={{ fontSize: 14, color: tk.foggy, marginTop: 6 }}>
                                 Gerencie as dúvidas e reportes de questões enviadas pelos estudantes.
                             </div>
                         </div>
@@ -201,7 +202,7 @@ const FeedbacksQuestoes = () => {
                                 cursor: 'pointer',
                             }}
                         >
-                            <Icon icon="solar:download-minimalistic-bold-duotone" width="18" style={{ color: tokens.rausch }} />
+                            <Icon icon="solar:download-minimalistic-bold-duotone" width="18" style={{ color: tk.rausch }} />
                             Exportar CSV
                         </CButton>
                     </div>
@@ -235,8 +236,8 @@ const FeedbacksQuestoes = () => {
                                             fontWeight: 800,
                                             background: isActive ? 'var(--color-bg-elevated)' : 'transparent',
                                             color: isActive 
-                                                ? (f === 'pendente' ? tokens.arches : f === 'resolvido' ? tokens.babu : tokens.rausch) 
-                                                : tokens.foggy,
+                                                ? (f === 'pendente' ? tk.arches : f === 'resolvido' ? tk.babu : tk.rausch) 
+                                                : tk.foggy,
                                             boxShadow: isActive ? '0 2px 6px rgba(0,0,0,0.04)' : 'none',
                                             cursor: 'pointer',
                                             position: 'relative',
@@ -251,7 +252,7 @@ const FeedbacksQuestoes = () => {
 
                         {/* Campo de Busca */}
                         <div className="position-relative" style={{ minWidth: '250px', maxWidth: '350px', flex: 1 }}>
-                            <div className="position-absolute" style={{ left: 12, top: '50%', transform: 'translateY(-50%)', color: tokens.foggy }}>
+                            <div className="position-absolute" style={{ left: 12, top: '50%', transform: 'translateY(-50%)', color: tk.foggy }}>
                                 <Icon icon="solar:magnifer-bold-duotone" width="18" />
                             </div>
                             <CFormInput
@@ -283,7 +284,7 @@ const FeedbacksQuestoes = () => {
                     </div>
                 ) : feedbacks.length === 0 ? (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-5 text-muted">
-                        <Icon icon="solar:dialog-close-bold-duotone" width="48" style={{ color: tokens.swiss, marginBottom: 16 }} />
+                        <Icon icon="solar:dialog-close-bold-duotone" width="48" style={{ color: tk.swiss, marginBottom: 16 }} />
                         <h5 style={{ fontWeight: 800, color: 'var(--color-text-primary)' }}>
                             {filtroStatus === 'pendente'
                                 ? 'Nenhum feedback pendente! 🎉'
@@ -291,7 +292,7 @@ const FeedbacksQuestoes = () => {
                                     ? 'Nenhum feedback resolvido encontrado.'
                                     : 'Nenhum feedback recebido ainda!'}
                         </h5>
-                        <p style={{ color: tokens.foggy, fontSize: 13 }}>As mensagens e dúvidas dos alunos aparecerão aqui.</p>
+                        <p style={{ color: tk.foggy, fontSize: 13 }}>As mensagens e dúvidas dos alunos aparecerão aqui.</p>
                     </motion.div>
                 ) : (
                     <CRow className="g-4">
@@ -338,7 +339,7 @@ const FeedbacksQuestoes = () => {
                                                     <div className="fw-bold" style={{ fontSize: 15, color: 'var(--color-text-primary)', textTransform: 'capitalize' }}>
                                                         {avatarNome.toLowerCase()}
                                                     </div>
-                                                    <div style={{ fontSize: 12, color: tokens.foggy, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    <div style={{ fontSize: 12, color: tk.foggy, display: 'flex', alignItems: 'center', gap: 6 }}>
                                                         <Icon icon="solar:calendar-linear" width="12" />
                                                         {item.data_criacao}
                                                     </div>
@@ -351,7 +352,7 @@ const FeedbacksQuestoes = () => {
                                                 {/* Tags */}
                                                 <span style={{
                                                     background: item.marcada_confusa ? 'rgba(252, 100, 45, 0.08)' : 'rgba(118, 118, 118, 0.08)',
-                                                    color: item.marcada_confusa ? tokens.arches : tokens.foggy,
+                                                    color: item.marcada_confusa ? tk.arches : tk.foggy,
                                                     fontSize: '11px',
                                                     fontWeight: 800,
                                                     padding: '4px 10px',
@@ -363,7 +364,7 @@ const FeedbacksQuestoes = () => {
                                                 {item.impacto >= 2 && !item.resolvido && (
                                                     <span style={{
                                                         background: 'rgba(255, 56, 92, 0.08)',
-                                                        color: tokens.rausch,
+                                                        color: tk.rausch,
                                                         fontSize: '11px',
                                                         fontWeight: 800,
                                                         padding: '4px 10px',
@@ -375,7 +376,7 @@ const FeedbacksQuestoes = () => {
 
                                                 <span style={{
                                                     background: item.resolvido ? 'rgba(0, 166, 153, 0.08)' : 'rgba(252, 100, 45, 0.08)',
-                                                    color: item.resolvido ? tokens.babu : tokens.arches,
+                                                    color: item.resolvido ? tk.babu : tk.arches,
                                                     fontSize: '11px',
                                                     fontWeight: 800,
                                                     padding: '4px 10px',
@@ -391,23 +392,23 @@ const FeedbacksQuestoes = () => {
                                                 <div className="d-flex gap-1">
                                                     {!item.resolvido && (
                                                         <CTooltip content="Resolver">
-                                                            <CButton onClick={() => handleResolver(item.id)} style={{ border: 'none', background: 'none', color: tokens.babu, padding: 6, display: 'flex', alignItems: 'center' }}>
+                                                            <CButton onClick={() => handleResolver(item.id)} style={{ border: 'none', background: 'none', color: tk.babu, padding: 6, display: 'flex', alignItems: 'center' }}>
                                                                 <Icon icon="solar:check-circle-bold-duotone" width="22" />
                                                             </CButton>
                                                         </CTooltip>
                                                     )}
                                                     <CTooltip content="Editar Questão">
-                                                        <CButton onClick={() => navigate(`/questoes?busca=${item.questao_id}`)} style={{ border: 'none', background: 'none', color: tokens.rausch, padding: 6, display: 'flex', alignItems: 'center' }}>
+                                                        <CButton onClick={() => navigate(`/questoes?busca=${item.questao_id}`)} style={{ border: 'none', background: 'none', color: tk.rausch, padding: 6, display: 'flex', alignItems: 'center' }}>
                                                             <Icon icon="solar:pen-bold-duotone" width="22" />
                                                         </CButton>
                                                     </CTooltip>
                                                     <CTooltip content={item.publico ? "Tornar Privado" : "Tornar Público"}>
-                                                        <CButton onClick={() => handlePublicar(item.id)} style={{ border: 'none', background: 'none', color: item.publico ? tokens.babu : tokens.swiss, padding: 6, display: 'flex', alignItems: 'center' }}>
+                                                        <CButton onClick={() => handlePublicar(item.id)} style={{ border: 'none', background: 'none', color: item.publico ? tk.babu : tk.swiss, padding: 6, display: 'flex', alignItems: 'center' }}>
                                                             <Icon icon={item.publico ? "solar:bell-ring-bold-duotone" : "solar:bell-off-bold-duotone"} width="22" />
                                                         </CButton>
                                                     </CTooltip>
                                                     <CTooltip content="Excluir">
-                                                        <CButton onClick={() => handleDelete(item.id)} style={{ border: 'none', background: 'none', color: tokens.rausch, padding: 6, display: 'flex', alignItems: 'center' }}>
+                                                        <CButton onClick={() => handleDelete(item.id)} style={{ border: 'none', background: 'none', color: tk.rausch, padding: 6, display: 'flex', alignItems: 'center' }}>
                                                             <Icon icon="solar:trash-bin-trash-bold-duotone" width="22" />
                                                         </CButton>
                                                     </CTooltip>
@@ -423,7 +424,7 @@ const FeedbacksQuestoes = () => {
                                             border: '1px dashed var(--color-border)',
                                             marginBottom: 20
                                         }}>
-                                            <div style={{ fontSize: '11px', color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+                                            <div style={{ fontSize: '11px', color: tk.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
                                                 Questão Referenciada — ID #{item.questao_id}
                                             </div>
                                             <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.5, fontStyle: 'italic' }}>
@@ -435,7 +436,7 @@ const FeedbacksQuestoes = () => {
 
                                         {/* Comentário do Estudante */}
                                         <div style={{ marginBottom: 20 }}>
-                                            <div style={{ fontSize: '11px', color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                                            <div style={{ fontSize: '11px', color: tk.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
                                                 Mensagem do Estudante
                                             </div>
                                             <div style={{
@@ -443,12 +444,12 @@ const FeedbacksQuestoes = () => {
                                                 fontWeight: 500,
                                                 color: 'var(--color-text-primary)',
                                                 background: 'rgba(var(--accent-primary-rgb, 255, 56, 92), 0.03)',
-                                                borderLeft: `3px solid ${item.marcada_confusa ? tokens.arches : tokens.rausch}`,
+                                                borderLeft: `3px solid ${item.marcada_confusa ? tk.arches : tk.rausch}`,
                                                 padding: '12px 16px',
                                                 borderRadius: '0 12px 12px 0',
                                                 lineHeight: 1.5
                                             }}>
-                                                {item.texto ? `"${item.texto}"` : <span style={{ color: tokens.foggy, fontStyle: 'italic' }}>Reporte de erro sem comentário em texto.</span>}
+                                                {item.texto ? `"${item.texto}"` : <span style={{ color: tk.foggy, fontStyle: 'italic' }}>Reporte de erro sem comentário em texto.</span>}
                                             </div>
                                         </div>
 
@@ -457,12 +458,12 @@ const FeedbacksQuestoes = () => {
                                             {item.resposta_professor ? (
                                                 <div style={{
                                                     background: 'rgba(0, 166, 153, 0.03)',
-                                                    borderLeft: `3px solid ${tokens.babu}`,
+                                                    borderLeft: `3px solid ${tk.babu}`,
                                                     padding: '12px 16px',
                                                     borderRadius: '0 12px 12px 0',
                                                     marginTop: 10
                                                 }}>
-                                                    <div style={{ fontSize: '11px', color: tokens.babu, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+                                                    <div style={{ fontSize: '11px', color: tk.babu, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
                                                         Sua Resposta Enviada
                                                     </div>
                                                     <div style={{ fontSize: '14px', color: 'var(--color-text-primary)', lineHeight: 1.5 }}>
@@ -493,14 +494,14 @@ const FeedbacksQuestoes = () => {
                                                             disabled={submittingIds.has(item.id) || !respostaLocal[item.id]?.trim()}
                                                             onClick={() => handleResponder(item.id)}
                                                             style={{
-                                                                background: tokens.babu,
+                                                                background: tk.babu,
                                                                 color: '#fff',
                                                                 border: 'none',
                                                                 borderRadius: 12,
                                                                 padding: '8px 20px',
                                                                 fontWeight: 800,
                                                                 fontSize: '13px',
-                                                                boxShadow: `0 4px 12px ${tokens.babu}25`,
+                                                                boxShadow: `0 4px 12px ${tk.babu}25`,
                                                                 cursor: 'pointer',
                                                             }}
                                                         >

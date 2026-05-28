@@ -11,7 +11,7 @@ import { useTheme } from '../../context/themeContext'
 import FolderCard from '../../components/premium/FolderCard'
 import { agruparPorMateria } from '../../utils/grouping'
 import api from '../../services/api'
-import { tokens } from '../../tokens'
+import { buildTokens } from '../../tokens'
 import useAuthSession from '../../hooks/useAuthSession'
 import { API_URL } from '../../config'
 
@@ -72,18 +72,25 @@ const SCard = ({ children, style = {}, delay = 0 }) => (
   </motion.div>
 )
 
-const AirbnbProgress = ({ value, color = tokens.rausch }) => (
-  <div style={{ height: 6, background: 'var(--color-bg-tertiary)', borderRadius: 99, overflow: 'hidden' }}>
-    <motion.div
-      initial={{ width: 0 }}
-      animate={{ width: `${value}%` }}
-      transition={{ duration: 0.9, ease: 'easeOut', delay: 0.2 }}
-      style={{ height: '100%', background: color, borderRadius: 99 }}
-    />
-  </div>
-)
+const AirbnbProgress = ({ value, color }) => {
+  const { currentPalette } = useTheme()
+  const tk = buildTokens(currentPalette)
+  const finalColor = color || tk.rausch
+  return (
+    <div style={{ height: 6, background: 'var(--color-bg-tertiary)', borderRadius: 99, overflow: 'hidden' }}>
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${value}%` }}
+        transition={{ duration: 0.9, ease: 'easeOut', delay: 0.2 }}
+        style={{ height: '100%', background: finalColor, borderRadius: 99 }}
+      />
+    </div>
+  )
+}
 
 const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista }) => {
+  const { currentPalette } = useTheme()
+  const tk = buildTokens(currentPalette)
   const titulo = q.titulo || q.question || 'Sem título'
   const materiaLabel = q.materia_nome || q.assunto || 'Geral'
   const thumbnail = obterThumbnail(q.link_video)
@@ -123,14 +130,14 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista }) 
                   className="rounded-circle d-flex align-items-center justify-content-center shadow-lg" 
                   style={{ width: 54, height: 54, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(4px)' }}
                 >
-                  <Icon icon="solar:play-bold" style={{ color: tokens.rausch }} width="24" className="ms-1" />
+                  <Icon icon="solar:play-bold" style={{ color: tk.rausch }} width="24" className="ms-1" />
                 </div>
               </div>
             </>
           )}
           {assistido && (
             <div className="position-absolute top-3 end-3 shadow-sm">
-              <span className="px-2 py-1 rounded-pill fw-bold text-white" style={{ background: tokens.babu, fontSize: 9, letterSpacing: '0.5px' }}>
+              <span className="px-2 py-1 rounded-pill fw-bold text-white" style={{ background: tk.babu, fontSize: 9, letterSpacing: '0.5px' }}>
                 ✓ ASSISTIDO
               </span>
             </div>
@@ -139,10 +146,10 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista }) 
 
         <div className="p-4 d-flex flex-column flex-grow-1">
           <div className="d-flex gap-2 mb-2">
-            <span style={{ fontSize: 10, fontWeight: 700, color: tokens.rausch, background: `${tokens.rausch}15`, padding: '2px 8px', borderRadius: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: tk.rausch, background: `${tk.rausch}15`, padding: '2px 8px', borderRadius: 6 }}>
               #{q.id}
             </span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: tokens.foggy, background: 'var(--color-bg-tertiary)', padding: '2px 8px', borderRadius: 6, textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: tk.foggy, background: 'var(--color-bg-tertiary)', padding: '2px 8px', borderRadius: 6, textTransform: 'uppercase' }}>
               {materiaLabel}
             </span>
           </div>
@@ -151,7 +158,7 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista }) 
           </h5>
           
           <div className="d-flex justify-content-between align-items-center mt-auto">
-            <span style={{ fontSize: 12, color: assistido ? tokens.babu : tokens.foggy, fontWeight: 600 }}>
+            <span style={{ fontSize: 12, color: assistido ? tk.babu : tk.foggy, fontWeight: 600 }}>
               {assistido ? 'Concluído' : 'Aguardando'}
             </span>
             <div className="d-flex gap-2">
@@ -172,6 +179,8 @@ const VideoCard = memo(({ q, assistido, onMarcarAssistido, isDark, modoLista }) 
 })
 
 const VideoGallery = () => {
+  const { currentPalette, isDark } = useTheme()
+  const tk = buildTokens(currentPalette)
   const [questoesComVideo, setQuestoesComVideo] = useState([])
   const [materias, setMaterias] = useState([])
   const [materiaFiltro, setMateriaFiltro] = useState('')
@@ -183,7 +192,6 @@ const VideoGallery = () => {
   const [desempenhoBaixo, setDesempenhoBaixo] = useState([])
   const [viewMode, setViewMode] = useState('folders') // 'folders' ou 'items'
   const [activeFolder, setActiveFolder] = useState(null)
-  const { isDark } = useTheme()
   const { matricula } = useAuthSession()
 
   useEffect(() => { ls.set('videosAssistidos', assistidos) }, [assistidos])
@@ -192,7 +200,7 @@ const VideoGallery = () => {
     const chave = getVideoKey(video)
     if (isVideoAssistido(assistidos, video)) return
     setAssistidos(prev => [...new Set([...prev.filter(item => item !== video.id), chave])])
-    confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 }, colors: [tokens.rausch, tokens.babu, tokens.arches] })
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 }, colors: [tk.rausch, tk.babu, tk.arches] })
     toast.success('Aula concluída com sucesso! 🎉')
     if (matricula) {
       api.post(`/api/aluno/video-assistido/${video.id}`, { matricula, origem: normalizarOrigemVideo(video.video_origem) })
@@ -296,11 +304,11 @@ const VideoGallery = () => {
         >
           <div className="d-flex justify-content-between align-items-end">
             <div>
-              <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Centro de Aprendizado</div>
+              <div style={{ color: tk.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Centro de Aprendizado</div>
               <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
                 {viewMode === 'folders' ? 'Pastas de Estudo 📂' : `${activeFolder?.title} 📖`}
               </div>
-              <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+              <div style={{ fontSize: 14, color: tk.foggy, marginTop: 6 }}>
                 {viewMode === 'folders' 
                   ? 'Navegue pelos assuntos organizados para otimizar seu aprendizado.'
                   : `Você está explorando as aulas de ${activeFolder?.title}.`}
@@ -311,7 +319,7 @@ const VideoGallery = () => {
                 onClick={handleBackToFolders}
                 variant="ghost" 
                 className="d-flex align-items-center gap-2 fw-bold"
-                style={{ color: tokens.rausch, borderRadius: 12 }}
+                style={{ color: tk.rausch, borderRadius: 12 }}
               >
                 <Icon icon="solar:alt-arrow-left-bold-duotone" width="20" />
                 Voltar para Pastas
@@ -324,7 +332,7 @@ const VideoGallery = () => {
         <CRow className="mb-5 g-3">
           <CCol lg={5}>
             <div className="search-field d-flex align-items-center px-3 py-1">
-              <Icon icon="solar:magnifer-linear" style={{ color: tokens.foggy }} width="20" />
+              <Icon icon="solar:magnifer-linear" style={{ color: tk.foggy }} width="20" />
               <CFormInput 
                 placeholder="Pesquisar por título ou assunto..." 
                 value={busca} 
@@ -351,20 +359,20 @@ const VideoGallery = () => {
                 onClick={() => setModoVis('grade')}
                 style={{ background: modoVis === 'grade' ? 'var(--color-bg-elevated)' : 'transparent', border: 'none', borderRadius: 10, padding: '8px 12px' }}
               >
-                <Icon icon="solar:widget-2-bold-duotone" style={{ color: modoVis === 'grade' ? tokens.rausch : tokens.foggy }} />
+                <Icon icon="solar:widget-2-bold-duotone" style={{ color: modoVis === 'grade' ? tk.rausch : tk.foggy }} />
               </CButton>
               <CButton 
                 onClick={() => setModoVis('lista')}
                 style={{ background: modoVis === 'lista' ? 'var(--color-bg-elevated)' : 'transparent', border: 'none', borderRadius: 10, padding: '8px 12px' }}
               >
-                <Icon icon="solar:list-bold-duotone" style={{ color: modoVis === 'lista' ? tokens.rausch : tokens.foggy }} />
+                <Icon icon="solar:list-bold-duotone" style={{ color: modoVis === 'lista' ? tk.rausch : tk.foggy }} />
               </CButton>
             </div>
             <motion.button 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="fw-bold border-0 px-4 shadow-sm"
-              style={{ background: tokens.rausch, color: '#fff', borderRadius: 14, fontSize: 14 }}
+              style={{ background: tk.rausch, color: '#fff', borderRadius: 14, fontSize: 14 }}
               onClick={() => setModoPlaylist(!modoPlaylist)}
             >
               <Icon icon="solar:play-stream-bold-duotone" className="me-2" /> {modoPlaylist ? 'Fechar' : 'Playlist'}
@@ -374,9 +382,9 @@ const VideoGallery = () => {
 
         {/* RECOMENDADOS (CARD ESTILO SCard) */}
         {recomendados.length > 0 && !busca && (
-          <SCard delay={0.1} style={{ marginBottom: 48, borderLeft: `6px solid ${tokens.arches}`, background: `linear-gradient(90deg, ${tokens.arches}05 0%, transparent 100%)` }}>
+          <SCard delay={0.1} style={{ marginBottom: 48, borderLeft: `6px solid ${tk.arches}`, background: `linear-gradient(90deg, ${tk.arches}05 0%, transparent 100%)` }}>
             <div className="d-flex align-items-center gap-3 mb-4">
-              <div className="rounded-3 d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, background: `${tokens.arches}15`, color: tokens.arches }}>
+              <div className="rounded-3 d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, background: `${tk.arches}15`, color: tk.arches }}>
                 <Icon icon="solar:star-bold-duotone" width="22" />
               </div>
               <h5 className="mb-0 fw-bold" style={{ letterSpacing: '-0.5px' }}>Recomendado para você</h5>
@@ -413,7 +421,7 @@ const VideoGallery = () => {
                     itemCount={f.count}
                     progress={f.progress}
                     icon={f.icon}
-                    color={i % 3 === 0 ? tokens.rausch : i % 3 === 1 ? tokens.babu : tokens.arches}
+                    color={i % 3 === 0 ? tk.rausch : i % 3 === 1 ? tk.babu : tk.arches}
                     onClick={() => handleFolderClick(f)}
                   />
                 </CCol>
@@ -427,8 +435,8 @@ const VideoGallery = () => {
             ))}
             {!filteredItems.length && (
               <div className="text-center py-5">
-                <Icon icon="solar:ghost-bold-duotone" width="64" style={{ color: tokens.swiss, opacity: 0.3 }} />
-                <h5 className="mt-3" style={{ color: tokens.foggy }}>Nenhuma aula encontrada nesta pasta</h5>
+                <Icon icon="solar:ghost-bold-duotone" width="64" style={{ color: tk.swiss, opacity: 0.3 }} />
+                <h5 className="mt-3" style={{ color: tk.foggy }}>Nenhuma aula encontrada nesta pasta</h5>
               </div>
             )}
           </CRow>
@@ -453,7 +461,7 @@ const VideoGallery = () => {
             <div className="p-4 border-bottom d-flex justify-content-between align-items-center">
               <h6 className="fw-bold m-0" style={{ letterSpacing: '-0.4px' }}>Playlist de Estudo</h6>
               <CButton variant="ghost" className="rounded-circle p-2" onClick={() => setModoPlaylist(false)}>
-                <Icon icon="solar:close-circle-bold-duotone" style={{ color: tokens.foggy }} width="24" />
+                <Icon icon="solar:close-circle-bold-duotone" style={{ color: tk.foggy }} width="24" />
               </CButton>
             </div>
             <div className="overflow-auto p-4 flex-grow-1">
@@ -468,12 +476,12 @@ const VideoGallery = () => {
                   }}
                 >
                   <div className="d-flex align-items-center gap-3">
-                    <span style={{ fontSize: 14, fontWeight: 800, color: isVideoAssistido(assistidos, v) ? tokens.babu : tokens.foggy }}>{String(i+1).padStart(2, '0')}</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: isVideoAssistido(assistidos, v) ? tk.babu : tk.foggy }}>{String(i+1).padStart(2, '0')}</span>
                     <div className="flex-grow-1 min-w-0">
                       <div className="fw-bold text-truncate" style={{ fontSize: 13, color: 'var(--color-text-primary)' }}>{v.titulo || v.question}</div>
-                      <div style={{ fontSize: 11, color: tokens.foggy }}>{v.materia_nome || v.assunto}</div>
+                      <div style={{ fontSize: 11, color: tk.foggy }}>{v.materia_nome || v.assunto}</div>
                     </div>
-                    {isVideoAssistido(assistidos, v) && <Icon icon="solar:check-circle-bold" style={{ color: tokens.babu }} width="16" />}
+                    {isVideoAssistido(assistidos, v) && <Icon icon="solar:check-circle-bold" style={{ color: tk.babu }} width="16" />}
                   </div>
                 </motion.div>
               ))}

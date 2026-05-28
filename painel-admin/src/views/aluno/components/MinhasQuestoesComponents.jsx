@@ -2,7 +2,8 @@ import React from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { CRow, CCol, CButton } from '@coreui/react';
-import { tokens } from '../../../tokens';
+import { buildTokens } from '../../../tokens';
+import { useTheme } from '../../../context/themeContext';
 
 export const Skeleton = ({ h = 20, w = '100%', radius = 12, className = '' }) => (
     <div 
@@ -17,55 +18,65 @@ export const Skeleton = ({ h = 20, w = '100%', radius = 12, className = '' }) =>
     />
 )
 
-export const FeedbackSkeleton = () => (
-    <div style={{ background: tokens.bg, border: `1px solid ${tokens.border}`, borderRadius: 20, padding: 20, marginBottom: 12 }}>
-        <div className="flex justify-between gap-4">
-            <div className="flex-1">
-                <div className="flex gap-2 mb-3">
-                    <Skeleton h={12} w="80px" />
-                    <Skeleton h={12} w="60px" />
+export const FeedbackSkeleton = () => {
+    const { currentPalette } = useTheme();
+    const tk = buildTokens(currentPalette);
+    return (
+        <div style={{ background: tk.bg, border: `1px solid ${tk.border}`, borderRadius: 20, padding: 20, marginBottom: 12 }}>
+            <div className="flex justify-between gap-4">
+                <div className="flex-1">
+                    <div className="flex gap-2 mb-3">
+                        <Skeleton h={12} w="80px" />
+                        <Skeleton h={12} w="60px" />
+                    </div>
+                    <Skeleton h={18} w="70%" className="mb-2" />
+                    <Skeleton h={14} w="40%" />
                 </div>
-                <Skeleton h={18} w="70%" className="mb-2" />
-                <Skeleton h={14} w="40%" />
+                <Skeleton h={24} w="24px" radius={6} />
             </div>
-            <Skeleton h={24} w="24px" radius={6} />
         </div>
-    </div>
-)
+    );
+};
 
 // ── Metric Cards ────────────────────────────────────────────────
-export const StatCard = ({ icon, label, value, color }) => (
-    <div style={{
-        background: tokens.bg,
-        border: `1px solid ${tokens.border}`,
-        borderRadius: 18,
-        padding: '14px 18px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        flex: 1,
-        minWidth: 140,
-        boxShadow: '0 4px 15px rgba(0,0,0,0.01)'
-    }}>
+export const StatCard = ({ icon, label, value, color }) => {
+    const { currentPalette } = useTheme();
+    const tk = buildTokens(currentPalette);
+    return (
         <div style={{
-            width: 38, height: 38, borderRadius: 10,
-            background: `${color}15`, color: color,
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
+            background: tk.bg,
+            border: `1px solid ${tk.border}`,
+            borderRadius: 18,
+            padding: '14px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            flex: 1,
+            minWidth: 140,
+            boxShadow: '0 4px 15px rgba(0,0,0,0.01)'
         }}>
-            <Icon icon={icon} width="20" />
+            <div style={{
+                width: 38, height: 38, borderRadius: 10,
+                background: `${color}15`, color: color,
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+                <Icon icon={icon} width="20" />
+            </div>
+            <div>
+                <div style={{ fontSize: 9, color: tk.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
+                <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--color-text-primary)', marginTop: 2 }}>{value}</div>
+            </div>
         </div>
-        <div>
-            <div style={{ fontSize: 9, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
-            <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--color-text-primary)', marginTop: 2 }}>{value}</div>
-        </div>
-    </div>
-)
+    );
+};
 
 // ── FAQ Item Component (Doubt Row) ──────────────────────────────
 export const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => {
+    const { currentPalette } = useTheme();
+    const tk = buildTokens(currentPalette);
     const shouldReduceMotion = useReducedMotion()
-    const statusCor = item.resolvido ? tokens.babu : tokens.arches
-    const statusBg = item.resolvido ? `${tokens.babu}15` : `${tokens.arches}15`
+    const statusCor = item.resolvido ? tk.babu : tk.arches
+    const statusBg = item.resolvido ? `${tk.babu}15` : `${tk.arches}15`
     
     return (
         <motion.div
@@ -73,8 +84,8 @@ export const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => 
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: shouldReduceMotion ? 0 : index * 0.04 }}
             style={{
-                background: tokens.bg,
-                border: `1px solid ${isOpen ? tokens.rausch : tokens.border}`,
+                background: tk.bg,
+                border: `1px solid ${isOpen ? tk.rausch : tk.border}`,
                 borderRadius: 20,
                 marginBottom: 12,
                 overflow: 'hidden',
@@ -104,7 +115,7 @@ export const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => 
             >
                 <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <span style={{ fontSize: 10, color: tokens.foggy, fontWeight: 800 }}>
+                        <span style={{ fontSize: 10, color: tk.foggy, fontWeight: 800 }}>
                             {item.data ? new Date(item.data).toLocaleDateString('pt-BR') : 'Sem data'}
                         </span>
                         <span style={{
@@ -117,7 +128,7 @@ export const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => 
                         {item.marcada_confusa && (
                             <span style={{
                                 fontSize: 10, fontWeight: 800,
-                                background: `${tokens.rausch}15`, color: tokens.rausch,
+                                background: `${tk.rausch}15`, color: tk.rausch,
                                 padding: '3px 8px', borderRadius: 8
                             }}>
                                 ⚠️ Questão Confusa
@@ -127,7 +138,7 @@ export const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => 
                     <h4 style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1.4, margin: '0 0 4px 0' }}>
                         Questão #{item.questao_id}: {item.enunciado}
                     </h4>
-                    <p style={{ fontSize: 12, color: tokens.foggy, fontWeight: 600, margin: 0, fontStyle: 'italic' }}>
+                    <p style={{ fontSize: 12, color: tk.foggy, fontWeight: 600, margin: 0, fontStyle: 'italic' }}>
                         {item.texto
                             ? item.texto.length > 100
                                 ? `"${item.texto.substring(0, 100)}..."`
@@ -137,8 +148,8 @@ export const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => 
                 </div>
                 <div style={{
                     width: 32, height: 32, borderRadius: '50%',
-                    background: isOpen ? `${tokens.rausch}15` : tokens.bgSub,
-                    color: isOpen ? tokens.rausch : tokens.foggy,
+                    background: isOpen ? `${tk.rausch}15` : tk.bgSub,
+                    color: isOpen ? tk.rausch : tk.foggy,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     transform: isOpen ? 'rotate(180deg)' : 'none',
                     transition: 'all 0.2s',
@@ -160,17 +171,17 @@ export const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => 
                     >
                         <div style={{
                             padding: '16px 20px 20px 20px',
-                            borderTop: `1px solid ${tokens.border}`,
-                            background: tokens.bgSub,
+                            borderTop: `1px solid ${tk.border}`,
+                            background: tk.bgSub,
                         }}>
                             <CRow className="g-4">
                                 <CCol xs={12} md={6}>
-                                    <div style={{ fontSize: 10, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                                    <div style={{ fontSize: 10, color: tk.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
                                         Minha Dúvida Enviada
                                     </div>
                                     <div style={{
-                                        background: tokens.bg,
-                                        border: `1px solid ${tokens.border}`,
+                                        background: tk.bg,
+                                        border: `1px solid ${tk.border}`,
                                         borderRadius: 14,
                                         padding: 14,
                                         fontSize: 13,
@@ -184,17 +195,17 @@ export const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => 
                                 </CCol>
 
                                 <CCol xs={12} md={6}>
-                                    <div style={{ fontSize: 10, color: tokens.babu, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                                    <div style={{ fontSize: 10, color: tk.babu, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
                                         Resposta da Equipe Técnica / Professor
                                     </div>
                                     <div style={{
-                                        background: item.resolvido ? `${tokens.babu}05` : tokens.bg,
-                                        border: `1px solid ${item.resolvido ? tokens.babu : tokens.border}`,
+                                        background: item.resolvido ? `${tk.babu}05` : tk.bg,
+                                        border: `1px solid ${item.resolvido ? tk.babu : tk.border}`,
                                         borderRadius: 14,
                                         padding: 14,
                                         fontSize: 13,
                                         fontWeight: 700,
-                                        color: item.resposta_professor ? 'var(--color-text-primary)' : tokens.foggy,
+                                        color: item.resposta_professor ? 'var(--color-text-primary)' : tk.foggy,
                                         lineHeight: 1.5
                                     }}>
                                         {item.resposta_professor ? (
@@ -210,14 +221,14 @@ export const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => 
 
                             {/* Integração Estudo: Botão de Revisão Direta */}
                             {item.questao_id && (
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: `1px solid ${tokens.border}`, marginTop: 16, paddingTop: 12 }}>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: `1px solid ${tk.border}`, marginTop: 16, paddingTop: 12 }}>
                                     <CButton
                                         onClick={(e) => {
                                             e.stopPropagation()
                                             onRevisarQuestao(item.questao_id)
                                         }}
                                         style={{
-                                            background: `${tokens.rausch}15`, color: tokens.rausch, border: 'none',
+                                            background: `${tk.rausch}15`, color: tk.rausch, border: 'none',
                                             borderRadius: 10, padding: '6px 12px',
                                             fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', gap: 6,
                                             transition: 'all 0.2s'
@@ -235,4 +246,4 @@ export const FAQItem = ({ item, isOpen, onToggle, index, onRevisarQuestao }) => 
     )
 }
 
-
+

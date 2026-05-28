@@ -7,9 +7,12 @@ import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
-import { tokens } from '../../tokens'
+import { buildTokens } from '../../tokens'
+import { useTheme } from '../../context/themeContext'
 
 const InboxDuvidas = () => {
+    const { currentPalette } = useTheme();
+    const tk = buildTokens(currentPalette);
   const [duvidas, setDuvidas] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedDuvida, setSelectedDuvida] = useState(null)
@@ -86,11 +89,11 @@ const InboxDuvidas = () => {
           className="d-flex justify-content-between align-items-center"
         >
           <div>
-            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Central de Atendimento</div>
+            <div style={{ color: tk.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Central de Atendimento</div>
             <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
               Inbox de Dúvidas 📩
             </div>
-            <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+            <div style={{ fontSize: 14, color: tk.foggy, marginTop: 6 }}>
               Responda às dúvidas dos alunos e melhore a experiência de aprendizado.
             </div>
           </div>
@@ -103,7 +106,7 @@ const InboxDuvidas = () => {
                 style={{ 
                   background: filtro === f ? 'var(--color-bg-elevated)' : 'transparent', 
                   border: 'none', borderRadius: 10, padding: '8px 16px',
-                  fontSize: 13, fontWeight: 700, color: filtro === f ? tokens.rausch : tokens.foggy
+                  fontSize: 13, fontWeight: 700, color: filtro === f ? tk.rausch : tk.foggy
                 }}
               >
                 {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -130,8 +133,8 @@ const InboxDuvidas = () => {
                     transition={{ delay: i * 0.05 }}
                     onClick={() => setSelectedDuvida(d)}
                     style={{
-                      background: selectedDuvida?.id === d.id ? `${tokens.rausch}05` : 'var(--color-bg-elevated)',
-                      border: selectedDuvida?.id === d.id ? `2px solid ${tokens.rausch}` : '1.5px solid var(--color-border)',
+                      background: selectedDuvida?.id === d.id ? `${tk.rausch}05` : 'var(--color-bg-elevated)',
+                      border: selectedDuvida?.id === d.id ? `2px solid ${tk.rausch}` : '1.5px solid var(--color-border)',
                       borderRadius: 20,
                       padding: '20px',
                       cursor: 'pointer',
@@ -140,11 +143,11 @@ const InboxDuvidas = () => {
                   >
                     <div className="d-flex justify-content-between align-items-start mb-2">
                       <div className="fw-bold" style={{ fontSize: 15 }}>{d.aluno_nome}</div>
-                      <CBadge style={{ background: d.status === 'pendente' ? tokens.rausch : tokens.babu }}>
+                      <CBadge style={{ background: d.status === 'pendente' ? tk.rausch : tk.babu }}>
                         {d.status.toUpperCase()}
                       </CBadge>
                     </div>
-                    <div style={{ fontSize: 12, color: tokens.foggy, marginBottom: 8 }}>{d.materia} • {d.modulo_nome}</div>
+                    <div style={{ fontSize: 12, color: tk.foggy, marginBottom: 8 }}>{d.materia} • {d.modulo_nome}</div>
                     <p style={{ fontSize: 14, color: 'var(--color-text-primary)', opacity: 0.8, marginBottom: 0 }} className="text-truncate">
                       {d.texto}
                     </p>
@@ -152,7 +155,7 @@ const InboxDuvidas = () => {
                 ))}
                 {!filteredDuvidas.length && (
                   <div className="text-center py-5 bg-body-tertiary rounded-4">
-                    <Icon icon="solar:letter-opened-bold-duotone" width="48" style={{ color: tokens.swiss }} />
+                    <Icon icon="solar:letter-opened-bold-duotone" width="48" style={{ color: tk.swiss }} />
                     <div className="mt-2 text-muted">Nenhuma dúvida encontrada.</div>
                   </div>
                 )}
@@ -180,7 +183,7 @@ const InboxDuvidas = () => {
                     <CButton 
                       variant="ghost" 
                       className="d-lg-none mb-3 p-0 fw-bold d-flex align-items-center gap-2"
-                      style={{ color: tokens.rausch }}
+                      style={{ color: tk.rausch }}
                       onClick={() => setSelectedDuvida(null)}
                     >
                       <Icon icon="solar:alt-arrow-left-bold-duotone" width="20" />
@@ -190,15 +193,15 @@ const InboxDuvidas = () => {
                     <div className="d-flex justify-content-between align-items-start mb-4">
                       <div className="d-flex align-items-center gap-3">
                         <div style={{ width: 48, height: 48, background: 'var(--color-bg-tertiary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justify: 'center' }}>
-                          <Icon icon="solar:user-bold-duotone" width="24" style={{ color: tokens.rausch }} />
+                          <Icon icon="solar:user-bold-duotone" width="24" style={{ color: tk.rausch }} />
                         </div>
                         <div>
                           <div className="fw-bold" style={{ fontSize: 18 }}>{selectedDuvida.aluno_nome}</div>
-                          <div style={{ fontSize: 13, color: tokens.foggy }}>Enviado em {new Date(selectedDuvida.data_criacao).toLocaleString()}</div>
+                          <div style={{ fontSize: 13, color: tk.foggy }}>Enviado em {new Date(selectedDuvida.data_criacao).toLocaleString()}</div>
                         </div>
                       </div>
                       <CButton variant="ghost" className="rounded-circle p-2" onClick={() => setSelectedDuvida(null)}>
-                        <Icon icon="solar:close-circle-bold-duotone" width="24" style={{ color: tokens.foggy }} />
+                        <Icon icon="solar:close-circle-bold-duotone" width="24" style={{ color: tk.foggy }} />
                       </CButton>
                     </div>
 
@@ -210,7 +213,7 @@ const InboxDuvidas = () => {
 
                     <div className="mt-4">
                       <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
-                        <Icon icon="solar:chat-square-dots-bold-duotone" style={{ color: tokens.rausch }} />
+                        <Icon icon="solar:chat-square-dots-bold-duotone" style={{ color: tk.rausch }} />
                         Sua Resposta
                       </h6>
                       
@@ -226,7 +229,7 @@ const InboxDuvidas = () => {
                       <div className="mb-4">
                         <label className="fw-bold small text-muted mb-2">LINK DO VÍDEO DE RESPOSTA (OPCIONAL)</label>
                         <div className="d-flex align-items-center gap-2 bg-body-tertiary p-2 rounded-4 border">
-                          <Icon icon="solar:videocamera-record-bold-duotone" width="20" className="ms-2" style={{ color: tokens.rausch }} />
+                          <Icon icon="solar:videocamera-record-bold-duotone" width="20" className="ms-2" style={{ color: tk.rausch }} />
                           <CFormInput 
                             placeholder="https://www.youtube.com/watch?v=..."
                             value={videoUrl}
@@ -240,7 +243,7 @@ const InboxDuvidas = () => {
                         <CButton 
                           variant="ghost" 
                           className="fw-bold" 
-                          style={{ borderRadius: 12, color: tokens.foggy }}
+                          style={{ borderRadius: 12, color: tk.foggy }}
                           onClick={() => { setResposta(''); setVideoUrl(''); }}
                         >
                           Limpar
@@ -251,7 +254,7 @@ const InboxDuvidas = () => {
                           onClick={enviarResposta}
                           disabled={enviando}
                           className="px-5 py-2 border-0 fw-bold shadow-sm"
-                          style={{ background: tokens.rausch, color: '#fff', borderRadius: 12 }}
+                          style={{ background: tk.rausch, color: '#fff', borderRadius: 12 }}
                         >
                           {enviando ? <CSpinner size="sm" /> : 'Publicar Resposta'}
                         </motion.button>

@@ -12,8 +12,8 @@ import { getAlunoMatricula } from '../../utils/auth'
 import { API_URL } from '../../config'
 import api from '../../services/api'
 import { formatIsoToDateString, formatIsoToShortDate } from '../../utils/formatDate'
-import { tokens } from '../../tokens'
-
+import { buildTokens } from '../../tokens'
+import { useTheme } from '../../context/themeContext'
 const MEDAL_COLORS = {
     gold: '#FFD700',
     silver: '#C0C0C0',
@@ -41,7 +41,7 @@ const SCard = ({ children, style = {}, delay = 0 }) => (
 )
 
 /* ─── Progress Bar ───────────────────────────────────────── */
-const AirbnbProgress = ({ value, color = tokens.rausch }) => (
+const AirbnbProgress = ({ value, color }) => (
     <div style={{ height: 6, background: 'var(--color-bg-tertiary)', borderRadius: 99, overflow: 'hidden' }}>
         <motion.div
             initial={{ width: 0 }}
@@ -56,6 +56,8 @@ const Conquistas = ({ isTab = false }) => {
     const [conquistas, setConquistas] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const { currentPalette } = useTheme()
+    const tk = buildTokens(currentPalette)
 
     useEffect(() => {
         const carregarConquistas = async () => {
@@ -115,8 +117,8 @@ const Conquistas = ({ isTab = false }) => {
             case 'ouro': return MEDAL_COLORS.gold;
             case 'prata': return MEDAL_COLORS.silver;
             case 'bronze': return MEDAL_COLORS.bronze;
-            case 'platina': return tokens.babu;
-            default: return tokens.arches;
+            case 'platina': return tk.babu;
+            default: return tk.arches;
         }
     }
 
@@ -135,7 +137,7 @@ const Conquistas = ({ isTab = false }) => {
             {!isTab && (
                 <div style={{ marginBottom: 30 }}>
                     <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)' }}>🏆 Minhas Conquistas</h1>
-                    <p style={{ color: tokens.foggy, fontSize: 16 }}>Acompanhe seu progresso e desbloqueie novas medalhas</p>
+                    <p style={{ color: tk.foggy, fontSize: 16 }}>Acompanhe seu progresso e desbloqueie novas medalhas</p>
                 </div>
             )}
 
@@ -146,35 +148,35 @@ const Conquistas = ({ isTab = false }) => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
                             <div style={{
                                 width: 48, height: 48, borderRadius: 12,
-                                background: `${tokens.arches}15`,
+                                background: `${tk.arches}15`,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                color: tokens.arches,
+                                color: tk.arches,
                             }}>
                                 <Icon icon="solar:fire-bold-duotone" width="28" />
                             </div>
                             <div>
                                 <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>Seu Streak Atual</h2>
-                                <span style={{ fontSize: 12, color: tokens.foggy }}>Dias consecutivos de estudo</span>
+                                <span style={{ fontSize: 12, color: tk.foggy }}>Dias consecutivos de estudo</span>
                             </div>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 16 }}>
-                            <span style={{ fontSize: 48, fontWeight: 800, color: tokens.arches, lineHeight: 1 }}>{streak?.dias_atuais || 0}</span>
-                            <span style={{ fontSize: 16, fontWeight: 600, color: tokens.foggy }}>dias</span>
+                            <span style={{ fontSize: 48, fontWeight: 800, color: tk.arches, lineHeight: 1 }}>{streak?.dias_atuais || 0}</span>
+                            <span style={{ fontSize: 16, fontWeight: 600, color: tk.foggy }}>dias</span>
                         </div>
 
                         {streak?.dias_maximo && (
                             <div style={{ background: 'var(--color-bg-tertiary)', padding: '12px 16px', borderRadius: 12, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: 13, fontWeight: 600, color: tokens.foggy }}>Máximo Pessoal</span>
+                                <span style={{ fontSize: 13, fontWeight: 600, color: tk.foggy }}>Máximo Pessoal</span>
                                 <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)' }}>{streak.dias_maximo} dias</span>
                             </div>
                         )}
 
                         {streak?.proxima_data_para_manter && (
-                            <div style={{ background: `${tokens.babu}15`, padding: '12px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <Icon icon="solar:calendar-date-bold-duotone" width="20" style={{ color: tokens.babu }} />
+                            <div style={{ background: `${tk.babu}15`, padding: '12px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <Icon icon="solar:calendar-date-bold-duotone" width="20" style={{ color: tk.babu }} />
                                 <div>
-                                    <div style={{ fontSize: 11, fontWeight: 700, color: tokens.babu, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Próxima data para manter</div>
+                                    <div style={{ fontSize: 11, fontWeight: 700, color: tk.babu, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Próxima data para manter</div>
                                     <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)' }}>{formatIsoToShortDate(streak.proxima_data_para_manter)}</div>
                                 </div>
                             </div>
@@ -188,37 +190,37 @@ const Conquistas = ({ isTab = false }) => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
                             <div style={{
                                 width: 48, height: 48, borderRadius: 12,
-                                background: `${tokens.babu}15`,
+                                background: `${tk.babu}15`,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                color: tokens.babu,
+                                color: tk.babu,
                             }}>
                                 <Icon icon="solar:chart-square-bold-duotone" width="28" />
                             </div>
                             <div>
                                 <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>Seu Desempenho</h2>
-                                <span style={{ fontSize: 12, color: tokens.foggy }}>Resumo geral das suas atividades</span>
+                                <span style={{ fontSize: 12, color: tk.foggy }}>Resumo geral das suas atividades</span>
                             </div>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                             <div style={{ background: 'var(--color-bg-tertiary)', padding: '16px', borderRadius: 16 }}>
-                                <Icon icon="solar:question-circle-bold-duotone" width="24" style={{ color: tokens.rausch, marginBottom: 8 }} />
+                                <Icon icon="solar:question-circle-bold-duotone" width="24" style={{ color: tk.rausch, marginBottom: 8 }} />
                                 <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1 }}>{total_questoes_respondidas || 0}</div>
-                                <div style={{ fontSize: 12, color: tokens.foggy, marginTop: 4, fontWeight: 600 }}>Questões</div>
+                                <div style={{ fontSize: 12, color: tk.foggy, marginTop: 4, fontWeight: 600 }}>Questões</div>
                             </div>
 
                             <div style={{ background: 'var(--color-bg-tertiary)', padding: '16px', borderRadius: 16 }}>
-                                <Icon icon="solar:book-bookmark-bold-duotone" width="24" style={{ color: tokens.babu, marginBottom: 8 }} />
+                                <Icon icon="solar:book-bookmark-bold-duotone" width="24" style={{ color: tk.babu, marginBottom: 8 }} />
                                 <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1 }}>{total_sessoes || 0}</div>
-                                <div style={{ fontSize: 12, color: tokens.foggy, marginTop: 4, fontWeight: 600 }}>Sessões</div>
+                                <div style={{ fontSize: 12, color: tk.foggy, marginTop: 4, fontWeight: 600 }}>Sessões</div>
                             </div>
 
                             <div style={{ background: 'var(--color-bg-tertiary)', padding: '16px', borderRadius: 16, gridColumn: 'span 2' }}>
-                                <Icon icon="solar:stopwatch-bold-duotone" width="24" style={{ color: tokens.arches, marginBottom: 8 }} />
+                                <Icon icon="solar:stopwatch-bold-duotone" width="24" style={{ color: tk.arches, marginBottom: 8 }} />
                                 <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1 }}>
                                     {tempo_estudo_total_minutos ? `${Math.floor(tempo_estudo_total_minutos / 60)}h ${tempo_estudo_total_minutos % 60}m` : '0m'}
                                 </div>
-                                <div style={{ fontSize: 12, color: tokens.foggy, marginTop: 4, fontWeight: 600 }}>Tempo Total de Estudo</div>
+                                <div style={{ fontSize: 12, color: tk.foggy, marginTop: 4, fontWeight: 600 }}>Tempo Total de Estudo</div>
                             </div>
                         </div>
                     </SCard>
@@ -229,7 +231,7 @@ const Conquistas = ({ isTab = false }) => {
             <div style={{ marginTop: 40, marginBottom: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                     <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text-primary)', margin: 0 }}>Medalhas e Badges</h2>
-                    <span style={{ fontSize: 12, fontWeight: 700, background: `${tokens.babu}15`, color: tokens.babu, padding: '4px 12px', borderRadius: 99 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, background: `${tk.babu}15`, color: tk.babu, padding: '4px 12px', borderRadius: 99 }}>
                         {medalhas?.filter(m => m.desbloqueada).length || 0} DESBLOQUEADAS
                     </span>
                 </div>
@@ -238,7 +240,7 @@ const Conquistas = ({ isTab = false }) => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
                         {medalhas.map((medalha, idx) => {
                             const isUnlocked = medalha.desbloqueada
-                            const medalColor = isUnlocked ? getMedalColor(medalha.tipo) : tokens.foggy
+                            const medalColor = isUnlocked ? getMedalColor(medalha.tipo) : tk.foggy
 
                             return (
                                 <motion.div
@@ -273,20 +275,20 @@ const Conquistas = ({ isTab = false }) => {
 
                                         <div style={{ flex: 1 }}>
                                             <h5 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 4 }}>{medalha.nome}</h5>
-                                            <p style={{ fontSize: 12, color: tokens.foggy, marginBottom: 12, lineHeight: 1.4 }}>{medalha.descricao}</p>
+                                            <p style={{ fontSize: 12, color: tk.foggy, marginBottom: 12, lineHeight: 1.4 }}>{medalha.descricao}</p>
 
                                             {!isUnlocked && medalha.progresso !== undefined && (
                                                 <div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                                                        <span style={{ fontSize: 11, fontWeight: 600, color: tokens.foggy }}>Progresso</span>
-                                                        <span style={{ fontSize: 11, fontWeight: 700, color: tokens.arches }}>{Math.round(medalha.progresso)}%</span>
+                                                        <span style={{ fontSize: 11, fontWeight: 600, color: tk.foggy }}>Progresso</span>
+                                                        <span style={{ fontSize: 11, fontWeight: 700, color: tk.arches }}>{Math.round(medalha.progresso)}%</span>
                                                     </div>
-                                                    <AirbnbProgress value={medalha.progresso} color={tokens.arches} />
+                                                    <AirbnbProgress value={medalha.progresso} color={tk.arches} />
                                                 </div>
                                             )}
 
                                             {isUnlocked && medalha.data_desbloqueio && (
-                                                <div style={{ fontSize: 11, fontWeight: 600, color: tokens.babu, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                <div style={{ fontSize: 11, fontWeight: 600, color: tk.babu, display: 'flex', alignItems: 'center', gap: 4 }}>
                                                     <Icon icon="solar:check-circle-bold-duotone" />
                                                     Desbloqueada em {formatIsoToShortDate(medalha.data_desbloqueio)}
                                                 </div>

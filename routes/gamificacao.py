@@ -17,10 +17,11 @@ Endpoints:
 # ── Imports (todos no topo, sem duplicatas) ─────────────────────────────────
 from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel
-from typing import Optional, Literal
-from datetime import datetime, timedelta, date
+import json
 import logging
-
+from datetime import date, timedelta, datetime
+from collections import defaultdict
+from typing import Dict, Any, List
 from database import get_conexao
 from utils.jwt_auth import verificar_admin, verificar_proprio_ou_admin, usuario_autenticado
 
@@ -102,60 +103,19 @@ MEDALHAS_TIPOS = [
 # ==================== FUNÇÕES AUXILIARES ====================
 
 
-def _calcular_streak(datas_estudo: list) -> tuple:
+
+
+
+_metricas_cache = {}
+
+def _buscar_metricas_aluno_db(matricula: str) -> dict:
     """
-    Calcula streak atual e streak máximo a partir de uma lista de datas
-    DISTINTAS em que o aluno estudou, ordenadas DESC.
-
-    Retorna (streak_atual, streak_maximo).
-    """
-    if not datas_estudo:
-        return 0, 0
-
-    hoje = date.today()
-    streak_maximo = 0
-    streak_corrente = 1
-
-    # Verificar se o aluno estudou hoje ou ontem (streak ativo)
-    primeira_data = datas_estudo[0]
-    diff_hoje = (hoje - primeira_data).days
-
-    # Percorrer as datas para calcular streak máximo
-    for i in range(1, len(datas_estudo)):
-        diff = (datas_estudo[i - 1] - datas_estudo[i]).days
-        if diff == 1:
-            streak_corrente += 1
-        elif diff == 0:
-            continue  # Mesmo dia — não deveria acontecer com DISTINCT
-        else:
-            streak_maximo = max(streak_maximo, streak_corrente)
-            streak_corrente = 1
-
-    streak_maximo = max(streak_maximo, streak_corrente)
-
-    # O streak atual só conta se o aluno estudou hoje ou ontem
-    if diff_hoje > 1:
-        return 0, streak_maximo
-
-    streak_atual = 1
-    for i in range(1, len(datas_estudo)):
-        diff = (datas_estudo[i - 1] - datas_estudo[i]).days
-        if diff == 1:
-            streak_atual += 1
-        else:
-            break
-
-    return streak_atual, streak_maximo
-
-
-def _buscar_metricas_aluno(matricula: str) -> dict:
-    """
-    Busca todas as métricas do aluno diretamente do banco.
-    Retorna dict com: nome, datas_estudo, total_questoes, total_sessoes,
-    tempo_total_seg, ultima_sessao.
+    Busca todas as métricas do aluno diretamente do banco,
+    incluindo o cálculo de streak via funções analíticas SQL.
     """
     with get_conexao() as conn:
         cursor = conn.cursor()
+        cursor.execute("SET statement_timeout = '5000'")
 
         # 1. Buscar usuario e garantir que a matrícula pertence a um aluno
         cursor.execute(
@@ -169,38 +129,69 @@ def _buscar_metricas_aluno(matricula: str) -> dict:
             raise HTTPException(status_code=403, detail="Esta rota é exclusiva para alunos")
         nome = row_usuario[0]
 
-        # 2. Métricas agregadas
+        # 2. Métricas agregadas e Streak via CTE SQL Native
         cursor.execute("""
+            WITH sessoes_aluno AS (
+                SELECT id, DATE(criado_em) AS dia 
+                FROM sessoes_estudo 
+                WHERE (matricula_aluno = %(matricula)s OR nome_aluno = %(matricula)s) 
+                  AND eh_teste_professor IS NOT TRUE
+            ),
+            sessoes_distintas AS (
+                SELECT DISTINCT DATE(criado_em) AS dia
+                FROM sessoes_aluno
+            ),
+            sessoes_ordenadas AS (
+                SELECT 
+                    dia,
+                    dia - (ROW_NUMBER() OVER (ORDER BY dia ASC))::int AS grp
+                FROM sessoes_distintas
+            ),
+            streaks AS (
+                SELECT 
+                    grp,
+                    COUNT(*) AS streak_length,
+                    MAX(dia) AS streak_end
+                FROM sessoes_ordenadas
+                GROUP BY grp
+            )
             SELECT
-                COUNT(id)                                   AS total_sessoes,
-                COALESCE(SUM(questoes_respondidas), 0)      AS total_questoes,
-                COALESCE(SUM(tempo_gasto_segundos), 0)      AS tempo_total_seg,
-                MAX(criado_em)                              AS ultima_sessao
-            FROM sessoes_estudo
-            WHERE COALESCE(matricula_aluno, nome_aluno) = %s
-              AND eh_teste_professor IS NOT TRUE;
-        """, (matricula,))
+                (SELECT COUNT(id) FROM sessoes_aluno) AS total_sessoes,
+                (SELECT COALESCE(SUM(questoes_respondidas), 0) FROM sessoes_aluno) AS total_questoes,
+                (SELECT COALESCE(SUM(tempo_gasto_segundos), 0) FROM sessoes_aluno) AS tempo_total_seg,
+                (SELECT MAX(criado_em) FROM sessoes_aluno) AS ultima_sessao,
+                COALESCE((SELECT MAX(streak_length) FROM streaks), 0) AS streak_maximo,
+                COALESCE((SELECT streak_length FROM streaks WHERE streak_end >= CURRENT_DATE - INTERVAL '1 day' ORDER BY streak_end DESC LIMIT 1), 0) AS streak_atual;
+        """, {"matricula": matricula})
         metricas = cursor.fetchone()
-
-        # 3. Datas DISTINTAS de estudo (para cálculo de streak)
-        cursor.execute("""
-            SELECT DISTINCT DATE(criado_em) AS dia
-            FROM sessoes_estudo
-            WHERE COALESCE(matricula_aluno, nome_aluno) = %s
-              AND eh_teste_professor IS NOT TRUE
-            ORDER BY dia DESC;
-        """, (matricula,))
-        datas_rows = cursor.fetchall()
 
     return {
         "nome": nome,
         "matricula": matricula,
-        "datas_estudo": [row[0] for row in datas_rows],
         "total_questoes": int(metricas[1] or 0),
         "total_sessoes": int(metricas[0] or 0),
         "tempo_total_seg": int(metricas[2] or 0),
         "ultima_sessao": metricas[3],
+        "streak_maximo": int(metricas[4] or 0),
+        "streak_atual": int(metricas[5] or 0),
     }
+
+def _buscar_metricas_aluno(matricula: str) -> dict:
+    """
+    Usa cache em memória de 5 minutos para evitar requisições repetitivas no banco
+    ao trocar de abas ou realizar F5.
+    """
+    agora = datetime.now()
+    cached = _metricas_cache.get(matricula)
+    if cached and (agora - cached['ts']) < timedelta(minutes=5):
+        return cached['data']
+    
+    result = _buscar_metricas_aluno_db(matricula)
+    _metricas_cache[matricula] = {'data': result, 'ts': agora}
+    return result
+
+
+
 
 
 def _avaliar_medalhas(total_questoes: int, total_sessoes: int, streak_atual: int, streak_maximo: int) -> list:
@@ -243,7 +234,8 @@ def get_streak(matricula: str, token: dict = Depends(verificar_proprio_ou_admin)
             raise HTTPException(status_code=422, detail="Matrícula inválida ou vazia")
 
         metricas = _buscar_metricas_aluno(matricula.strip())
-        streak_atual, streak_maximo = _calcular_streak(metricas["datas_estudo"])
+        streak_atual = metricas["streak_atual"]
+        streak_maximo = metricas["streak_maximo"]
 
         ultima = metricas["ultima_sessao"]
         proxima_iso = (ultima + timedelta(days=1)).isoformat() if ultima else None
@@ -272,7 +264,8 @@ def get_conquistas(matricula: str, token: dict = Depends(verificar_proprio_ou_ad
             raise HTTPException(status_code=422, detail="Matrícula inválida ou vazia")
 
         metricas = _buscar_metricas_aluno(matricula.strip())
-        streak_atual, streak_maximo = _calcular_streak(metricas["datas_estudo"])
+        streak_atual = metricas["streak_atual"]
+        streak_maximo = metricas["streak_maximo"]
 
         ultima = metricas["ultima_sessao"]
         streak_data = {
@@ -336,36 +329,88 @@ def get_leaderboard(
 
             elif tipo == "streak":
                 cursor.execute("""
-                    SELECT
+                    WITH sessoes_alunos AS (
+                        SELECT 
+                            u.matricula AS matricula,
+                            u.nome AS nome,
+                            DATE(s.criado_em) AS dia
+                        FROM usuarios u
+                        JOIN sessoes_estudo s ON s.matricula_aluno = u.matricula
+                        WHERE u.papel = 'aluno'
+                          AND s.eh_teste_professor IS NOT TRUE
+                        
+                        UNION
+                        
+                        SELECT 
+                            u.matricula AS matricula,
+                            u.nome AS nome,
+                            DATE(s.criado_em) AS dia
+                        FROM usuarios u
+                        JOIN sessoes_estudo s ON s.nome_aluno = u.matricula
+                        WHERE u.papel = 'aluno'
+                          AND s.eh_teste_professor IS NOT TRUE
+                    ),
+                    sessoes_distintas AS (
+                        SELECT DISTINCT matricula, nome, dia
+                        FROM sessoes_alunos
+                    ),
+                    sessoes_ordenadas AS (
+                        SELECT 
+                            matricula,
+                            nome,
+                            dia,
+                            dia - (ROW_NUMBER() OVER (PARTITION BY matricula ORDER BY dia ASC))::int AS grp
+                        FROM sessoes_distintas
+                    ),
+                    streaks AS (
+                        SELECT 
+                            grp,
+                            matricula,
+                            nome,
+                            COUNT(*) AS streak_length,
+                            MAX(dia) AS streak_end
+                        FROM sessoes_ordenadas
+                        GROUP BY matricula, nome, grp
+                    ),
+                    max_streaks AS (
+                        SELECT 
+                            matricula,
+                            nome,
+                            MAX(streak_length) AS streak_maximo
+                        FROM streaks
+                        GROUP BY matricula, nome
+                    ),
+                    current_streaks AS (
+                        SELECT 
+                            matricula,
+                            nome,
+                            MAX(streak_length) AS streak_atual
+                        FROM streaks
+                        WHERE streak_end >= CURRENT_DATE - INTERVAL '1 day'
+                        GROUP BY matricula, nome
+                    )
+                    SELECT 
                         u.nome,
                         u.matricula,
-                        ARRAY_AGG(DISTINCT DATE(s.criado_em)
-                                  ORDER BY DATE(s.criado_em) DESC) AS datas
+                        COALESCE(cs.streak_atual, 0) AS streak_atual,
+                        COALESCE(ms.streak_maximo, 0) AS streak_maximo
                     FROM usuarios u
-                    JOIN sessoes_estudo s
-                         ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
+                    LEFT JOIN current_streaks cs ON cs.matricula = u.matricula
+                    LEFT JOIN max_streaks ms ON ms.matricula = u.matricula
                     WHERE u.papel = 'aluno'
-                      AND s.eh_teste_professor IS NOT TRUE
-                    GROUP BY u.nome, u.matricula;
-                """)
+                    ORDER BY streak_atual DESC, streak_maximo DESC
+                    LIMIT %s;
+                """, (limite,))
                 rows = cursor.fetchall()
-
-                alunos_streaks = []
-                for nome, mat, datas in rows:
-                    streak_at, streak_max = _calcular_streak(datas) if datas else (0, 0)
-                    alunos_streaks.append({
-                        "nome": nome, "matricula": mat,
-                        "streak_atual": streak_at, "streak_maximo": streak_max,
-                    })
-
-                alunos_streaks.sort(
-                    key=lambda x: (x["streak_atual"], x["streak_maximo"]),
-                    reverse=True,
-                )
                 return [
-                    {"posicao": idx, "nome": a["nome"], "matricula": a["matricula"],
-                     "valor": a["streak_atual"], "emoji": "🔥"}
-                    for idx, a in enumerate(alunos_streaks[:limite], 1)
+                    {
+                        "posicao": idx,
+                        "nome": r[0],
+                        "matricula": r[1],
+                        "valor": int(r[2]),
+                        "emoji": "🔥"
+                    }
+                    for idx, r in enumerate(rows, 1)
                 ]
 
             else:

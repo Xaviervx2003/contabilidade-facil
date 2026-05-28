@@ -182,7 +182,10 @@ class TestDashboard:
 
     def test_historico_grafico_aluno(self):
         """GET /api/aluno/historico-grafico/{matricula} deve retornar estrutura de gráfico."""
-        response = client.get(f"/api/aluno/historico-grafico/{_ALUNO_MATRICULA}")
+        response = client.get(
+            f"/api/aluno/historico-grafico/{_ALUNO_MATRICULA}",
+            headers=_auth_headers(),
+        )
         assert response.status_code == 200
         data = response.json()
         assert "resumo" in data
@@ -203,7 +206,7 @@ class TestSessoes:
             "taxa_acerto": 80.0,
             "tempo_gasto_segundos": 120,
         }
-        response = client.post("/api/sessoes", json=payload)
+        response = client.post("/api/sessoes", json=payload, headers=_auth_headers())
         assert response.status_code == 200
         data = response.json()
         # Aceita qualquer resposta com "sucesso" ou "status"
@@ -211,7 +214,10 @@ class TestSessoes:
 
     def test_historico_aluno_retorna_lista(self):
         """GET /api/sessoes/{matricula} deve retornar lista de sessões."""
-        response = client.get(f"/api/sessoes/{_ALUNO_MATRICULA}")
+        response = client.get(
+            f"/api/sessoes/{_ALUNO_MATRICULA}",
+            headers=_auth_headers(),
+        )
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)

@@ -12,7 +12,7 @@ def _contar_total_filtrado(cursor, papel: Optional[str], usuario_id: Optional[in
     if papel == "professor" and usuario_id:
         query = """
             SELECT COUNT(DISTINCT u.id) FROM usuarios u
-            INNER JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
+            INNER JOIN sessoes_estudo s ON (s.matricula_aluno = u.matricula OR s.nome_aluno = u.matricula)
             INNER JOIN sessoes_questoes sq ON sq.sessao_id = s.id
             INNER JOIN questoes q ON q.id = sq.questao_id
             WHERE u.papel = 'aluno' AND s.eh_teste_professor IS NOT TRUE AND q.criado_por = %(uid)s
@@ -33,6 +33,7 @@ def get_relatorio_estudo(
 ) -> Dict[str, Any]:
     with get_conexao() as conn:
         cursor = conn.cursor()
+        cursor.execute('SET statement_timeout = \'5000\'')
 
         hoje = datetime.now()
         if mes is None or ano is None:
@@ -228,6 +229,7 @@ def get_desempenho_estudantes(
 ) -> tuple[list, int]:
     with get_conexao() as conn:
         cursor = conn.cursor()
+        cursor.execute('SET statement_timeout = \'5000\'')
         
         filtros_adicionais = []
         params_base = {"uid": usuario_id, "limit": por_pagina, "offset": (pagina - 1) * por_pagina}
@@ -255,7 +257,7 @@ def get_desempenho_estudantes(
                        COALESCE(NULLIF(TRIM(s.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado,
                        COUNT(DISTINCT sq_idx.questao_id) AS questoes_detalhadas
                 FROM usuarios u
-                INNER JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
+                INNER JOIN sessoes_estudo s ON (s.matricula_aluno = u.matricula OR s.nome_aluno = u.matricula)
                 LEFT JOIN sessoes_questoes sq_idx ON sq_idx.sessao_id = s.id
                 LEFT JOIN questoes_materias qm ON qm.questao_id = sq_idx.questao_id
                 WHERE u.papel = 'aluno' AND s.eh_teste_professor IS NOT TRUE {filtro_p} {filtros_a}
@@ -326,6 +328,7 @@ def get_desempenho_estudantes(
 def get_metricas_individual(matricula: str) -> Optional[tuple]:
     with get_conexao() as conn:
         cursor = conn.cursor()
+        cursor.execute('SET statement_timeout = \'5000\'')
         query = """
             WITH sessoes_aluno AS (
                 SELECT u.nome, u.matricula, s.id AS sessao_id, s.questoes_respondidas,
@@ -333,7 +336,7 @@ def get_metricas_individual(matricula: str) -> Optional[tuple]:
                        COALESCE(NULLIF(TRIM(s.assunto_estudado), ''), 'Sem assunto') AS assunto_estudado,
                        COUNT(DISTINCT sq.questao_id) AS questoes_detalhadas
                 FROM usuarios u
-                INNER JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
+                INNER JOIN sessoes_estudo s ON (s.matricula_aluno = u.matricula OR s.nome_aluno = u.matricula)
                 LEFT JOIN sessoes_questoes sq ON sq.sessao_id = s.id
                 WHERE u.matricula = %(matricula)s AND s.eh_teste_professor IS NOT TRUE
                 GROUP BY u.nome, u.matricula, s.id, s.questoes_respondidas, s.taxa_acerto, s.tempo_gasto_segundos, s.criado_em, s.assunto_estudado
@@ -387,8 +390,8 @@ def get_metricas_individual(matricula: str) -> Optional[tuple]:
                 COALESCE(k.churn_risco_percentual, 0.0) AS churn_risco_percentual,
                 COALESCE(k.conclusao_simulado_percentual, 0.0) AS conclusao_simulado_percentual
             FROM resumo r
-            CROSS JOIN erros e
-            CROSS JOIN kpis_v2 k;
+            LEFT JOIN erros e ON true
+            LEFT JOIN kpis_v2 k ON true;
         """
         cursor.execute(query, {"matricula": matricula})
         return cursor.fetchone()
@@ -396,6 +399,7 @@ def get_metricas_individual(matricula: str) -> Optional[tuple]:
 def get_central_risco(papel: Optional[str], usuario_id: Optional[int], pagina: int, por_pagina: int) -> tuple[list, int]:
     with get_conexao() as conn:
         cursor = conn.cursor()
+        cursor.execute('SET statement_timeout = \'5000\'')
         incluir_sem_atividade = papel != "professor"
 
         filtro_professor = ""
@@ -421,7 +425,7 @@ def get_central_risco(papel: Optional[str], usuario_id: Optional[int], pagina: i
                     COUNT(DISTINCT sq.questao_id) AS questoes_detalhadas
                 FROM usuarios u
                 LEFT JOIN sessoes_estudo s
-                    ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
+                    ON (s.matricula_aluno = u.matricula OR s.nome_aluno = u.matricula)
                     AND s.eh_teste_professor IS NOT TRUE
                 LEFT JOIN sessoes_questoes sq ON sq.sessao_id = s.id
                 WHERE u.papel = 'aluno' {filtro_professor}
@@ -487,7 +491,7 @@ def get_central_risco(papel: Optional[str], usuario_id: Optional[int], pagina: i
                     s.id AS sessao_id
                 FROM usuarios u
                 LEFT JOIN sessoes_estudo s
-                    ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
+                    ON (s.matricula_aluno = u.matricula OR s.nome_aluno = u.matricula)
                     AND s.eh_teste_professor IS NOT TRUE
                 WHERE u.papel = 'aluno' {filtro_professor}
                 GROUP BY u.matricula, s.id
@@ -510,11 +514,12 @@ def get_central_risco(papel: Optional[str], usuario_id: Optional[int], pagina: i
 def get_ranking_turma(limite: int) -> list:
     with get_conexao() as conn:
         cursor = conn.cursor()
+        cursor.execute('SET statement_timeout = \'5000\'')
         query = """
             SELECT u.nome, u.matricula, ROUND(AVG(s.taxa_acerto)::numeric, 1) as media,
                    SUM(s.questoes_respondidas) as total_q
             FROM usuarios u
-            JOIN sessoes_estudo s ON COALESCE(s.matricula_aluno, s.nome_aluno) = u.matricula
+            JOIN sessoes_estudo s ON (s.matricula_aluno = u.matricula OR s.nome_aluno = u.matricula)
             WHERE u.papel = 'aluno'
             GROUP BY u.nome, u.matricula
             HAVING SUM(s.questoes_respondidas) > 0

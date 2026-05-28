@@ -14,7 +14,7 @@ import api from '../../services/api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import { useTheme } from '../../context/themeContext'
-import { tokens as tk } from '../../tokens'
+import { buildTokens } from '../../tokens'
 import useAuthSession from '../../hooks/useAuthSession'
 import { confirmDialog } from '../../utils/confirm'
 
@@ -31,7 +31,7 @@ const Skel = ({ h = 20, w = '100%', r = 10 }) => (
 const Label = ({ children }) => (
   <div style={{
     fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-    letterSpacing: '0.9px', color: tk.foggy, marginBottom: 6, fontFamily: FONT,
+    letterSpacing: '0.9px', color: 'var(--color-text-muted, #767676)', marginBottom: 6, fontFamily: FONT,
   }}>
     {children}
   </div>
@@ -52,7 +52,7 @@ const AInput = ({ value, onChange, placeholder, type = 'text', min }) => (
       padding: '0 14px', fontSize: 13, fontFamily: FONT,
       outline: 'none', transition: 'border-color 0.2s',
     }}
-    onFocus={e => { e.target.style.borderColor = tk.rausch }}
+    onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)' }}
     onBlur={e => { e.target.style.borderColor = 'var(--color-border)' }}
   />
 )
@@ -72,7 +72,7 @@ const ATextarea = ({ value, onChange, placeholder, rows = 4 }) => (
       outline: 'none', resize: 'vertical', lineHeight: 1.6,
       transition: 'border-color 0.2s',
     }}
-    onFocus={e => { e.target.style.borderColor = tk.rausch }}
+    onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)' }}
     onBlur={e => { e.target.style.borderColor = 'var(--color-border)' }}
   />
 )
@@ -90,7 +90,7 @@ const ASelect = ({ value, onChange, children }) => (
       outline: 'none', cursor: 'pointer',
       transition: 'border-color 0.2s',
     }}
-    onFocus={e => { e.target.style.borderColor = tk.rausch }}
+    onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)' }}
     onBlur={e => { e.target.style.borderColor = 'var(--color-border)' }}
   >
     {children}
@@ -99,7 +99,8 @@ const ASelect = ({ value, onChange, children }) => (
 
 /* ── Componente Principal ────────────────────────────────── */
 const GestaoTrilhas = () => {
-  const { isDark } = useTheme()
+  const { isDark, currentPalette } = useTheme()
+  const tk = buildTokens(currentPalette)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 

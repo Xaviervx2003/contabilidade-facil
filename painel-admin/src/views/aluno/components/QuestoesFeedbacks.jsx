@@ -1,10 +1,13 @@
 import React from 'react'
 import { Icon } from '@iconify/react'
 import { CButton } from '@coreui/react'
-import { tokens } from '../../../tokens'
+import { buildTokens } from '../../../tokens'
+import { useTheme } from '../../../context/themeContext'
 import { StatCard, FeedbackSkeleton, FAQItem } from './MinhasQuestoesComponents'
 
 const QuestoesFeedbacks = (props) => {
+    const { currentPalette } = useTheme()
+    const tk = buildTokens(currentPalette)
     const { 
         stats, 
         searchFeedbacks, setSearchFeedbacks, 
@@ -19,15 +22,15 @@ const QuestoesFeedbacks = (props) => {
         <div className="fade-in">
             <div className="mb-4 d-flex flex-column lg:flex-row justify-content-between gap-4">
                 <div className="d-flex flex-wrap gap-3 w-100 lg:w-auto">
-                    <StatCard icon="solar:document-text-linear" label="Total" value={stats?.total || 0} color={tokens.rausch} />
-                    <StatCard icon="solar:check-circle-linear" label="Respondidos" value={stats?.resolvidos || 0} color={tokens.babu} />
-                    <StatCard icon="solar:clock-circle-linear" label="Em Aberto" value={stats?.pendentes || 0} color={tokens.arches} />
+                    <StatCard icon="solar:document-text-linear" label="Total" value={stats?.total || 0} color={tk.rausch} />
+                    <StatCard icon="solar:check-circle-linear" label="Respondidos" value={stats?.resolvidos || 0} color={tk.babu} />
+                    <StatCard icon="solar:clock-circle-linear" label="Em Aberto" value={stats?.pendentes || 0} color={tk.arches} />
                 </div>
             </div>
 
             <div className="d-flex flex-column flex-md-row gap-3 align-items-center mb-4">
                 <div style={{ position: 'relative', flex: 1, width: '100%' }}>
-                    <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: tokens.foggy }}>
+                    <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: tk.foggy }}>
                         <Icon icon="solar:magnifer-linear" width="20" />
                     </div>
                     <input
@@ -35,7 +38,7 @@ const QuestoesFeedbacks = (props) => {
                         placeholder="Pesquisar dúvidas..."
                         className="w-100"
                         style={{
-                            background: tokens.bg, border: `1px solid ${tokens.border}`,
+                            background: tk.bg, border: `1px solid ${tk.border}`,
                             borderRadius: 16, padding: '14px 16px 14px 44px',
                             fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)', outline: 'none'
                         }}
@@ -46,7 +49,7 @@ const QuestoesFeedbacks = (props) => {
                 <CButton
                     onClick={abrirNovaPergunta}
                     style={{
-                        background: tokens.rausch, color: '#fff', border: 'none',
+                        background: tk.rausch, color: '#fff', border: 'none',
                         borderRadius: 16, padding: '14px 24px', fontWeight: 800, fontSize: 13,
                         display: 'flex', alignItems: 'center', gap: 8
                     }}
@@ -60,7 +63,7 @@ const QuestoesFeedbacks = (props) => {
                     {[...Array(3)].map((_, i) => <FeedbackSkeleton key={i} />)}
                 </div>
             ) : filteredFeedbacks?.length === 0 ? (
-                <div style={{ background: tokens.bg, border: `1px solid ${tokens.border}`, borderRadius: 24, padding: '50px 20px', textAlign: 'center' }}>
+                <div style={{ background: tk.bg, border: `1px solid ${tk.border}`, borderRadius: 24, padding: '50px 20px', textAlign: 'center' }}>
                     Nenhum feedback encontrado.
                 </div>
             ) : (

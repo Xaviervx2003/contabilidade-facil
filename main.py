@@ -60,8 +60,35 @@ app = FastAPI(
     redoc_url="/redoc" if _debug else None,
     openapi_url="/openapi.json" if _debug else None,
 )
-
 # Exception Handler Global (Monitoring - Roadmap.sh)
+import time
+from collections import deque
+
+_tempos_recentes = deque(maxlen=50)
+
+@app.middleware("http")
+async def log_query_time(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    elapsed = (time.perf_counter() - start) * 1000
+    _tempos_recentes.append(elapsed)
+    if elapsed > 100:
+        logger.warning(f"[SLOW QUERY] {request.url.path} — {elapsed:.1f}ms")
+    return response
+
+@app.get("/health")
+async def health():
+    if not _tempos_recentes:
+        return {"status": "ok", "avg_ms": None}
+    avg = sum(_tempos_recentes) / len(_tempos_recentes)
+    slow = sum(1 for t in _tempos_recentes if t > 100)
+    return {
+        "status": "ok",
+        "avg_ms": round(avg, 1),
+        "slow_requests": slow,
+        "total_amostras": len(_tempos_recentes)
+    }
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception(f"Erro não tratado na rota {request.url.path}: {str(exc)}")

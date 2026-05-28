@@ -1,9 +1,12 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { tokens } from '../../../tokens'
+import { buildTokens } from '../../../tokens'
+import { useTheme } from '../../../context/themeContext'
 
 const QuestoesFiltro = (props) => {
+    const { currentPalette } = useTheme()
+    const tk = buildTokens(currentPalette)
     const {
         activeDropdown, setActiveDropdown,
         dropdownStatusRef, dropdownMateriaRef,
@@ -29,8 +32,8 @@ const QuestoesFiltro = (props) => {
                             setActiveDropdown(activeDropdown === 'status' ? null : 'status')
                         }}
                         style={{
-                            background: tokens.bg,
-                            border: `1px solid ${activeDropdown === 'status' ? tokens.rausch : tokens.border}`,
+                            background: tk.bg,
+                            border: `1px solid ${activeDropdown === 'status' ? tk.rausch : tk.border}`,
                             borderRadius: 20,
                             padding: '12px 20px',
                             cursor: 'pointer',
@@ -42,14 +45,14 @@ const QuestoesFiltro = (props) => {
                         }}
                     >
                         <div>
-                            <div style={{ fontSize: 9, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status da Resolução</div>
+                            <div style={{ fontSize: 9, color: tk.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status da Resolução</div>
                             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginTop: 2 }}>
                                 {obterRotuloStatus()}
                             </div>
                         </div>
                         <Icon 
                             icon="solar:alt-arrow-down-bold" 
-                            style={{ color: tokens.foggy, transition: 'transform 0.2s', transform: activeDropdown === 'status' ? 'rotate(180deg)' : 'none' }} 
+                            style={{ color: tk.foggy, transition: 'transform 0.2s', transform: activeDropdown === 'status' ? 'rotate(180deg)' : 'none' }} 
                             width="14"
                         />
                     </div>
@@ -66,8 +69,8 @@ const QuestoesFiltro = (props) => {
                                     top: '108%',
                                     left: 0,
                                     width: '100%',
-                                    background: tokens.bg,
-                                    border: `1px solid ${tokens.border}`,
+                                    background: tk.bg,
+                                    border: `1px solid ${tk.border}`,
                                     borderRadius: 18,
                                     boxShadow: '0 12px 36px rgba(0,0,0,0.1)',
                                     padding: 10,
@@ -84,7 +87,7 @@ const QuestoesFiltro = (props) => {
                                             transition: 'background 0.2s'
                                         }}
                                     >
-                                        <Icon icon="solar:checklist-bold-duotone" style={{ color: tokens.foggy }} width="18" />
+                                        <Icon icon="solar:checklist-bold-duotone" style={{ color: tk.foggy }} width="18" />
                                         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Todas as resoluções</span>
                                     </div>
 
@@ -97,7 +100,7 @@ const QuestoesFiltro = (props) => {
                                             transition: 'background 0.2s'
                                         }}
                                     >
-                                        <Icon icon="solar:check-circle-bold-duotone" style={{ color: tokens.babu }} width="18" />
+                                        <Icon icon="solar:check-circle-bold-duotone" style={{ color: tk.babu }} width="18" />
                                         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Apenas Acertos</span>
                                     </div>
 
@@ -110,7 +113,7 @@ const QuestoesFiltro = (props) => {
                                             transition: 'background 0.2s'
                                         }}
                                     >
-                                        <Icon icon="solar:bill-cross-bold-duotone" style={{ color: tokens.rausch }} width="18" />
+                                        <Icon icon="solar:bill-cross-bold-duotone" style={{ color: tk.rausch }} width="18" />
                                         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Apenas Erros</span>
                                     </div>
                                 </div>
@@ -130,8 +133,8 @@ const QuestoesFiltro = (props) => {
                             setActiveDropdown(activeDropdown === 'materia' ? null : 'materia')
                         }}
                         style={{
-                            background: tokens.bg,
-                            border: `1px solid ${activeDropdown === 'materia' ? tokens.rausch : tokens.border}`,
+                            background: tk.bg,
+                            border: `1px solid ${activeDropdown === 'materia' ? tk.rausch : tk.border}`,
                             borderRadius: 20,
                             padding: '12px 20px',
                             cursor: 'pointer',
@@ -143,14 +146,14 @@ const QuestoesFiltro = (props) => {
                         }}
                     >
                         <div>
-                            <div style={{ fontSize: 9, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Matéria Relacionada</div>
+                            <div style={{ fontSize: 9, color: tk.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Matéria Relacionada</div>
                             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginTop: 2, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: 280 }}>
                                 {obterRotuloMateria()}
                             </div>
                         </div>
                         <Icon 
                             icon="solar:alt-arrow-down-bold" 
-                            style={{ color: tokens.foggy, transition: 'transform 0.2s', transform: activeDropdown === 'materia' ? 'rotate(180deg)' : 'none' }} 
+                            style={{ color: tk.foggy, transition: 'transform 0.2s', transform: activeDropdown === 'materia' ? 'rotate(180deg)' : 'none' }} 
                             width="14"
                         />
                     </div>
@@ -168,8 +171,8 @@ const QuestoesFiltro = (props) => {
                                     right: 0,
                                     width: '100%',
                                     minWidth: 280,
-                                    background: tokens.bg,
-                                    border: `1px solid ${tokens.border}`,
+                                    background: tk.bg,
+                                    border: `1px solid ${tk.border}`,
                                     borderRadius: 18,
                                     boxShadow: '0 12px 36px rgba(0,0,0,0.1)',
                                     padding: 14,
@@ -187,8 +190,8 @@ const QuestoesFiltro = (props) => {
                                             width: '100%',
                                             padding: '10px 14px 10px 36px',
                                             borderRadius: 12,
-                                            border: `1px solid ${tokens.border}`,
-                                            background: tokens.bgSub,
+                                            border: `1px solid ${tk.border}`,
+                                            background: tk.bgSub,
                                             color: 'var(--color-text-primary)',
                                             fontSize: 12,
                                             fontWeight: 600,
@@ -197,7 +200,7 @@ const QuestoesFiltro = (props) => {
                                     />
                                     <Icon 
                                         icon="solar:magnifer-linear" 
-                                        style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: tokens.foggy }} 
+                                        style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: tk.foggy }} 
                                         width="16"
                                     />
                                 </div>
@@ -212,12 +215,12 @@ const QuestoesFiltro = (props) => {
                                             transition: 'background 0.2s'
                                         }}
                                     >
-                                        <Icon icon="solar:book-bookmark-bold-duotone" style={{ color: tokens.foggy }} width="16" />
+                                        <Icon icon="solar:book-bookmark-bold-duotone" style={{ color: tk.foggy }} width="16" />
                                         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Todas as matérias</span>
                                     </div>
 
                                     {materiasFiltradas.length === 0 ? (
-                                        <div style={{ textAlign: 'center', color: tokens.foggy, fontSize: 11, padding: '10px 0' }}>
+                                        <div style={{ textAlign: 'center', color: tk.foggy, fontSize: 11, padding: '10px 0' }}>
                                             Nenhuma matéria encontrada.
                                         </div>
                                     ) : (
@@ -234,8 +237,8 @@ const QuestoesFiltro = (props) => {
                                                         transition: 'background 0.2s'
                                                     }}
                                                 >
-                                                    <Icon icon="solar:notebook-bold-duotone" style={{ color: isSelected ? tokens.rausch : tokens.foggy }} width="16" />
-                                                    <span style={{ fontSize: 12, fontWeight: 700, color: isSelected ? tokens.rausch : 'var(--color-text-primary)' }}>
+                                                    <Icon icon="solar:notebook-bold-duotone" style={{ color: isSelected ? tk.rausch : tk.foggy }} width="16" />
+                                                    <span style={{ fontSize: 12, fontWeight: 700, color: isSelected ? tk.rausch : 'var(--color-text-primary)' }}>
                                                         {m.nome}
                                                     </span>
                                                 </div>

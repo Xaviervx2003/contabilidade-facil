@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { API_URL } from '../../config'
 import api from '../../services/api'
-import { tokens } from '../../tokens'
+import { buildTokens } from '../../tokens'
 import useAuthSession from '../../hooks/useAuthSession'
+import { useTheme } from '../../context/themeContext'
 
 import Missoes from './Missoes'
 import Conquistas from './Conquistas'
@@ -16,6 +17,8 @@ const RankingTurma = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const { matricula } = useAuthSession()
+  const { currentPalette } = useTheme()
+  const tk = buildTokens(currentPalette)
 
   useEffect(() => {
     let active = true
@@ -49,7 +52,7 @@ const RankingTurma = () => {
           <div style={{ fontWeight: 800, fontSize: 20, color: 'var(--color-text-primary)', letterSpacing: '-0.3px' }}>
             Ranking da Turma
           </div>
-          <div style={{ fontSize: 13, color: tokens.foggy }}>
+          <div style={{ fontSize: 13, color: tk.foggy }}>
             Compare sua constância e volume de estudos com a turma.
           </div>
         </div>
@@ -65,7 +68,7 @@ const RankingTurma = () => {
               className="fw-bold border-0"
               style={{
                 background: tipo === option.id ? 'var(--color-bg-elevated)' : 'transparent',
-                color: tipo === option.id ? tokens.arches : tokens.foggy,
+                color: tipo === option.id ? tk.arches : tk.foggy,
                 borderRadius: 12,
                 padding: '8px 14px',
               }}
@@ -87,11 +90,11 @@ const RankingTurma = () => {
             <CSpinner size="sm" />
           </div>
         ) : error ? (
-          <div className="text-center py-5" style={{ color: tokens.foggy }}>
+          <div className="text-center py-5" style={{ color: tk.foggy }}>
             {error}
           </div>
         ) : ranking.length === 0 ? (
-          <div className="text-center py-5" style={{ color: tokens.foggy }}>
+          <div className="text-center py-5" style={{ color: tk.foggy }}>
             Ainda não há dados suficientes para montar o ranking.
           </div>
         ) : (
@@ -102,9 +105,9 @@ const RankingTurma = () => {
                 key={`${tipo}-${aluno.matricula}`}
                 className="d-flex align-items-center gap-3 p-3 border-bottom"
                 style={{
-                  background: isAtual ? `${tokens.arches}0d` : 'transparent',
+                  background: isAtual ? `${tk.arches}0d` : 'transparent',
                   borderColor: 'var(--color-border)',
-                  borderLeft: isAtual ? `4px solid ${tokens.arches}` : '4px solid transparent',
+                  borderLeft: isAtual ? `4px solid ${tk.arches}` : '4px solid transparent',
                   paddingLeft: isAtual ? 16 : 20,
                   transition: 'all 0.2s',
                 }}
@@ -115,8 +118,8 @@ const RankingTurma = () => {
                     width: 38,
                     height: 38,
                     borderRadius: 12,
-                    background: aluno.posicao <= 3 ? `${tokens.arches}18` : 'var(--color-bg-tertiary)',
-                    color: aluno.posicao <= 3 ? tokens.arches : tokens.foggy,
+                    background: aluno.posicao <= 3 ? `${tk.arches}18` : 'var(--color-bg-tertiary)',
+                    color: aluno.posicao <= 3 ? tk.arches : tk.foggy,
                     flexShrink: 0,
                   }}
                 >
@@ -127,7 +130,7 @@ const RankingTurma = () => {
                     <span>{aluno.nome}</span>
                     {isAtual && (
                       <span style={{
-                        background: tokens.arches,
+                        background: tk.arches,
                         color: '#fff',
                         fontSize: 9,
                         fontWeight: 800,
@@ -143,11 +146,11 @@ const RankingTurma = () => {
                       </span>
                     )}
                   </div>
-                  <div style={{ color: tokens.foggy, fontSize: 12 }}>
+                  <div style={{ color: tk.foggy, fontSize: 12 }}>
                     {tipo === 'streak' ? 'Dias consecutivos de estudo' : 'Questões respondidas'}
                   </div>
                 </div>
-                <div className="fw-bold" style={{ color: tokens.arches, fontSize: 20 }}>
+                <div className="fw-bold" style={{ color: tk.arches, fontSize: 20 }}>
                   {aluno.valor}
                 </div>
               </div>
@@ -161,6 +164,8 @@ const RankingTurma = () => {
 
 const Gamificacao = () => {
   const [abaAtiva, setAbaAtiva] = useState('desafios')
+  const { currentPalette } = useTheme()
+  const tk = buildTokens(currentPalette)
 
   const renderAba = () => {
     switch (abaAtiva) {
@@ -184,11 +189,11 @@ const Gamificacao = () => {
             animate={{ opacity: 1, y: 0 }}
             style={{ marginBottom: 32 }}
           >
-            <div style={{ color: tokens.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Gamificação</div>
+            <div style={{ color: tk.rausch, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Gamificação</div>
             <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
               Desafios & Conquistas
             </div>
-            <div style={{ fontSize: 14, color: tokens.foggy, marginTop: 6 }}>
+            <div style={{ fontSize: 14, color: tk.foggy, marginTop: 6 }}>
               Cumpra missões, ganhe XP e desbloqueie emblemas exclusivos.
             </div>
           </motion.div>
@@ -208,9 +213,9 @@ const Gamificacao = () => {
             overflowX: 'auto'
           }}>
             {[
-              { id: 'desafios', label: 'Missões & XP', icon: 'solar:target-bold-duotone', color: tokens.rausch },
-              { id: 'conquistas', label: 'Meus Emblemas', icon: 'solar:medal-ribbon-star-bold-duotone', color: tokens.babu },
-              { id: 'ranking', label: 'Ranking da Turma', icon: 'solar:cup-star-bold-duotone', color: tokens.arches },
+              { id: 'desafios', label: 'Missões & XP', icon: 'solar:target-bold-duotone', color: tk.rausch },
+              { id: 'conquistas', label: 'Meus Emblemas', icon: 'solar:medal-ribbon-star-bold-duotone', color: tk.babu },
+              { id: 'ranking', label: 'Ranking da Turma', icon: 'solar:cup-star-bold-duotone', color: tk.arches },
             ].map(tab => {
               const isActive = abaAtiva === tab.id
               return (
@@ -226,7 +231,7 @@ const Gamificacao = () => {
                     fontSize: 14,
                     border: 'none',
                     background: 'transparent',
-                    color: isActive ? tab.color : tokens.foggy,
+                    color: isActive ? tab.color : tk.foggy,
                     position: 'relative',
                     display: 'flex',
                     alignItems: 'center',

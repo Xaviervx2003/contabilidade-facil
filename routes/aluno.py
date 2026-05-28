@@ -7,17 +7,9 @@ Rotas:
   GET /api/aluno/meus-feedbacks/{nome}           — feedbacks do aluno (legado)
   GET /api/aluno/meus-feedbacks-v2               — feedbacks por matricula (seguro)
   GET /api/aluno/historico-diario/{matricula}    — série diária de questões
-"""
-routes/aluno.py — Funcionalidades da visão do Aluno.
-
-Rotas:
-  GET /api/aluno/historico-grafico/{matricula}   — dados agregados por mês para gráficos
-  GET /api/aluno/questoes-respondidas            — histórico detalhado de tentativas
-  GET /api/aluno/meus-feedbacks/{nome}           — feedbacks do aluno (legado)
-  GET /api/aluno/meus-feedbacks-v2               — feedbacks por matricula (seguro)
-  GET /api/aluno/historico-diario/{matricula}    — série diária de questões
   GET /api/aluno/historico-filtrado/{matricula}  — dados filtrados por período/matéria/acerto
 """
+
 
 from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel
@@ -236,7 +228,14 @@ def marcar_video_assistido(video_id: int, payload: VideoAssistidoPayload, token:
         raise HTTPException(status_code=500, detail=f"Erro ao salvar video assistido: {str(e)}")
 
 
-@router.get("/questoes-respondidas")
+@router.get("/quiz-analytics/{matricula}")
+def quiz_analytics(matricula: str, token: dict = Depends(verificar_proprio_ou_admin)):
+    """
+    Retorna analytics detalhados do desempenho do aluno no Quiz:
+    - Acerto por matéria (pontos fortes e fracos)
+    - Horário preferido de estudo
+    - Tempo médio por sessão
+    - Progresso semanal (streak)
     """
     cache_key = f"quiz_analytics:{matricula}"
     cached = cache.get(cache_key)

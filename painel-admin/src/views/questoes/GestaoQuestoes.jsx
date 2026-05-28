@@ -16,7 +16,7 @@ import {
   useEditarQuestao, 
   useDeletarQuestao 
 } from '../../hooks/useQuestoes'
-import { tokens as tk } from '../../tokens'
+import { buildTokens } from '../../tokens'
 import { confirmDialog } from '../../utils/confirm'
 
 const FONT = "'Nunito', 'Circular Std', sans-serif"
@@ -81,7 +81,7 @@ const SCard = ({ children, style = {}, delay = 0, onClick }) => (
 const Label = ({ children }) => (
   <div style={{
     fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-    letterSpacing: '0.9px', color: tk.foggy, marginBottom: 6, fontFamily: FONT,
+    letterSpacing: '0.9px', color: 'var(--color-text-muted, #767676)', marginBottom: 6, fontFamily: FONT,
   }}>
     {children}
   </div>
@@ -92,13 +92,13 @@ const Field = ({ label, icon, children, hint }) => (
   <div style={{ marginBottom: 20 }}>
     {label && (
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-        {icon && <Icon icon={icon} width="14" style={{ color: tk.foggy }} />}
+        {icon && <Icon icon={icon} width="14" style={{ color: 'var(--color-text-muted, #767676)' }} />}
         <Label>{label}</Label>
       </div>
     )}
     {children}
     {hint && (
-      <div style={{ fontSize: 11, color: tk.foggy, marginTop: 5, fontStyle: 'italic', fontFamily: FONT }}>
+      <div style={{ fontSize: 11, color: 'var(--color-text-muted, #767676)', marginTop: 5, fontStyle: 'italic', fontFamily: FONT }}>
         {hint}
       </div>
     )}
@@ -120,7 +120,7 @@ const AInput = ({ value, onChange, placeholder, type = 'text' }) => (
       padding: '0 14px', fontSize: 13, fontFamily: FONT,
       outline: 'none', transition: 'border-color 0.2s',
     }}
-    onFocus={e => { e.target.style.borderColor = tk.rausch }}
+    onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)' }}
     onBlur={e => { e.target.style.borderColor = 'var(--color-border)' }}
   />
 )
@@ -141,7 +141,7 @@ const ATextarea = ({ value, onChange, placeholder, rows = 4 }) => (
       outline: 'none', resize: 'vertical', lineHeight: 1.6,
       transition: 'border-color 0.2s',
     }}
-    onFocus={e => { e.target.style.borderColor = tk.rausch }}
+    onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)' }}
     onBlur={e => { e.target.style.borderColor = 'var(--color-border)' }}
   />
 )
@@ -160,7 +160,7 @@ const ASelect = ({ value, onChange, children }) => (
       outline: 'none', cursor: 'pointer',
       transition: 'border-color 0.2s',
     }}
-    onFocus={e => { e.target.style.borderColor = tk.rausch }}
+    onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)' }}
     onBlur={e => { e.target.style.borderColor = 'var(--color-border)' }}
   >
     {children}
@@ -188,7 +188,8 @@ const Indicador = ({ icon, color, title }) => (
 ═══════════════════════════════════════════════════════════ */
 const GestaoQuestoes = () => {
   const [searchParams] = useSearchParams()
-  const { isDark } = useTheme()
+  const { isDark, currentPalette } = useTheme()
+  const tk = buildTokens(currentPalette)
 
   /* ── Estados ───────────────────────────────────────────────── */
   const [currentPage, setCurrentPage] = useState(1)

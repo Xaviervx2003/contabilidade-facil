@@ -2,9 +2,12 @@ import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { CRow, CCol, CSpinner, CButton, CPagination, CPaginationItem } from '@coreui/react'
-import { tokens } from '../../../tokens'
+import { buildTokens } from '../../../tokens'
+import { useTheme } from '../../../context/themeContext'
 
 const QuestoesLista = (props) => {
+    const { currentPalette } = useTheme()
+    const tk = buildTokens(currentPalette)
     const { loading, dados, abrirRevisao, pagina, setPagina, porPagina } = props
     
     // Fallbacks essenciais
@@ -27,16 +30,16 @@ const QuestoesLista = (props) => {
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 style={{
-                    background: tokens.bg,
-                    border: `1px solid ${tokens.border}`,
+                    background: tk.bg,
+                    border: `1px solid ${tk.border}`,
                     borderRadius: 24,
                     padding: '50px 20px',
                     textAlign: 'center'
                 }}
             >
-                <Icon icon="solar:document-bold-duotone" width="48" style={{ color: tokens.foggy, marginBottom: 16 }} />
+                <Icon icon="solar:document-bold-duotone" width="48" style={{ color: tk.foggy, marginBottom: 16 }} />
                 <h5 style={{ fontWeight: 800, color: 'var(--color-text-primary)' }}>Nenhuma questão resolvida encontrada</h5>
-                <p style={{ color: tokens.foggy, fontSize: 13, maxWidth: 400, margin: '8px auto 0' }}>
+                <p style={{ color: tk.foggy, fontSize: 13, maxWidth: 400, margin: '8px auto 0' }}>
                     Tente alterar os filtros ou comece a praticar resolvendo quizes do sistema!
                 </p>
             </motion.div>
@@ -48,8 +51,8 @@ const QuestoesLista = (props) => {
             <CRow className="g-3">
                 <AnimatePresence mode="popLayout">
                     {questoes.map((item, idx) => {
-                        const statusCor = item.acertou ? tokens.babu : tokens.rausch
-                        const statusBg = item.acertou ? `${tokens.babu}15` : `${tokens.rausch}15`
+                        const statusCor = item.acertou ? tk.babu : tk.rausch
+                        const statusBg = item.acertou ? `${tk.babu}15` : `${tk.rausch}15`
                         return (
                             <CCol xs={12} md={6} key={item.questao_id || idx}>
                                 <motion.div
@@ -59,8 +62,8 @@ const QuestoesLista = (props) => {
                                     transition={{ duration: 0.2 }}
                                     whileHover={{ y: -2 }}
                                     style={{
-                                        background: tokens.bg,
-                                        border: `1px solid ${tokens.border}`,
+                                        background: tk.bg,
+                                        border: `1px solid ${tk.border}`,
                                         borderRadius: 20,
                                         padding: 20,
                                         boxShadow: '0 4px 20px rgba(0,0,0,0.01)',
@@ -73,7 +76,7 @@ const QuestoesLista = (props) => {
                                 >
                                     <div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                                            <span style={{ fontSize: 10, color: tokens.foggy, fontWeight: 800 }}>
+                                            <span style={{ fontSize: 10, color: tk.foggy, fontWeight: 800 }}>
                                                 ID: #{item.questao_id}
                                             </span>
                                             <span style={{
@@ -100,19 +103,19 @@ const QuestoesLista = (props) => {
                                         </p>
 
                                         <div className="d-flex flex-wrap gap-1 mt-2">
-                                            <span style={{ background: tokens.bgSub, color: tokens.foggy, padding: '4px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700, textTransform: 'capitalize' }}>
+                                            <span style={{ background: tk.bgSub, color: tk.foggy, padding: '4px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700, textTransform: 'capitalize' }}>
                                                 {item.materias}
                                             </span>
                                             {item.assunto && item.assunto !== 'Sem assunto' && (
-                                                <span style={{ background: tokens.bgSub, color: tokens.foggy, padding: '4px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700 }}>
+                                                <span style={{ background: tk.bgSub, color: tk.foggy, padding: '4px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700 }}>
                                                     {item.assunto}
                                                 </span>
                                             )}
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${tokens.border}`, paddingTop: 12, marginTop: 4 }}>
-                                        <span style={{ fontSize: 11, color: tokens.foggy, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${tk.border}`, paddingTop: 12, marginTop: 4 }}>
+                                        <span style={{ fontSize: 11, color: tk.foggy, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
                                             <Icon icon="solar:calendar-linear" />
                                             {item.data ? new Date(item.data).toLocaleDateString('pt-BR') : 'Sem data'}
                                         </span>
@@ -120,7 +123,7 @@ const QuestoesLista = (props) => {
                                         <CButton
                                             onClick={() => abrirRevisao(item.questao_id)}
                                             style={{
-                                                background: `${tokens.babu}15`, color: tokens.babu, border: 'none',
+                                                background: `${tk.babu}15`, color: tk.babu, border: 'none',
                                                 borderRadius: 10, padding: '6px 12px',
                                                 fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', gap: 6,
                                                 transition: 'all 0.2s'
@@ -156,8 +159,8 @@ const QuestoesLista = (props) => {
                                     onClick={() => setPagina(i + 1)}
                                     style={{
                                         cursor: 'pointer',
-                                        background: isActive ? tokens.rausch : 'transparent',
-                                        borderColor: isActive ? tokens.rausch : 'var(--color-border)',
+                                        background: isActive ? tk.rausch : 'transparent',
+                                        borderColor: isActive ? tk.rausch : 'var(--color-border)',
                                         color: isActive ? '#fff' : 'var(--color-text-primary)',
                                         fontWeight: 700,
                                         borderRadius: 8

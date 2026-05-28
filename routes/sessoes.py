@@ -15,6 +15,11 @@ def _salvar_sessao_background(sessao: SessaoEstudo):
     try:
         repo.salvar_sessao(sessao)
         invalidate_dashboard_cache()
+        
+        # Invalidar cache do aluno ao salvar nova sessão
+        from routes.gamificacao import _metricas_cache
+        aluno_key = sessao.matricula_aluno or sessao.nome_aluno
+        _metricas_cache.pop(aluno_key, None)
     except Exception as e:
         print(f"Erro no background saving sessao: {e}")
 

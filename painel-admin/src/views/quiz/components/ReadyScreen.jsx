@@ -26,7 +26,8 @@ const obterLinkEmbed = (videoUrl) => {
   }
   return embedUrl
 }
-import { tokens } from '../../../tokens';
+import { buildTokens } from '../../../tokens';
+import { useTheme } from '../../../context/themeContext';
 import gradeCurricular from '../../../data/grade_curricular.json';
 import curriculumMapping from '../../../data/curriculumMapping.json';
 import MateriaMultiSelect from '../../../components/MateriaMultiSelect';
@@ -67,6 +68,8 @@ const ReadyScreen = ({
   onStartPersonalizado,
   onStartSimuladoRapido,
 }) => {
+  const { currentPalette } = useTheme()
+  const tk = buildTokens(currentPalette)
   const [activeStep, setActiveStep] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [visibleLimit, setVisibleLimit] = useState(6)
@@ -769,6 +772,8 @@ export const QuizRunning = ({
   setIsConfusing,
   isConfirmingFinish,
 }) => {
+  const { currentPalette } = useTheme()
+  const tk = buildTokens(currentPalette)
   // Ponto 12: Atalhos de teclado — A/B/C/D/E seleciona, Enter confirma, N próxima
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -1046,7 +1051,7 @@ export const QuizRunning = ({
               onClick={onConfirmAnswer}
               className="fw-bold px-4 py-2 w-100 transition-all text-white"
               style={{
-                background: selectedOption ? 'var(--accent-primary, #FF385C)' : 'var(--color-border)',
+                background: selectedOption ? 'var(--accent-primary, #FF385C)' /* fallback: tema não carregado */ : 'var(--color-border)',
                 border: 'none',
                 borderRadius: '30px',
                 fontSize: '15px',
@@ -1072,7 +1077,7 @@ export const QuizRunning = ({
               onClick={onNextQuestion}
               className="fw-bold px-4 py-2 w-100 transition-all text-white"
               style={{
-                background: 'var(--accent-primary, #FF385C)',
+                background: 'var(--accent-primary, #FF385C)' /* fallback: tema não carregado */,
                 border: 'none',
                 borderRadius: '30px',
                 fontSize: '15px',

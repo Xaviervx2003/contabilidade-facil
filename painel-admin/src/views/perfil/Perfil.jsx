@@ -14,7 +14,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { getAlunoMatricula } from '../../utils/auth'
-import { tokens } from '../../tokens'
+import { buildTokens } from '../../tokens'
 import { COLOR_PALETTES } from '../../tokens'
 import { useTheme } from '../../context/themeContext'
 import api from '../../services/api'
@@ -50,7 +50,8 @@ const Perfil = () => {
   const [activeTab, setActiveTab] = useState('dados') // 'dados' | 'seguranca' | 'aparencia'
   const queryClient = useQueryClient()
   const fileInputRef = useRef(null)
-  const { accentPalette, setAccentPalette } = useTheme()
+  const { accentPalette, setAccentPalette, currentPalette } = useTheme()
+  const tk = buildTokens(currentPalette)
 
   // Estados dos dados complementares
   const [formData, setFormData] = useState({
@@ -220,7 +221,7 @@ const Perfil = () => {
           <h2 style={{ fontSize: 28, fontWeight: 900, color: 'var(--color-text-primary)', letterSpacing: '-0.5px', marginBottom: 8 }}>
             Minha Conta
           </h2>
-          <p style={{ fontSize: 14, color: tokens.foggy, fontWeight: 600, margin: 0 }}>
+          <p style={{ fontSize: 14, color: tk.foggy, fontWeight: 600, margin: 0 }}>
             Gerencie seus dados pessoais, configurações e credenciais de segurança.
           </p>
         </div>
@@ -256,7 +257,7 @@ const Perfil = () => {
                     fontSize: 14,
                     border: 'none',
                     background: 'transparent',
-                    color: isActive ? 'var(--accent-primary, #FF385C)' : tokens.foggy,
+                    color: isActive ? 'var(--accent-primary, #FF385C)' /* fallback: tema não carregado */ : tk.foggy,
                     position: 'relative',
                     display: 'flex',
                     alignItems: 'center',
@@ -295,8 +296,8 @@ const Perfil = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
               style={{
-                background: tokens.bg,
-                border: `1px solid ${tokens.border}`,
+                background: tk.bg,
+                border: `1px solid ${tk.border}`,
                 borderRadius: 24,
                 padding: 32,
                 boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
@@ -307,7 +308,7 @@ const Perfil = () => {
                 <h4 style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text-primary)', margin: 0 }}>
                   Informações Pessoais
                 </h4>
-                <Icon icon="solar:user-circle-bold-duotone" width="32" style={{ color: tokens.babu }} />
+                <Icon icon="solar:user-circle-bold-duotone" width="32" style={{ color: tk.babu }} />
               </div>
 
               {/* Avatar e Identificação */}
@@ -319,17 +320,17 @@ const Perfil = () => {
                       alt="Avatar" 
                       style={{
                         width: 80, height: 80, borderRadius: '50%', objectFit: 'cover',
-                        boxShadow: `0 8px 20px ${tokens.rausch}40`, border: `2px solid ${tokens.rausch}`,
+                        boxShadow: `0 8px 20px ${tk.rausch}40`, border: `2px solid ${tk.rausch}`,
                         opacity: uploading ? 0.5 : 1
                       }}
                     />
                   ) : (
                     <div style={{
                       width: 80, height: 80, borderRadius: '50%',
-                      background: `linear-gradient(135deg, ${tokens.rausch}, ${tokens.arches})`,
+                      background: `linear-gradient(135deg, ${tk.rausch}, ${tk.arches})`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: '#fff', fontSize: 32, fontWeight: 800,
-                      boxShadow: `0 8px 20px ${tokens.rausch}40`,
+                      boxShadow: `0 8px 20px ${tk.rausch}40`,
                       opacity: uploading ? 0.5 : 1
                     }}>
                       {initials}
@@ -351,7 +352,7 @@ const Perfil = () => {
                     onClick={() => fileInputRef.current?.click()}
                     style={{
                       position: 'absolute', bottom: -5, right: -5, 
-                      background: tokens.bg, border: `1px solid ${tokens.border}`,
+                      background: tk.bg, border: `1px solid ${tk.border}`,
                       borderRadius: '50%', width: 32, height: 32,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
@@ -361,7 +362,7 @@ const Perfil = () => {
                     aria-label="Alterar Foto"
                     disabled={uploading}
                   >
-                    {uploading ? <CSpinner size="sm" /> : <Icon icon="solar:camera-bold-duotone" width="18" style={{ color: tokens.rausch }} />}
+                    {uploading ? <CSpinner size="sm" /> : <Icon icon="solar:camera-bold-duotone" width="18" style={{ color: tk.rausch }} />}
                   </button>
                   <input 
                     type="file" 
@@ -373,7 +374,7 @@ const Perfil = () => {
                   />
                 </div>
                 <div>
-                  <div style={{ fontSize: 12, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+                  <div style={{ fontSize: 12, color: tk.foggy, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
                     Nome Completo
                   </div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text-primary)' }}>
@@ -384,22 +385,22 @@ const Perfil = () => {
 
               {/* Detalhes (Matrícula, Acesso, Data) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 40 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px', background: tokens.bgSub, borderRadius: 16 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: `${tokens.babu}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: tokens.babu }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px', background: tk.bgSub, borderRadius: 16 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 12, background: `${tk.babu}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: tk.babu }}>
                     <Icon icon="solar:id-card-bold-duotone" width="24" />
                   </div>
                   <div>
-                    <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase' }}>Matrícula</div>
+                    <div style={{ fontSize: 11, color: tk.foggy, fontWeight: 800, textTransform: 'uppercase' }}>Matrícula</div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)' }}>{perfil.matricula}</div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px', background: tokens.bgSub, borderRadius: 16 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: `${tokens.arches}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: tokens.arches }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px', background: tk.bgSub, borderRadius: 16 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 12, background: `${tk.arches}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: tk.arches }}>
                     <Icon icon="solar:shield-keyhole-bold-duotone" width="24" />
                   </div>
                   <div>
-                    <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase' }}>Tipo de Acesso</div>
+                    <div style={{ fontSize: 11, color: tk.foggy, fontWeight: 800, textTransform: 'uppercase' }}>Tipo de Acesso</div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', textTransform: 'capitalize' }}>
                       {perfil.papel === 'aluno' ? 'Estudante' : perfil.papel}
                     </div>
@@ -407,12 +408,12 @@ const Perfil = () => {
                 </div>
 
                 {perfil.criado_em && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px', border: `1px dashed ${tokens.border}`, borderRadius: 16 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: tokens.foggy }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px', border: `1px dashed ${tk.border}`, borderRadius: 16 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: tk.foggy }}>
                       <Icon icon="solar:calendar-date-bold-duotone" width="24" />
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, color: tokens.foggy, fontWeight: 800, textTransform: 'uppercase' }}>Membro desde</div>
+                      <div style={{ fontSize: 11, color: tk.foggy, fontWeight: 800, textTransform: 'uppercase' }}>Membro desde</div>
                       <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)' }}>{formatarData(perfil.criado_em)}</div>
                     </div>
                   </div>
@@ -420,7 +421,7 @@ const Perfil = () => {
               </div>
 
               {/* Formulário de Dados Complementares */}
-              <div style={{ borderTop: `1px solid ${tokens.border}`, paddingTop: 32 }}>
+              <div style={{ borderTop: `1px solid ${tk.border}`, paddingTop: 32 }}>
                 <h5 style={{ fontSize: 16, fontWeight: 800, marginBottom: 24, color: 'var(--color-text-primary)' }}>Dados Complementares</h5>
                 
                 <AnimatePresence mode="wait">
@@ -437,42 +438,42 @@ const Perfil = () => {
                 <CForm onSubmit={handleSalvarPerfil}>
                   <CRow className="g-4 mb-4">
                     <CCol xs={12} md={6}>
-                      <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase' }}>Celular</CFormLabel>
+                      <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tk.foggy, textTransform: 'uppercase' }}>Celular</CFormLabel>
                       <CFormInput
                         value={formData.celular}
                         onChange={(e) => setFormData(prev => ({ ...prev, celular: e.target.value }))}
                         placeholder="(99) 99999-9999"
-                        style={{ background: tokens.bgSub, border: 'none', borderRadius: 14, padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}
+                        style={{ background: tk.bgSub, border: 'none', borderRadius: 14, padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}
                       />
                     </CCol>
                     <CCol xs={12} md={6}>
-                      <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase' }}>Data de Nascimento</CFormLabel>
+                      <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tk.foggy, textTransform: 'uppercase' }}>Data de Nascimento</CFormLabel>
                       <CFormInput
                         type="date"
                         value={formData.data_nascimento}
                         onChange={(e) => setFormData(prev => ({ ...prev, data_nascimento: e.target.value }))}
-                        style={{ background: tokens.bgSub, border: 'none', borderRadius: 14, padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}
+                        style={{ background: tk.bgSub, border: 'none', borderRadius: 14, padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}
                       />
                     </CCol>
                     <CCol xs={12} md={6}>
-                      <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase' }}>Período do Curso</CFormLabel>
+                      <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tk.foggy, textTransform: 'uppercase' }}>Período do Curso</CFormLabel>
                       <select 
                         className="form-select"
                         value={formData.periodo}
                         onChange={(e) => setFormData(prev => ({ ...prev, periodo: e.target.value }))}
-                        style={{ background: tokens.bgSub, border: 'none', borderRadius: 14, padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}
+                        style={{ background: tk.bgSub, border: 'none', borderRadius: 14, padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}
                       >
                         <option value="">Não informado</option>
                         {[1,2,3,4,5,6,7,8].map(p => <option key={p} value={p}>{p}º Período</option>)}
                       </select>
                     </CCol>
                     <CCol xs={12} md={6}>
-                      <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase' }}>Objetivo</CFormLabel>
+                      <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tk.foggy, textTransform: 'uppercase' }}>Objetivo</CFormLabel>
                       <select 
                         className="form-select"
                         value={formData.objetivo}
                         onChange={(e) => setFormData(prev => ({ ...prev, objetivo: e.target.value }))}
-                        style={{ background: tokens.bgSub, border: 'none', borderRadius: 14, padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}
+                        style={{ background: tk.bgSub, border: 'none', borderRadius: 14, padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}
                       >
                         <option value="">Não informado</option>
                         <option value="CFC">Exame de Suficiência (CFC)</option>
@@ -486,9 +487,9 @@ const Perfil = () => {
                     type="submit" 
                     disabled={salvandoPerfil}
                     style={{
-                      background: tokens.babu, color: '#fff', border: 'none', borderRadius: 16,
+                      background: tk.babu, color: '#fff', border: 'none', borderRadius: 16,
                       padding: '16px 24px', fontWeight: 800, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8,
-                      boxShadow: `0 8px 24px ${tokens.babu}30`, transition: 'all 0.2s', width: '100%', justifyContent: 'center'
+                      boxShadow: `0 8px 24px ${tk.babu}30`, transition: 'all 0.2s', width: '100%', justifyContent: 'center'
                     }}
                   >
                     {salvandoPerfil ? <><CSpinner size="sm" /> Salvando...</> : <><Icon icon="solar:diskette-bold" width="20" /> Salvar Alterações</>}
@@ -507,8 +508,8 @@ const Perfil = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
               style={{
-                background: tokens.bg,
-                border: `1px solid ${tokens.border}`,
+                background: tk.bg,
+                border: `1px solid ${tk.border}`,
                 borderRadius: 24,
                 padding: 32,
                 boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
@@ -521,10 +522,10 @@ const Perfil = () => {
                 <h4 style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text-primary)', margin: 0 }}>
                   Segurança da Conta
                 </h4>
-                <Icon icon="solar:lock-password-bold-duotone" width="32" style={{ color: tokens.rausch }} />
+                <Icon icon="solar:lock-password-bold-duotone" width="32" style={{ color: tk.rausch }} />
               </div>
 
-              <div style={{ fontSize: 13, color: tokens.foggy, fontWeight: 600, marginBottom: 24, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 13, color: tk.foggy, fontWeight: 600, marginBottom: 24, lineHeight: 1.5 }}>
                 Para manter sua conta segura, utilize uma senha forte contendo letras, números e no mínimo 6 caracteres.
               </div>
 
@@ -547,7 +548,7 @@ const Perfil = () => {
               <CForm onSubmit={handleAlterarSenha} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <div style={{ flex: 1 }}>
                   <div className="mb-4">
-                    <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase' }}>Senha Atual</CFormLabel>
+                    <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tk.foggy, textTransform: 'uppercase' }}>Senha Atual</CFormLabel>
                     <CFormInput
                       type="password"
                       value={senhaAtual}
@@ -555,14 +556,14 @@ const Perfil = () => {
                       placeholder="Digite sua senha atual"
                       required
                       style={{
-                        background: tokens.bgSub, border: 'none', borderRadius: 14,
+                        background: tk.bgSub, border: 'none', borderRadius: 14,
                         padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)', outline: 'none'
                       }}
                     />
                   </div>
 
                   <div className="mb-4">
-                    <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase' }}>Nova Senha</CFormLabel>
+                    <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tk.foggy, textTransform: 'uppercase' }}>Nova Senha</CFormLabel>
                     <CFormInput
                       type="password"
                       value={novaSenha}
@@ -570,14 +571,14 @@ const Perfil = () => {
                       placeholder="Mínimo de 6 caracteres"
                       required
                       style={{
-                        background: tokens.bgSub, border: 'none', borderRadius: 14,
+                        background: tk.bgSub, border: 'none', borderRadius: 14,
                         padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)', outline: 'none'
                       }}
                     />
                   </div>
 
                   <div className="mb-5">
-                    <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tokens.foggy, textTransform: 'uppercase' }}>Confirmar Nova Senha</CFormLabel>
+                    <CFormLabel style={{ fontSize: 12, fontWeight: 800, color: tk.foggy, textTransform: 'uppercase' }}>Confirmar Nova Senha</CFormLabel>
                     <CFormInput
                       type="password"
                       value={confirmaSenha}
@@ -585,7 +586,7 @@ const Perfil = () => {
                       placeholder="Repita a nova senha"
                       required
                       style={{
-                        background: tokens.bgSub, border: 'none', borderRadius: 14,
+                        background: tk.bgSub, border: 'none', borderRadius: 14,
                         padding: '14px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)', outline: 'none'
                       }}
                     />
@@ -596,7 +597,7 @@ const Perfil = () => {
                   type="submit" 
                   disabled={saving}
                   style={{
-                    background: tokens.rausch,
+                    background: tk.rausch,
                     color: '#fff',
                     border: 'none',
                     borderRadius: 16,
@@ -608,7 +609,7 @@ const Perfil = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 8,
-                    boxShadow: `0 8px 24px ${tokens.rausch}30`,
+                    boxShadow: `0 8px 24px ${tk.rausch}30`,
                     transition: 'all 0.2s',
                     marginTop: 'auto'
                   }}
@@ -630,13 +631,13 @@ const Perfil = () => {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.05 }}
-                style={{ background: tokens.bg, border: `1px solid ${tokens.border}`, borderRadius: 24, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.02)' }}
+                style={{ background: tk.bg, border: `1px solid ${tk.border}`, borderRadius: 24, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.02)' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                   <h4 style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text-primary)', margin: 0 }}>Paleta de Cores</h4>
-                  <Icon icon="solar:palette-bold-duotone" width="32" style={{ color: tokens.arches }} />
+                  <Icon icon="solar:palette-bold-duotone" width="32" style={{ color: tk.arches }} />
                 </div>
-                <p style={{ fontSize: 13, color: tokens.foggy, marginBottom: 28 }}>
+                <p style={{ fontSize: 13, color: tk.foggy, marginBottom: 28 }}>
                   Escolha a cor de destaque da interface. Ela é aplicada em botões, barras de progresso, menu ativo e muito mais.
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 16 }}>
@@ -648,8 +649,8 @@ const Perfil = () => {
                         style={{
                           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
                           padding: '18px 12px', borderRadius: 18,
-                          border: isActive ? `2.5px solid ${palette.primary}` : `1.5px solid ${tokens.border}`,
-                          background: isActive ? `${palette.primary}10` : tokens.bgSub,
+                          border: isActive ? `2.5px solid ${palette.primary}` : `1.5px solid ${tk.border}`,
+                          background: isActive ? `${palette.primary}10` : tk.bgSub,
                           cursor: 'pointer', transition: 'all 0.2s',
                           boxShadow: isActive ? `0 6px 20px ${palette.primary}25` : 'none',
                         }}
@@ -671,13 +672,13 @@ const Perfil = () => {
                           <div style={{ fontSize: 13, fontWeight: isActive ? 800 : 600, color: isActive ? palette.primary : 'var(--color-text-primary)' }}>
                             {palette.emoji} {palette.label}
                           </div>
-                          <div style={{ fontSize: 10, color: tokens.foggy, marginTop: 2, fontFamily: 'monospace' }}>{palette.primary}</div>
+                          <div style={{ fontSize: 10, color: tk.foggy, marginTop: 2, fontFamily: 'monospace' }}>{palette.primary}</div>
                         </div>
                       </motion.button>
                     )
                   })}
                 </div>
-                <div style={{ marginTop: 24, padding: '12px 16px', background: tokens.bgSub, borderRadius: 12, fontSize: 12, color: tokens.foggy, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ marginTop: 24, padding: '12px 16px', background: tk.bgSub, borderRadius: 12, fontSize: 12, color: tk.foggy, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Icon icon="solar:info-circle-linear" width="14" />
                   A sua preferência de cor é salva automaticamente no navegador.
                 </div>
