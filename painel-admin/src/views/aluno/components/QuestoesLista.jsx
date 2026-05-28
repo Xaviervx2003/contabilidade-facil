@@ -103,11 +103,28 @@ const QuestoesLista = (props) => {
                                         </p>
 
                                         <div className="d-flex flex-wrap gap-1 mt-2">
-                                            <span style={{ background: tk.bgSub, color: tk.foggy, padding: '4px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700, textTransform: 'capitalize' }}>
+                                            <span style={{ 
+                                                background: `${tk.rausch}12`, 
+                                                color: tk.rausch, 
+                                                border: `1px solid ${tk.rausch}25`,
+                                                padding: '4px 8px', 
+                                                borderRadius: 8, 
+                                                fontSize: 10, 
+                                                fontWeight: 800, 
+                                                textTransform: 'capitalize' 
+                                            }}>
                                                 {item.materias}
                                             </span>
                                             {item.assunto && item.assunto !== 'Sem assunto' && (
-                                                <span style={{ background: tk.bgSub, color: tk.foggy, padding: '4px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700 }}>
+                                                <span style={{ 
+                                                    background: `${tk.babu}12`, 
+                                                    color: tk.babu, 
+                                                    border: `1px solid ${tk.babu}25`,
+                                                    padding: '4px 8px', 
+                                                    borderRadius: 8, 
+                                                    fontSize: 10, 
+                                                    fontWeight: 800 
+                                                }}>
                                                     {item.assunto}
                                                 </span>
                                             )}
