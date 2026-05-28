@@ -434,13 +434,29 @@ const ReadyScreen = ({
                 materiasSelected.map((selectedId) => {
                   const materia = materias.find((materiaObj) => String(materiaObj.id) === selectedId)
                   return (
-                    <CBadge key={selectedId} color="primary" className="p-2 d-flex align-items-center gap-2 rounded-pill shadow-sm">
+                    <CBadge 
+                      key={selectedId} 
+                      className="p-2 d-flex align-items-center gap-2 rounded-pill shadow-sm"
+                      style={{ 
+                        backgroundColor: 'var(--accent-primary, #FF385C)', 
+                        color: '#fff', 
+                        border: 'none',
+                        fontWeight: 700 
+                      }}
+                    >
                       <span style={{ fontSize: 12 }}>{materia?.nome || selectedId}</span>
                       <span
                         role="button"
                         onClick={() => setMateriasSelected((prevSelected) => prevSelected.filter((id) => id !== selectedId))}
-                        className="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center"
-                        style={{ cursor: 'pointer', fontSize: 10, width: 16, height: 16, fontWeight: 'bold' }}
+                        className="bg-white rounded-circle d-flex align-items-center justify-content-center"
+                        style={{ 
+                          cursor: 'pointer', 
+                          fontSize: 10, 
+                          width: 16, 
+                          height: 16, 
+                          fontWeight: 'bold',
+                          color: 'var(--accent-primary, #FF385C)' 
+                        }}
                       >
                         ×
                       </span>
