@@ -122,12 +122,11 @@ const GestaoTrilhas = () => {
     questoes_selecionadas: '', duracao_minutos: '', material_apoio_url: ''
   })
 
-  // Data fetching
   const { data: trilhas = [], isLoading: loadingTrilhas } = useQuery({
     queryKey: ['adminTrilhas'],
     queryFn: async () => {
       const res = await api.get('/api/trilhas')
-      return res.data
+      return Array.isArray(res.data) ? res.data : (res.data.data || [])
     }
   })
 
