@@ -90,10 +90,10 @@ const MiniBarChart = React.memo(({ data, isDark, tk }) => {
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: isDark ? '#1e2a38' : '#fff',
-              titleColor: isDark ? '#7eb8f7' : tk.rausch,
-              bodyColor: isDark ? '#e0e8f0' : tk.foggy,
-              borderColor: isDark ? '#2d3f52' : 'var(--color-border)',
+              backgroundColor: isDark ? 'var(--color-bg-elevated)' : '#fff',
+              titleColor: 'var(--accent-primary)',
+              bodyColor: 'var(--color-text-secondary)',
+              borderColor: 'var(--color-border)',
               borderWidth: 1,
               cornerRadius: 8,
               displayColors: false,

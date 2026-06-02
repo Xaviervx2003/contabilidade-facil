@@ -181,6 +181,7 @@ export const tokens = {
   hof:     '#484848',   // Texto escuro
   foggy:   '#767676',   // Cinza muted
   swiss:   '#B0B0B0',   // Borda/muted
+  gold:    '#F59E0B',   // Dourado para avisos/recomendações
   border:  'var(--color-border)',
   bg:      'var(--color-bg-elevated)',
   bgSub:   'var(--color-bg-tertiary)',
@@ -196,6 +197,7 @@ export const buildTokens = (palette = COLOR_PALETTES[DEFAULT_PALETTE]) => ({
   hof:     '#484848',
   foggy:   'var(--color-text-muted, #767676)',
   swiss:   '#B0B0B0',
+  gold:    '#F59E0B',
   border:  'var(--color-border)',
   bg:      'var(--color-bg-elevated)',
   bgSub:   'var(--color-bg-tertiary)',

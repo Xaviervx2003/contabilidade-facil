@@ -197,7 +197,7 @@ const MinhasTrilhas = () => {
                                 <Icon icon="solar:route-bold-duotone" width="64" style={{ color: 'var(--color-border)', opacity: 0.3 }} />
                             </div>
                         )}
-                        <CBadge color={concluida ? 'success' : 'primary'} style={{ position: 'absolute', top: 16, right: 16, borderRadius: 8, fontSize: 11, padding: '6px 10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                        <CBadge style={{ position: 'absolute', top: 16, right: 16, borderRadius: 8, fontSize: 11, padding: '6px 10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', background: concluida ? 'var(--accent-secondary)' : 'var(--accent-primary)', color: '#fff' }}>
                           {concluida ? 'CONCLUÍDO' : `${t.progresso_percentual}%`}
                         </CBadge>
                       </div>
@@ -219,8 +219,8 @@ const MinhasTrilhas = () => {
                         </div>
 
                         {!concluida && (
-                          <div className="p-3 rounded-4 bg-body-tertiary border mb-4 d-flex align-items-center gap-3">
-                            <div className="p-2 rounded-circle bg-white shadow-sm border">
+                          <div className="p-3 rounded-4 mb-4 d-flex align-items-center gap-3" style={{ background: 'var(--color-bg-tertiary)', border: '1.5px solid var(--color-border)' }}>
+                            <div className="p-2 rounded-circle shadow-sm" style={{ background: 'var(--color-bg-elevated)', border: '1.5px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <Icon icon="solar:play-bold" width="18" style={{ color: 'var(--accent-primary)' }} />
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
