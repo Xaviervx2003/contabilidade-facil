@@ -213,8 +213,8 @@ const GestaoMissoes = () => {
                             <td style={{ padding: '16px 24px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                 <div style={{ fontSize: 24, background: `${m.cor || tk.rausch}15`, width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                  {m.icone && (m.icone.includes(':') || m.icone.startsWith('solar')) ? (
-                                    <Icon icon={m.icone} width="22" style={{ color: m.cor || tk.rausch }} />
+                                  {m.icone && /[a-zA-Z]/.test(m.icone) ? (
+                                    <Icon icon={m.icone.includes(':') ? m.icone : `solar:${m.icone}`} width="22" style={{ color: m.cor || tk.rausch }} />
                                   ) : (
                                     m.icone || '🎯'
                                   )}
