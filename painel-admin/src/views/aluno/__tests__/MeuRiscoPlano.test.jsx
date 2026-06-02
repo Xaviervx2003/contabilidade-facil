@@ -8,6 +8,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
 
 // ── Mocks de módulos ──────────────────────────────────────────────────────────
@@ -29,11 +30,24 @@ vi.mock('@iconify/react', () => ({
   Icon: ({ icon }) => <span data-testid="icon" data-icon={icon} />,
 }))
 
+vi.mock('../../../context/themeContext', () => ({
+  __esModule: true,
+  useTheme: () => ({ isDark: false, toggleTheme: vi.fn(), currentTheme: {} }),
+  ThemeProvider: ({ children }) => children,
+}))
+
 // ── Import do componente (após os mocks) ──────────────────────────────────────
 import MeuRiscoPlano from '../MeuRiscoPlano'
 import api from '../../../services/api'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0 },
+    },
+  })
 
 const metricsData = {
   sessoes: 10,
@@ -62,9 +76,11 @@ describe('MeuRiscoPlano - Diagnóstico Acadêmico', () => {
     api.get.mockResolvedValue({ data: metricsData })
 
     render(
-      <MemoryRouter>
-        <MeuRiscoPlano />
-      </MemoryRouter>
+      <QueryClientProvider client={createTestQueryClient()}>
+        <MemoryRouter>
+          <MeuRiscoPlano />
+        </MemoryRouter>
+      </QueryClientProvider>
     )
 
     await waitFor(() => {
@@ -77,9 +93,11 @@ describe('MeuRiscoPlano - Diagnóstico Acadêmico', () => {
   it('deve exibir mensagem de erro quando matrícula estiver ausente', async () => {
     // Sem matrícula — o componente deve exibir mensagem de acesso exclusivo
     render(
-      <MemoryRouter>
-        <MeuRiscoPlano />
-      </MemoryRouter>
+      <QueryClientProvider client={createTestQueryClient()}>
+        <MemoryRouter>
+          <MeuRiscoPlano />
+        </MemoryRouter>
+      </QueryClientProvider>
     )
 
     // O componente seta o erro e não chama a API
@@ -99,9 +117,11 @@ describe('MeuRiscoPlano - Diagnóstico Acadêmico', () => {
     api.get.mockRejectedValue({ response: { status: 404 } })
 
     render(
-      <MemoryRouter>
-        <MeuRiscoPlano />
-      </MemoryRouter>
+      <QueryClientProvider client={createTestQueryClient()}>
+        <MemoryRouter>
+          <MeuRiscoPlano />
+        </MemoryRouter>
+      </QueryClientProvider>
     )
 
     // Componente exibe estado vazio: "Seu Diagnóstico Está Sendo Gerado!"

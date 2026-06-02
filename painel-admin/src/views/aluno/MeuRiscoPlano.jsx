@@ -63,7 +63,9 @@ const MeuRiscoPlano = () => {
         staleTime: 1000 * 60 * 5 // 5 minutos de cache
     })
 
-    const error = queryError ? queryError.message : null
+    const error = !matricula
+        ? 'Esta área é exclusiva para alunos com matrícula ativa.'
+        : (queryError ? queryError.message : null)
 
     // Configurações do simulador de horas
     const [horasSemanais, setHorasSemanais] = useState(8)
